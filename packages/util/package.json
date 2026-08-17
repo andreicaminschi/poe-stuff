@@ -1,0 +1,11 @@
+{
+  "name": "@util/core",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./env": "./env.ts",
+    "./sleep": "./sleep.ts"
+  }
+}
