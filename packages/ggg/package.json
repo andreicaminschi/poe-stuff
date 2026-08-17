@@ -1,0 +1,14 @@
+{
+  "name": "@poe/ggg",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./call": "./call.ts",
+    "./errors": "./errors.ts",
+    "./rate-limiter": "./rate-limiter.ts",
+    "./parse-rate-limit-headers": "./parse-rate-limit-headers.ts",
+    "./types": "./types.ts"
+  }
+}
