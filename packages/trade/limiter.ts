@@ -1,3 +1,5 @@
+import { sleep } from "@util/core/sleep";
+
 /** At most `max` acquisitions per rolling `windowMs`. */
 export type Rule = { max: number; windowMs: number };
 
@@ -42,7 +44,6 @@ export function createLimiter(rules: Rule[]): Limiter {
   let penaltyUntil = 0;
   let tail: Promise<void> = Promise.resolve();
 
-  const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
   // reduce, not Math.max(...spread): an empty list would silently yield -Infinity and
   // trim away every hit. assertRules rules that out, and this keeps it out.
   const longest = () =>
