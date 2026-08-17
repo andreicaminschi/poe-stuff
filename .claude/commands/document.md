@@ -61,7 +61,9 @@ unanswered, write the section without that claim rather than guessing.
    - Show the call and what comes back. Elide setup with `// …` only when it is obvious.
    - No pseudo-code, no `foo`/`bar`. Use values this package would really see.
 7. **Environment** — table: var → what it holds → example value. Never print a real
-   secret; use a placeholder. Say which file it lives in: `packages/$1/.env`.
+   secret; use a placeholder. Say where it comes from: `packages/$1/.env` if that file
+   exists, otherwise whatever the consuming package loaded with `--env-file`, since
+   `requireEnv` throws at first use rather than at import.
 8. **Gotchas** — the constraints that break things silently when violated: shared
    rate limits, unstable ids, ordering requirements, caches that must be invalidated
    together. Each entry states the trap and the consequence. If there are none you can
