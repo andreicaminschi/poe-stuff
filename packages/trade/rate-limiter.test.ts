@@ -6,7 +6,7 @@ import {
   beforeEach,
   afterEach,
 } from "@jest/globals";
-import { createLimiter } from "./limiter.ts";
+import { createLimiter } from "./rate-limiter.ts";
 
 // Every test drives the clock by hand, starting from 0 so the arithmetic in the
 // assertions is readable.

@@ -1,24 +1,9 @@
 import { sleep } from "@util/core/sleep";
-
-/** At most `max` acquisitions per rolling `windowMs`. */
-export type Rule = { max: number; windowMs: number };
-
-export type Limiter = {
-  /** Resolves when a slot is free. Callers are served in the order they asked. */
-  acquire(): Promise<void>;
-  /**
-   * Replaces the rules for every subsequent check, including the next one made by a
-   * caller that is already waiting. Throws `RangeError` on an unusable list, leaving
-   * the current rules in place.
-   */
-  setRules(next: Rule[]): void;
-  /** Blocks all callers for `seconds` and forgets the request history. */
-  penalize(seconds: number): void;
-};
+import type { RateLimiter, RateLimiterRule } from "./types.ts";
 
 // A limiter with no usable rules is a config mistake, not "unlimited" — the likely way
 // to get here is a rate-limit header that failed to parse. Fail where it enters.
-function assertRules(rules: Rule[]) {
+function assertRules(rules: RateLimiterRule[]) {
   if (rules.length === 0) {
     throw new RangeError("limiter needs at least one rule");
   }
@@ -37,7 +22,7 @@ function assertRules(rules: Rule[]) {
 }
 
 /** Throws `RangeError` if `rules` is empty or any rule is unusable. */
-export function createLimiter(rules: Rule[]): Limiter {
+export function createLimiter(rules: RateLimiterRule[]): RateLimiter {
   assertRules(rules);
 
   let hits: number[] = [];
@@ -50,7 +35,7 @@ export function createLimiter(rules: Rule[]): Limiter {
     rules.reduce((widest, r) => Math.max(widest, r.windowMs), 0);
 
   // 0 = slot available now, else ms until this rule frees one
-  function waitFor(rule: Rule, now: number): number {
+  function waitFor(rule: RateLimiterRule, now: number): number {
     const inWindow = hits.filter((t) => now - t < rule.windowMs);
     if (inWindow.length < rule.max) return 0;
 
@@ -100,7 +85,7 @@ export function createLimiter(rules: Rule[]): Limiter {
 
       return previous.then(take).finally(release);
     },
-    setRules(next: Rule[]) {
+    setRules(next: RateLimiterRule[]) {
       assertRules(next);
       rules = next;
     },
