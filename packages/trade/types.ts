@@ -17,6 +17,15 @@ export type RateLimiter = {
   penalize(seconds: number): void;
 };
 
+/**
+ * Outcome of one trade API call. A non-2xx response is a value, not a throw — the caller
+ * decides what to do with it, and `retryable` says whether trying again is worthwhile.
+ * `body` is the parsed JSON, unvalidated: `call` asserts the shape rather than checking it.
+ */
+export type ApiResult<T> =
+  | { ok: true; body: T }
+  | { ok: false; status: number; retryable: boolean };
+
 /** One tier's usage as the server reports it, straight off the wire. */
 export type RateLimitState = {
   hits: number;

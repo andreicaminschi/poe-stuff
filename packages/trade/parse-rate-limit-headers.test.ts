@@ -1,5 +1,14 @@
 import { describe, it, expect } from "@jest/globals";
-import { parseRules, parseState } from "./parse-rate-limit-headers.ts";
+import {
+  parseRetryAfter,
+  parseRules,
+  parseState,
+} from "./parse-rate-limit-headers.ts";
+
+const NOW = Date.parse("2026-08-17T12:00:00Z");
+
+/** The wire format for a `retry-after` date, which carries whole seconds only. */
+const httpDate = (at: number) => new Date(at).toUTCString();
 
 describe("parseRules", () => {
   it("turns the server's five-per-ten-seconds tier into a rule of four", () => {
@@ -70,5 +79,42 @@ describe("parseState", () => {
       { hits: 3, windowSeconds: 10, restrictedSeconds: 0 },
       { hits: 9, windowSeconds: 300, restrictedSeconds: 12 },
     ]);
+  });
+});
+
+describe("parseRetryAfter", () => {
+  it("reads a plain number of seconds", () => {
+    expect(parseRetryAfter("120", NOW)).toBe(120);
+  });
+
+  it("turns an HTTP date into the seconds remaining until it", () => {
+    const inNinetySeconds = httpDate(NOW + 90_000);
+
+    expect(parseRetryAfter(inNinetySeconds, NOW)).toBe(90);
+  });
+
+  it("rounds a fractional gap up so we never wake before the deadline", () => {
+    const inTwoSeconds = httpDate(NOW + 2_000);
+
+    expect(parseRetryAfter(inTwoSeconds, NOW + 800)).toBe(2);
+  });
+
+  it("returns nothing when the header is absent or empty", () => {
+    expect(parseRetryAfter(null, NOW)).toBe(0);
+    expect(parseRetryAfter("", NOW)).toBe(0);
+  });
+
+  it("returns nothing when the date has already passed", () => {
+    const thirtySecondsAgo = httpDate(NOW - 30_000);
+
+    expect(parseRetryAfter(thirtySecondsAgo, NOW)).toBe(0);
+  });
+
+  it("returns nothing for a negative number of seconds", () => {
+    expect(parseRetryAfter("-30", NOW)).toBe(0);
+  });
+
+  it("returns nothing for a value that is neither a number nor a date", () => {
+    expect(parseRetryAfter("soon", NOW)).toBe(0);
   });
 });
