@@ -3,17 +3,8 @@ import { z } from "zod";
 /** One catalogue entry: a named trade query belonging to a version. */
 export const QuerySpecSchema = z.object({
   queryId: z.string().min(1),
-  /** The trade query body, passed to GGG verbatim. Not our schema to define. */
   query: z.unknown(),
-  /**
-   * Required queries block version completion when they fail; optional ones are
-   * recorded as missing and the version still ships.
-   */
   required: z.boolean().default(true),
-  /**
-   * Pages of results to download. One page is 10 hashes, which is one fetch
-   * request. GGG returns at most 100 hashes, so 10 pages is the ceiling.
-   */
   pages: z.number().int().positive().max(10).default(3),
 });
 
@@ -25,10 +16,6 @@ export const SearchJobSchema = z.object({
   league: z.string(),
   query: z.unknown(),
   pages: z.number().int().positive().max(10),
-  /**
-   * Two-step job. `search` runs the query and dispatches page children; the job
-   * then parks in waiting-children and comes back as `collect` once they land.
-   */
   phase: z.enum(["search", "collect"]).default("search"),
 });
 

@@ -1,0 +1,12 @@
+{
+  "versionId": "2026-08-17T13-32-01-914Z-rwqznc",
+  "startedAt": "2026-08-17T13:32:01.915Z",
+  "league": "Allflame",
+  "expected": [
+    {
+      "queryId": "veritania-maps",
+      "required": true,
+      "pages": 3
+    }
+  ]
+}
