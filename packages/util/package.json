@@ -5,6 +5,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./cache-key": "./cache-key.ts",
     "./env": "./env.ts",
     "./sleep": "./sleep.ts"
   }
