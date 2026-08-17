@@ -1,0 +1,16 @@
+{
+  "name": "poe-stuff",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc",
+    "typecheck:watch": "tsc --watch",
+    "parse-stats": "node --env-file=.env tools/parse-stats.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "typescript": "^7.0.2"
+  }
+}
