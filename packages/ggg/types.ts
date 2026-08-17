@@ -23,3 +23,22 @@ export type RateLimitState = {
   windowSeconds: number;
   restrictedSeconds: number;
 };
+
+/**
+ * What one `call` did, as it happened. `wait` and `penalize` are the only place the
+ * limiter's behaviour becomes visible from outside, so a stalled run is readable
+ * without instrumenting the limiter itself.
+ *
+ * No caller context here on purpose — no search id, no page number. `call` has no
+ * vocabulary for what it is fetching; bind that in a closure at the call site.
+ */
+export type CallEvent =
+  | { type: "wait"; ms: number }
+  | { type: "request"; url: string; method: string; attempt: number }
+  | { type: "response"; url: string; status: number; durationMs: number }
+  | { type: "retry"; url: string; status: number; backoffMs: number }
+  | {
+      type: "penalize";
+      seconds: number;
+      source: "retry-after" | "state" | "fallback";
+    };
