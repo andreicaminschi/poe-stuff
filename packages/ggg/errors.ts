@@ -1,7 +1,7 @@
 /**
  * A non-2xx answer from GGG. Thrown rather than returned so that callers who have no
- * sensible recovery — the ETL pipelines — fail loudly by doing nothing, while a queue
- * worker catches once and maps `retryable` onto its own retry vocabulary.
+ * sensible recovery fail loudly by doing nothing, while a queue worker catches once and
+ * maps `retryable` onto its own retry vocabulary.
  */
 export class GggHttpError extends Error {
   readonly url: string;
