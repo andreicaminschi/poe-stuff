@@ -1312,6 +1312,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@poe/ggg@workspace:packages/ggg":
+  version: 0.0.0-use.local
+  resolution: "@poe/ggg@workspace:packages/ggg"
+  languageName: unknown
+  linkType: soft
+
 "@poe/trade@workspace:packages/trade-old":
   version: 0.0.0-use.local
   resolution: "@poe/trade@workspace:packages/trade-old"
