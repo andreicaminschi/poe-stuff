@@ -11,13 +11,7 @@
     "typecheck": "tsc",
     "typecheck:watch": "tsc --watch",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
-    "etl:all": "node --env-file=packages/etl/.env packages/etl/tools/all.ts",
-    "etl:stats": "node --env-file=packages/etl/.env packages/etl/tools/stats.ts",
-    "etl:items": "node --env-file=packages/etl/.env packages/etl/tools/items.ts",
-    "etl:static": "node --env-file=packages/etl/.env packages/etl/tools/static.ts",
-    "etl:filters": "node --env-file=packages/etl/.env packages/etl/tools/filters.ts",
-    "etl:leagues": "node --env-file=packages/etl/.env packages/etl/tools/leagues.ts"
+    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
