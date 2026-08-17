@@ -8,7 +8,7 @@ import {
 } from "@jest/globals";
 import { call } from "./call.ts";
 import { GggHttpError } from "./errors.ts";
-import type { RateLimiterRule } from "./types.ts";
+import type { CallEvent, RateLimiterRule } from "./types.ts";
 
 const ENDPOINT = "https://api.example.test/trade/search";
 const USER_AGENT = "poe-stuff-test/1.0 (contact: nobody@example.test)";
@@ -18,6 +18,8 @@ type FetchLike = (url: string, init?: RequestInit) => Promise<Response>;
 // Everything the call reaches out to lands in one ordered log, because several of the
 // guarantees here are about sequence rather than about any single argument.
 let order: string[] = [];
+
+let events: CallEvent[] = [];
 
 function fakeLimiter() {
   return {
@@ -38,6 +40,7 @@ let fetchMock = jest.fn<FetchLike>();
 beforeEach(() => {
   jest.useFakeTimers({ now: 0 });
   order = [];
+  events = [];
   limiter = fakeLimiter();
   fetchMock = jest.fn<FetchLike>();
   globalThis.fetch = fetchMock as unknown as typeof fetch;
@@ -68,6 +71,25 @@ const rejected = (status: number, headers?: Record<string, string>) =>
 
 const headersSentOn = (attempt: number) =>
   (fetchMock.mock.calls[attempt]?.[1]?.headers ?? {}) as Record<string, string>;
+
+const collect = (event: CallEvent): void => {
+  events.push(event);
+};
+
+const eventsOfType = <K extends CallEvent["type"]>(type: K) =>
+  events.filter(
+    (event): event is Extract<CallEvent, { type: K }> => event.type === type,
+  );
+
+/** A limiter that really holds, so the frozen clock moves and `wait` can be non-zero. */
+function holdFor(ms: number): void {
+  limiter.acquire.mockImplementation(async () => {
+    order.push("acquire");
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, ms);
+    });
+  });
+}
 
 /** Runs the call out to its last retry and hands back the error it ended on. */
 async function failureOf(pending: Promise<unknown>): Promise<GggHttpError> {
@@ -345,6 +367,219 @@ describe("call", () => {
         "acquire",
         "fetch",
       ]);
+    });
+  });
+
+  describe("the events it reports", () => {
+    describe("waiting for a slot", () => {
+      it("says nothing about waiting when a slot was free the moment it asked", async () => {
+        respondWith(ok({}));
+
+        await call(ENDPOINT, { limiter, onEvent: collect });
+
+        expect(eventsOfType("wait")).toEqual([]);
+      });
+
+      it("reports a quarter-second wait when the limiter held it that long", async () => {
+        holdFor(250);
+        respondWith(ok({}));
+
+        const pending = call(ENDPOINT, { limiter, onEvent: collect });
+        await jest.advanceTimersByTimeAsync(250);
+        await pending;
+
+        expect(eventsOfType("wait")).toEqual([{ type: "wait", ms: 250 }]);
+      });
+    });
+
+    describe("the request going out", () => {
+      it("reports the request as a GET when the caller named no method", async () => {
+        respondWith(ok({}));
+
+        await call(ENDPOINT, { limiter, onEvent: collect });
+
+        expect(eventsOfType("request")[0]?.method).toBe("GET");
+      });
+
+      it("reports the caller's own method when a search posts its query", async () => {
+        respondWith(ok({}));
+
+        await call(ENDPOINT, {
+          limiter,
+          onEvent: collect,
+          init: { method: "POST", body: '{"query":{}}' },
+        });
+
+        expect(eventsOfType("request")[0]?.method).toBe("POST");
+      });
+
+      it("reports the first attempt as attempt zero", async () => {
+        respondWith(ok({}));
+
+        await call(ENDPOINT, { limiter, onEvent: collect });
+
+        expect(eventsOfType("request")[0]?.attempt).toBe(0);
+      });
+    });
+
+    describe("the response coming back", () => {
+      it("reports the status of a rejection, not only of a success", async () => {
+        respondWith(rejected(404));
+
+        await failureOf(call(ENDPOINT, { limiter, onEvent: collect }));
+
+        expect(eventsOfType("response")[0]?.status).toBe(404);
+      });
+
+      it("measures only the time the network took, not the time spent queued", async () => {
+        holdFor(250);
+        fetchMock.mockImplementation(async () => {
+          order.push("fetch");
+          await new Promise<void>((resolve) => {
+            setTimeout(resolve, 100);
+          });
+          return ok({});
+        });
+
+        const pending = call(ENDPOINT, { limiter, onEvent: collect });
+        await jest.advanceTimersByTimeAsync(350);
+        await pending;
+
+        expect(eventsOfType("response")[0]?.durationMs).toBe(100);
+      });
+    });
+
+    describe("a hold it was told to take", () => {
+      it("blames the state header when a tier reports itself restricted", async () => {
+        respondWith(ok({}, { "x-rate-limit-ip-state": "5:60:90" }));
+
+        await call(ENDPOINT, { limiter, onEvent: collect });
+
+        expect(eventsOfType("penalize")).toEqual([
+          { type: "penalize", seconds: 90, source: "state" },
+        ]);
+      });
+
+      it("blames the retry-after header when a rejection asks for thirty seconds", async () => {
+        respondWith(rejected(429, { "retry-after": "30" }));
+
+        await failureOf(call(ENDPOINT, { limiter, onEvent: collect }));
+
+        expect(eventsOfType("penalize")).toEqual([
+          { type: "penalize", seconds: 30, source: "retry-after" },
+        ]);
+      });
+
+      it("blames nothing but its own default when a rejection names no duration", async () => {
+        respondWith(rejected(429));
+
+        await failureOf(call(ENDPOINT, { limiter, onEvent: collect }));
+
+        expect(eventsOfType("penalize")).toEqual([
+          { type: "penalize", seconds: 60, source: "fallback" },
+        ]);
+      });
+
+      it("calls a rejection that asks for zero seconds a default, not a retry-after", async () => {
+        respondWith(rejected(429, { "retry-after": "0" }));
+
+        await failureOf(call(ENDPOINT, { limiter, onEvent: collect }));
+
+        expect(eventsOfType("penalize")).toEqual([
+          { type: "penalize", seconds: 60, source: "fallback" },
+        ]);
+      });
+
+      it("reports two separate holds when a rejection carries a restricted tier and a retry-after", async () => {
+        respondWith(
+          rejected(429, {
+            "x-rate-limit-ip-state": "5:60:90",
+            "retry-after": "30",
+          }),
+        );
+
+        await failureOf(call(ENDPOINT, { limiter, onEvent: collect }));
+
+        expect(eventsOfType("penalize")).toEqual([
+          { type: "penalize", seconds: 90, source: "state" },
+          { type: "penalize", seconds: 30, source: "retry-after" },
+        ]);
+      });
+    });
+
+    describe("trying again", () => {
+      it("reports the half-second backoff before it waits that half second out", async () => {
+        respondWith(rejected(503), ok({}));
+
+        const pending = call(ENDPOINT, {
+          limiter,
+          retries: 1,
+          onEvent: collect,
+        });
+        await jest.advanceTimersByTimeAsync(499);
+
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+        expect(eventsOfType("retry")).toEqual([
+          { type: "retry", url: ENDPOINT, status: 503, backoffMs: 500 },
+        ]);
+
+        await jest.advanceTimersByTimeAsync(1);
+        await pending;
+      });
+
+      it("says nothing about trying again on the attempt that gives up", async () => {
+        respondWith(rejected(503));
+
+        await failureOf(
+          call(ENDPOINT, { limiter, retries: 1, onEvent: collect }),
+        );
+
+        expect(eventsOfType("response")).toHaveLength(2);
+        expect(eventsOfType("retry")).toHaveLength(1);
+      });
+
+      it("reports one retried call in order: wait, request, response, hold, retry, request, response", async () => {
+        holdFor(250);
+        respondWith(rejected(429, { "retry-after": "30" }), ok({}));
+
+        const pending = call(ENDPOINT, {
+          limiter,
+          retries: 1,
+          onEvent: collect,
+        });
+        await jest.advanceTimersByTimeAsync(2000);
+        await pending;
+
+        expect(events.map((event) => event.type)).toEqual([
+          "wait",
+          "request",
+          "response",
+          "penalize",
+          "retry",
+          "wait",
+          "request",
+          "response",
+        ]);
+        expect(eventsOfType("request").map((event) => event.attempt)).toEqual([
+          0, 1,
+        ]);
+      });
+    });
+
+    describe("a listener that misbehaves", () => {
+      it("fails the whole request when the caller's listener throws", async () => {
+        respondWith(ok({}));
+        const blewUp = new Error("listener blew up");
+
+        await expect(
+          call(ENDPOINT, {
+            limiter,
+            onEvent: () => {
+              throw blewUp;
+            },
+          }),
+        ).rejects.toThrow(blewUp);
+      });
     });
   });
 });

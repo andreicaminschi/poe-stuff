@@ -1,27 +1,33 @@
 sequenceDiagram
     %% blue = wait, grey = network, amber = limits back, green = body, red = error
+    %% onEvent gets no lifeline: it is the caller's own callback, run inline on this
+    %% stack, so it is an annotation on each phase rather than a party to the exchange.
     actor Caller
     participant Call as call
     participant Limiter as RateLimiter
     participant API as GGG
 
-    Caller->>Call: call(url)
+    Caller->>Call: call(url, { onEvent? })
 
     loop each attempt
         rect rgba(59, 130, 246, 0.12)
             Call->>Limiter: acquire()
             Note over Limiter: Wait for the next slot to be available
             Limiter-->>Call: slot
+            Note over Call: emits wait { ms }<br/>only when the limiter actually held
         end
 
         rect rgba(148, 163, 184, 0.15)
+            Note over Call: emits request { url, method, attempt }
             Call->>API: fetch
             API-->>Call: status + rate-limit headers
+            Note over Call: emits response { status, durationMs }<br/>every answer, 2xx or not
         end
 
         rect rgba(245, 158, 11, 0.15)
             Note right of Call: Rules are updated after each call<br/>helps catching any kind of warning from ggg
             Call->>Limiter: setRules + penalize from headers
+            Note over Call: emits penalize { seconds, source }<br/>once per hold — state, retry-after or fallback
         end
 
         alt 2xx
@@ -37,6 +43,7 @@ sequenceDiagram
         else retry
             Note right of Call: Exponential backoff for attempts
             rect rgba(245, 158, 11, 0.15)
+                Note over Call: emits retry { status, backoffMs }
                 Call->>Call: sleep 500ms * 2 ^ attempt
             end
         end
