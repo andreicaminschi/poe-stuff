@@ -14,7 +14,8 @@ Read, in this order:
 1. `packages/$1/package.json` — name, `exports` map, deps, scripts.
 2. Every `.ts` at the package root and one level down. Skip `.test.ts` unless a test is
    the only place a behavior is spelled out.
-3. `packages/$1/.env` (or `.env.example`) — var names only.
+3. `packages/$1/.env` (or `.env.example`) — var names only. No package ships one today;
+   if it is absent, the vars are whatever the source passes to `requireEnv`.
 4. `packages/$1/docs/` — every `.mmd` and what it depicts.
 5. The existing `README.md`, last. Read it to find what is now false, not to reuse it.
 
@@ -38,7 +39,10 @@ unanswered, write the section without that claim rather than guessing.
 
 ## Sections, in order
 
-1. **Package name** — `# @poe-stuff/$1` (the real `name` from package.json), one line.
+1. **Package name** — the real `name` from package.json as an `#` heading, one line. It is
+   not derivable from the directory: `packages/ggg` is `@poe/ggg`, `packages/util` is
+   `@util/core`. A package with no package.json has no name — say that instead of
+   inventing one.
 2. **Description** — one sentence. What it is. No verbs like "provides" or "handles".
 3. **Purpose** — 2–4 sentences. Which problem it solves, and what it deliberately does
    NOT do. The boundary is the useful half.
@@ -46,7 +50,7 @@ unanswered, write the section without that claim rather than guessing.
    lives there. Only files that exist. Directories with one job get one line, not a
    sub-tree.
 5. **Public API** — table: entry point (as written in an importing package, e.g.
-   `@poe-stuff/$1/call`) → exported symbols → one-line contract. Every row must come from
+   `@poe/ggg/call`) → exported symbols → one-line contract. Every row must come from
    the `exports` map in package.json. An export that is missing from that map is a bug —
    list it under a **Not exported** note instead of inventing a path.
 6. **Examples** — 3–5 snippets, each solving a different real result. Rules:
