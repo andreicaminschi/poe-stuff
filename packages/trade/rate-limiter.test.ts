@@ -219,7 +219,7 @@ describe("createLimiter", () => {
       expect(held.done).toBe(true);
     });
 
-    it("forgets earlier requests, so a full burst is allowed the moment the penalty ends", async () => {
+    it("still remembers the earlier requests once the penalty ends", async () => {
       const limiter = createLimiter([{ max: 3, windowMs: 10_000 }]);
       watchMany(3, () => limiter.acquire());
       await jest.advanceTimersByTimeAsync(0);
@@ -228,7 +228,26 @@ describe("createLimiter", () => {
       const afterThePenalty = watchMany(3, () => limiter.acquire());
       await jest.advanceTimersByTimeAsync(5_000);
 
+      expect(afterThePenalty.some((s) => s.done)).toBe(false);
+
+      await jest.advanceTimersByTimeAsync(5_000);
+
       expect(allDone(afterThePenalty)).toBe(true);
+    });
+
+    it("never shortens a hold that is already running longer", async () => {
+      const limiter = createLimiter([{ max: 5, windowMs: 10_000 }]);
+
+      limiter.penalize(300);
+      limiter.penalize(10);
+      const held = watch(limiter.acquire());
+      await jest.advanceTimersByTimeAsync(299_999);
+
+      expect(held.done).toBe(false);
+
+      await jest.advanceTimersByTimeAsync(1);
+
+      expect(held.done).toBe(true);
     });
 
     it("catches a request that was already queued and waiting when the penalty lands", async () => {
@@ -247,16 +266,14 @@ describe("createLimiter", () => {
       expect(queued.done).toBe(true);
     });
 
-    it("forgets earlier requests without delaying anything when the penalty is zero seconds", async () => {
+    it("does nothing at all when the penalty is zero seconds", async () => {
       const limiter = createLimiter([{ max: 2, windowMs: 10_000 }]);
-      watchMany(2, () => limiter.acquire());
-      await jest.advanceTimersByTimeAsync(0);
 
       limiter.penalize(0);
-      const afterTheReset = watchMany(2, () => limiter.acquire());
+      const request = watch(limiter.acquire());
       await jest.advanceTimersByTimeAsync(0);
 
-      expect(allDone(afterTheReset)).toBe(true);
+      expect(request.done).toBe(true);
     });
   });
 });

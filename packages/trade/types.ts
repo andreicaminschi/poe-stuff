@@ -10,7 +10,10 @@ export type RateLimiter = {
    * the current rules in place.
    */
   setRules(next: RateLimiterRule[]): void;
-  /** Blocks all callers for `seconds` and forgets the request history. */
+  /**
+   * Blocks all callers for `seconds`, keeping the request history intact. Never
+   * shortens a hold that already runs longer.
+   */
   penalize(seconds: number): void;
 };
 

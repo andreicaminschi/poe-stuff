@@ -21,12 +21,18 @@ function assertRules(rules: RateLimiterRule[]) {
   }
 }
 
+/** A deadline in the past, so `Math.max` against a real one always picks the real one. */
+const NO_PENALTY = 0;
+
+/** Nothing left to wait out — the slot is free this instant. */
+const NO_WAIT = 0;
+
 /** Throws `RangeError` if `rules` is empty or any rule is unusable. */
 export function createLimiter(rules: RateLimiterRule[]): RateLimiter {
   assertRules(rules);
 
   let hits: number[] = [];
-  let penaltyUntil = 0;
+  let penaltyUntil = NO_PENALTY;
   let tail: Promise<void> = Promise.resolve();
 
   // reduce, not Math.max(...spread): an empty list would silently yield -Infinity and
@@ -34,13 +40,13 @@ export function createLimiter(rules: RateLimiterRule[]): RateLimiter {
   const longest = () =>
     rules.reduce((widest, r) => Math.max(widest, r.windowMs), 0);
 
-  // 0 = slot available now, else ms until this rule frees one
+  // NO_WAIT = slot available now, else ms until this rule frees one
   function waitFor(rule: RateLimiterRule, now: number): number {
     const inWindow = hits.filter((t) => now - t < rule.windowMs);
-    if (inWindow.length < rule.max) return 0;
+    if (inWindow.length < rule.max) return NO_WAIT;
 
     const oldestBlocking = inWindow[inWindow.length - rule.max];
-    if (oldestBlocking === undefined) return 0; // unreachable given guard above
+    if (oldestBlocking === undefined) return NO_WAIT; // unreachable given guard above
 
     return oldestBlocking + rule.windowMs - now;
   }
@@ -50,23 +56,23 @@ export function createLimiter(rules: RateLimiterRule[]): RateLimiter {
       const now = Date.now();
       hits = hits.filter((t) => now - t < longest()); // trim to widest window only
 
-      if (now < penaltyUntil) {
-        await sleep(penaltyUntil - now);
-        continue;
-      }
-
-      // the slowest rule decides; 0 only when every rule has a slot free
-      let wait = 0;
+      // A penalty is not a rule — it holds with no requests on record and outlives any
+      // window — so it is carried as a deadline and folded in here as one more wait.
+      // The slowest of the lot decides; 0 only when the penalty has passed and every
+      // rule has a slot free.
+      let wait = Math.max(NO_WAIT, penaltyUntil - now);
       for (const rule of rules) {
         const ruleWait = waitFor(rule, now);
         if (ruleWait > wait) wait = ruleWait;
       }
 
-      if (wait === 0) {
-        hits.push(now);
-        return;
+      if (wait > NO_WAIT) {
+        await sleep(wait);
+        continue;
       }
-      await sleep(wait);
+
+      hits.push(now);
+      return;
     }
   }
 
@@ -90,8 +96,11 @@ export function createLimiter(rules: RateLimiterRule[]): RateLimiter {
       rules = next;
     },
     penalize(seconds: number) {
-      penaltyUntil = Date.now() + seconds * 1000;
-      hits = [];
+      // Never shortens an active hold: during a restriction every in-flight response
+      // reports the same one, and a later, smaller figure must not cut it short.
+      // History is kept — it ages out on its own, and forgetting it would hand back a
+      // full budget the instant the hold lifts.
+      penaltyUntil = Math.max(penaltyUntil, Date.now() + seconds * 1000);
     },
   };
 }
