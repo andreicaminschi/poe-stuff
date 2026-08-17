@@ -20,11 +20,6 @@ Consequences of type stripping, enforced by `erasableSyntaxOnly` + `verbatimModu
 
 `yarn typecheck` (or `typecheck:watch`) before considering a change done.
 
-## Gotchas
-
-- GGG's Cloudflare 403s any request without a descriptive `User-Agent`. Send one on
-  every call to `pathofexile.com`.
-
 ## .env explained
 
 ### POE_STATS_URL
