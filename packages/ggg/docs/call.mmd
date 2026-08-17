@@ -1,0 +1,43 @@
+sequenceDiagram
+    %% blue = wait, grey = network, amber = limits back, green = body, red = error
+    actor Caller
+    participant Call as call
+    participant Limiter as RateLimiter
+    participant API as GGG
+
+    Caller->>Call: call(url)
+
+    loop each attempt
+        rect rgba(59, 130, 246, 0.12)
+            Call->>Limiter: acquire()
+            Note over Limiter: Wait for the next slot to be available
+            Limiter-->>Call: slot
+        end
+
+        rect rgba(148, 163, 184, 0.15)
+            Call->>API: fetch
+            API-->>Call: status + rate-limit headers
+        end
+
+        rect rgba(245, 158, 11, 0.15)
+            Note right of Call: Rules are updated after each call<br/>helps catching any kind of warning from ggg
+            Call->>Limiter: setRules + penalize from headers
+        end
+
+        alt 2xx
+            Note right of Caller: 2xx Response
+            rect rgba(34, 197, 94, 0.15)
+                Call-->>Caller: body
+            end
+        else fatal, or out of retries
+            Note right of Caller: Fatal errors throw GggHttpError
+            rect rgba(239, 68, 68, 0.15)
+                Call-->>Caller: GggHttpError
+            end
+        else retry
+            Note right of Call: Exponential backoff for attempts
+            rect rgba(245, 158, 11, 0.15)
+                Call->>Call: sleep 500ms * 2 ^ attempt
+            end
+        end
+    end
