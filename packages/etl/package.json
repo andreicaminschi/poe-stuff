@@ -1,0 +1,24 @@
+{
+  "name": "@poe/etl",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./core/pipeline": "./core/pipeline.ts",
+    "./stats": "./pipelines/stats/pipeline.ts",
+    "./stats/domain": "./pipelines/stats/domain.ts",
+    "./items": "./pipelines/items/pipeline.ts",
+    "./items/domain": "./pipelines/items/domain.ts",
+    "./static": "./pipelines/static/pipeline.ts",
+    "./static/domain": "./pipelines/static/domain.ts",
+    "./filters": "./pipelines/filters/pipeline.ts",
+    "./filters/domain": "./pipelines/filters/domain.ts",
+    "./leagues": "./pipelines/leagues/pipeline.ts",
+    "./leagues/domain": "./pipelines/leagues/domain.ts"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1111.0",
+    "zod": "^4.4.3"
+  }
+}

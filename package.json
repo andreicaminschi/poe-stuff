@@ -4,16 +4,19 @@
   "license": "MIT",
   "private": true,
   "type": "module",
+  "workspaces": ["packages/*"],
   "scripts": {
     "typecheck": "tsc",
     "typecheck:watch": "tsc --watch",
-    "parse-stats": "node --env-file=.env tools/parse-stats.ts"
+    "etl:all": "node --env-file=packages/etl/.env packages/etl/tools/all.ts",
+    "etl:stats": "node --env-file=packages/etl/.env packages/etl/tools/stats.ts",
+    "etl:items": "node --env-file=packages/etl/.env packages/etl/tools/items.ts",
+    "etl:static": "node --env-file=packages/etl/.env packages/etl/tools/static.ts",
+    "etl:filters": "node --env-file=packages/etl/.env packages/etl/tools/filters.ts",
+    "etl:leagues": "node --env-file=packages/etl/.env packages/etl/tools/leagues.ts"
   },
   "devDependencies": {
     "@types/node": "^26.2.0",
     "typescript": "^7.0.2"
-  },
-  "dependencies": {
-    "zod": "^4.4.3"
   }
 }

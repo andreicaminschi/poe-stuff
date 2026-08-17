@@ -1,0 +1,14 @@
+[
+  {
+    "queryId": "veritania-maps",
+    "pages": 3,
+    "query": {
+      "query": {
+        "status": { "option": "online" },
+        "filters": { "type_filters": { "filters": { "category": { "option": "map" } } } },
+        "stats": [{ "type": "and", "filters": [{ "id": "implicit.stat_2563183002|2" }] }]
+      },
+      "sort": { "price": "asc" }
+    }
+  }
+]
