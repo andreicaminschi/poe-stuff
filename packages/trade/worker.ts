@@ -1,0 +1,203 @@
+import { randomUUID } from "node:crypto";
+import { Worker } from "bullmq";
+import type { ConnectionOptions, Job } from "bullmq";
+import type { RateLimiter, ResponseCache } from "@poe/ggg/types";
+import { logEvents } from "./log.ts";
+import type { TradeContext } from "./types.ts";
+
+/**
+ * BullMQ's own defaults, named because the loop leans on both: the lock is what a job
+ * holds while it waits out a rate-limit penalty, and the drain delay is how long the
+ * worker parks on its own queue before looking at the others again.
+ */
+const LOCK_DURATION_MS = 30_000;
+const DRAIN_DELAY_SECONDS = 5;
+
+/** Renew well inside the lock, so one slow round trip does not lose the job. */
+const RENEW_EVERY = 2;
+
+export type JobHandler = (job: Job, context: TradeContext) => Promise<void>;
+
+export type WorkerConfig = {
+  /**
+   * The queues this worker reads, in the order it prefers them. The first one is its
+   * own: it is the queue the worker waits on when everything is empty, so work arriving
+   * there is picked up immediately and the rest only when there is nothing else to do.
+   */
+  queues: readonly string[];
+  /** One per queue name. A queue with no handler is a config mistake, not a silent skip. */
+  handlers: Readonly<Record<string, JobHandler>>;
+  /**
+   * One limiter for the whole process, because one limiter is one IP. Every handler is
+   * given this same one.
+   */
+  limiter: RateLimiter;
+  /** Present on a laptop, absent in production. Handed to every handler as it is. */
+  cache?: ResponseCache;
+  connection: ConnectionOptions;
+  lockDurationMs?: number;
+  drainDelaySeconds?: number;
+};
+
+export type RunningWorker = {
+  /** Resolves when the worker has been closed, not when the queues are empty. */
+  run(): Promise<void>;
+  close(): Promise<void>;
+};
+
+/** One JSON object per line, the same shape `logEvents` writes. */
+function note(labels: Record<string, string>, fields: Record<string, unknown>) {
+  console.log(JSON.stringify({ ts: new Date().toISOString(), ...labels, ...fields }));
+}
+
+const asError = (thrown: unknown): Error =>
+  thrown instanceof Error ? thrown : new Error(String(thrown));
+
+/**
+ * Keeps the job's lock alive for as long as the handler runs. A job parked in
+ * `acquire()` behind a 429 outlives the 30 second lock several times over, and without
+ * this the stalled check would hand it to a second worker while the first is still
+ * making the request.
+ *
+ * A failed renewal is not worth acting on here: the lock is already gone, and the settle
+ * that follows will say so.
+ */
+function renewLock(job: Job, token: string, lockMs: number): () => void {
+  const timer = setInterval(() => {
+    job.extendLock(token, lockMs).catch(() => {});
+  }, Math.floor(lockMs / RENEW_EVERY));
+
+  return () => clearInterval(timer);
+}
+
+/**
+ * A worker process. Every worker runs this same loop; what makes one a search worker and
+ * another a page worker is the order of `queues`.
+ *
+ * The BullMQ `Worker` objects are built with a `null` processor, so none of them runs a
+ * loop of its own — each is only a way to ask its queue for the next job, and the order
+ * of the asking is decided here.
+ */
+export function createWorker(config: WorkerConfig): RunningWorker {
+  const {
+    queues,
+    handlers,
+    limiter,
+    cache,
+    connection,
+    lockDurationMs = LOCK_DURATION_MS,
+    drainDelaySeconds = DRAIN_DELAY_SECONDS,
+  } = config;
+
+  const [first, ...rest] = queues;
+  if (first === undefined) {
+    throw new RangeError("a worker needs at least one queue");
+  }
+
+  const missing = queues.filter((queue) => handlers[queue] === undefined);
+  if (missing.length > 0) {
+    throw new RangeError(`no handler for queue: ${missing.join(", ")}`);
+  }
+
+  const asWorker = (queue: string) =>
+    new Worker(queue, null, {
+      connection,
+      lockDuration: lockDurationMs,
+      drainDelay: drainDelaySeconds,
+      // Nothing to autorun: with no processor, this worker only hands out jobs.
+      autorun: false,
+    });
+
+  // `own` is built apart from the rest so the queue this worker waits on is a value, not
+  // a lookup that has to be proven non-empty at every use.
+  const own = asWorker(first);
+  const workers = [own, ...rest.map(asWorker)];
+
+  let running = false;
+
+  /**
+   * The priority rule. Every queue is asked without waiting, in order, and the first job
+   * found wins. Only when they are all empty does the worker wait, and it waits on its
+   * own queue alone — which is why a fallback job can sit for up to `drainDelay`.
+   */
+  async function take(token: string): Promise<Job | undefined> {
+    for (const worker of workers) {
+      const job = await worker.getNextJob(token, { block: false });
+      if (job !== undefined) return job;
+    }
+
+    return own.getNextJob(token, { block: true });
+  }
+
+  async function settle(job: Job, token: string, failure?: Error): Promise<void> {
+    try {
+      if (failure === undefined) {
+        await job.moveToCompleted(undefined, token, false);
+      } else {
+        await job.moveToFailed(failure, token, false);
+      }
+    } catch (error) {
+      // The lock was lost while the handler ran, so this job now belongs to whichever
+      // worker the stalled check gave it to. Nothing to do but say so and move on.
+      note(
+        { queue: job.queueName, job: job.id ?? "" },
+        { type: "settle-failed", message: asError(error).message },
+      );
+    }
+  }
+
+  async function work(job: Job, token: string): Promise<void> {
+    const labels = { queue: job.queueName, job: job.id ?? "" };
+    const stopRenewing = renewLock(job, token, lockDurationMs);
+    const handler = handlers[job.queueName];
+
+    try {
+      if (handler === undefined) {
+        throw new RangeError(`no handler for queue ${job.queueName}`);
+      }
+
+      await handler(job, { limiter, cache, onEvent: logEvents(labels) });
+      await settle(job, token);
+    } catch (error) {
+      await settle(job, token, asError(error));
+    } finally {
+      stopRenewing();
+    }
+  }
+
+  return {
+    async run() {
+      running = true;
+
+      await Promise.all(workers.map((worker) => worker.waitUntilReady()));
+      // Manual mode runs no stalled checker of its own. Without this, a job whose worker
+      // died stays active for good and its cohort never finishes.
+      await Promise.all(workers.map((worker) => worker.startStalledCheckTimer()));
+
+      while (running) {
+        // A token per attempt, so a renewal left over from the last job cannot touch
+        // the next one.
+        const token = randomUUID();
+
+        let job: Job | undefined;
+        try {
+          job = await take(token);
+        } catch (error) {
+          // `close` aborts whatever the blocking read was doing. Anything else is worth
+          // a line before the loop tries again.
+          if (running) {
+            note({}, { type: "take-failed", message: asError(error).message });
+          }
+          continue;
+        }
+
+        if (job !== undefined) await work(job, token);
+      }
+    },
+
+    async close() {
+      running = false;
+      await Promise.all(workers.map((worker) => worker.close()));
+    },
+  };
+}

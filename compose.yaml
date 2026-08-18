@@ -34,7 +34,7 @@ services:
 
   # The job ledger: one row per search and per page, written before the job is
   # queued. Cohort completion is a query against it, not a counter — see
-  # packages/trade/docs/queues.md.
+  # packages/trade/docs/pipeline.md.
   #
   # Separate from metastore-db on purpose. That one holds Hive's own schema and its
   # recovery story is "re-run the DDL"; this one holds data that cannot be

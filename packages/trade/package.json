@@ -5,10 +5,18 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./search-worker": "./search-worker.ts"
+    "./worker": "./worker.ts",
+    "./handlers": "./handlers.ts",
+    "./queries": "./queries.ts",
+    "./queues": "./queues.ts",
+    "./keys": "./keys.ts",
+    "./pages": "./pages.ts",
+    "./s3-cache": "./s3-cache.ts",
+    "./types": "./types.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1111.0",
+    "@poe/ledger": "workspace:^",
     "bullmq": "^6.1.2"
   }
 }

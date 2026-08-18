@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { db, transaction } from "./db.ts";
-import type { FailureGroup, JobRow } from "./types.ts";
+import type { CohortRow, FailureGroup, JobRow } from "./types.ts";
 
 /** Postgres counts as bigint, which comes back as a string. */
 const asCount = (value: string | number | null | undefined) => Number(value ?? 0);
@@ -157,4 +157,16 @@ export async function deprecate(
       .map((row) => row.object_key)
       .filter((key): key is string => key !== null);
   });
+}
+
+/** The cohort itself, for the digest a worker checks its query file against. */
+export async function getCohort(
+  cohortId: string,
+): Promise<CohortRow | undefined> {
+  const { rows } = await db().query<CohortRow>(
+    "select cohort_id, queries_digest, created_at, finished_at, promoted_at from cohort where cohort_id = $1",
+    [cohortId],
+  );
+
+  return rows[0];
 }

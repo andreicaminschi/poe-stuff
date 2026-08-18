@@ -1,0 +1,77 @@
+flowchart TD
+    %% Matches pipeline.md. Green = ledger, blue = Redis, amber = S3.
+    %% Read it as a pipeline: searches make pages, pages make objects. The two jobs get
+    %% a lane each so nothing has to cross between them.
+
+    QUERIES[("queries.json")] --> START(["poe cohort start"])
+    START --> SEED["cohort row,<br/>one pending job row per active query"]
+    SEED --> SEARCHQ[["search queue"]]
+
+    WORKERS>"every worker serves both queues,<br/>its own one first"]
+    WORKERS -.- SEARCHQ
+    WORKERS -.- PAGEQ
+
+    subgraph searchlane["a search job"]
+        direction TB
+        S1["claim the row"] --> S2["postSearch"]
+        S2 --> S3["one transaction:<br/>a pending page row per chunk<br/>keyed by query and page number"]
+        S3 --> S4["queue the page jobs"]
+        S4 --> S5["mark the search done"]
+    end
+
+    SEARCHQ --> S1
+    S4 --> PAGEQ[["page queue"]]
+
+    subgraph pagelane["a page job"]
+        direction TB
+        P1["claim the row"] --> P2["fetchPage"]
+        P2 --> P3["write NDJSON<br/>queryId-page.ndjson"]
+        P3 --> P4["mark the page done,<br/>record object_key and item_count"]
+    end
+
+    PAGEQ --> P1
+    P3 --> LAKE[("S3<br/>pages/cohort=...")]
+
+    S2 -.->|"408, 429, 5xx"| SRETRY["retry, up to 5 attempts"]
+    SRETRY -.-> S2
+    P2 -.->|"408, 429, 5xx"| PRETRY["retry, up to 5 attempts"]
+    PRETRY -.-> P2
+
+    S2 -.->|"400, 404"| FAILED["mark it failed,<br/>keep the error and status"]
+    P2 -.->|"400, 404"| FAILED
+
+    S5 --> LEFT{"work left<br/>in the cohort?"}
+    P4 --> LEFT
+    FAILED --> LEFT
+
+    LEFT -->|yes| SEARCHQ
+    LEFT -->|no| FINISH["finished_at"]
+
+    FINISH --> GATE{"everything done<br/>or deprecated?"}
+    GATE -->|yes| PROMOTE["promoted_at,<br/>latest.json points here"]
+    GATE -->|no| HELD["held back,<br/>the previous cohort stays current"]
+
+    HELD --> REPORT
+
+    subgraph recovery["by hand"]
+        direction TB
+        REPORT(["poe cohort failures"]) --> WHICH{"what is wrong?"}
+        WHICH -->|"a bad run"| RETRYCMD(["poe cohort retry"])
+        WHICH -->|"the query itself"| REPLACECMD(["poe cohort replace<br/>deprecates the old jobs,<br/>deletes their objects"])
+    end
+
+    RETRYCMD --> REQUEUE["queued again, at priority"]
+    REPLACECMD --> REQUEUE
+    REQUEUE --> SEARCHQ
+
+    classDef ledger fill:#dcfce7,stroke:#16a34a,color:#14532d
+    classDef store fill:#fef3c7,stroke:#d97706,color:#78350f
+    classDef queue fill:#dbeafe,stroke:#3b82f6,color:#1e3a8a
+    classDef held fill:#fee2e2,stroke:#dc2626,color:#7f1d1d
+    classDef note fill:#f8fafc,stroke:#94a3b8,color:#334155
+
+    class SEED,S1,S3,S5,P1,P4,FAILED,FINISH,PROMOTE ledger
+    class QUERIES,LAKE,P3 store
+    class SEARCHQ,PAGEQ,SRETRY,PRETRY,REQUEUE queue
+    class HELD held
+    class WORKERS note

@@ -1,10 +1,8 @@
-import {
-  GetObjectCommand,
-  PutObjectCommand,
-  S3Client,
-} from "@aws-sdk/client-s3";
+import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+import type { S3Client } from "@aws-sdk/client-s3";
 import type { CachedResponse, ResponseCache } from "@poe/ggg/types";
 import { optionalEnv } from "@util/core/env";
+import { s3 } from "./s3-client.ts";
 
 /**
  * `cacheKey` hands back `namespace:digest`. Turning the colon into a slash makes the
@@ -23,31 +21,18 @@ function isMissing(error: unknown): boolean {
 }
 
 /**
- * `S3_URL` points at MinIO on a laptop and is absent on AWS. Path style goes with it:
- * a bucket cannot be a subdomain of `localhost`. Credentials and region are left to the
- * SDK's own environment.
- */
-function s3Client(): S3Client {
-  const endpoint = optionalEnv("S3_URL");
-
-  return new S3Client(
-    endpoint === undefined ? {} : { endpoint, forcePathStyle: true },
-  );
-}
-
-/**
  * Responses kept as objects, one per request. A write that fails throws rather than
  * being swallowed: this runs where someone is watching, and a cache that quietly stores
  * nothing looks exactly like one that is working.
  */
 export function s3Cache(
   bucket: string,
-  s3: S3Client = s3Client(),
+  client: S3Client = s3(),
 ): ResponseCache {
   return {
     async get(key) {
       try {
-        const answer = await s3.send(
+        const answer = await client.send(
           new GetObjectCommand({ Bucket: bucket, Key: objectKey(key) }),
         );
         const body = await answer.Body?.transformToString();
@@ -62,7 +47,7 @@ export function s3Cache(
     },
 
     async set(key, value) {
-      await s3.send(
+      await client.send(
         new PutObjectCommand({
           Bucket: bucket,
           Key: objectKey(key),
