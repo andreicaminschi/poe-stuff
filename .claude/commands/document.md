@@ -44,8 +44,8 @@ unanswered, write the section without that claim rather than guessing.
    `@util/core`. A package with no package.json has no name — say that instead of
    inventing one.
 2. **Description** — one sentence. What it is. No verbs like "provides" or "handles".
-3. **Purpose** — 2–4 sentences. Which problem it solves, and what it deliberately does
-   NOT do. The boundary is the useful half.
+3. **Purpose** — 2–4 sentences. Which problem it solves, and where it stops — what it
+   leaves to the caller. State the boundary as a plain fact about the package.
 4. **Structure** — a tree of the real files, one trailing comment per file saying what
    lives there. Only files that exist. Directories with one job get one line, not a
    sub-tree.
@@ -82,6 +82,16 @@ unanswered, write the section without that claim rather than guessing.
   messages. If the code and a doc disagree, the code wins and the doc line dies.
 - **No aspirational text.** Present tense, describing what is there today. Nothing about
   what the package will support.
+- **Write what it is, never what it is not.** State the decision as a fact about the
+  package: "the limiter allows one request at a time". Do not argue with alternatives
+  the reader never suggested — no "X, not Y", no "rather than", no defending a choice.
+  A reason belongs in a line only when it changes how the reader uses the thing, and it
+  is written as another fact, not as a justification.
+- **Written for a mid-level developer.** Plain words. If an everyday word says the same
+  thing, use it instead of the term of art. A term the code itself uses (limiter, job,
+  lock) stays; explain it the first time in half a sentence.
+- **Open with what the thing does.** No status line, no disclaimer, no note about how
+  finished it is.
 - Terse. Fragments fine. No "simply", "just", "powerful", "robust", "seamlessly".
 - Every path, symbol, command and env var must be copy-pasteable and correct.
 - Do not touch source files, `.env`, or `.mmd` files. This command writes one README.
