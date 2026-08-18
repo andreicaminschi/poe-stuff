@@ -22,7 +22,7 @@ packages/trade/        # trade endpoint wrappers. Unfinished CLI, not a workspac
 packages/util/         # @util/core — env, cache-key, sleep
 research/              # design notes, archived. Not a spec of what is built
 trino/                 # Dockerfile + catalog for the trino service in compose.yaml
-compose.yaml           # redis, minio, hive metastore + postgres, trino
+compose.yaml           # redis, minio, ledger postgres, hive metastore + postgres, trino
 tsconfig.json          # one config, type-checks every package
 jest.config.js         # plain .js: jest loads config before any transform exists
 eslint.config.ts       # flat config. No `lint` script in package.json
@@ -69,8 +69,9 @@ import.
 | `POE_USER_AGENT` | `user-agent` sent on every GGG request. Must name the app and a real contact address | [packages/ggg/call.ts](packages/ggg/call.ts) |
 | `POE_TRADE_API_URL` | Base of the trade API, trailing slash stripped | [packages/trade/config.ts](packages/trade/config.ts) |
 
-`compose.yaml` reads its own set (`MINIO_ROOT_USER`, `REDIS_PORT`, `TRINO_PORT`, …), all
-with defaults, from the shell or a root `.env` that does not exist yet.
+`compose.yaml` reads its own set (`MINIO_ROOT_USER`, `REDIS_PORT`, `LEDGER_USER`,
+`LEDGER_PORT`, `TRINO_PORT`, …), all with defaults, from the shell or a root `.env` that
+does not exist yet.
 
 ## Gotchas
 
@@ -109,13 +110,20 @@ docker compose up -d
 
 ## Local stack
 
-| Service | Port (localhost) | Why |
-| --- | --- | --- |
-| redis | 6379 | Queue backend. `noeviction` — BullMQ jobs and locks are plain keys, so an eviction silently drops queue state |
-| minio | 9000, console 9001 | S3 for artifacts |
-| metastore-db | — | Postgres holding the metastore's own schema. Table definitions only |
-| metastore | 9083 | Starburst's hive build: bundles the S3 jars, takes MinIO config as env |
-| trino | 8080 | Queries the artifacts through the `minio` catalog |
+Production is AWS. The containers exist to stand in for AWS services on a laptop, and
+they follow what AWS does — never the other way round. A local service is configured to
+match its AWS counterpart's version and behaviour; where the two disagree, AWS is right
+and the container is what gets changed. Nothing is designed around a container's
+convenience, and nothing depends on one being present in production.
+
+| Service | Port (localhost) | Stands in for | Why |
+| --- | --- | --- | --- |
+| redis | 6379 | Redis | Queue backend. `noeviction` — BullMQ jobs and locks are plain keys, so an eviction silently drops queue state |
+| minio | 9000, console 9001 | S3 | Object storage for artifacts and the page data lake |
+| ledger-db | 5432 | RDS/Aurora PostgreSQL | The job ledger: one row per search and per page. Cohort completion is a query against it, not a counter. Holds data nothing else can regenerate |
+| metastore-db | — | Glue Data Catalog | Postgres holding the metastore's own schema. Table definitions only, kept apart from `ledger-db` because its recovery story is "re-run the DDL" |
+| metastore | 9083 | Glue Data Catalog | Starburst's hive build: bundles the S3 jars, takes MinIO config as env |
+| trino | 8080 | Athena | Queries the artifacts through the `minio` catalog |
 
 ## Docs
 
