@@ -1,34 +1,31 @@
-/** At most `max` acquisitions per rolling `windowMs`. */
-export type RateLimiterRule = { max: number; windowMs: number };
+import type { CallEvent, RateLimiter, ResponseCache } from "@poe/ggg/types";
 
-export type RateLimiter = {
-  /** Resolves when a slot is free. Callers are served in the order they asked. */
-  acquire(): Promise<void>;
-  /**
-   * Replaces the rules for every subsequent check, including the next one made by a
-   * caller that is already waiting. Throws `RangeError` on an unusable list, leaving
-   * the current rules in place.
-   */
-  setRules(next: RateLimiterRule[]): void;
-  /**
-   * Blocks all callers for `seconds`, keeping the request history intact. Never
-   * shortens a hold that already runs longer.
-   */
-  penalize(seconds: number): void;
+/**
+ * What every trade call needs from the process it runs in. The limiter belongs to the
+ * worker, the cache is present only where responses are being replayed, and `onEvent` is
+ * bound to whatever the caller wants labelled.
+ *
+ * Passed as one object so that a new concern is a new field rather than a fifth
+ * positional argument at two call sites.
+ */
+export type TradeContext = {
+  limiter: RateLimiter;
+  /** Absent in production. Its presence is the only thing that turns caching on. */
+  cache?: ResponseCache;
+  onEvent?: (event: CallEvent) => void;
+};
+
+/** Envelope returned by `POST /search/:league`. */
+export type SearchResponse = {
+  readonly id: string;
+  readonly complexity: number;
+  readonly total: number;
+  /** Up to 100 result hashes. GGG caps the list regardless of `total`. */
+  readonly result: readonly string[];
 };
 
 /**
- * Outcome of one trade API call. A non-2xx response is a value, not a throw — the caller
- * decides what to do with it, and `retryable` says whether trying again is worthwhile.
- * `body` is the parsed JSON, unvalidated: `call` asserts the shape rather than checking it.
+ * Envelope returned by `GET /fetch/:hashes`. Rows are passed through untouched — this is
+ * a raw drop, so only the envelope is asserted.
  */
-export type ApiResult<T> =
-  | { ok: true; body: T }
-  | { ok: false; status: number; retryable: boolean };
-
-/** One tier's usage as the server reports it, straight off the wire. */
-export type RateLimitState = {
-  hits: number;
-  windowSeconds: number;
-  restrictedSeconds: number;
-};
+export type FetchResponse = { readonly result: readonly unknown[] };
