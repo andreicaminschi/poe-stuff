@@ -15,9 +15,15 @@ are a JSON file, written by hand.
 | `search` | one `POST /search/:league` | `{ cohortId, queryId }` |
 | `page` | one `GET /fetch/:hashes`, up to `FETCH_CHUNK` hashes | `{ cohortId, queryId, searchId, hashes, page }` |
 
-A search returns up to 100 hashes and the API takes 10 per fetch, so the handler for a
-`search` job splits its result into chunks of `FETCH_CHUNK` and puts each chunk on the
-`page` queue. Every `page` job comes from a `search` job.
+A search returns up to 100 hashes and the API takes 10 per fetch. The handler for a
+`search` job keeps the first `MAX_PAGES` of them, splits those into chunks of
+`FETCH_CHUNK`, and puts each chunk on the `page` queue. Every `page` job comes from a
+`search` job.
+
+Depth is capped because results come back sorted by price: the cheap end is the market,
+and the tail is listings nobody is buying at prices nobody is paying. It is also most of
+what a cohort costs — three pages instead of ten is a third of the fetch budget. A query
+that needs more depth than the default sets its own `maxPages`.
 
 A job names a query, it does not carry one. The worker reads the league and the body
 from the query file when it picks the job up, so the query lives in exactly one place.
@@ -253,6 +259,7 @@ thing to edit, diff and review.
   "league": "Standard",
   "active": true,
   "inactiveReason": null,
+  "maxPages": 5,
   "body": { "query": { "...": "sent to POST /search/:league" } }
 }
 ```

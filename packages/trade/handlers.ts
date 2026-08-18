@@ -4,7 +4,7 @@ import { GggHttpError } from "@poe/ggg/errors";
 import { finish, getCohort, outstanding, promote } from "@poe/ledger/cohorts";
 import { addPages, claim, pagesFor, settle } from "@poe/ledger/jobs";
 import type { NewJob } from "@poe/ledger/types";
-import { FETCH_CHUNK } from "./config.ts";
+import { FETCH_CHUNK, MAX_PAGES } from "./config.ts";
 import { fetchPage } from "./fetch-page.ts";
 import { pageKey } from "./keys.ts";
 import { writeLatest, writePage } from "./pages.ts";
@@ -28,19 +28,24 @@ const message = (error: unknown) =>
   error instanceof Error ? error.message : String(error);
 
 /**
- * The page jobs one search produced. Ten hashes to a page, and a key made of the cohort,
- * the query and the position — so a second search of the same query lands on the same
- * keys and Postgres can reject it.
+ * The page jobs one search produced: its first `maxPages`, ten hashes each, keyed by the
+ * cohort, the query and the position — so a second search of the same query lands on the
+ * same keys and Postgres can reject it.
+ *
+ * Results come back sorted by price, so the pages kept are the cheap end, which is the
+ * part of a listing that describes the market.
  */
 function pageJobs(
   cohortId: string,
   queryId: string,
   searchId: string,
   hashes: readonly string[],
+  maxPages: number,
 ): NewJob[] {
   const jobs: NewJob[] = [];
+  const wanted = hashes.slice(0, maxPages * FETCH_CHUNK);
 
-  for (let page = 0; page * FETCH_CHUNK < hashes.length; page++) {
+  for (let page = 0; page * FETCH_CHUNK < wanted.length; page++) {
     jobs.push({
       job_key: pageKey(cohortId, queryId, page),
       query_id: queryId,
@@ -50,7 +55,7 @@ function pageJobs(
         queryId,
         searchId,
         page,
-        hashes: hashes.slice(page * FETCH_CHUNK, (page + 1) * FETCH_CHUNK),
+        hashes: wanted.slice(page * FETCH_CHUNK, (page + 1) * FETCH_CHUNK),
       },
     });
   }
@@ -136,7 +141,13 @@ async function handleSearch(
       await addPages(
         cohortId,
         jobKey,
-        pageJobs(cohortId, queryId, answer.id, answer.result),
+        pageJobs(
+          cohortId,
+          queryId,
+          answer.id,
+          answer.result,
+          query.maxPages ?? MAX_PAGES,
+        ),
       );
     }
 

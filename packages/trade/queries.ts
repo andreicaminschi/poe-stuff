@@ -9,6 +9,11 @@ export type Query = {
   league: string;
   active: boolean;
   inactiveReason?: string | null;
+  /**
+   * How many pages of this query to fetch, for the ones where the default is the wrong
+   * depth. Left out, `MAX_PAGES` decides.
+   */
+  maxPages?: number;
   body: unknown;
 };
 
