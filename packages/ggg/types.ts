@@ -17,6 +17,27 @@ export type RateLimiter = {
   penalize(seconds: number): void;
 };
 
+/** A response worth keeping, in the only form that survives being written down. */
+export type CachedResponse = {
+  url: string;
+  status: number;
+  body: unknown;
+  storedAt: string;
+};
+
+/**
+ * Somewhere previous answers live. `call` holds one of these the same way it holds a
+ * limiter — as an interface it was handed — so it stays ignorant of files, buckets and
+ * clients.
+ *
+ * A key is derived from the request itself, so the same request always looks the same to
+ * whatever implements this, on any machine and in any run.
+ */
+export type ResponseCache = {
+  get(key: string): Promise<CachedResponse | undefined>;
+  set(key: string, value: CachedResponse): Promise<void>;
+};
+
 /** One tier's usage as the server reports it, straight off the wire. */
 export type RateLimitState = {
   hits: number;
@@ -41,4 +62,6 @@ export type CallEvent =
       type: "penalize";
       seconds: number;
       source: "retry-after" | "state" | "fallback";
-    };
+    }
+  // A miss emits nothing: the `request` that follows it says the same thing.
+  | { type: "cache"; result: "hit" | "stored"; key: string };

@@ -1,13 +1,27 @@
 sequenceDiagram
-    %% blue = wait, grey = network, amber = limits back, green = body, red = error
+    %% blue = wait, grey = network, amber = limits back, green = body, red = error, purple = cache
     %% onEvent gets no lifeline: it is the caller's own callback, run inline on this
     %% stack, so it is an annotation on each phase rather than a party to the exchange.
     actor Caller
     participant Call as call
+    participant Cache as ResponseCache
     participant Limiter as RateLimiter
     participant API as GGG
 
     Caller->>Call: call(url, { onEvent? })
+
+    opt cache given
+        rect rgba(168, 85, 247, 0.12)
+            Note over Call: key = cacheKey("ggg", method, url, body)
+            Call->>Cache: get(key)
+            alt stored
+                Note over Call: emits cache { result: hit }<br/>no slot taken, no request, limiter untouched
+                Cache-->>Caller: body
+            else nothing stored
+                Cache-->>Call: undefined
+            end
+        end
+    end
 
     loop each attempt
         opt limiter given
@@ -36,6 +50,12 @@ sequenceDiagram
 
         alt 2xx
             Note right of Caller: 2xx Response
+            opt cache given
+                rect rgba(168, 85, 247, 0.12)
+                    Call->>Cache: set(key, { url, status, body, storedAt })
+                    Note over Call: emits cache { result: stored }<br/>2xx only — a stored 429 would outlive its ban
+                end
+            end
             rect rgba(34, 197, 94, 0.15)
                 Call-->>Caller: body
             end

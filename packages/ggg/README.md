@@ -25,7 +25,7 @@ packages/ggg/
 ├── call.ts                          # the request: pace, send, fold headers back, retry or throw
 ├── rate-limiter.ts                  # createLimiter — FIFO queue, rolling windows, penalty deadline
 ├── parse-rate-limit-headers.ts      # wire format of the rate-limit headers; no limiter calls
-├── types.ts                         # RateLimiter, RateLimiterRule, RateLimitState, CallEvent
+├── types.ts                         # RateLimiter, RateLimiterRule, RateLimitState, CallEvent, ResponseCache
 ├── errors.ts                        # GggHttpError
 ├── call.test.ts
 ├── parse-rate-limit-headers.test.ts
@@ -37,11 +37,11 @@ packages/ggg/
 
 | Entry point | Exports | Contract |
 | --- | --- | --- |
-| `@poe/ggg/call` | `call`, `CallOptions` | One request, through the limiter when given one; resolves the JSON body as `T`, throws `GggHttpError` on non-2xx. |
+| `@poe/ggg/call` | `call`, `CallOptions` | One request, through the limiter when given one and answered from the cache when given one; resolves the JSON body as `T`, throws `GggHttpError` on non-2xx. |
 | `@poe/ggg/rate-limiter` | `createLimiter` | Builds a `RateLimiter` from a rule list; `RangeError` if the list is empty or a rule is unusable. |
 | `@poe/ggg/parse-rate-limit-headers` | `parseRules`, `parseState`, `parseRetryAfter` | Header strings to values. Unparseable input yields an empty list, or `0` for `retry-after`. |
 | `@poe/ggg/errors` | `GggHttpError` | Carries `url`, `status`, `retryable`. |
-| `@poe/ggg/types` | `RateLimiter`, `RateLimiterRule`, `RateLimitState`, `CallEvent` | Types only. |
+| `@poe/ggg/types` | `RateLimiter`, `RateLimiterRule`, `RateLimitState`, `CallEvent`, `ResponseCache`, `CachedResponse` | Types only. |
 
 ## Examples
 
@@ -146,6 +146,38 @@ const log = (searchId: string) => (event: CallEvent) => {
 await call(url, { limiter, onEvent: log("first-page") });
 ```
 
+### Answer a request from one already made
+
+`cache` is any object with `get` and `set`. `call` builds the key from the request —
+method, url and body — so identical requests always agree on it, and nothing about the
+caller enters it.
+
+```ts
+import { call } from "@poe/ggg/call";
+import type { CachedResponse, ResponseCache } from "@poe/ggg/types";
+
+const memory = new Map<string, CachedResponse>();
+
+const cache: ResponseCache = {
+  get: async (key) => memory.get(key),
+  set: async (key, value) => void memory.set(key, value),
+};
+
+await call(url, { limiter, cache }); // fetches, then stores
+await call(url, { limiter, cache }); // answers from the store
+```
+
+A hit returns the stored body and stops there: no slot is taken, no request is made, and
+the limiter is not told anything. The headers that arrived with a stored answer describe a
+budget from whenever it was stored, and an expired penalty replayed now is worse than no
+information at all.
+
+Only a 2xx is stored, so a ban that has since lifted cannot answer later runs. A request
+whose body is not a string throws `TypeError` rather than being keyed as though it had no
+body at all.
+
+Hand one over on a laptop and leave it out in production. That is the whole switch.
+
 ## Environment
 
 | Var | Holds | Example |
@@ -154,7 +186,8 @@ await call(url, { limiter, onEvent: log("first-page") });
 
 This package ships no `.env`. It reads whatever the consuming package loaded with
 `node --env-file=packages/<consumer>/.env`, and `requireEnv` throws on the first `call`,
-not at import. It is required whether or not a limiter is passed.
+not at import. It is required whether or not a limiter is passed. A call answered from a
+cache never sends a request, so it never reads it.
 
 GGG asks that the user agent identify the application and give them a way to reach you, so
 they can contact the author instead of blocking the traffic. Format:
@@ -213,7 +246,8 @@ Mermaid `.mmd` sources in `packages/ggg/docs/`, viewable in any Mermaid renderer
 
 | File | Shows |
 | --- | --- |
-| `call.mmd` | One `call`, attempt by attempt: acquire a slot, fetch, fold the response's limits back into the limiter, then body / `GggHttpError` / backoff. Colour-coded by phase, with the `onEvent` emissions annotated where they fire. |
+| `call.mmd` | One `call`, attempt by attempt: check the cache, acquire a slot, fetch, fold the response's limits back into the limiter, then body / `GggHttpError` / backoff. Colour-coded by phase, with the `onEvent` emissions annotated where they fire. |
 
 `call.mmd` matches `call.ts` as written. The two `opt limiter given` blocks are exactly
-the steps skipped when `limiter` is omitted.
+the steps skipped when `limiter` is omitted, and the two `opt cache given` blocks the same
+for `cache`.

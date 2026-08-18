@@ -1,3 +1,4 @@
+import { cacheKey } from "@util/core/cache-key";
 import { requireEnv } from "@util/core/env";
 import { sleep } from "@util/core/sleep";
 import { GggHttpError } from "./errors.ts";
@@ -6,7 +7,7 @@ import {
   parseRules,
   parseState,
 } from "./parse-rate-limit-headers.ts";
-import type { CallEvent, RateLimiter } from "./types.ts";
+import type { CallEvent, RateLimiter, ResponseCache } from "./types.ts";
 
 /**
  * 429 is retryable because the limiter is given a hold before the error leaves this
@@ -44,7 +45,28 @@ export type CallOptions = {
    * Absent by default, which is what production wants.
    */
   onEvent?: (event: CallEvent) => void;
+  /**
+   * Answers the request from a previous one where it can. Present on a laptop, absent
+   * in production — there is no switch beyond handing one over or not.
+   */
+  cache?: ResponseCache;
 };
+
+/**
+ * Built here rather than taken from the caller, so two identical requests cannot be
+ * keyed apart by two call sites.
+ *
+ * Only a string body can be keyed. A stream would have to be consumed to be hashed, and
+ * consuming it here would leave nothing to send; keying every stream the same would
+ * quietly serve one request's answer to another.
+ */
+function requestKey(url: string, method: string, body: RequestInit["body"]): string {
+  if (body !== undefined && body !== null && typeof body !== "string") {
+    throw new TypeError("call can only cache a request whose body is a string");
+  }
+
+  return cacheKey("ggg", method, url, body ?? "");
+}
 
 /**
  * One request to a GGG endpoint: paced by the limiter, with the server's own rate-limit
@@ -56,8 +78,20 @@ export async function call<T = unknown>(
   url: string,
   options: CallOptions,
 ): Promise<T> {
-  const { limiter, retries = 0, init, onEvent = noop } = options;
+  const { limiter, retries = 0, init, onEvent = noop, cache } = options;
   const method = init?.method ?? "GET";
+  const key = cache && requestKey(url, method, init?.body);
+
+  // A hit ends the call here: no slot taken, no request made, and the limiter left
+  // alone. The rate-limit headers that came with a stored answer describe a budget from
+  // whenever it was stored, and a two minute old penalty is worse than no information.
+  if (cache && key) {
+    const cached = await cache.get(key);
+    if (cached) {
+      onEvent({ type: "cache", result: "hit", key });
+      return cached.body as T;
+    }
+  }
 
   for (let attempt = 0; ; attempt++) {
     const askedAt = Date.now();
@@ -92,7 +126,23 @@ export async function call<T = unknown>(
 
     if (limiter) applyRateLimits(limiter, response, onEvent);
 
-    if (response.ok) return (await response.json()) as T;
+    if (response.ok) {
+      const body = (await response.json()) as T;
+
+      // Only a 2xx is worth keeping. A stored 429 would answer every later run with the
+      // ban that had already expired.
+      if (cache && key) {
+        await cache.set(key, {
+          url,
+          status: response.status,
+          body,
+          storedAt: new Date().toISOString(),
+        });
+        onEvent({ type: "cache", result: "stored", key });
+      }
+
+      return body;
+    }
 
     const error = new GggHttpError(
       url,

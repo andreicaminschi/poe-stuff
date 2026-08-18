@@ -6,9 +6,10 @@ import {
   beforeEach,
   afterEach,
 } from "@jest/globals";
+import { cacheKey } from "@util/core/cache-key";
 import { call } from "./call.ts";
 import { GggHttpError } from "./errors.ts";
-import type { CallEvent, RateLimiterRule } from "./types.ts";
+import type { CachedResponse, CallEvent, RateLimiterRule } from "./types.ts";
 
 const ENDPOINT = "https://api.example.test/trade/search";
 const USER_AGENT = "poe-stuff-test/1.0 (contact: nobody@example.test)";
@@ -80,6 +81,25 @@ const eventsOfType = <K extends CallEvent["type"]>(type: K) =>
   events.filter(
     (event): event is Extract<CallEvent, { type: K }> => event.type === type,
   );
+
+/** The key `call` builds for a request, worked out the same way the source does. */
+const keyFor = (url: string, method: string, body = "") =>
+  cacheKey("ggg", method, url, body);
+
+/** Starts warm for whatever is passed in, and records everything written to it. */
+function fakeCache(stored: Record<string, unknown> = {}) {
+  return {
+    get: jest.fn(async (key: string): Promise<CachedResponse | undefined> => {
+      const body = stored[key];
+      return body === undefined
+        ? undefined
+        : { url: ENDPOINT, status: 200, body, storedAt: new Date(0).toISOString() };
+    }),
+    set: jest.fn<(key: string, value: CachedResponse) => Promise<void>>(
+      async () => {},
+    ),
+  };
+}
 
 /** A limiter that really holds, so the frozen clock moves and `wait` can be non-zero. */
 function holdFor(ms: number): void {
@@ -580,6 +600,104 @@ describe("call", () => {
           }),
         ).rejects.toThrow(blewUp);
       });
+    });
+  });
+
+  describe("a cache it was given", () => {
+    it("answers from the cache without taking a slot or making a request", async () => {
+      respondWith(ok({ result: ["live"] }));
+      const cache = fakeCache({
+        [keyFor(ENDPOINT, "GET")]: { result: ["stored"] },
+      });
+
+      const body = await call(ENDPOINT, { limiter, cache, onEvent: collect });
+
+      expect(body).toEqual({ result: ["stored"] });
+      expect(order).toEqual([]);
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it("leaves the limiter untouched on a hit, however stale the answer is", async () => {
+      const cache = fakeCache({
+        [keyFor(ENDPOINT, "GET")]: { result: [] },
+      });
+
+      await call(ENDPOINT, { limiter, cache });
+
+      expect(limiter.acquire).not.toHaveBeenCalled();
+      expect(limiter.setRules).not.toHaveBeenCalled();
+      expect(limiter.penalize).not.toHaveBeenCalled();
+    });
+
+    it("stores the body of a successful answer it had to go and get", async () => {
+      respondWith(ok({ result: ["live"] }));
+      const cache = fakeCache();
+
+      await call(ENDPOINT, { limiter, cache });
+
+      expect(cache.set).toHaveBeenCalledWith(keyFor(ENDPOINT, "GET"), {
+        url: ENDPOINT,
+        status: 200,
+        body: { result: ["live"] },
+        storedAt: new Date(0).toISOString(),
+      });
+    });
+
+    it("keys a POST by its body, so two queries never share an answer", async () => {
+      respondWith(ok({}));
+      const cache = fakeCache();
+      const body = '{"query":{"status":"online"}}';
+
+      await call(ENDPOINT, {
+        limiter,
+        cache,
+        init: { method: "POST", body },
+      });
+
+      expect(cache.set).toHaveBeenCalledWith(
+        keyFor(ENDPOINT, "POST", body),
+        expect.anything(),
+      );
+    });
+
+    it("stores nothing when every attempt failed", async () => {
+      respondWith(rejected(500));
+      const cache = fakeCache();
+
+      await failureOf(call(ENDPOINT, { limiter, cache, retries: 1 }));
+
+      expect(cache.set).not.toHaveBeenCalled();
+    });
+
+    it("refuses a request it cannot key rather than keying it wrongly", async () => {
+      respondWith(ok({}));
+      const cache = fakeCache();
+
+      await expect(
+        call(ENDPOINT, {
+          limiter,
+          cache,
+          init: { method: "POST", body: new Uint8Array([1, 2, 3]) },
+        }),
+      ).rejects.toThrow(TypeError);
+    });
+
+    it("reports the hit and the store, and says nothing on a miss", async () => {
+      respondWith(ok({ result: [] }));
+      const cache = fakeCache();
+
+      await call(ENDPOINT, { limiter, cache, onEvent: collect });
+      expect(eventsOfType("cache")).toEqual([
+        { type: "cache", result: "stored", key: keyFor(ENDPOINT, "GET") },
+      ]);
+
+      events = [];
+      const warm = fakeCache({ [keyFor(ENDPOINT, "GET")]: { result: [] } });
+
+      await call(ENDPOINT, { limiter, cache: warm, onEvent: collect });
+      expect(eventsOfType("cache")).toEqual([
+        { type: "cache", result: "hit", key: keyFor(ENDPOINT, "GET") },
+      ]);
     });
   });
 });
