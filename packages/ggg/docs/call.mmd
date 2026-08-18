@@ -10,11 +10,13 @@ sequenceDiagram
     Caller->>Call: call(url, { onEvent? })
 
     loop each attempt
-        rect rgba(59, 130, 246, 0.12)
-            Call->>Limiter: acquire()
-            Note over Limiter: Wait for the next slot to be available
-            Limiter-->>Call: slot
-            Note over Call: emits wait { ms }<br/>only when the limiter actually held
+        opt limiter given
+            rect rgba(59, 130, 246, 0.12)
+                Call->>Limiter: acquire()
+                Note over Limiter: Wait for the next slot to be available
+                Limiter-->>Call: slot
+                Note over Call: emits wait { ms }<br/>only when the limiter actually held
+            end
         end
 
         rect rgba(148, 163, 184, 0.15)
@@ -24,10 +26,12 @@ sequenceDiagram
             Note over Call: emits response { status, durationMs }<br/>every answer, 2xx or not
         end
 
-        rect rgba(245, 158, 11, 0.15)
-            Note right of Call: Rules are updated after each call<br/>helps catching any kind of warning from ggg
-            Call->>Limiter: setRules + penalize from headers
-            Note over Call: emits penalize { seconds, source }<br/>once per hold — state, retry-after or fallback
+        opt limiter given
+            rect rgba(245, 158, 11, 0.15)
+                Note right of Call: Rules are updated after each call<br/>helps catching any kind of warning from ggg
+                Call->>Limiter: setRules + penalize from headers
+                Note over Call: emits penalize { seconds, source }<br/>once per hold — state, retry-after or fallback
+            end
         end
 
         alt 2xx

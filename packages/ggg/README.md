@@ -1,7 +1,7 @@
 # @poe/ggg
 
-HTTP client for GGG's API: every request paced by a rate limiter that the server's own
-rate-limit headers keep updated.
+HTTP client for GGG's API: one request, optionally paced by a rate limiter that the
+server's own rate-limit headers keep updated.
 
 ## Purpose
 
@@ -9,7 +9,9 @@ GGG rate-limits per IP and answers an overrun with a timed restriction, so the c
 guessing wrong is a ban rather than a slow request. This package centralises the parts
 that keep that from happening: queueing requests behind a limiter, reading the limit and
 state headers off every response, holding everything for the length of any restriction the
-server reports, and turning a non-2xx answer into a `GggHttpError`.
+server reports, and turning a non-2xx answer into a `GggHttpError`. The limiter is the
+default, not a requirement — an endpoint that publishes no limits can be called without
+one.
 
 It knows nothing about endpoints — no URLs, no query building, no pagination. Response
 bodies are asserted to the caller's type, never validated; a caller that cares hands the
@@ -35,7 +37,7 @@ packages/ggg/
 
 | Entry point | Exports | Contract |
 | --- | --- | --- |
-| `@poe/ggg/call` | `call`, `CallOptions` | One request through the limiter; resolves the JSON body as `T`, throws `GggHttpError` on non-2xx. |
+| `@poe/ggg/call` | `call`, `CallOptions` | One request, through the limiter when given one; resolves the JSON body as `T`, throws `GggHttpError` on non-2xx. |
 | `@poe/ggg/rate-limiter` | `createLimiter` | Builds a `RateLimiter` from a rule list; `RangeError` if the list is empty or a rule is unusable. |
 | `@poe/ggg/parse-rate-limit-headers` | `parseRules`, `parseState`, `parseRetryAfter` | Header strings to values. Unparseable input yields an empty list, or `0` for `retry-after`. |
 | `@poe/ggg/errors` | `GggHttpError` | Carries `url`, `status`, `retryable`. |
@@ -83,13 +85,46 @@ const search = await call<SearchResponse>(
 );
 ```
 
-### Retry a transient failure
+### Call an endpoint that publishes no limits
 
-`retries` is extra attempts after the first, and only 408/429/500/502/503/504 are eligible.
-A 429 waits out its hold inside the limiter as well as the backoff.
+Omit `limiter`. Nothing is acquired, and no headers are folded back — there are none to
+read. `POE_USER_AGENT` is still sent.
 
 ```ts
-const page = await call<FetchResponse>(url, { limiter, retries: 3 });
+import { call } from "@poe/ggg/call";
+
+type CurrencyExchange = {
+  next_change_id: number;
+  markets: { league: string; market_id: string }[];
+};
+
+const hour = await call<CurrencyExchange>(
+  "https://web.poecdn.com/api/currency-exchange/1787022000",
+);
+
+console.log(hour.markets.length, "markets");
+```
+
+### Retry a transient failure, then branch on what is left
+
+`retries` is extra attempts after the first, and only 408/429/500/502/503/504 are eligible.
+It defaults to 0. With a limiter, a 429 waits out its hold as well as the backoff; without
+one there is only the backoff.
+
+```ts
+import { call } from "@poe/ggg/call";
+import { GggHttpError } from "@poe/ggg/errors";
+
+try {
+  const page = await call<FetchResponse>(url, { limiter, retries: 3 });
+  console.log(page.result.length);
+} catch (error) {
+  if (error instanceof GggHttpError && error.retryable) {
+    // requeue — the limiter already holds any restriction the response reported
+    return;
+  }
+  throw error;
+}
 ```
 
 ### Watch what the limiter is doing
@@ -111,23 +146,6 @@ const log = (searchId: string) => (event: CallEvent) => {
 await call(url, { limiter, onEvent: log("first-page") });
 ```
 
-### Branch on whether a failure is worth repeating
-
-```ts
-import { call } from "@poe/ggg/call";
-import { GggHttpError } from "@poe/ggg/errors";
-
-try {
-  await call(url, { limiter });
-} catch (error) {
-  if (error instanceof GggHttpError && error.retryable) {
-    // requeue — the limiter already holds any restriction the response reported
-    return;
-  }
-  throw error;
-}
-```
-
 ## Environment
 
 | Var | Holds | Example |
@@ -136,7 +154,7 @@ try {
 
 This package ships no `.env`. It reads whatever the consuming package loaded with
 `node --env-file=packages/<consumer>/.env`, and `requireEnv` throws on the first `call`,
-not at import.
+not at import. It is required whether or not a limiter is passed.
 
 GGG asks that the user agent identify the application and give them a way to reach you, so
 they can contact the author instead of blocking the traffic. Format:
@@ -156,15 +174,18 @@ way to reach anyone, is what gets an IP blocked.
 - **One limiter is one IP.** State is per-instance and per-process. Two limiters running
   in the same process means twice the real request rate against a single budget, and the
   server counts the total.
+- **No limiter means no hold.** With `limiter` omitted, a 429 is still retryable and still
+  backs off, but nothing records the restriction — `applyRateLimits` is skipped entirely,
+  so `penalize` never fires and no `penalize` event is emitted. Retries are fine; pacing,
+  if the endpoint turns out to need it, is the caller's.
+- **Omitting the limiter is silent.** It is an optional field, so a caller that forgets it
+  against a limited endpoint compiles and runs unpaced. Nothing warns.
 - **Server rules overwrite yours.** Any non-empty `x-rate-limit-ip` replaces the whole rule
   set. A missing or unparseable header parses to an empty list and is deliberately ignored,
   so the last known rules stay in force rather than resetting to your starting guess.
 - **A hold never shrinks.** `penalize` keeps the later deadline. During a restriction every
   in-flight response reports the same one, and a smaller figure arriving afterwards must
   not cut it short.
-- **`retries` defaults to 0.** A 429 counts as retryable only because the hold is applied
-  before the error leaves `call`. Leave it at 0 wherever a job queue owns retries; raising
-  it without the limiter in the loop is what escalates a ban.
 - **Rules carry one slot of headroom.** `parseRules` subtracts 1 from each limit, because
   the state header describes the previous response and the last slot in a window is the
   one most likely to be wrong.
@@ -194,4 +215,5 @@ Mermaid `.mmd` sources in `packages/ggg/docs/`, viewable in any Mermaid renderer
 | --- | --- |
 | `call.mmd` | One `call`, attempt by attempt: acquire a slot, fetch, fold the response's limits back into the limiter, then body / `GggHttpError` / backoff. Colour-coded by phase, with the `onEvent` emissions annotated where they fire. |
 
-`call.mmd` matches `call.ts` as written.
+`call.mmd` matches `call.ts` as written. The two `opt limiter given` blocks are exactly
+the steps skipped when `limiter` is omitted.

@@ -9,8 +9,10 @@ import {
 import type { CallEvent, RateLimiter } from "./types.ts";
 
 /**
- * 429 is retryable only because the limiter is always given a hold before the error
- * leaves this module — without that, retrying a 429 is what escalates a ban.
+ * 429 is retryable because the limiter is given a hold before the error leaves this
+ * module — without that, retrying a 429 is what escalates a ban. With no limiter there
+ * is no hold and the backoff is all that separates the attempts — fine against an
+ * endpoint that publishes no limits, since there is no budget to overrun.
  */
 const RETRYABLE = new Set([408, 429, 500, 502, 503, 504]);
 
@@ -28,7 +30,11 @@ const backoffMs = (attempt: number) => 500 * 2 ** attempt;
 const noop = () => {};
 
 export type CallOptions = {
-  limiter: RateLimiter;
+  /**
+   * Omit only for an endpoint that publishes no limits of its own — the static poecdn
+   * digests. Everything on pathofexile.com draws on one per-IP budget and must be paced.
+   */
+  limiter?: RateLimiter | null;
   /** Extra attempts after the first. Leave at 0 where a job queue owns retries. */
   retries?: number;
   init?: RequestInit;
@@ -55,7 +61,7 @@ export async function call<T = unknown>(
 
   for (let attempt = 0; ; attempt++) {
     const askedAt = Date.now();
-    await limiter.acquire();
+    await limiter?.acquire();
 
     // Only when it actually held. At full budget `acquire` returns immediately, and a
     // 0 ms line per request is pure noise at trade's fan-out.
@@ -84,7 +90,7 @@ export async function call<T = unknown>(
       durationMs: Date.now() - sentAt,
     });
 
-    applyRateLimits(limiter, response, onEvent);
+    if (limiter) applyRateLimits(limiter, response, onEvent);
 
     if (response.ok) return (await response.json()) as T;
 
