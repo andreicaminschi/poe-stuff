@@ -6,11 +6,19 @@ import { cacheKey } from "@util/core/cache-key";
  * handed back: two searches of the same query have to produce the same page keys, or
  * neither can reject the other.
  */
+/**
+ * `cacheKey` separates its namespace with a colon, which BullMQ refuses in a job id —
+ * that is the character it builds its own Redis keys with. A dash keeps one key usable
+ * as both the job id and the ledger's primary key.
+ */
+const jobKey = (namespace: string, ...parts: string[]) =>
+  cacheKey(namespace, ...parts).replace(":", "-");
+
 export const searchKey = (cohortId: string, queryId: string) =>
-  cacheKey("search", cohortId, queryId);
+  jobKey("search", cohortId, queryId);
 
 export const pageKey = (cohortId: string, queryId: string, page: number) =>
-  cacheKey("page", cohortId, queryId, String(page));
+  jobKey("page", cohortId, queryId, String(page));
 
 /** Hive partition naming, so a query for one cohort reads only that prefix. */
 export const pageObjectKey = (

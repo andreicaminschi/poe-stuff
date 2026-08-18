@@ -11,11 +11,22 @@ import type { RateLimiterRule, RateLimitState } from "./types.ts";
  */
 const HEADROOM = 1;
 
+/**
+ * Every window is held open this much longer than the one the server enforces.
+ *
+ * A request is recorded here when it leaves and counted there when it arrives, so the two
+ * windows are offset by the round trip — around 300ms against this API. A request that
+ * has just aged out locally can still be inside the server's window, and one that is
+ * only a slot below the limit then trips it. Holding the window open past the round trip
+ * keeps that request on the books until the server has also let it go.
+ */
+const SKEW_MS = 1_000;
+
 /** `x-rate-limit-ip` — `requests:windowSeconds:banSeconds`. The ban length is not a rule. */
 export function parseRules(header: string | null): RateLimiterRule[] {
   return parseTriples(header).map(([requests, windowSeconds]) => ({
     max: Math.max(1, requests - HEADROOM),
-    windowMs: windowSeconds * 1000,
+    windowMs: windowSeconds * 1000 + SKEW_MS,
   }));
 }
 

@@ -85,12 +85,44 @@ priority so that it goes ahead of a run that is already in progress.
 
 Each worker runs one job at a time.
 
-The rate limiter is shared by everything in the process and matches one IP address, and
-it lets one request through at a time. A second job running in parallel would spend its
-time waiting for the limiter while holding a job lock. More throughput comes from more
-processes on more IP addresses, each with its own limiter.
+A limiter lets one request through at a time, so a second job running in parallel would
+spend its time waiting on one while holding a job lock. More throughput comes from more
+processes on more IP addresses.
 
-The worker creates the limiter and passes it to the handler with the job.
+Running one job at a time is not the same as pacing it. A fetch takes about 300ms, so
+back to back that is three a second, against a budget that allows one and a third.
+
+## A limiter per policy
+
+GGG meters each endpoint under its own policy — `trade-search-request-limit` for searches,
+`trade-fetch-request-limit` for pages — keyed by IP. Separate budgets, separate tiers, and
+a limiter holds one set of rules at a time, so the worker keeps one limiter per queue and
+hands each handler the one that matches its job.
+
+The fetch policy, read off a live response:
+
+```
+x-rate-limit-ip:       12:4:10,  16:12:300,  50:300:300,  1000:21600:1800
+x-rate-limit-ip-state:  1:4:0,    0:12:0,     2:300:0,      39:21600:0
+```
+
+`hits : period : restriction`. Three things follow.
+
+**Both ends count, a round trip apart.** A request is recorded here when it leaves and
+there when it arrives, so the windows are offset by about 300ms. Every published rule is
+paced a slot short and its window held open a second longer than stated. Riding exactly at
+the limit is what earns the 300 second restriction on the twelve second tier.
+
+**The state header is the real count.** It includes requests this process never made — a
+browser tab, a second worker, anything else on that IP — so every response folds it back
+in through `observe`, and whatever it reports beyond what the limiter recorded is charged
+to that window until it expires.
+
+**1000 fetches per six hours is what one IP is worth.** A cohort of 2,000 searches
+produces around 2,000 page fetches, so a cohort is sized against however many IPs are
+running it, not against one worker. Overrunning the tier costs a 30 minute restriction,
+and it is the slowest one to recover, so a laptop debugging a run leans on the cache
+rather than on the budget.
 
 ## Keeping the job lock alive
 
@@ -183,25 +215,26 @@ needs no event of its own; the `request` that follows it is the event.
 
 ### What `packages/trade` supplies
 
-The S3-backed implementation of that contract:
+A folder, one file per request:
 
 ```
-s3://poe-pages/cache/ggg/<digest>.json      # the CachedResponse
+cache/ggg/<digest>.json      # the CachedResponse
 ```
 
-The `url` lives inside the object because a digest tells you nothing when you are looking
-at a bucket.
+Gitignored, and it only ever exists on a laptop, so a folder beats a bucket — it can be
+read, grepped and deleted without a client. The `url` lives inside the file because a
+digest tells you nothing from a directory listing.
 
 `postSearch` and `fetchPage` take a context — `{ limiter, cache?, onEvent? }` — rather
 than growing another positional argument. The worker builds the cache once at startup,
-when `CACHE_BUCKET` is set, and hands the same object to every handler.
+when `CACHE_DIR` is set, and hands the same object to every handler.
 
-There is no switch in the code for turning caching off. Production leaves `CACHE_BUCKET`
+There is no switch in the code for turning caching off. Production leaves `CACHE_DIR`
 unset and every request goes to GGG; a laptop sets it and the run replays.
 
 ### The debug loop
 
-1. Run a cohort with `CACHE_BUCKET` set. It behaves normally and fills the cache.
+1. Run a cohort with `CACHE_DIR` set. It behaves normally and fills the cache.
 2. Run it again. `POST /search` is answered from the cache, so it returns the same search
    id and the same hashes, so every page fetch keys the same way and is answered from the
    cache too.
@@ -527,10 +560,12 @@ package loaded by `node --env-file=`.
 | `POE_USER_AGENT` | sent on every GGG request |
 | `POE_TRADE_API_URL` | base of the trade API |
 | `QUERIES_FILE` | the JSON file the queries are written in |
+| `LOG_FORMAT` | `pretty` or `json`. Unset means pretty on a terminal, JSON everywhere else |
+| `LOG_DIR` | folder for a JSON copy of every run. Unset means console only |
 | `REDIS_URL` | the queue |
 | `DATABASE_URL` | the ledger |
 | `S3_URL` | the S3 endpoint. MinIO locally, AWS in production |
 | `S3_BUCKET` | where pages are written |
-| `CACHE_BUCKET` | where cached responses are kept. Unset means no caching |
+| `CACHE_DIR` | folder for cached responses. Unset means no caching |
 
 Credentials and region come from the AWS SDK's own environment.

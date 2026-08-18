@@ -100,7 +100,9 @@ export async function call<T = unknown>(
     // Only when it actually held. At full budget `acquire` returns immediately, and a
     // 0 ms line per request is pure noise at trade's fan-out.
     const waited = Date.now() - askedAt;
-    if (waited > 0) onEvent({ type: "wait", ms: waited });
+    if (waited > 0) {
+      onEvent({ type: "wait", ms: waited, reason: limiter?.explainWait() });
+    }
 
     onEvent({ type: "request", url, method, attempt });
 
@@ -174,14 +176,25 @@ function applyRateLimits(
   const rules = parseRules(response.headers.get("x-rate-limit-ip"));
   if (rules.length > 0) limiter.setRules(rules);
 
-  for (const state of parseState(
-    response.headers.get("x-rate-limit-ip-state"),
-  )) {
-    if (state.restrictedSeconds > 0) {
-      limiter.penalize(state.restrictedSeconds);
+  const state = parseState(response.headers.get("x-rate-limit-ip-state"));
+
+  // What the server has counted, including whatever this limiter never saw — another
+  // process on the same IP, or requests this one made before it was restarted.
+  if (state.length > 0) limiter.observe(state);
+
+  onEvent({
+    type: "limits",
+    policy: response.headers.get("x-rate-limit-policy") ?? "",
+    rules,
+    state,
+  });
+
+  for (const tier of state) {
+    if (tier.restrictedSeconds > 0) {
+      limiter.penalize(tier.restrictedSeconds);
       onEvent({
         type: "penalize",
-        seconds: state.restrictedSeconds,
+        seconds: tier.restrictedSeconds,
         source: "state",
       });
     }

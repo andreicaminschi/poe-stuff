@@ -14,24 +14,24 @@ describe("parseRules", () => {
   it("turns the server's five-per-ten-seconds tier into a rule of four", () => {
     const rules = parseRules("5:10:60");
 
-    expect(rules).toEqual([{ max: 4, windowMs: 10_000 }]);
+    expect(rules).toEqual([{ max: 4, windowMs: 11_000 }]);
   });
 
   it("reads every tier out of a comma-separated header", () => {
     const rules = parseRules("5:10:60,15:60:300,30:300:1800,600:21600:3600");
 
     expect(rules).toEqual([
-      { max: 4, windowMs: 10_000 },
-      { max: 14, windowMs: 60_000 },
-      { max: 29, windowMs: 300_000 },
-      { max: 599, windowMs: 21_600_000 },
+      { max: 4, windowMs: 11_000 },
+      { max: 14, windowMs: 61_000 },
+      { max: 29, windowMs: 301_000 },
+      { max: 599, windowMs: 21_601_000 },
     ]);
   });
 
   it("still allows one request when the server's tier only allows one", () => {
     const rules = parseRules("1:10:60");
 
-    expect(rules).toEqual([{ max: 1, windowMs: 10_000 }]);
+    expect(rules).toEqual([{ max: 1, windowMs: 11_000 }]);
   });
 
   it("returns no rules when the header is missing or empty", () => {
@@ -43,8 +43,8 @@ describe("parseRules", () => {
     const rules = parseRules("5:10:60,15:60,nonsense,30:300:1800");
 
     expect(rules).toEqual([
-      { max: 4, windowMs: 10_000 },
-      { max: 29, windowMs: 300_000 },
+      { max: 4, windowMs: 11_000 },
+      { max: 29, windowMs: 301_000 },
     ]);
   });
 });

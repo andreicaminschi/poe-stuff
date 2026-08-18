@@ -1,8 +1,9 @@
 import { randomUUID } from "node:crypto";
 import { Worker } from "bullmq";
-import type { ConnectionOptions, Job } from "bullmq";
+import type { Job } from "bullmq";
+import type { Redis } from "ioredis";
 import type { RateLimiter, ResponseCache } from "@poe/ggg/types";
-import { logEvents } from "./log.ts";
+import { log, logEvents } from "./log.ts";
 import type { TradeContext } from "./types.ts";
 
 /**
@@ -28,13 +29,15 @@ export type WorkerConfig = {
   /** One per queue name. A queue with no handler is a config mistake, not a silent skip. */
   handlers: Readonly<Record<string, JobHandler>>;
   /**
-   * One limiter for the whole process, because one limiter is one IP. Every handler is
-   * given this same one.
+   * One limiter per queue, because GGG meters each endpoint under its own policy: the
+   * searches and the fetches draw on separate budgets against the same IP, and one
+   * limiter can only hold one set of rules at a time. Keyed like `handlers`.
    */
-  limiter: RateLimiter;
+  limiters: Readonly<Record<string, RateLimiter>>;
   /** Present on a laptop, absent in production. Handed to every handler as it is. */
   cache?: ResponseCache;
-  connection: ConnectionOptions;
+  /** A fresh client per call: each queue reader blocks on its own connection. */
+  newConnection: () => Redis;
   lockDurationMs?: number;
   drainDelaySeconds?: number;
 };
@@ -44,11 +47,6 @@ export type RunningWorker = {
   run(): Promise<void>;
   close(): Promise<void>;
 };
-
-/** One JSON object per line, the same shape `logEvents` writes. */
-function note(labels: Record<string, string>, fields: Record<string, unknown>) {
-  console.log(JSON.stringify({ ts: new Date().toISOString(), ...labels, ...fields }));
-}
 
 const asError = (thrown: unknown): Error =>
   thrown instanceof Error ? thrown : new Error(String(thrown));
@@ -82,9 +80,9 @@ export function createWorker(config: WorkerConfig): RunningWorker {
   const {
     queues,
     handlers,
-    limiter,
+    limiters,
     cache,
-    connection,
+    newConnection,
     lockDurationMs = LOCK_DURATION_MS,
     drainDelaySeconds = DRAIN_DELAY_SECONDS,
   } = config;
@@ -94,19 +92,32 @@ export function createWorker(config: WorkerConfig): RunningWorker {
     throw new RangeError("a worker needs at least one queue");
   }
 
-  const missing = queues.filter((queue) => handlers[queue] === undefined);
+  const missing = queues.filter(
+    (queue) => handlers[queue] === undefined || limiters[queue] === undefined,
+  );
   if (missing.length > 0) {
-    throw new RangeError(`no handler for queue: ${missing.join(", ")}`);
+    throw new RangeError(
+      `a handler and a limiter are needed for: ${missing.join(", ")}`,
+    );
   }
 
-  const asWorker = (queue: string) =>
-    new Worker(queue, null, {
+  // Every reader gets its own client: one parked in a blocking read holds that
+  // connection for as long as it waits. BullMQ leaves a client it was handed open, so
+  // these are ours to close.
+  const clients: Redis[] = [];
+
+  const asWorker = (queue: string) => {
+    const connection = newConnection();
+    clients.push(connection);
+
+    return new Worker(queue, null, {
       connection,
       lockDuration: lockDurationMs,
       drainDelay: drainDelaySeconds,
       // Nothing to autorun: with no processor, this worker only hands out jobs.
       autorun: false,
     });
+  };
 
   // `own` is built apart from the rest so the queue this worker waits on is a value, not
   // a lookup that has to be proven non-empty at every use.
@@ -139,7 +150,7 @@ export function createWorker(config: WorkerConfig): RunningWorker {
     } catch (error) {
       // The lock was lost while the handler ran, so this job now belongs to whichever
       // worker the stalled check gave it to. Nothing to do but say so and move on.
-      note(
+      log(
         { queue: job.queueName, job: job.id ?? "" },
         { type: "settle-failed", message: asError(error).message },
       );
@@ -150,10 +161,11 @@ export function createWorker(config: WorkerConfig): RunningWorker {
     const labels = { queue: job.queueName, job: job.id ?? "" };
     const stopRenewing = renewLock(job, token, lockDurationMs);
     const handler = handlers[job.queueName];
+    const limiter = limiters[job.queueName];
 
     try {
-      if (handler === undefined) {
-        throw new RangeError(`no handler for queue ${job.queueName}`);
+      if (handler === undefined || limiter === undefined) {
+        throw new RangeError(`nothing configured for queue ${job.queueName}`);
       }
 
       await handler(job, { limiter, cache, onEvent: logEvents(labels) });
@@ -186,7 +198,7 @@ export function createWorker(config: WorkerConfig): RunningWorker {
           // `close` aborts whatever the blocking read was doing. Anything else is worth
           // a line before the loop tries again.
           if (running) {
-            note({}, { type: "take-failed", message: asError(error).message });
+            log({}, { type: "take-failed", message: asError(error).message });
           }
           continue;
         }
@@ -198,6 +210,8 @@ export function createWorker(config: WorkerConfig): RunningWorker {
     async close() {
       running = false;
       await Promise.all(workers.map((worker) => worker.close()));
+      // `disconnect`, not `quit`: a client parked in a blocking read never answers a QUIT.
+      clients.forEach((client) => client.disconnect());
     },
   };
 }

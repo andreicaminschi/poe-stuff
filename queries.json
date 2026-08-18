@@ -1,0 +1,298 @@
+[
+  {
+    "id": "veritania-maps",
+    "name": "Maps occupied by Veritania, the Redeemer",
+    "league": "Allflame",
+    "active": true,
+    "inactiveReason": null,
+    "body": {
+      "query": {
+        "status": {
+          "option": "any"
+        },
+        "stats": [
+          {
+            "type": "and",
+            "filters": [
+              {
+                "id": "explicit.stat_4041943326",
+                "disabled": false
+              }
+            ]
+          }
+        ],
+        "filters": {
+          "type_filters": {
+            "filters": {
+              "category": {
+                "option": "map"
+              }
+            }
+          }
+        }
+      },
+      "sort": {
+        "price": "asc"
+      }
+    }
+  },
+  {
+    "id": "al-hezmin-maps",
+    "name": "Maps occupied by Al-Hezmin, the Hunter",
+    "league": "Allflame",
+    "active": true,
+    "inactiveReason": null,
+    "body": {
+      "query": {
+        "status": {
+          "option": "any"
+        },
+        "stats": [
+          {
+            "type": "and",
+            "filters": [
+              {
+                "id": "explicit.stat_2866498028",
+                "disabled": false
+              }
+            ]
+          }
+        ],
+        "filters": {
+          "type_filters": {
+            "filters": {
+              "category": {
+                "option": "map"
+              }
+            }
+          }
+        }
+      },
+      "sort": {
+        "price": "asc"
+      }
+    }
+  },
+  {
+    "id": "baran-maps",
+    "name": "Maps occupied by Baran, the Crusader",
+    "league": "Allflame",
+    "active": true,
+    "inactiveReason": null,
+    "body": {
+      "query": {
+        "status": {
+          "option": "any"
+        },
+        "stats": [
+          {
+            "type": "and",
+            "filters": [
+              {
+                "id": "explicit.stat_4283248632",
+                "disabled": false
+              }
+            ]
+          }
+        ],
+        "filters": {
+          "type_filters": {
+            "filters": {
+              "category": {
+                "option": "map"
+              }
+            }
+          }
+        }
+      },
+      "sort": {
+        "price": "asc"
+      }
+    }
+  },
+  {
+    "id": "drox-maps",
+    "name": "Maps occupied by Drox, the Warlord",
+    "league": "Allflame",
+    "active": true,
+    "inactiveReason": null,
+    "body": {
+      "query": {
+        "status": {
+          "option": "any"
+        },
+        "stats": [
+          {
+            "type": "and",
+            "filters": [
+              {
+                "id": "explicit.stat_2768602791",
+                "disabled": false
+              }
+            ]
+          }
+        ],
+        "filters": {
+          "type_filters": {
+            "filters": {
+              "category": {
+                "option": "map"
+              }
+            }
+          }
+        }
+      },
+      "sort": {
+        "price": "asc"
+      }
+    }
+  },
+  {
+    "id": "enslaver-maps",
+    "name": "Maps occupied by The Enslaver",
+    "league": "Allflame",
+    "active": true,
+    "inactiveReason": null,
+    "body": {
+      "query": {
+        "status": {
+          "option": "any"
+        },
+        "stats": [
+          {
+            "type": "and",
+            "filters": [
+              {
+                "id": "implicit.stat_3624393862|1",
+                "disabled": false
+              }
+            ]
+          }
+        ],
+        "filters": {
+          "type_filters": {
+            "filters": {
+              "category": {
+                "option": "map"
+              }
+            }
+          }
+        }
+      },
+      "sort": {
+        "price": "asc"
+      }
+    }
+  },
+  {
+    "id": "eradicator-maps",
+    "name": "Maps occupied by The Eradicator",
+    "league": "Allflame",
+    "active": true,
+    "inactiveReason": null,
+    "body": {
+      "query": {
+        "status": {
+          "option": "any"
+        },
+        "stats": [
+          {
+            "type": "and",
+            "filters": [
+              {
+                "id": "implicit.stat_3624393862|2",
+                "disabled": false
+              }
+            ]
+          }
+        ],
+        "filters": {
+          "type_filters": {
+            "filters": {
+              "category": {
+                "option": "map"
+              }
+            }
+          }
+        }
+      },
+      "sort": {
+        "price": "asc"
+      }
+    }
+  },
+  {
+    "id": "constrictor-maps",
+    "name": "Maps occupied by The Constrictor",
+    "league": "Allflame",
+    "active": true,
+    "inactiveReason": null,
+    "body": {
+      "query": {
+        "status": {
+          "option": "any"
+        },
+        "stats": [
+          {
+            "type": "and",
+            "filters": [
+              {
+                "id": "implicit.stat_3624393862|3",
+                "disabled": false
+              }
+            ]
+          }
+        ],
+        "filters": {
+          "type_filters": {
+            "filters": {
+              "category": {
+                "option": "map"
+              }
+            }
+          }
+        }
+      },
+      "sort": {
+        "price": "asc"
+      }
+    }
+  },
+  {
+    "id": "purifier-maps",
+    "name": "Maps occupied by The Purifier",
+    "league": "Allflame",
+    "active": true,
+    "inactiveReason": null,
+    "body": {
+      "query": {
+        "status": {
+          "option": "any"
+        },
+        "stats": [
+          {
+            "type": "and",
+            "filters": [
+              {
+                "id": "implicit.stat_3624393862|4",
+                "disabled": false
+              }
+            ]
+          }
+        ],
+        "filters": {
+          "type_filters": {
+            "filters": {
+              "category": {
+                "option": "map"
+              }
+            }
+          }
+        }
+      },
+      "sort": {
+        "price": "asc"
+      }
+    }
+  }
+]

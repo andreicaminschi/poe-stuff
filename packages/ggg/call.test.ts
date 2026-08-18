@@ -9,7 +9,12 @@ import {
 import { cacheKey } from "@util/core/cache-key";
 import { call } from "./call.ts";
 import { GggHttpError } from "./errors.ts";
-import type { CachedResponse, CallEvent, RateLimiterRule } from "./types.ts";
+import type {
+  CachedResponse,
+  CallEvent,
+  RateLimiterRule,
+  RateLimitState,
+} from "./types.ts";
 
 const ENDPOINT = "https://api.example.test/trade/search";
 const USER_AGENT = "poe-stuff-test/1.0 (contact: nobody@example.test)";
@@ -28,6 +33,8 @@ function fakeLimiter() {
       order.push("acquire");
     }),
     setRules: jest.fn<(next: RateLimiterRule[]) => void>(),
+    observe: jest.fn<(state: RateLimitState[]) => void>(),
+    explainWait: jest.fn<() => string | undefined>(),
     penalize: jest.fn((seconds: number): void => {
       order.push(`penalize:${seconds}`);
     }),
@@ -304,7 +311,7 @@ describe("call", () => {
       await call(ENDPOINT, { limiter });
 
       expect(limiter.setRules).toHaveBeenCalledWith([
-        { max: 11, windowMs: 60_000 },
+        { max: 11, windowMs: 61_000 },
       ]);
     });
 
@@ -558,7 +565,7 @@ describe("call", () => {
         expect(eventsOfType("retry")).toHaveLength(1);
       });
 
-      it("reports one retried call in order: wait, request, response, hold, retry, request, response", async () => {
+      it("reports one retried call in order: wait, request, response, limits, hold, retry, then the same again", async () => {
         holdFor(250);
         respondWith(rejected(429, { "retry-after": "30" }), ok({}));
 
@@ -574,11 +581,13 @@ describe("call", () => {
           "wait",
           "request",
           "response",
+          "limits",
           "penalize",
           "retry",
           "wait",
           "request",
           "response",
+          "limits",
         ]);
         expect(eventsOfType("request").map((event) => event.attempt)).toEqual([
           0, 1,

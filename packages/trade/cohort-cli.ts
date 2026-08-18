@@ -19,7 +19,7 @@ import {
   REPAIR_PRIORITY,
   SEARCH_QUEUE,
 } from "./queues.ts";
-import { redisConnection } from "./redis.ts";
+import { redisClient } from "./redis.ts";
 
 /**
  * The commands that drive a cohort. The worker knows how to do the work; these decide
@@ -30,7 +30,7 @@ import { redisConnection } from "./redis.ts";
  *     cohort-cli.ts retry <cohortId>
  *     cohort-cli.ts replace <cohortId> <oldQueryId> <newQueryId>
  */
-const connection = redisConnection();
+const connection = redisClient();
 const queues = {
   [SEARCH_QUEUE]: new Queue(SEARCH_QUEUE, { connection }),
   [PAGE_QUEUE]: new Queue(PAGE_QUEUE, { connection }),
@@ -85,8 +85,9 @@ async function start(): Promise<void> {
   }));
 
   await addSearches(cohortId, searches);
-  await enqueue(searches);
+  console.log(`${cohortId}: wrote ${searches.length} rows`);
 
+  await enqueue(searches);
   console.log(`${cohortId}: queued ${searches.length} searches`);
 }
 
@@ -194,6 +195,9 @@ try {
       );
   }
 } finally {
-  await Promise.all(Object.values(queues).map((queue) => queue.close()));
+  // The adds have already returned, so there is nothing left to flush. `close` on a queue
+  // holding a client BullMQ was handed rather than made waits on that client, and `quit`
+  // waits for a reply that never comes. Dropping the socket is what lets the process end.
+  connection.disconnect();
   await closeDb();
 }
