@@ -157,3 +157,32 @@ export type TradeItemsResponse = {
 
 /** A unique item as the trade data knows it: its own name and its base item. */
 export type UniqueItem = { readonly name: string; readonly type: string };
+
+/**
+ * One row of `GET /data/stats`: a stat the trade site will search on, with every rolled
+ * number written as `#`. `type` repeats the group it arrived in — `explicit`, `implicit`,
+ * `pseudo`, `fractured`, and the rest — and is also the prefix of `id`.
+ *
+ * `option` is present on the stats whose value is a choice rather than a number, where
+ * the filter carries an option id instead of a range.
+ */
+export type TradeStatEntry = {
+  readonly id: string;
+  readonly text: string;
+  readonly type: string;
+  readonly option?: {
+    readonly options: readonly {
+      readonly id: string | number;
+      readonly text: string;
+    }[];
+  };
+};
+
+/** Envelope returned by `GET /data/stats`. Entries arrive grouped by stat type. */
+export type TradeStatsResponse = {
+  readonly result: readonly {
+    readonly id: string;
+    readonly label: string;
+    readonly entries: readonly TradeStatEntry[];
+  }[];
+};
