@@ -13,6 +13,12 @@ const wikiUrl = () => requireEnv("POE_WIKI_BASE_URL").replace(/\/$/, "");
 export type CargoQuery = {
   tables: string;
   fields: string;
+  /**
+   * How to join them, when `tables` names more than one. Cargo's own tables share
+   * `_pageID` — every child table row carries the page id of the row it belongs to —
+   * so `mods._pageID=mod_spawn_weights._pageID` is the usual shape.
+   */
+  joinOn?: string;
   where?: string;
   groupBy?: string;
   orderBy?: string;
@@ -40,6 +46,7 @@ export async function cargoQuery<T>(query: CargoQuery): Promise<readonly T[]> {
     format: "json",
   });
 
+  if (query.joinOn !== undefined) params.set("join_on", query.joinOn);
   if (query.where !== undefined) params.set("where", query.where);
   if (query.groupBy !== undefined) params.set("group_by", query.groupBy);
   if (query.orderBy !== undefined) params.set("order_by", query.orderBy);

@@ -2,6 +2,7 @@ import { cacheKey } from "@util/core/cache-key";
 import { optionalEnv } from "@util/core/env";
 import { fileCache } from "@util/core/file-cache";
 import { cargoQuery } from "./cargo.ts";
+import { decodeEntities } from "./wiki-text.ts";
 import type { CargoUniqueRow, WikiUniqueItem } from "./types.ts";
 
 const HOUR_MS = 3_600_000;
@@ -28,37 +29,6 @@ const FIELDS = [
  * same way on every request, and name alone does not decide the uniques that share one.
  */
 const ORDER_BY = "items.name,items.base_item";
-
-const NAMED_ENTITIES: Record<string, string> = {
-  amp: "&",
-  lt: "<",
-  gt: ">",
-  quot: '"',
-  apos: "'",
-  nbsp: " ",
-};
-
-/**
- * Cargo exports what the wiki renders, so every value arrives HTML-escaped. Without this
- * every possessive name — and there are hundreds — comes out as `Abberath&#039;s Hooves`
- * and matches nothing.
- *
- * An entity this does not know is left exactly as it stands, which is visible in the
- * output rather than silently wrong.
- */
-function decodeEntities(value: string): string {
-  return value
-    .replace(/&#(\d+);/g, (_, code: string) =>
-      String.fromCodePoint(Number(code)),
-    )
-    .replace(/&#[xX]([0-9a-fA-F]+);/g, (_, hex: string) =>
-      String.fromCodePoint(Number.parseInt(hex, 16)),
-    )
-    .replace(/&([a-zA-Z]+);/g, (match, name: string) => {
-      const decoded = NAMED_ENTITIES[name];
-      return decoded === undefined ? match : decoded;
-    });
-}
 
 /**
  * Every unique the wiki knows: its name, its base item, its item class, and whether the
