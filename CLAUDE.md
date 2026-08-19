@@ -35,7 +35,7 @@ eslint.config.ts       # flat config. No `lint` script in package.json
 
 | Package | Import as | Owns |
 | --- | --- | --- |
-| `@poe/ggg` | `@poe/ggg/call`, `/rate-limiter`, `/parse-rate-limit-headers`, `/errors`, `/types` | One request through a limiter; rate-limit header parsing; `GggHttpError`. Knows no URLs. See [packages/ggg/README.md](packages/ggg/README.md). |
+| `@poe/ggg` | `@poe/ggg/call`, `/rate-limiter`, `/parse-rate-limit-headers`, `/errors`, `/config`, `/search`, `/fetch-page`, `/fetch-currency-hour`, `/get-unique-items`, `/types` | The GGG service: one function per endpoint, over one request through a limiter. Owns every GGG URL. See [packages/ggg/README.md](packages/ggg/README.md). |
 | `@util/core` | `@util/core/env`, `/cache-key`, `/file-cache`, `/sleep` | `requireEnv`/`optionalEnv` — the only place `process.env` is read. `cacheKey` for stable S3/Redis keys. `fileCache<T>` — JSON on disk, one file per key, backing both the GGG response cache and the PoeWatch digest cache. |
 | `@poe/ledger` | `@poe/ledger/db`, `/migrate`, `/cohorts`, `/jobs`, `/currency`, `/types` | The job ledger on postgres: cohort rows, job rows, the queries that decide completion, and one row per collected currency hour. |
 | `@poe/workers` | `@poe/workers/worker`, `/handlers`, `/queries`, `/queues`, `/keys`, `/pages`, `/file-cache`, `/fetch-currency`, `/types` | `postSearch`, `fetchPage`, `fetchCurrencyHour`, the BullMQ worker loop and job handlers, S3 writes, and the `cohort-cli.ts`/`worker-cli.ts`/`currency-cli.ts` entry points. |
@@ -71,11 +71,12 @@ import.
 | Var | Holds | Read by |
 | --- | --- | --- |
 | `POE_USER_AGENT` | `user-agent` sent on every outbound request, GGG and PoeWatch alike. Must name the app and a real contact address | [packages/ggg/call.ts](packages/ggg/call.ts), [packages/poe-watch/get-compact-data.ts](packages/poe-watch/get-compact-data.ts), [packages/poe-watch/get-corruption-data.ts](packages/poe-watch/get-corruption-data.ts) |
-| `POE_TRADE_API_URL` | Base of the trade API, trailing slash stripped | [packages/workers/config.ts](packages/workers/config.ts) |
-| `POE_CURRENCY_API_URL` | Base of the Currency Exchange endpoint on the CDN. The realm is part of it — the bare base is PoE1 PC | [packages/workers/config.ts](packages/workers/config.ts) |
+| `POE_TRADE_API_URL` | Base of the trade API, trailing slash stripped | [packages/ggg/config.ts](packages/ggg/config.ts), [packages/workers/config.ts](packages/workers/config.ts) |
+| `POE_CURRENCY_API_URL` | Base of the Currency Exchange endpoint on the CDN. The realm is part of it — the bare base is PoE1 PC | [packages/ggg/config.ts](packages/ggg/config.ts), [packages/workers/config.ts](packages/workers/config.ts) |
 | `POE_CURRENCY_LEAGUE` | The one league kept out of each hourly digest. Every league arrives in one payload and there is no server-side filter | [packages/workers/config.ts](packages/workers/config.ts) |
 | `POE_CURRENCY_FROM` | Oldest hour to collect: a unix timestamp or a date. Set by hand — GGG will not say how far its history goes, and this is what stops a sweep walking back to 1970 | [packages/workers/config.ts](packages/workers/config.ts) |
 | `POE_WATCH_BASE_URL` | Base of the PoeWatch API, trailing slash stripped. Not GGG — it publishes no rate limits, so nothing behind it draws on the GGG budget | [packages/poe-watch/get-compact-data.ts](packages/poe-watch/get-compact-data.ts), [packages/poe-watch/get-corruption-data.ts](packages/poe-watch/get-corruption-data.ts) |
+| `CACHE_DIR` | Folder holding cached responses. Optional, local only — unset means every request goes to GGG, which is what production wants. `@poe/ggg` also keeps the hour-keyed unique-item digest here | [packages/ggg/get-unique-items.ts](packages/ggg/get-unique-items.ts), [packages/workers/file-cache.ts](packages/workers/file-cache.ts) |
 | `POE_WATCH_CACHE_DIR` | Folder holding cached league digests, one per league per hour. Optional — unset means every call re-downloads tens of megabytes. The hour is in the key, so entries never expire, they only stop being asked for | [packages/poe-watch/get-compact-data.ts](packages/poe-watch/get-compact-data.ts), [packages/poe-watch/get-corruption-data.ts](packages/poe-watch/get-corruption-data.ts) |
 
 `compose.yaml` reads its own set (`MINIO_ROOT_USER`, `REDIS_PORT`, `LEDGER_USER`,
