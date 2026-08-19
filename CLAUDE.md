@@ -7,9 +7,12 @@ API. No build step — Node runs the `.ts` files directly.
 
 Everything here exists to make rate-limited requests to GGG without earning a ban:
 `@poe/ggg` paces requests behind a limiter the server's own headers keep updated, and
-`@poe/workers` wraps the two trade endpoints on top of it and runs the queue workers.
+`@poe/workers` wraps the two trade endpoints on top of it and runs the queue workers. It
+also sinks the Currency Exchange hourly digests, which come off the CDN under no budget
+at all.
 
-What is not in the repo today: no scheduler, no schema validation of response bodies.
+What is not in the repo today: no schema validation of response bodies. The only schedule
+is the currency sweep, and it is a BullMQ job scheduler in redis rather than a cron.
 `compose.yaml` runs the backing services; `@poe/workers` connects to redis, minio and the
 ledger postgres, the rest are unused so far.
 
@@ -17,7 +20,7 @@ ledger postgres, the rest are unused so far.
 
 ```
 packages/ggg/          # @poe/ggg — HTTP client + rate limiter. Has its own README.md
-packages/ledger/       # @poe/ledger — job + cohort tables on postgres
+packages/ledger/       # @poe/ledger — job, cohort and currency-hour tables on postgres
 packages/workers/      # @poe/workers — trade endpoint wrappers, queue workers, CLIs
 packages/util/         # @util/core — env, cache-key, sleep
 research/              # design notes, archived. Not a spec of what is built
@@ -34,8 +37,8 @@ eslint.config.ts       # flat config. No `lint` script in package.json
 | --- | --- | --- |
 | `@poe/ggg` | `@poe/ggg/call`, `/rate-limiter`, `/parse-rate-limit-headers`, `/errors`, `/types` | One request through a limiter; rate-limit header parsing; `GggHttpError`. Knows no URLs. See [packages/ggg/README.md](packages/ggg/README.md). |
 | `@util/core` | `@util/core/env`, `/cache-key`, `/sleep` | `requireEnv`/`optionalEnv` — the only place `process.env` is read. `cacheKey` for stable S3/Redis keys. |
-| `@poe/ledger` | `@poe/ledger/db`, `/migrate`, `/cohorts`, `/jobs`, `/types` | The job ledger on postgres: cohort rows, job rows, and the queries that decide completion. |
-| `@poe/workers` | `@poe/workers/worker`, `/handlers`, `/queries`, `/queues`, `/keys`, `/pages`, `/file-cache`, `/types` | `postSearch`, `fetchPage`, the BullMQ worker loop and job handlers, S3 page writes, and the `cohort-cli.ts`/`worker-cli.ts` entry points. |
+| `@poe/ledger` | `@poe/ledger/db`, `/migrate`, `/cohorts`, `/jobs`, `/currency`, `/types` | The job ledger on postgres: cohort rows, job rows, the queries that decide completion, and one row per collected currency hour. |
+| `@poe/workers` | `@poe/workers/worker`, `/handlers`, `/queries`, `/queues`, `/keys`, `/pages`, `/file-cache`, `/fetch-currency`, `/types` | `postSearch`, `fetchPage`, `fetchCurrencyHour`, the BullMQ worker loop and job handlers, S3 writes, and the `cohort-cli.ts`/`worker-cli.ts`/`currency-cli.ts` entry points. |
 
 Cross-package imports resolve through the `exports` map in that package's
 `package.json`. A new public entry point needs a line added there; anything absent is
@@ -69,6 +72,9 @@ import.
 | --- | --- | --- |
 | `POE_USER_AGENT` | `user-agent` sent on every GGG request. Must name the app and a real contact address | [packages/ggg/call.ts](packages/ggg/call.ts) |
 | `POE_TRADE_API_URL` | Base of the trade API, trailing slash stripped | [packages/workers/config.ts](packages/workers/config.ts) |
+| `POE_CURRENCY_API_URL` | Base of the Currency Exchange endpoint on the CDN. The realm is part of it — the bare base is PoE1 PC | [packages/workers/config.ts](packages/workers/config.ts) |
+| `POE_CURRENCY_LEAGUE` | The one league kept out of each hourly digest. Every league arrives in one payload and there is no server-side filter | [packages/workers/config.ts](packages/workers/config.ts) |
+| `POE_CURRENCY_FROM` | Oldest hour to collect: a unix timestamp or a date. Set by hand — GGG will not say how far its history goes, and this is what stops a sweep walking back to 1970 | [packages/workers/config.ts](packages/workers/config.ts) |
 
 `compose.yaml` reads its own set (`MINIO_ROOT_USER`, `REDIS_PORT`, `LEDGER_USER`,
 `LEDGER_PORT`, `TRINO_PORT`, …), all with defaults, from the shell or a root `.env` that
@@ -126,7 +132,8 @@ convenience, and nothing depends on one being present in production.
 ## Docs
 
 `packages/ggg` has a `README.md` and Mermaid `.mmd` diagrams in `packages/ggg/docs/`.
-`packages/workers` has `docs/pipeline.md` and a `.mmd` beside it, but no README.
+`packages/workers` has `docs/pipeline.md` with `pipeline.mmd` and `currency.mmd` beside
+it, but no README.
 `packages/util` and `packages/ledger` have neither. Write a package README with the
 `/document` command.
 

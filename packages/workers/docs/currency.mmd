@@ -1,0 +1,44 @@
+flowchart TD
+    %% Matches the Currency Exchange section of pipeline.md. Green = ledger, blue = Redis,
+    %% amber = S3. No cohort anywhere: an hour stands on its own.
+
+    TICK(["BullMQ scheduler<br/>0 * * * *, kept in redis"]) --> SWEEPQ[["currency queue"]]
+    MANUAL(["poe currency sweep"]) --> SWEEPQ
+
+    subgraph sweeplane["the sweep"]
+        direction TB
+        W1["one transaction:<br/>a pending row per hour from<br/>POE_CURRENCY_FROM to now - 2h"] --> W2["read back every row<br/>still pending or active"]
+        W2 --> W3["queue one job per hour,<br/>keyed by league and hour"]
+    end
+
+    SWEEPQ --> W1
+    W3 --> HOURQ[["currency-hour queue"]]
+
+    subgraph hourlane["one hour"]
+        direction TB
+        H1["claim the row"] --> H2["fetchCurrencyHour"]
+        H2 --> H3["keep POE_CURRENCY_LEAGUE,<br/>drop the rest"]
+        H3 --> H4["write NDJSON<br/>hour=&lt;hourId&gt;.ndjson"]
+        H4 --> H5["mark it done,<br/>record object_key and market_count"]
+    end
+
+    HOURQ --> H1
+    H4 --> LAKE[("S3<br/>currency/league=.../hour=...")]
+    H3 -.->|"no markets this hour"| H5
+
+    H2 -.->|"408, 429, 5xx"| RETRY["retry, up to 5 attempts"]
+    RETRY -.-> H2
+    H2 -.->|"400, 404"| FAILED["mark it failed,<br/>keep the error and status"]
+
+    FAILED -.->|"5xx, 408, 429:<br/>taken again"| W1
+    FAILED -.->|"404: pruned or never there,<br/>left alone"| GONE["stays failed"]
+
+    classDef ledger fill:#dcfce7,stroke:#16a34a,color:#14532d
+    classDef store fill:#fef3c7,stroke:#d97706,color:#78350f
+    classDef queue fill:#dbeafe,stroke:#3b82f6,color:#1e3a8a
+    classDef held fill:#fee2e2,stroke:#dc2626,color:#7f1d1d
+
+    class W1,W2,H1,H5,FAILED ledger
+    class LAKE,H4 store
+    class SWEEPQ,HOURQ,RETRY queue
+    class GONE held

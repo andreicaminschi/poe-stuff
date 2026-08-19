@@ -1,19 +1,25 @@
 # The collection pipeline
 
-A worker is one process that takes jobs off Redis queues and makes trade API requests.
-Every worker runs the same code. What changes between them is the order of the queues
-they read.
+A worker is one process that takes jobs off Redis queues and makes requests. Every worker
+runs the same code. What changes between them is the order of the queues they read.
 
-Redis holds the work waiting to be done. Postgres is the source of truth for cohorts and
-for the record of every job. S3 holds the pages that come back. The queries themselves
-are a JSON file, written by hand.
+Redis holds the work waiting to be done. Postgres is the source of truth for cohorts, for
+the record of every job, and for which currency hours have been collected. S3 holds the
+pages and the hourly currency digests that come back. The queries themselves are a JSON
+file, written by hand.
 
-## The two queues
+## The queues
 
 | Queue | One job is | Job data |
 | --- | --- | --- |
 | `search` | one `POST /search/:league` | `{ cohortId, queryId }` |
 | `page` | one `GET /fetch/:hashes`, up to `FETCH_CHUNK` hashes | `{ cohortId, queryId, searchId, hashes, page }` |
+| `currency` | the hourly sweep: which currency hours are still owed | `{}` |
+| `currency-hour` | one `GET /api/currency-exchange/:hour` | `{ league, hourId }` |
+
+The first two collect a cohort and the last two collect Currency Exchange history — two
+pipelines with nothing in common but the worker loop. [Currency Exchange](#currency-exchange)
+below is the whole of the second one; everything until then is the cohort.
 
 A search returns up to 100 hashes and the API takes 10 per fetch. The handler for a
 `search` job keeps the first `MAX_PAGES` of them, splits those into chunks of
@@ -32,8 +38,8 @@ The cohort records the digest of the file it was started from, and a worker chec
 file it reads against that digest. An edit part way through a run stops the workers
 instead of quietly changing what the cohort is collecting.
 
-Adding a third queue later means adding a row here, a handler, and a name in a worker's
-queue list. The worker code stays as it is.
+Adding a queue means adding a row here, a handler, and a name in a worker's queue list.
+The worker code stays as it is — `currency` and `currency-hour` were added that way.
 
 ### Job keys
 
@@ -43,6 +49,7 @@ primary key in the ledger:
 ```ts
 cacheKey("search", cohortId, queryId)
 cacheKey("page", cohortId, queryId, page)
+cacheKey("currency", league, hourId)
 ```
 
 `cohortId` is part of the key. The same query run in two cohorts is two separate pieces
@@ -63,8 +70,9 @@ repeat is harmless.
 A worker is started with a list of queues in the order it should read them:
 
 ```
-search worker: ["search", "page"]
-page worker:   ["page", "search"]
+search worker:   ["search", "page"]
+page worker:     ["page", "search"]
+currency worker: ["currency", "currency-hour"]
 ```
 
 The worker takes a job from the first queue that has one. A search worker works through
@@ -293,9 +301,10 @@ Postgres holds one row per job. This is what says whether a cohort is finished.
 
 The tables, the migrations and the queries against them live in `@poe/ledger`. It exports
 `newCohort`, `getCohort`, `outstanding`, `finish`, `promote`, `failures`, `repair` and
-`deprecate` for cohorts, and `addSearches`, `addPages`, `pagesFor`, `claim` and `settle`
-for jobs — the worker and every command go through those rather than writing their own
-SQL, and `pg` is a dependency of that package alone.
+`deprecate` for cohorts, `addSearches`, `addPages`, `pagesFor`, `claim` and `settle` for
+jobs, and `openHours`, `claimHour`, `settleHour` and `hourCounts` for currency hours — the
+worker and every command go through those rather than writing their own SQL, and `pg` is a
+dependency of that package alone.
 
 Migrations are plain `.sql` files applied in filename order by a small runner that
 records what it has run in a `schema_migrations` table.
@@ -506,27 +515,147 @@ The new search fans out its own page jobs the usual way. `deprecated` rows do no
 promotion — they are work the cohort deliberately no longer counts, and their data is
 gone from S3, so a promoted cohort still means every object in it is wanted.
 
+## Currency Exchange
+
+`GET <POE_CURRENCY_API_URL>/<hourId>` returns one hour of aggregate Currency Exchange
+history: every market that saw activity, in every league, as one payload of a couple of
+thousand records. `hourId` is a unix timestamp truncated to the hour, which is also how
+the endpoint numbers its digests.
+
+This is the CDN, not the trade API. No OAuth, no rate-limit headers, and no share of the
+per-IP budget the search and fetch policies meter. The limiter on these queues is
+politeness rather than a rule learned from a response — one request a second, which is
+what a backfill of several thousand hours should look like from the outside.
+
+Three properties of the source decide everything below:
+
+- **The current hour is never served.** The newest hour worth asking for is
+  `CURRENCY_LAG_HOURS` — two — behind the clock.
+- **GGG prunes old history.** An hour that was not collected before it fell out of their
+  window is gone, and there is no way to ask how far back the window goes. What this
+  collects is the only copy.
+- **Every league arrives in the same payload.** There is no server-side filter, so
+  `POE_CURRENCY_LEAGUE` is applied on the way to S3 and the other leagues are dropped.
+
+An hour belongs to no cohort. It is not part of a run, nothing waits on it, and no
+promotion depends on it — which is why it has its own table rather than a third `kind` in
+`job`.
+
+### The sweep
+
+A `currency` job works out what is missing and queues one `currency-hour` job per hour:
+
+1. insert a `pending` row for every hour from `POE_CURRENCY_FROM` to the newest servable
+   hour, in one transaction
+2. read back every row in that range still `pending` or `active`
+3. add a job per hour, keyed `cacheKey("currency", league, hourId)`, in chunks of 500
+
+Rows before jobs, the same as a cohort. Step 2 reads rather than trusting what step 1
+inserted, so a sweep that wrote rows and died before queueing them is repaired by the next
+one; re-queueing an hour that is already waiting costs nothing, because the job id is the
+hour and Redis keeps one.
+
+Backfilling is therefore not a separate mode. Every sweep asks for the whole range and the
+ledger subtracts what is already collected, so the first sweep after `POE_CURRENCY_FROM` is
+moved back queues the history, and every sweep after it queues one hour.
+
+The sweep is the repair pass too. A `failed` row is taken again — unless the endpoint
+answered 4xx, which is the one case that is not worth repeating: a 404 is an hour GGG has
+pruned or never had, and retrying it every hour forever is the shape this must not take.
+408 and 429 are back-pressure rather than an answer, so those stay eligible.
+
+### The hourly tick
+
+The sweep runs on a BullMQ job scheduler, registered once:
+
+```
+poe currency schedule       # upserts the "0 * * * *" scheduler
+poe currency unschedule
+```
+
+The schedule lives in Redis, so nothing has to be up at the top of the hour and there is
+no cron anywhere. The due job is promoted out of the delayed set by whichever worker asks
+its queue for work next, and a worker started after a gap runs the tick it missed. Because
+the sweep asks for the whole range every time, a missed tick costs nothing at all.
+
+### The ledger table
+
+```sql
+create table currency_hour (
+  hour_id      bigint not null,         -- unix hour, as the endpoint numbers it
+  league       text not null,           -- responses carry every league; a row counts one
+  state        text not null,           -- 'pending' | 'active' | 'done' | 'failed'
+  attempts     int not null default 0,
+  object_key   text,                    -- null where nothing was written
+  market_count int,                     -- markets kept for this league. 0 is a real answer
+  duration_ms  int,
+  error        text,
+  http_status  int,                     -- what makes a failure worth retrying, or not
+  fetched_at   timestamptz,
+  updated_at   timestamptz not null default now(),
+  primary key (league, hour_id)
+);
+```
+
+No `deprecated` state: there is no cohort to drop an hour out of. The primary key is what
+makes two sweeps running at once harmless — both insert the same hours and Postgres keeps
+one row.
+
+### One hour
+
+A `currency-hour` job claims its row, fetches, keeps the configured league, writes NDJSON,
+and settles:
+
+```
+currency/league=<league>/hour=<hourId>.ndjson
+```
+
+Markets are written exactly as they arrived — one record per line, nothing derived. VWAP,
+the ratio band and anything chaos-normalised are a later pass over these objects, the same
+way pages are a raw drop.
+
+An hour with no markets for this league still settles `done`, with `market_count` 0 and no
+`object_key`. The league had no activity that hour, or had not started yet; that is an
+answer, not a failure, and it leaves no empty object for a reader to open.
+
+Retries, the job lock and the cache work exactly as they do for a page — same loop, same
+`GggHttpError` rules. The cache is worth more here than anywhere: one hour is around a
+megabyte for one league, and a replayed backfill costs nothing.
+
+The flow, end to end: [currency.mmd](currency.mmd). The cohort side is
+[pipeline.mmd](pipeline.mmd).
+
+### Watching it
+
+```
+poe currency status         # the range configured, and how many hours are in each state
+poe currency sweep          # one sweep now, without waiting for the hour
+```
+
 ## Storage
 
-Pages go to S3. Search results are not stored — a search exists to produce page jobs, and
-the ledger already records that it ran.
+Pages and currency hours go to S3. Search results are not stored — a search exists to
+produce page jobs, and the ledger already records that it ran.
 
 ```
 s3://poe-pages/pages/cohort=<cohortId>/<queryId>-<page>.ndjson
+s3://poe-pages/currency/league=<league>/hour=<hourId>.ndjson
 s3://poe-pages/latest.json                  # { cohortId }
 ```
 
 Two things that layout is doing:
 
-1. `cohort=<id>` is the naming Hive and Trino use for partitions, so a query for one
-   cohort reads only that prefix.
-2. Pages are NDJSON, one item per line. Trino reads line-delimited JSON; the items
+1. `cohort=<id>` and `league=<name>` are the naming Hive and Trino use for partitions, so
+   a query for one cohort, or for one league, reads only that prefix. A league is a display
+   name, so it is percent-encoded — `Hardcore Allflame` is not a partition value.
+2. Everything is NDJSON, one record per line. Trino reads line-delimited JSON; the records
    themselves are stored exactly as they arrived.
 
 Everything about a page other than its items lives in its ledger row: `queryId` and
 `page` in the key, `searchId` and the hashes in `payload`, and `object_key`, `item_count`, `duration_ms`,
 `fetched_at`, `attempts` alongside. One row per object, and `object_key` is what joins
-the two.
+the two. A currency hour works the same way against `currency_hour`, with `market_count`
+in place of `item_count`.
 
 `latest.json` stays in S3 because it is what a reader with no database needs in order to
 find the current cohort. Anything more than that is a question for the ledger, and Trino
@@ -572,7 +701,10 @@ package loaded by `node --env-file=`.
 | `REDIS_URL` | the queue |
 | `DATABASE_URL` | the ledger |
 | `S3_URL` | the S3 endpoint. MinIO locally, AWS in production |
-| `S3_BUCKET` | where pages are written |
+| `S3_BUCKET` | where pages and currency hours are written |
+| `POE_CURRENCY_API_URL` | base of the Currency Exchange endpoint on the CDN, realm included |
+| `POE_CURRENCY_LEAGUE` | the one league kept out of each hourly digest |
+| `POE_CURRENCY_FROM` | oldest hour to collect, a unix timestamp or a date |
 | `CACHE_DIR` | folder for cached responses. Unset means no caching |
 
 Credentials and region come from the AWS SDK's own environment.

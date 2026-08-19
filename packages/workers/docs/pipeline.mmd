@@ -7,7 +7,7 @@ flowchart TD
     START --> SEED["cohort row,<br/>one pending job row per active query"]
     SEED --> SEARCHQ[["search queue"]]
 
-    WORKERS>"every worker serves both queues,<br/>its own one first"]
+    WORKERS>"a search or page worker serves both,<br/>its own queue first"]
     WORKERS -.- SEARCHQ
     WORKERS -.- PAGEQ
 
