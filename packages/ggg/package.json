@@ -10,6 +10,7 @@
     "./errors": "./errors.ts",
     "./fetch-currency-hour": "./fetch-currency-hour.ts",
     "./fetch-page": "./fetch-page.ts",
+    "./get-stats": "./get-stats.ts",
     "./get-unique-items": "./get-unique-items.ts",
     "./parse-rate-limit-headers": "./parse-rate-limit-headers.ts",
     "./rate-limiter": "./rate-limiter.ts",

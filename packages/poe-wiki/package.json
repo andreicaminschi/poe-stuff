@@ -7,6 +7,7 @@
   "exports": {
     "./cargo": "./cargo.ts",
     "./get-corrupted-mods": "./get-corrupted-mods.ts",
+    "./get-exceptional-gems": "./get-exceptional-gems.ts",
     "./get-influence-mods": "./get-influence-mods.ts",
     "./get-unique-items": "./get-unique-items.ts",
     "./types": "./types.ts",

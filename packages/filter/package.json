@@ -4,5 +4,11 @@
   "license": "MIT",
   "private": true,
   "type": "module",
-  "exports": {}
+  "exports": {
+    "./classify": "./classify.ts",
+    "./merge-uniques": "./merge-uniques.ts",
+    "./types": "./types.ts",
+    "./build-tier-page": "./build-tier-page.ts",
+    "./fetch-inputs": "./fetch-inputs.ts"
+  }
 }
