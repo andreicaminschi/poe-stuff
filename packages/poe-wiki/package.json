@@ -6,7 +6,9 @@
   "type": "module",
   "exports": {
     "./cargo": "./cargo.ts",
+    "./get-influence-mods": "./get-influence-mods.ts",
     "./get-unique-items": "./get-unique-items.ts",
-    "./types": "./types.ts"
+    "./types": "./types.ts",
+    "./wiki-text": "./wiki-text.ts"
   }
 }
