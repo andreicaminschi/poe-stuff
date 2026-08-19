@@ -132,11 +132,20 @@ browser tab, a second worker, anything else on that IP — so every response fol
 in through `observe`, and whatever it reports beyond what the limiter recorded is charged
 to that window until it expires.
 
-**1000 fetches per six hours is what one IP is worth.** A cohort of 2,000 searches
-produces around 2,000 page fetches, so a cohort is sized against however many IPs are
-running it, not against one worker. Overrunning the tier costs a 30 minute restriction,
-and it is the slowest one to recover, so a laptop debugging a run leans on the cache
-rather than on the budget.
+**1000 fetches per six hours is what one IP is worth.** One search is four calls, not two:
+the search itself, then up to `MAX_PAGES` page fetches of `FETCH_CHUNK` hashes each. A
+cohort of 2,000 searches therefore costs 2,000 calls against the search policy and up to
+6,000 against the fetch policy.
+
+**The higher limit is the binding one**, because it is called three times per search.
+1,000 fetches per six hours is 333 searches at full depth; the search policy's 600 would
+allow 600. Fetch runs out first, and it always will while `MAX_PAGES` is above one.
+
+A search that returns fewer than ten hashes produces one page job rather than three, so a
+sparse query set costs less than this — but size against three and treat the difference as
+headroom. A cohort is sized against however many IPs are running it, not against one
+worker. Overrunning the tier costs a 30 minute restriction, and it is the slowest one to
+recover, so a laptop debugging a run leans on the cache rather than on the budget.
 
 ## Keeping the job lock alive
 
@@ -287,8 +296,8 @@ and that command updates the digest itself.
 
 ## Cohorts
 
-A cohort is one run: 1,500 to 2,000 searches and the pages they produce, around 4,000
-jobs in total, sharing a `cohortId`. A cohort that finishes with every job done becomes
+A cohort is one run: 1,500 to 2,000 searches and the pages they produce — up to three page
+jobs each, so up to 8,000 jobs in total — sharing a `cohortId`. A cohort that finishes with every job done becomes
 the current one. Earlier cohorts stay where they are, so the history is a list of cohorts
 rather than something that gets overwritten.
 
