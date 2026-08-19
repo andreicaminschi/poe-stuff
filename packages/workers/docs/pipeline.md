@@ -248,9 +248,10 @@ Gitignored, and it only ever exists on a laptop, so a folder beats a bucket — 
 read, grepped and deleted without a client. The `url` lives inside the file because a
 digest tells you nothing from a directory listing.
 
-`postSearch` and `fetchPage` take a context — `{ limiter, cache?, onEvent? }` — rather
-than growing another positional argument. The worker builds the cache once at startup,
-when `CACHE_DIR` is set, and hands the same object to every handler.
+`search` and `fetchPage` live in `@poe/ggg` and take a `GggContext` — `{ limiter,
+cache?, onEvent? }` — rather than growing another positional argument. The worker builds
+the cache once at startup, when `CACHE_DIR` is set, and hands the same object to every
+handler.
 
 There is no switch in the code for turning caching off. Production leaves `CACHE_DIR`
 unset and every request goes to GGG; a laptop sets it and the run replays.
@@ -369,7 +370,7 @@ The order below is what keeps a cohort honest:
 
 1. mark the search job `active`
 2. if page rows already exist for this search, skip to step 5
-3. `postSearch`
+3. `search`
 4. insert every page row in one transaction, `parent_key` set to this search
 5. add the page jobs to Redis
 6. mark the search job `done`
@@ -385,7 +386,7 @@ does not ask GGG again; it re-adds the jobs it already knows about.
 
 BullMQ delivers a job at least once. If a worker's lock renewal stops for 30 seconds
 while its handler is still running — a long pause, a dropped connection — the stalled
-check hands the same search to a second worker, and both can be inside `postSearch` at
+check hands the same search to a second worker, and both can be inside `search` at
 the same time. `POST /search` is not idempotent: each call returns a fresh search id and
 its own hashes.
 

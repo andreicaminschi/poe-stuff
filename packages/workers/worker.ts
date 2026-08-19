@@ -2,9 +2,9 @@ import { randomUUID } from "node:crypto";
 import { Worker } from "bullmq";
 import type { Job } from "bullmq";
 import type { Redis } from "ioredis";
-import type { RateLimiter, ResponseCache } from "@poe/ggg/types";
+import type { GggContext, RateLimiter, ResponseCache } from "@poe/ggg/types";
 import { log, logEvents } from "./log.ts";
-import type { TradeContext } from "./types.ts";
+
 
 /**
  * BullMQ's own defaults, named because the loop leans on both: the lock is what a job
@@ -17,7 +17,7 @@ const DRAIN_DELAY_SECONDS = 5;
 /** Renew well inside the lock, so one slow round trip does not lose the job. */
 const RENEW_EVERY = 2;
 
-export type JobHandler = (job: Job, context: TradeContext) => Promise<void>;
+export type JobHandler = (job: Job, context: GggContext) => Promise<void>;
 
 export type WorkerConfig = {
   /**

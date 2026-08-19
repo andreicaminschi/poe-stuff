@@ -14,10 +14,6 @@ export const FETCH_CHUNK = 10;
  */
 export const MAX_PAGES = 3;
 
-/** Base of the trade API. The trailing slash is stripped so joins stay predictable. */
-export const tradeApiUrl = () =>
-  requireEnv("POE_TRADE_API_URL").replace(/\/$/, "");
-
 export const HOUR_SECONDS = 3600;
 
 /**
@@ -26,14 +22,6 @@ export const HOUR_SECONDS = 3600;
  * back is the newest one worth asking for.
  */
 export const CURRENCY_LAG_HOURS = 2;
-
-/**
- * Base of the Currency Exchange endpoint on the CDN, without a trailing slash. The realm
- * is part of this value — the bare base is PoE1 PC, `.../currency-exchange/poe2` is PoE2.
- * An hour id is joined onto it.
- */
-export const currencyApiUrl = () =>
-  requireEnv("POE_CURRENCY_API_URL").replace(/\/$/, "");
 
 /**
  * The one league kept out of each response. Every league arrives in one payload and

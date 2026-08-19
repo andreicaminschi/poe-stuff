@@ -21,7 +21,7 @@ ledger postgres, the rest are unused so far.
 ```
 packages/ggg/          # @poe/ggg — HTTP client + rate limiter. Has its own README.md
 packages/ledger/       # @poe/ledger — job, cohort and currency-hour tables on postgres
-packages/workers/      # @poe/workers — trade endpoint wrappers, queue workers, CLIs
+packages/workers/      # @poe/workers — queue workers, job handlers, CLIs
 packages/util/         # @util/core — env, cache-key, file-cache, sleep
 packages/poe-wiki/     # @poe/poe-wiki — Cargo queries against poewiki.net
 research/              # design notes, archived. Not a spec of what is built
@@ -40,7 +40,7 @@ eslint.config.ts       # flat config. No `lint` script in package.json
 | `@util/core` | `@util/core/env`, `/cache-key`, `/file-cache`, `/sleep` | `requireEnv`/`optionalEnv` — the only place `process.env` is read. `cacheKey` for stable S3/Redis keys. `fileCache<T>` — JSON on disk, one file per key, backing both the GGG response cache and the PoeWatch digest cache. |
 | `@poe/ledger` | `@poe/ledger/db`, `/migrate`, `/cohorts`, `/jobs`, `/currency`, `/types` | The job ledger on postgres: cohort rows, job rows, the queries that decide completion, and one row per collected currency hour. |
 | `@poe/poe-wiki` | `@poe/poe-wiki/get-unique-items`, `/get-influence-mods`, `/cargo`, `/wiki-text`, `/types` | The wiki's Cargo tables. `getUniqueItems` — every unique's name, base item, item class and drop-restriction flag. `getInfluenceMods` — every influence modifier by equipment slot, with spawn weight. Not GGG, and the only source for either. |
-| `@poe/workers` | `@poe/workers/worker`, `/handlers`, `/queries`, `/queues`, `/keys`, `/pages`, `/file-cache`, `/fetch-currency`, `/types` | `postSearch`, `fetchPage`, `fetchCurrencyHour`, the BullMQ worker loop and job handlers, S3 writes, and the `cohort-cli.ts`/`worker-cli.ts`/`currency-cli.ts` entry points. |
+| `@poe/workers` | `@poe/workers/worker`, `/handlers`, `/queries`, `/queues`, `/keys`, `/pages`, `/file-cache` | The BullMQ worker loop and job handlers, S3 writes, and the `cohort-cli.ts`/`worker-cli.ts`/`currency-cli.ts` entry points. Calls GGG through `@poe/ggg` and owns no URLs of its own. |
 
 Cross-package imports resolve through the `exports` map in that package's
 `package.json`. A new public entry point needs a line added there; anything absent is
@@ -73,8 +73,8 @@ import.
 | Var | Holds | Read by |
 | --- | --- | --- |
 | `POE_USER_AGENT` | `user-agent` sent on every outbound request — GGG, PoeWatch and the wiki alike. Must name the app and a real contact address | [packages/ggg/call.ts](packages/ggg/call.ts), [packages/poe-watch/get-compact-data.ts](packages/poe-watch/get-compact-data.ts), [packages/poe-watch/get-corruption-data.ts](packages/poe-watch/get-corruption-data.ts), [packages/poe-wiki/cargo.ts](packages/poe-wiki/cargo.ts) |
-| `POE_TRADE_API_URL` | Base of the trade API, trailing slash stripped | [packages/ggg/config.ts](packages/ggg/config.ts), [packages/workers/config.ts](packages/workers/config.ts) |
-| `POE_CURRENCY_API_URL` | Base of the Currency Exchange endpoint on the CDN. The realm is part of it — the bare base is PoE1 PC | [packages/ggg/config.ts](packages/ggg/config.ts), [packages/workers/config.ts](packages/workers/config.ts) |
+| `POE_TRADE_API_URL` | Base of the trade API, trailing slash stripped | [packages/ggg/config.ts](packages/ggg/config.ts) |
+| `POE_CURRENCY_API_URL` | Base of the Currency Exchange endpoint on the CDN. The realm is part of it — the bare base is PoE1 PC | [packages/ggg/config.ts](packages/ggg/config.ts) |
 | `POE_CURRENCY_LEAGUE` | The one league kept out of each hourly digest. Every league arrives in one payload and there is no server-side filter | [packages/workers/config.ts](packages/workers/config.ts) |
 | `POE_CURRENCY_FROM` | Oldest hour to collect: a unix timestamp or a date. Set by hand — GGG will not say how far its history goes, and this is what stops a sweep walking back to 1970 | [packages/workers/config.ts](packages/workers/config.ts) |
 | `POE_WIKI_BASE_URL` | Base of poewiki.net, trailing slash stripped. A MediaWiki, not GGG — no rate limits published and no GGG budget touched | [packages/poe-wiki/cargo.ts](packages/poe-wiki/cargo.ts) |
