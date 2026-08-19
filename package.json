@@ -12,7 +12,8 @@
     "typecheck:watch": "tsc --watch",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
-    "migrate": "node --env-file=packages/ledger/.env packages/ledger/migrate-cli.ts"
+    "migrate": "node --env-file=packages/ledger/.env packages/ledger/migrate-cli.ts",
+    "tiers": "node --env-file=packages/filter/.env packages/filter/classify-cli.ts && node --env-file=packages/filter/.env packages/filter/serve-cli.ts --open"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

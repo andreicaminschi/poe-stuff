@@ -1330,7 +1330,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@poe/poe-wiki@workspace:packages/poe-wiki":
+"@poe/poe-wiki@workspace:^, @poe/poe-wiki@workspace:packages/poe-wiki":
   version: 0.0.0-use.local
   resolution: "@poe/poe-wiki@workspace:packages/poe-wiki"
   languageName: unknown
@@ -1343,6 +1343,7 @@ __metadata:
     "@aws-sdk/client-s3": "npm:^3.1111.0"
     "@poe/ggg": "workspace:^"
     "@poe/ledger": "workspace:^"
+    "@poe/poe-wiki": "workspace:^"
     bullmq: "npm:^6.1.2"
     ioredis: "npm:^6.0.0"
   languageName: unknown

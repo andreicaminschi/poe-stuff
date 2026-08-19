@@ -8,6 +8,7 @@
     "./cache-key": "./cache-key.ts",
     "./env": "./env.ts",
     "./file-cache": "./file-cache.ts",
-    "./sleep": "./sleep.ts"
+    "./sleep": "./sleep.ts",
+    "./stat-index": "./stat-index.ts"
   }
 }
