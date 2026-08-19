@@ -1318,9 +1318,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@poe/trade@workspace:packages/trade":
+"@poe/workers@workspace:packages/workers":
   version: 0.0.0-use.local
-  resolution: "@poe/trade@workspace:packages/trade"
+  resolution: "@poe/workers@workspace:packages/workers"
   dependencies:
     "@aws-sdk/client-s3": "npm:^3.1111.0"
     "@poe/ledger": "workspace:^"

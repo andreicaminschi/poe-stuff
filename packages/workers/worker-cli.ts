@@ -15,8 +15,8 @@ const OPENING_RULES = [{ max: 1, windowMs: 1_000 }];
 
 /**
  * Stop bursting once a tier is half spent. Riding a tier to its ceiling is what earns
- * restrictions: our count and the server.s differ by one round trip, and the boundary
- * case is decided by that gap. Past halfway, requests go out at the tier.s own rate.
+ * restrictions: our count and the server's differ by one round trip, and the boundary
+ * case is decided by that gap. Past halfway, requests go out at the tier's own rate.
  */
 const SMOOTH_ABOVE = 0.5;
 
@@ -24,8 +24,8 @@ const SMOOTH_ABOVE = 0.5;
  * A worker process. The queue order is the argument, and it is the only thing that makes
  * one of these a search worker and another a page worker:
  *
- *     node --env-file=packages/trade/.env packages/trade/worker-cli.ts search page
- *     node --env-file=packages/trade/.env packages/trade/worker-cli.ts page search
+ *     node --env-file=packages/workers/.env packages/workers/worker-cli.ts search page
+ *     node --env-file=packages/workers/.env packages/workers/worker-cli.ts page search
  */
 const queues = process.argv.slice(2);
 const order = queues.length > 0 ? queues : [SEARCH_QUEUE, PAGE_QUEUE];
@@ -39,8 +39,8 @@ const worker = createWorker({
   // One per queue: search and fetch are metered under separate policies, so they are
   // separate budgets. Each limiter learns its own rules from the first response it sees.
   limiters: {
-    [SEARCH_QUEUE]: createLimiter(OPENING_RULES),
-    [PAGE_QUEUE]: createLimiter(OPENING_RULES),
+    [SEARCH_QUEUE]: createLimiter(OPENING_RULES, { smoothAbove: SMOOTH_ABOVE }),
+    [PAGE_QUEUE]: createLimiter(OPENING_RULES, { smoothAbove: SMOOTH_ABOVE }),
   },
   cache: cacheFromEnv(),
   newConnection: redisClient,

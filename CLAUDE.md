@@ -7,18 +7,18 @@ API. No build step — Node runs the `.ts` files directly.
 
 Everything here exists to make rate-limited requests to GGG without earning a ban:
 `@poe/ggg` paces requests behind a limiter the server's own headers keep updated, and
-`packages/trade` wraps the two trade endpoints on top of it.
+`@poe/workers` wraps the two trade endpoints on top of it and runs the queue workers.
 
-What is not in the repo today: no scheduler, no queue worker, no storage writer, no
-schema validation of response bodies. `packages/trade` is meant to become a CLI and is
-unfinished — no entry point, no `package.json`. `compose.yaml` runs the backing services
-those parts will need; nothing in `packages/` connects to them yet.
+What is not in the repo today: no scheduler, no schema validation of response bodies.
+`compose.yaml` runs the backing services; `@poe/workers` connects to redis, minio and the
+ledger postgres, the rest are unused so far.
 
 ## Structure
 
 ```
 packages/ggg/          # @poe/ggg — HTTP client + rate limiter. Has its own README.md
-packages/trade/        # trade endpoint wrappers. Unfinished CLI, not a workspace
+packages/ledger/       # @poe/ledger — job + cohort tables on postgres
+packages/workers/      # @poe/workers — trade endpoint wrappers, queue workers, CLIs
 packages/util/         # @util/core — env, cache-key, sleep
 research/              # design notes, archived. Not a spec of what is built
 trino/                 # Dockerfile + catalog for the trino service in compose.yaml
@@ -34,7 +34,8 @@ eslint.config.ts       # flat config. No `lint` script in package.json
 | --- | --- | --- |
 | `@poe/ggg` | `@poe/ggg/call`, `/rate-limiter`, `/parse-rate-limit-headers`, `/errors`, `/types` | One request through a limiter; rate-limit header parsing; `GggHttpError`. Knows no URLs. See [packages/ggg/README.md](packages/ggg/README.md). |
 | `@util/core` | `@util/core/env`, `/cache-key`, `/sleep` | `requireEnv`/`optionalEnv` — the only place `process.env` is read. `cacheKey` for stable S3/Redis keys. |
-| `packages/trade` | — not importable | `postSearch`, `fetchPage`, `logEvents`, `tradeApiUrl`, `FETCH_CHUNK`, and the `SearchResponse`/`FetchResponse` envelopes. |
+| `@poe/ledger` | `@poe/ledger/db`, `/migrate`, `/cohorts`, `/jobs`, `/types` | The job ledger on postgres: cohort rows, job rows, and the queries that decide completion. |
+| `@poe/workers` | `@poe/workers/worker`, `/handlers`, `/queries`, `/queues`, `/keys`, `/pages`, `/file-cache`, `/types` | `postSearch`, `fetchPage`, the BullMQ worker loop and job handlers, S3 page writes, and the `cohort-cli.ts`/`worker-cli.ts` entry points. |
 
 Cross-package imports resolve through the `exports` map in that package's
 `package.json`. A new public entry point needs a line added there; anything absent is
@@ -67,7 +68,7 @@ import.
 | Var | Holds | Read by |
 | --- | --- | --- |
 | `POE_USER_AGENT` | `user-agent` sent on every GGG request. Must name the app and a real contact address | [packages/ggg/call.ts](packages/ggg/call.ts) |
-| `POE_TRADE_API_URL` | Base of the trade API, trailing slash stripped | [packages/trade/config.ts](packages/trade/config.ts) |
+| `POE_TRADE_API_URL` | Base of the trade API, trailing slash stripped | [packages/workers/config.ts](packages/workers/config.ts) |
 
 `compose.yaml` reads its own set (`MINIO_ROOT_USER`, `REDIS_PORT`, `LEDGER_USER`,
 `LEDGER_PORT`, `TRINO_PORT`, …), all with defaults, from the shell or a root `.env` that
@@ -75,9 +76,6 @@ does not exist yet.
 
 ## Gotchas
 
-- **`packages/trade` is not a workspace.** No `package.json`, so yarn ignores it and no
-  package can import it by specifier. The root `tsconfig` still type-checks it. Adding
-  the `package.json` is what makes it real.
 - **Workspace symlinks are load-bearing.** Node refuses to type-strip `.ts` under
   `node_modules` (`ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`) and only gets away with
   it here because yarn symlinks workspaces and Node realpaths them first. Never enable
@@ -128,7 +126,8 @@ convenience, and nothing depends on one being present in production.
 ## Docs
 
 `packages/ggg` has a `README.md` and Mermaid `.mmd` diagrams in `packages/ggg/docs/`.
-`packages/util` and `packages/trade` have neither. Write a package README with the
+`packages/workers` has `docs/pipeline.md` and a `.mmd` beside it, but no README.
+`packages/util` and `packages/ledger` have neither. Write a package README with the
 `/document` command.
 
 `research/` holds design notes written before the code — treat them as history, not as a

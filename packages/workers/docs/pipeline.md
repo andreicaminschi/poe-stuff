@@ -219,7 +219,7 @@ run as a brand new cohort — new ids, new rows — against the same stored resp
 One event says what happened: `{ type: "cache", result: "hit" | "stored", key }`. A miss
 needs no event of its own; the `request` that follows it is the event.
 
-### What `packages/trade` supplies
+### What `packages/workers` supplies
 
 A folder, one file per request:
 
@@ -532,7 +532,7 @@ the two.
 find the current cohort. Anything more than that is a question for the ledger, and Trino
 can reach Postgres directly when a query needs both.
 
-The S3 client and the key layout live in `packages/trade`, next to the handlers that use
+The S3 client and the key layout live in `packages/workers`, next to the handlers that use
 them. Consolidating pages into something an ETL reads is a later pass over these
 objects, and the package that does it is not designed yet — see
 [TODO.md](../../../TODO.md).
