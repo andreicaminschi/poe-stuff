@@ -1303,6 +1303,12 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@poe/filter@workspace:packages/filter":
+  version: 0.0.0-use.local
+  resolution: "@poe/filter@workspace:packages/filter"
+  languageName: unknown
+  linkType: soft
+
 "@poe/ggg@workspace:packages/ggg":
   version: 0.0.0-use.local
   resolution: "@poe/ggg@workspace:packages/ggg"
@@ -1315,6 +1321,18 @@ __metadata:
   dependencies:
     "@types/pg": "npm:^8.15.5"
     pg: "npm:^8.16.3"
+  languageName: unknown
+  linkType: soft
+
+"@poe/poe-watch@workspace:packages/poe-watch":
+  version: 0.0.0-use.local
+  resolution: "@poe/poe-watch@workspace:packages/poe-watch"
+  languageName: unknown
+  linkType: soft
+
+"@poe/poe-wiki@workspace:packages/poe-wiki":
+  version: 0.0.0-use.local
+  resolution: "@poe/poe-wiki@workspace:packages/poe-wiki"
   languageName: unknown
   linkType: soft
 
