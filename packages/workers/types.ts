@@ -29,3 +29,16 @@ export type SearchResponse = {
  * a raw drop, so only the envelope is asserted.
  */
 export type FetchResponse = { readonly result: readonly unknown[] };
+
+/**
+ * One market: one currency pair, in one league, over one hour. Only `league` is read —
+ * a market is written through exactly as it arrived, so nothing else is asserted here.
+ */
+export type CurrencyMarket = { readonly league: string };
+
+/** Envelope returned by `GET /api/currency-exchange/:hour`. */
+export type CurrencyExchange = {
+  /** Unix hour of the next digest. Equal to the requested id at the end of the stream. */
+  readonly next_change_id: number;
+  readonly markets: readonly CurrencyMarket[];
+};

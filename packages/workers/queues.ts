@@ -20,3 +20,20 @@ export const REPAIR_PRIORITY = 1;
 
 /** Adds go out in batches: a cohort is a couple of thousand jobs, not a couple of dozen. */
 export const ADD_CHUNK = 500;
+
+/** The hourly sweep: works out which hours are missing and queues one job each. */
+export const CURRENCY_QUEUE = "currency";
+
+/** One job is one hour of Currency Exchange history. */
+export const CURRENCY_HOUR_QUEUE = "currency-hour";
+
+/**
+ * The sweep runs on a BullMQ job scheduler, which keeps the schedule in redis and hands
+ * the due job to whichever worker asks for it. That is deliberately not a cron: there is
+ * no machine that has to be up at the top of the hour, and a worker started late still
+ * picks up the tick it missed.
+ */
+export const CURRENCY_SCHEDULER = "currency-hourly";
+
+/** On the hour. The lag in `CURRENCY_LAG_HOURS` decides which hour that collects. */
+export const CURRENCY_PATTERN = "0 * * * *";

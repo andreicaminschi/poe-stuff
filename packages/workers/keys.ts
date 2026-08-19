@@ -29,3 +29,15 @@ export const pageObjectKey = (
 
 /** What a reader with no database needs in order to find the current cohort. */
 export const LATEST_KEY = "latest.json";
+
+/** One hour of one league's Currency Exchange history: the job id and the ledger's key. */
+export const currencyHourKey = (league: string, hour: number) =>
+  jobKey("currency", league, String(hour));
+
+/**
+ * Hive partition naming again, one object per hour. The league is encoded because it is
+ * a display name — `Hardcore Allflame` has a space in it, and a partition value should
+ * not.
+ */
+export const currencyObjectKey = (league: string, hour: number) =>
+  `currency/league=${encodeURIComponent(league)}/hour=${hour}.ndjson`;

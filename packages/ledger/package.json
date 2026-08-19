@@ -9,6 +9,7 @@
     "./migrate": "./migrate.ts",
     "./cohorts": "./cohorts.ts",
     "./jobs": "./jobs.ts",
+    "./currency": "./currency.ts",
     "./types": "./types.ts"
   },
   "dependencies": {

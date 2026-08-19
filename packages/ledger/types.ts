@@ -65,3 +65,35 @@ export type FailureGroup = {
   error: string | null;
   count: number;
 };
+
+/** An hour of Currency Exchange history. No `deprecated`: an hour belongs to no cohort. */
+export type CurrencyHourState = "pending" | "active" | "done" | "failed";
+
+/** A `currency_hour` row as the table spells it. `hour_id` is a unix hour. */
+export type CurrencyHourRow = {
+  hour_id: number;
+  league: string;
+  state: CurrencyHourState;
+  attempts: number;
+  object_key: string | null;
+  market_count: number | null;
+  duration_ms: number | null;
+  error: string | null;
+  http_status: number | null;
+  fetched_at: Date | null;
+  updated_at: Date;
+};
+
+/**
+ * How an hour ended. `object_key` is absent where the league had no markets that hour —
+ * the row still counts as collected, there was simply nothing to write.
+ */
+export type HourOutcome =
+  | {
+      state: "done";
+      object_key?: string;
+      market_count?: number;
+      duration_ms?: number;
+      fetched_at?: Date;
+    }
+  | { state: "failed"; error: string; http_status?: number };

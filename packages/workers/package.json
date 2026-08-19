@@ -12,6 +12,7 @@
     "./keys": "./keys.ts",
     "./pages": "./pages.ts",
     "./file-cache": "./file-cache.ts",
+    "./fetch-currency": "./fetch-currency.ts",
     "./types": "./types.ts"
   },
   "dependencies": {

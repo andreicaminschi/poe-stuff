@@ -1,6 +1,6 @@
 import { DeleteObjectsCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { requireEnv } from "@util/core/env";
-import { LATEST_KEY, pageObjectKey } from "./keys.ts";
+import { LATEST_KEY, currencyObjectKey, pageObjectKey } from "./keys.ts";
 import { s3 } from "./s3-client.ts";
 
 /** S3 takes a thousand keys per delete call. */
@@ -70,4 +70,28 @@ export async function deletePages(keys: readonly string[]): Promise<number> {
   }
 
   return keys.length;
+}
+
+/**
+ * One hour of Currency Exchange markets, filtered to one league and written as they
+ * arrived. Same raw drop as a page: the VWAP, the spread and anything chaos-normalised
+ * are a later pass over these objects, not something this worker computes.
+ */
+export async function writeCurrencyHour(
+  league: string,
+  hourId: number,
+  markets: readonly unknown[],
+): Promise<string> {
+  const key = currencyObjectKey(league, hourId);
+
+  await s3().send(
+    new PutObjectCommand({
+      Bucket: requireEnv("S3_BUCKET"),
+      Key: key,
+      Body: ndjson(markets),
+      ContentType: "application/x-ndjson",
+    }),
+  );
+
+  return key;
 }

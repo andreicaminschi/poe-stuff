@@ -2,15 +2,31 @@ import { UnrecoverableError } from "bullmq";
 import type { Job, Queue } from "bullmq";
 import { GggHttpError } from "@poe/ggg/errors";
 import { finish, getCohort, outstanding, promote } from "@poe/ledger/cohorts";
+import { claimHour, openHours, settleHour } from "@poe/ledger/currency";
 import { addPages, claim, pagesFor, settle } from "@poe/ledger/jobs";
 import type { NewJob } from "@poe/ledger/types";
-import { FETCH_CHUNK, MAX_PAGES } from "./config.ts";
+import {
+  FETCH_CHUNK,
+  MAX_PAGES,
+  currencyFromHour,
+  currencyLeague,
+  latestCurrencyHour,
+} from "./config.ts";
+import { fetchCurrencyHour } from "./fetch-currency.ts";
 import { fetchPage } from "./fetch-page.ts";
-import { pageKey } from "./keys.ts";
-import { writeLatest, writePage } from "./pages.ts";
+import { currencyHourKey, pageKey } from "./keys.ts";
+import { log } from "./log.ts";
+import { writeCurrencyHour, writeLatest, writePage } from "./pages.ts";
 import { postSearch } from "./post-search.ts";
 import { findQuery, loadQueries } from "./queries.ts";
-import { JOB_OPTIONS, PAGE_QUEUE, SEARCH_QUEUE } from "./queues.ts";
+import {
+  ADD_CHUNK,
+  CURRENCY_HOUR_QUEUE,
+  CURRENCY_QUEUE,
+  JOB_OPTIONS,
+  PAGE_QUEUE,
+  SEARCH_QUEUE,
+} from "./queues.ts";
 import type { TradeContext } from "./types.ts";
 import type { JobHandler } from "./worker.ts";
 
@@ -200,15 +216,118 @@ async function handlePage(job: Job, context: TradeContext): Promise<void> {
   }
 }
 
+export type CurrencyHourJobData = { league: string; hourId: number };
+
 /**
- * What the worker runs, by queue name. The `page` queue is passed in because a search's
- * whole purpose is to put work on it.
+ * The hourly sweep: every hour this league still owes, from the floor set by hand up to
+ * the newest one the endpoint serves, queued one job each.
+ *
+ * Rows before jobs, the same way a cohort starts — the ledger is what says an hour is
+ * outstanding, so nothing may be waiting in redis that it does not already know about.
+ * It is the repair pass too: `openHours` takes back an hour that failed for a reason
+ * worth retrying, and leaves alone one the endpoint answered with a 404.
+ *
+ * Backfilling is therefore not a separate mode. A sweep asks for the whole range every
+ * time and the ledger subtracts what is already there, so the first run after the floor
+ * is moved queues the history and the ones after it queue an hour.
+ */
+async function handleCurrencySweep(job: Job, hourQueue: Queue): Promise<void> {
+  const league = currencyLeague();
+  const hours = await openHours(
+    league,
+    currencyFromHour(),
+    latestCurrencyHour(),
+  );
+
+  for (let from = 0; from < hours.length; from += ADD_CHUNK) {
+    await hourQueue.addBulk(
+      hours.slice(from, from + ADD_CHUNK).map((hourId) => ({
+        name: CURRENCY_HOUR_QUEUE,
+        data: { league, hourId } satisfies CurrencyHourJobData,
+        opts: { ...JOB_OPTIONS, jobId: currencyHourKey(league, hourId) },
+      })),
+    );
+  }
+
+  log(
+    { queue: CURRENCY_QUEUE, job: String(job.id) },
+    { type: "sweep", league, hours: hours.length },
+  );
+}
+
+/**
+ * The currency half of `fail`. No cohort to close out — an hour stands alone — and a
+ * failed row is left for the next sweep to judge rather than retried here.
+ */
+async function failHour(
+  job: Job,
+  league: string,
+  hourId: number,
+  error: unknown,
+): Promise<never> {
+  const http = error instanceof GggHttpError ? error : undefined;
+  const lastAttempt = job.attemptsStarted >= (job.opts.attempts ?? 1);
+
+  if (http?.retryable === true && !lastAttempt) throw error;
+
+  await settleHour(league, hourId, {
+    state: "failed",
+    error: message(error),
+    http_status: http?.status,
+  });
+
+  throw new UnrecoverableError(message(error));
+}
+
+/**
+ * One hour: fetch it, keep the one league, drop it in S3, record what was written.
+ *
+ * An hour with no markets for this league still counts as collected — the league had no
+ * activity, or had not started yet — so the row settles `done` with a count of zero and
+ * no object rather than leaving an empty file for a reader to open.
+ */
+async function handleCurrencyHour(
+  job: Job,
+  context: TradeContext,
+): Promise<void> {
+  const { league, hourId } = job.data as CurrencyHourJobData;
+
+  if ((await claimHour(league, hourId)) === undefined) return;
+
+  try {
+    const startedAt = Date.now();
+    const answer = await fetchCurrencyHour(hourId, context);
+    const markets = answer.markets.filter(
+      (market) => market.league === league,
+    );
+
+    await settleHour(league, hourId, {
+      state: "done",
+      object_key:
+        markets.length === 0
+          ? undefined
+          : await writeCurrencyHour(league, hourId, markets),
+      market_count: markets.length,
+      duration_ms: Date.now() - startedAt,
+      fetched_at: new Date(),
+    });
+  } catch (error) {
+    await failHour(job, league, hourId, error);
+  }
+}
+
+/**
+ * What the worker runs, by queue name. A queue is passed in wherever a job fans out onto
+ * another one: a search produces pages, a sweep produces hours.
  */
 export function createHandlers(
   pageQueue: Queue,
+  currencyHourQueue: Queue,
 ): Record<string, JobHandler> {
   return {
     [SEARCH_QUEUE]: (job, context) => handleSearch(job, context, pageQueue),
     [PAGE_QUEUE]: handlePage,
+    [CURRENCY_QUEUE]: (job) => handleCurrencySweep(job, currencyHourQueue),
+    [CURRENCY_HOUR_QUEUE]: handleCurrencyHour,
   };
 }
