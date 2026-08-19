@@ -6,9 +6,14 @@
   "type": "module",
   "exports": {
     "./call": "./call.ts",
+    "./config": "./config.ts",
     "./errors": "./errors.ts",
-    "./rate-limiter": "./rate-limiter.ts",
+    "./fetch-currency-hour": "./fetch-currency-hour.ts",
+    "./fetch-page": "./fetch-page.ts",
+    "./get-unique-items": "./get-unique-items.ts",
     "./parse-rate-limit-headers": "./parse-rate-limit-headers.ts",
+    "./rate-limiter": "./rate-limiter.ts",
+    "./search": "./search.ts",
     "./types": "./types.ts"
   }
 }

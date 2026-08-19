@@ -87,3 +87,73 @@ export type CallEvent =
       rules: RateLimiterRule[];
       state: RateLimitState[];
     };
+
+/**
+ * What every endpoint in this package needs from the process it runs in. The limiter
+ * belongs to that process — one limiter is one IP, so it is handed in rather than made
+ * here — the cache is present only where responses are being replayed, and `onEvent` is
+ * bound to whatever the caller wants labelled.
+ *
+ * Passed as one object so that a new concern is a new field rather than a fifth
+ * positional argument at every call site.
+ */
+export type GggContext = {
+  limiter: RateLimiter;
+  /** Absent in production. Its presence is the only thing that turns caching on. */
+  cache?: ResponseCache;
+  onEvent?: (event: CallEvent) => void;
+};
+
+/** Envelope returned by `POST /search/:league`. */
+export type SearchResponse = {
+  readonly id: string;
+  readonly complexity: number;
+  readonly total: number;
+  /** Up to 100 result hashes. GGG caps the list regardless of `total`. */
+  readonly result: readonly string[];
+};
+
+/**
+ * Envelope returned by `GET /fetch/:hashes`. Rows are passed through untouched — this is
+ * a raw drop, so only the envelope is asserted.
+ */
+export type FetchResponse = { readonly result: readonly unknown[] };
+
+/**
+ * One market: one currency pair, in one league, over one hour. Only `league` is read —
+ * a market is written through exactly as it arrived, so nothing else is asserted here.
+ */
+export type CurrencyMarket = { readonly league: string };
+
+/** Envelope returned by `GET /api/currency-exchange/:hour`. */
+export type CurrencyExchange = {
+  /** Unix hour of the next digest. Equal to the requested id at the end of the stream. */
+  readonly next_change_id: number;
+  readonly markets: readonly CurrencyMarket[];
+};
+
+/**
+ * One row of `GET /data/items`. `name` is the unique's own name and is absent on
+ * everything that is not a unique; `type` is the base item. `text` is the two joined,
+ * which is what the trade site searches on, and `disc` disambiguates the handful of
+ * uniques that share a name and a base.
+ */
+export type TradeItemEntry = {
+  readonly name?: string;
+  readonly type: string;
+  readonly text?: string;
+  readonly disc?: string;
+  readonly flags?: { readonly unique?: boolean };
+};
+
+/** Envelope returned by `GET /data/items`. Entries arrive grouped by broad category. */
+export type TradeItemsResponse = {
+  readonly result: readonly {
+    readonly id: string;
+    readonly label: string;
+    readonly entries: readonly TradeItemEntry[];
+  }[];
+};
+
+/** A unique item as the trade data knows it: its own name and its base item. */
+export type UniqueItem = { readonly name: string; readonly type: string };

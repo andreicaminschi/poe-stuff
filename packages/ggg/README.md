@@ -13,7 +13,8 @@ server reports, and turning a non-2xx answer into a `GggHttpError`. The limiter 
 default, not a requirement — an endpoint that publishes no limits can be called without
 one.
 
-It knows nothing about endpoints — no URLs, no query building, no pagination. Response
+On top of that sits one function per GGG endpoint — `search`, `fetchPage`,
+`fetchCurrencyHour`, `getUniqueItems` — and the URLs they build from `config.ts`. Response
 bodies are asserted to the caller's type, never validated; a caller that cares hands the
 result to a schema. Limiter state lives in memory on one instance, so it is a per-process,
 per-IP arrangement with nothing persisted between runs.
@@ -25,7 +26,12 @@ packages/ggg/
 ├── call.ts                          # the request: pace, send, fold headers back, retry or throw
 ├── rate-limiter.ts                  # createLimiter — FIFO queue, rolling windows, penalty deadline
 ├── parse-rate-limit-headers.ts      # wire format of the rate-limit headers; no limiter calls
-├── types.ts                         # RateLimiter, RateLimiterRule, RateLimitState, CallEvent, ResponseCache
+├── config.ts                        # tradeApiUrl, currencyApiUrl — the only URLs in the repo
+├── search.ts                        # POST /search/:league
+├── fetch-page.ts                    # GET /fetch/:hashes
+├── fetch-currency-hour.ts           # GET /currency-exchange/:hour, on the CDN
+├── get-unique-items.ts              # GET /data/items, behind an hour-keyed file cache
+├── types.ts                         # RateLimiter, CallEvent, ResponseCache, GggContext, the response envelopes
 ├── errors.ts                        # GggHttpError
 ├── call.test.ts
 ├── parse-rate-limit-headers.test.ts
@@ -41,7 +47,12 @@ packages/ggg/
 | `@poe/ggg/rate-limiter` | `createLimiter` | Builds a `RateLimiter` from a rule list; `RangeError` if the list is empty or a rule is unusable. |
 | `@poe/ggg/parse-rate-limit-headers` | `parseRules`, `parseState`, `parseRetryAfter` | Header strings to values. Unparseable input yields an empty list, or `0` for `retry-after`. |
 | `@poe/ggg/errors` | `GggHttpError` | Carries `url`, `status`, `retryable`. |
-| `@poe/ggg/types` | `RateLimiter`, `RateLimiterRule`, `RateLimitState`, `CallEvent`, `ResponseCache`, `CachedResponse` | Types only. |
+| `@poe/ggg/config` | `tradeApiUrl`, `currencyApiUrl` | Bases read from `POE_TRADE_API_URL` and `POE_CURRENCY_API_URL`, trailing slash stripped. Throws at first use, not at import. |
+| `@poe/ggg/search` | `search` | `POST /search/:league`. Resolves a `SearchResponse` — up to 100 hashes however large `total` is. |
+| `@poe/ggg/fetch-page` | `fetchPage` | `GET /fetch/:hashes`. At most ten hashes; the caller chunks. |
+| `@poe/ggg/fetch-currency-hour` | `fetchCurrencyHour` | `GET /currency-exchange/:hour` on the CDN. Every league in one payload; no rate-limit headers to learn from. |
+| `@poe/ggg/get-unique-items` | `getUniqueItems` | `GET /data/items`, reduced to `{name, type}` for every entry flagged unique. Cached to `CACHE_DIR` under an hour-keyed name, so an entry is only read back inside the hour that wrote it. Unset means every call downloads. |
+| `@poe/ggg/types` | `RateLimiter`, `RateLimiterRule`, `RateLimitState`, `CallEvent`, `ResponseCache`, `CachedResponse`, `GggContext`, `SearchResponse`, `FetchResponse`, `CurrencyExchange`, `CurrencyMarket`, `TradeItemsResponse`, `TradeItemEntry`, `UniqueItem` | Types only. |
 
 ## Examples
 
