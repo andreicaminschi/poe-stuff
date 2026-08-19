@@ -7,6 +7,7 @@
   "exports": {
     "./get-compact-data": "./get-compact-data.ts",
     "./get-corruption-data": "./get-corruption-data.ts",
+    "./get-exchange-ratios": "./get-exchange-ratios.ts",
     "./types": "./types.ts"
   }
 }
