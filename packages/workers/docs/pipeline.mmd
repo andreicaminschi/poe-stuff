@@ -13,7 +13,7 @@ flowchart TD
 
     subgraph searchlane["a search job"]
         direction TB
-        S1["claim the row"] --> S2["postSearch"]
+        S1["claim the row"] --> S2["search"]
         S2 --> S3["one transaction:<br/>a pending page row per chunk<br/>keyed by query and page number"]
         S3 --> S4["queue the page jobs"]
         S4 --> S5["mark the search done"]

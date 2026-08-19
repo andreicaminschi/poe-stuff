@@ -1309,7 +1309,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@poe/ggg@workspace:packages/ggg":
+"@poe/ggg@workspace:^, @poe/ggg@workspace:packages/ggg":
   version: 0.0.0-use.local
   resolution: "@poe/ggg@workspace:packages/ggg"
   languageName: unknown
@@ -1341,6 +1341,7 @@ __metadata:
   resolution: "@poe/workers@workspace:packages/workers"
   dependencies:
     "@aws-sdk/client-s3": "npm:^3.1111.0"
+    "@poe/ggg": "workspace:^"
     "@poe/ledger": "workspace:^"
     bullmq: "npm:^6.1.2"
     ioredis: "npm:^6.0.0"

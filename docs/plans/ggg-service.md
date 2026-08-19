@@ -10,9 +10,9 @@ one limiter per budget, unchanged.
 
 ## Stages
 
-- **Stage 1 — ggg gains the service surface.** This document's steps. Touches only
-  `packages/ggg`. Workers keeps its own copies and keeps compiling.
-- **Stage 2 — workers switches over.** Not now. Listed at the bottom.
+- **Stage 1 — ggg gains the service surface.** Done. Touched only `packages/ggg`.
+- **Stage 2 — workers switches over.** Done. Listed at the bottom, with what each step
+  turned out to be.
 
 ## Stage 1 steps
 
@@ -38,7 +38,7 @@ node --env-file=packages/workers/.env packages/filter/unique-items-cli.ts > uniq
 Run it twice inside one hour with `CACHE_DIR` set: the second run makes no request. Then
 `yarn typecheck` — workers is untouched and must still pass.
 
-## Stage 2 — worker refactor (todo, not now)
+## Stage 2 — worker refactor (done)
 
 1. `packages/workers/handlers.ts` — import `search`, `fetchPage`, `fetchCurrencyHour`
    from `@poe/ggg` instead of the local files.
@@ -59,3 +59,17 @@ Run it twice inside one hour with `CACHE_DIR` set: the second run makes no reque
    - `packages/workers/package.json` imports `@poe/ggg` without declaring it. It resolves
      through the workspace hoist today. Same for `@poe/ggg` importing `@util/core`, and
      for the new `@poe/filter`.
+
+### What stage 2 actually came to
+
+`packages/workers/types.ts` did not lose fields, it lost all of them — every type in it
+had moved — so the file is gone and `./types` with it. `./fetch-currency` is gone from
+the exports map for the same reason.
+
+`postSearch` is `search` at its new home, which is the only rename a caller sees.
+`TradeContext` is `GggContext`, imported from `@poe/ggg/types` in `handlers.ts` and
+`worker.ts`.
+
+`packages/workers/config.ts` keeps `FETCH_CHUNK`, `MAX_PAGES`, `currencyLeague` and the
+currency hour arithmetic. Those are pipeline policy — how much of a search is worth
+fetching, which league is dropped on the way to S3 — and none of them are GGG's business.

@@ -1,6 +1,10 @@
 import { UnrecoverableError } from "bullmq";
 import type { Job, Queue } from "bullmq";
 import { GggHttpError } from "@poe/ggg/errors";
+import { fetchCurrencyHour } from "@poe/ggg/fetch-currency-hour";
+import { fetchPage } from "@poe/ggg/fetch-page";
+import { search } from "@poe/ggg/search";
+import type { GggContext } from "@poe/ggg/types";
 import { finish, getCohort, outstanding, promote } from "@poe/ledger/cohorts";
 import { claimHour, openHours, settleHour } from "@poe/ledger/currency";
 import { addPages, claim, pagesFor, settle } from "@poe/ledger/jobs";
@@ -12,12 +16,9 @@ import {
   currencyLeague,
   latestCurrencyHour,
 } from "./config.ts";
-import { fetchCurrencyHour } from "./fetch-currency.ts";
-import { fetchPage } from "./fetch-page.ts";
 import { currencyHourKey, pageKey } from "./keys.ts";
 import { log } from "./log.ts";
 import { writeCurrencyHour, writeLatest, writePage } from "./pages.ts";
-import { postSearch } from "./post-search.ts";
 import { findQuery, loadQueries } from "./queries.ts";
 import {
   ADD_CHUNK,
@@ -27,7 +28,6 @@ import {
   PAGE_QUEUE,
   SEARCH_QUEUE,
 } from "./queues.ts";
-import type { TradeContext } from "./types.ts";
 import type { JobHandler } from "./worker.ts";
 
 export type SearchJobData = { cohortId: string; queryId: string };
@@ -130,7 +130,7 @@ async function fail(
  */
 async function handleSearch(
   job: Job,
-  context: TradeContext,
+  context: GggContext,
   pageQueue: Queue,
 ): Promise<void> {
   const jobKey = String(job.id);
@@ -152,7 +152,7 @@ async function handleSearch(
       }
 
       const query = findQuery(file, queryId);
-      const answer = await postSearch(query.body, query.league, context);
+      const answer = await search(query.body, query.league, context);
 
       await addPages(
         cohortId,
@@ -187,7 +187,7 @@ async function handleSearch(
 }
 
 /** One page: fetch it, drop it in S3, record what was written. */
-async function handlePage(job: Job, context: TradeContext): Promise<void> {
+async function handlePage(job: Job, context: GggContext): Promise<void> {
   const jobKey = String(job.id);
   const data = job.data as PageJobData;
 
@@ -288,7 +288,7 @@ async function failHour(
  */
 async function handleCurrencyHour(
   job: Job,
-  context: TradeContext,
+  context: GggContext,
 ): Promise<void> {
   const { league, hourId } = job.data as CurrencyHourJobData;
 
