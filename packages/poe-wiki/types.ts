@@ -140,3 +140,56 @@ export type CorruptedMod = {
    */
   readonly domain: number;
 };
+
+/**
+ * One row of the `skill_gems` / `items` join, as Cargo returns it.
+ *
+ * `support_gem_letter` is declared a String column but arrives as a number whenever the
+ * letter is a digit — `8` for Cooldown Recovery Support — so it is widened here rather
+ * than trusted.
+ */
+export type CargoExceptionalGemRow = {
+  readonly name: string;
+  readonly class: string;
+  readonly gem_tags: readonly string[];
+  readonly skill_id: string;
+  readonly max_level: number;
+  readonly drop_level: number;
+  readonly required_level: number;
+  readonly restricted: number;
+  readonly support_gem_letter: string | number | null;
+  readonly primary_attribute: string;
+};
+
+/**
+ * One gem carrying the `Exceptional` gem tag.
+ *
+ * The tag is the game's own, not the wiki's editorial grouping, and it covers more than
+ * the three gems the name suggests: Enlighten, Empower and Enhance and their Awakened
+ * forms, every Greater support, the Pact skill gems, and the rest of the level-72
+ * drop-restricted supports.
+ *
+ * There is nothing in GGG's data to read this off — `/data/items` publishes no gem tags
+ * — which is why it comes from here.
+ */
+export type ExceptionalGem = {
+  readonly name: string;
+  /** The wiki's display class: `Support Gem` or `Skill Gem`. */
+  readonly itemClass: string;
+  /** Every gem tag, `Exceptional` among them, in the order the wiki lists them. */
+  readonly gemTags: readonly string[];
+  /** Internal skill id, stable across leagues: `SupportAwakenedEmpower`. */
+  readonly skillId: string;
+  readonly maxLevel: number;
+  readonly dropLevel: number;
+  readonly requiredLevel: number;
+  /** True for anything outside the general drop pool, as the wiki judges it. */
+  readonly restrictedDrop: boolean;
+  /**
+   * The glyph the game prints on a support gem's socket. Null on skill gems, which have
+   * none.
+   */
+  readonly supportGemLetter: string | null;
+  /** `strength`, `dexterity`, `intelligence`, or `none` for the gems tied to neither. */
+  readonly primaryAttribute: string;
+};
