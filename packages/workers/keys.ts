@@ -6,13 +6,8 @@ import { cacheKey } from "@util/core/cache-key";
  * handed back: two searches of the same query have to produce the same page keys, or
  * neither can reject the other.
  */
-/**
- * `cacheKey` separates its namespace with a colon, which BullMQ refuses in a job id —
- * that is the character it builds its own Redis keys with. A dash keeps one key usable
- * as both the job id and the ledger's primary key.
- */
 const jobKey = (namespace: string, ...parts: string[]) =>
-  cacheKey(namespace, ...parts).replace(":", "-");
+  cacheKey(namespace, ...parts);
 
 export const searchKey = (cohortId: string, queryId: string) =>
   jobKey("search", cohortId, queryId);

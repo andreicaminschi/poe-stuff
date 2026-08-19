@@ -48,6 +48,6 @@ describe("cacheKey", () => {
   });
 
   it("works with a namespace and no parts at all", () => {
-    expect(cacheKey("search")).toMatch(/^search:[0-9a-f]{64}$/);
+    expect(cacheKey("search")).toMatch(/^search_[0-9a-f]{64}$/);
   });
 });
