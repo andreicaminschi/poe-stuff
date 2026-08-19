@@ -89,3 +89,54 @@ export type InfluenceMod = {
   readonly requiredLevel: number;
   readonly weight: number;
 };
+
+/**
+ * One row of the corrupted-mod join, as Cargo returns it.
+ *
+ * `tag` and `weight` are nullable because Cargo left-joins: a mod carrying no spawn
+ * weight anywhere still comes back, with nothing on the right-hand side.
+ */
+export type CargoCorruptedModRow = {
+  readonly id: string;
+  readonly stat_text: string | null;
+  readonly mod_groups: readonly string[];
+  readonly required_level: number;
+  readonly domain: number;
+  readonly tag: string | null;
+  readonly weight: number | null;
+};
+
+/**
+ * One corrupted modifier, on one item class.
+ *
+ * This is the pool a Vaal Orb draws an implicit from, and how that draw is weighted. It
+ * is not the odds of the orb doing that rather than one of the other things it does —
+ * that split lives nowhere in Cargo, and assembling it is a model of the game rather
+ * than a reading of a table.
+ *
+ * A weight of 0 means the modifier is attached to the class but cannot be drawn there.
+ * Returned rather than dropped, as with `InfluenceMod` — which zeros matter is the
+ * caller's decision.
+ */
+export type CorruptedMod = {
+  readonly id: string;
+  /**
+   * The rolled text, markup stripped. Hybrid modifiers keep their newline.
+   *
+   * Null where the wiki records none, which is the map and watchstone corruptions —
+   * they scale a modifier the map already has rather than adding a line of their own.
+   * Thirteen rows, all with real weights.
+   */
+  readonly modifier: string | null;
+  /** The wiki's own tag: `ring`, `body_armour`, `jewel`, `infected_map`. */
+  readonly itemClass: string;
+  readonly weight: number;
+  readonly requiredLevel: number;
+  readonly modGroups: readonly string[];
+  /**
+   * The game's numeric mod domain. 1 is an item, 10 a jewel, 13 an abyss jewel; 5, 25,
+   * 32, 38 and 7 also appear. Passed through as the number the wiki exports — there is
+   * no name for these in the Cargo tables, and inventing one here would be a guess.
+   */
+  readonly domain: number;
+};
