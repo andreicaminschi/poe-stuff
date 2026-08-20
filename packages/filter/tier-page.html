@@ -1,0 +1,686 @@
+<title>Filter Tier Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya:wght@500;700&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+
+<style>
+  :root {
+    --ground: #f1f3f4;
+    --panel: #ffffff;
+    --panel-2: #e9ebec;
+    --ink: #1a1614;
+    --ink-2: #5f574f;
+    --ink-3: #8b8178;
+    --line: #d9d5d0;
+    --accent: #af6025;
+    --accent-soft: #f0e2d5;
+
+    --take: #a06a12;
+    --check: #2c6f8c;
+    --gamble: #a8331f;
+
+    /* The preview is a window into the game, so it keeps its ground in both themes. */
+    --game: #0a0908;
+    --game-line: #241e1a;
+    --game-ink: #b9ada2;
+    --game-take: #e0a64b;
+    --game-check: #58a7c8;
+    --game-gamble: #c8452f;
+
+    --sp: 4px;
+    --radius: 3px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #14100e;
+      --panel: #1d1815;
+      --panel-2: #262019;
+      --ink: #f0eae4;
+      --ink-2: #a2968c;
+      --ink-3: #766c63;
+      --line: #2e2621;
+      --accent: #d08a47;
+      --accent-soft: #33241a;
+
+      --take: #e0a64b;
+      --check: #58a7c8;
+      --gamble: #c8452f;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground: #14100e;
+    --panel: #1d1815;
+    --panel-2: #262019;
+    --ink: #f0eae4;
+    --ink-2: #a2968c;
+    --ink-3: #766c63;
+    --line: #2e2621;
+    --accent: #d08a47;
+    --accent-soft: #33241a;
+
+    --take: #e0a64b;
+    --check: #58a7c8;
+    --gamble: #c8452f;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  h1, h2, h3 { text-wrap: balance; margin: 0; }
+
+  .eyebrow {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .num { font-family: "IBM Plex Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+
+  /* ---------- shell ---------- */
+
+  .top {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: calc(var(--sp) * 4);
+    padding: calc(var(--sp) * 4) calc(var(--sp) * 6);
+    background: var(--panel);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .top h1 {
+    font-family: Alegreya, Georgia, serif;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .top .count { color: var(--ink-2); font-size: 13px; }
+  .top .count b { color: var(--ink); font-weight: 600; }
+  .spacer { flex: 1 1 auto; }
+
+  .shell {
+    display: grid;
+    grid-template-columns: 310px minmax(0, 1fr);
+    gap: calc(var(--sp) * 5);
+    padding: calc(var(--sp) * 5) calc(var(--sp) * 6);
+    align-items: start;
+  }
+
+  @media (max-width: 900px) {
+    .shell { grid-template-columns: minmax(0, 1fr); }
+    /* Stacked, the rail is just another block: no pinning, no inner scroller. */
+    .rail { position: static; max-height: none; overflow: visible; padding-right: 0; }
+  }
+
+  .rail {
+    position: sticky;
+    top: 74px;
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--sp) * 4);
+    /* Taller than the viewport, the rail has to scroll on its own — pinned without this,
+       its lower cards are unreachable until the whole page scrolls past them. */
+    max-height: calc(100vh - 74px - calc(var(--sp) * 5));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-right: calc(var(--sp) * 2);
+  }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: calc(var(--sp) * 4);
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--sp) * 3);
+  }
+
+  /* ---------- matrix ---------- */
+
+  .matrix { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .matrix th { font-weight: 600; color: var(--ink-3); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; padding: 0 0 calc(var(--sp) * 2); }
+  .matrix th.verb-take { color: var(--take); }
+  .matrix th.verb-check { color: var(--check); }
+  .matrix th.verb-gamble { color: var(--gamble); }
+  .matrix td { padding: 0; }
+  .matrix th:first-child { text-align: left; }
+
+  .cell {
+    width: 100%;
+    border: 1px solid transparent;
+    border-radius: var(--radius);
+    background: var(--panel-2);
+    color: var(--ink);
+    font: inherit;
+    font-family: "IBM Plex Mono", monospace;
+    font-variant-numeric: tabular-nums;
+    padding: calc(var(--sp) * 1.5) 0;
+    cursor: pointer;
+    transition: background 120ms ease, color 120ms ease;
+  }
+  .cell:hover { background: var(--accent-soft); }
+  .cell[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .cell[data-empty="1"] { color: var(--ink-3); background: transparent; }
+  .cell:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .tier-label {
+    font-family: "IBM Plex Mono", monospace;
+    font-weight: 600;
+    color: var(--ink-2);
+    padding-right: calc(var(--sp) * 2);
+    white-space: nowrap;
+  }
+
+  /* ---------- controls ---------- */
+
+  label.field { display: flex; flex-direction: column; gap: calc(var(--sp) * 1.5); }
+
+  input[type="search"], select {
+    width: 100%;
+    padding: calc(var(--sp) * 2);
+    background: var(--ground);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    color: var(--ink);
+    font: inherit;
+  }
+  input[type="search"]:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .switch { display: flex; align-items: center; gap: calc(var(--sp) * 2); cursor: pointer; }
+  .switch input { accent-color: var(--accent); width: 15px; height: 15px; }
+
+  /* Families: every one on by default, uncheck to drop it from the board. */
+  .checks { display: flex; flex-direction: column; gap: calc(var(--sp) * 0.5); }
+
+  .check {
+    display: grid;
+    grid-template-columns: 15px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: calc(var(--sp) * 2);
+    padding: calc(var(--sp) * 0.5) 0;
+    cursor: pointer;
+  }
+  .check input { accent-color: var(--accent); width: 15px; height: 15px; margin: 0; }
+  .check span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .check .n {
+    font-family: "IBM Plex Mono", monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 11px;
+    color: var(--ink-3);
+  }
+  .check:has(input:not(:checked)) span,
+  .check:has(input:not(:checked)) .n { color: var(--ink-3); text-decoration: line-through; }
+
+  .link {
+    background: none;
+    border: 0;
+    padding: 0 0 0 calc(var(--sp) * 2);
+    font: inherit;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    cursor: pointer;
+  }
+  .link:hover { text-decoration: underline; }
+  .link:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .reset {
+    align-self: flex-start;
+    background: none;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    color: var(--ink-2);
+    font: inherit;
+    font-size: 12px;
+    padding: calc(var(--sp) * 1.5) calc(var(--sp) * 3);
+    cursor: pointer;
+  }
+  .reset:hover { border-color: var(--accent); color: var(--accent); }
+  .reset:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  /* ---------- the game viewport ---------- */
+
+  .stage {
+    background: var(--game);
+    border: 1px solid var(--game-line);
+    border-radius: var(--radius);
+    padding: calc(var(--sp) * 5) calc(var(--sp) * 4);
+    min-height: 60vh;
+  }
+
+  .stage-head {
+    display: flex;
+    align-items: baseline;
+    gap: calc(var(--sp) * 3);
+    padding-bottom: calc(var(--sp) * 4);
+    margin-bottom: calc(var(--sp) * 4);
+    border-bottom: 1px solid var(--game-line);
+  }
+  .stage-head .eyebrow { color: #6d6259; }
+
+  .drops { display: flex; flex-direction: column; align-items: flex-start; gap: calc(var(--sp) * 2); }
+
+  /* One drop: minimap icon, the label plate, then the numbers. */
+  .drop {
+    display: grid;
+    grid-template-columns: 26px minmax(0, auto) 1fr;
+    align-items: center;
+    gap: calc(var(--sp) * 3);
+    width: 100%;
+    padding: 1px 0;
+    animation: settle 220ms ease both;
+  }
+
+  @keyframes settle { from { opacity: 0; transform: translateY(-2px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .drop { animation: none; } }
+
+  .icon { display: block; margin: 0 auto; }
+
+  .plate {
+    display: inline-flex;
+    align-items: baseline;
+    gap: calc(var(--sp) * 2);
+    font-family: Alegreya, Georgia, serif;
+    font-weight: 700;
+    line-height: 1.15;
+    padding: 2px 10px;
+    border: 1px solid;
+    border-radius: 2px;
+    white-space: nowrap;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .plate .base { font-weight: 500; opacity: 0.72; font-size: 0.82em; }
+
+  .meta {
+    display: flex;
+    align-items: baseline;
+    gap: calc(var(--sp) * 3);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    color: #6d6259;
+    min-width: 0;
+  }
+  .meta .price { color: #9a8d81; }
+  .meta .tag {
+    border: 1px solid #342c26;
+    border-radius: 2px;
+    padding: 0 5px;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .meta .tag.vaal { color: var(--game-gamble); border-color: #4a221a; }
+  .meta .tag.thin { color: #6d6259; }
+  /* Priced by the Currency Exchange, not by a scraped listing. */
+  .meta .tag.exchange { color: var(--game-check); border-color: #1e3540; }
+  .meta .note { color: #574e47; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* What actually decided the tier — the reason the row looks the way it does. */
+  /* Truncates rather than pushing the row wide: a variant and a corrupted implicit make
+     this the longest thing in the line, and the full text is on the element's title. */
+  .meta .set-by { color: #8a7d70; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .meta .set-by em { color: #574e47; font-style: normal; }
+
+  .more {
+    margin-top: calc(var(--sp) * 5);
+    background: none;
+    border: 1px dashed var(--game-line);
+    border-radius: var(--radius);
+    color: var(--game-ink);
+    font: inherit;
+    font-size: 12px;
+    padding: calc(var(--sp) * 2) calc(var(--sp) * 5);
+    cursor: pointer;
+  }
+  .more:hover { border-color: var(--game-take); color: var(--game-take); }
+  .more:focus-visible { outline: 2px solid var(--game-take); outline-offset: 2px; }
+
+  .empty { color: #6d6259; font-size: 13px; padding: calc(var(--sp) * 8) 0; }
+
+  /* ---------- legend ---------- */
+
+  .legend-grid { display: flex; flex-direction: column; gap: calc(var(--sp) * 2); }
+  .legend-row { display: flex; align-items: center; gap: calc(var(--sp) * 3); }
+  .legend-row .tier-label { min-width: 46px; padding: 0; }
+  .legend-row .rule { flex: 1; height: 1px; background: var(--line); }
+  .legend-swatches { display: flex; gap: calc(var(--sp) * 2); }
+</style>
+
+<div class="top">
+  <h1>Filter Tier Board</h1>
+  <span class="count"><b id="shown">0</b> of <b id="total">0</b> buckets</span>
+  <span class="spacer"></span>
+  <span class="eyebrow" id="stamp"></span>
+</div>
+
+<div class="shell">
+  <aside class="rail">
+    <section class="card">
+      <span class="eyebrow">Tier &times; verb</span>
+      <table class="matrix">
+        <thead>
+          <tr>
+            <th scope="col"></th>
+            <th scope="col" class="verb-take">take</th>
+            <th scope="col" class="verb-check">check</th>
+            <th scope="col" class="verb-gamble">gamble</th>
+          </tr>
+        </thead>
+        <tbody id="matrix-body"></tbody>
+      </table>
+      <button class="reset" type="button" id="reset">Clear filters</button>
+    </section>
+
+    <section class="card">
+      <span class="eyebrow">Filter</span>
+      <label class="field">
+        <span class="eyebrow">Search</span>
+        <input type="search" id="q" placeholder="Headhunter, Moonstone Ring, gem&hellip;">
+      </label>
+      <div class="field">
+        <span class="eyebrow">
+          Families
+          <button class="link" type="button" id="fam-all">all</button>
+          <button class="link" type="button" id="fam-none">none</button>
+        </span>
+        <div class="checks" id="families"></div>
+      </div>
+      <label class="switch"><input type="checkbox" id="hide-thin"> <span>Hide thin buckets</span></label>
+    </section>
+
+    <section class="card">
+      <span class="eyebrow">Icon key</span>
+      <div class="legend-grid" id="legend"></div>
+    </section>
+  </aside>
+
+  <main>
+    <section class="stage">
+      <div class="stage-head">
+        <span class="eyebrow">Drop preview</span>
+        <span class="eyebrow" id="stage-sub"></span>
+      </div>
+      <div class="drops" id="drops"></div>
+      <button class="more" type="button" id="more" hidden>Show more</button>
+    </section>
+  </main>
+</div>
+
+<script>
+  const BUCKETS = /*__BUCKETS__*/[];
+  const GENERATED = "/*__STAMP__*/";
+
+  const TIERS = ["T0", "T1", "T2", "T3", "T4", "T5", "varies", "hidden"];
+  const VERBS = ["take", "check", "gamble"];
+
+  // How loud each tier draws. Size and weight carry the tier; colour carries the verb.
+  const STYLE = {
+    T0:     { size: 25, glow: 16, plate: 0.24, icon: 11, beam: true },
+    T1:     { size: 20, glow: 10, plate: 0.18, icon: 9,  beam: true },
+    T2:     { size: 16.5, glow: 0, plate: 0.13, icon: 7.5, beam: false },
+    T3:     { size: 14.5, glow: 0, plate: 0.09, icon: 6,  beam: false },
+    T4:     { size: 13, glow: 0, plate: 0.05, icon: 4.5, beam: false },
+    T5:     { size: 11, glow: 0, plate: 0.03, icon: 3,  beam: false },
+    // Off the ladder: no glow, no beam, a plate to say it is drawn at all. It makes no
+    // loudness claim, so it borrows T3's size and nothing else.
+    varies: { size: 14.5, glow: 0, plate: 0.09, icon: 6,  beam: false },
+    hidden: { size: 11, glow: 0, plate: 0, icon: 0, beam: false }
+  };
+
+  const VERB_INK = { take: "#e0a64b", check: "#58a7c8", gamble: "#c8452f" };
+
+  // `hidden` holds the families switched off, so a family added by a later run of the
+  // classifier shows up rather than needing to be opted in.
+  const state = { tier: null, verb: null, hidden: new Set(), q: "", hideThin: false, limit: 120 };
+
+  const $ = (id) => document.getElementById(id);
+  const chaos = (n) => (n >= 1000 ? Math.round(n / 1000) + "k" : Math.round(n)) + "c";
+
+  /**
+   * What one bucket is, as the classifier decided it.
+   *
+   * The page used to re-tier here against a client-side vaal cap, mirroring the cuts in
+   * `classify.ts` so the two could agree. They cannot agree any more — the cuts are
+   * denominated in divine now and the vaal expectation is gone — and a board that
+   * re-derives a tier the generator did not produce is showing a filter nobody will get.
+   * Levers are set, and the filter regenerated. This just reads.
+   */
+  function resolve(b) {
+    return { tier: b.tier, verb: b.verb, vaalable: b.vc > 0 && b.verb === "gamble" };
+  }
+
+  function icon(verb, size, beam) {
+    if (size <= 0) return '<svg class="icon" width="26" height="16"></svg>';
+    const ink = VERB_INK[verb];
+    const c = 13, m = 8, s = size / 2;
+    // Shape says the verb: a disc to take, a diamond to hover, a triangle to gamble.
+    const shape = verb === "take"
+      ? '<circle cx="' + c + '" cy="' + m + '" r="' + s + '" fill="' + ink + '"/>'
+      : verb === "check"
+        ? '<path d="M' + c + ' ' + (m - s) + 'L' + (c + s) + ' ' + m + 'L' + c + ' ' + (m + s) + 'L' + (c - s) + ' ' + m + 'Z" fill="' + ink + '"/>'
+        : '<path d="M' + c + ' ' + (m - s) + 'L' + (c + s * 0.92) + ' ' + (m + s * 0.8) + 'L' + (c - s * 0.92) + ' ' + (m + s * 0.8) + 'Z" fill="' + ink + '"/>';
+    const glow = beam ? '<rect x="' + (c - 0.75) + '" y="0" width="1.5" height="16" fill="' + ink + '" opacity="0.35"/>' : '';
+    return '<svg class="icon" width="26" height="16" viewBox="0 0 26 16" aria-hidden="true">' + glow + shape + '</svg>';
+  }
+
+  function label(name) {
+    const cut = name.indexOf(":");
+    const kind = cut < 0 ? "" : name.slice(0, cut);
+    const rest = cut < 0 ? name : name.slice(cut + 1);
+    return { kind, rest };
+  }
+
+  function render() {
+    const q = state.q.trim().toLowerCase();
+    const rows = [];
+    let vaalable = 0;
+
+    for (const b of BUCKETS) {
+      const now = resolve(b);
+      if (now.vaalable) vaalable += 1;
+
+      if (state.tier && now.tier !== state.tier) continue;
+      if (state.verb && now.verb !== state.verb) continue;
+      if (state.hidden.has(b.fam)) continue;
+      if (state.hideThin && b.th) continue;
+      // Searching the driver too: "Headhunter" should find the belt bucket it tiers.
+      if (q && !(b.id.toLowerCase().includes(q) || b.sb.toLowerCase().includes(q) || (b.ex[0] || "").toLowerCase().includes(q))) continue;
+      rows.push([b, now]);
+    }
+
+    $("shown").textContent = rows.length.toLocaleString();
+    $("stage-sub").textContent = vaalable.toLocaleString() + " gambles";
+
+    // Counts on the matrix follow the lever too, so the grid is never stale.
+    for (const tier of TIERS) {
+      for (const verb of VERBS) {
+        const cell = document.querySelector('[data-tier="' + tier + '"][data-verb="' + verb + '"]');
+        if (!cell) continue;
+        // The grid counts what is on the board, so switching a family off empties its
+        // cells rather than leaving a number nothing below it accounts for.
+        let n = 0;
+        for (const b of BUCKETS) {
+          if (state.hidden.has(b.fam)) continue;
+          const now = resolve(b);
+          if (now.tier === tier && now.verb === verb) n += 1;
+        }
+        cell.textContent = n === 0 ? "·" : n.toLocaleString();
+        cell.dataset.empty = n === 0 ? "1" : "0";
+        cell.setAttribute("aria-pressed", String(state.tier === tier && state.verb === verb));
+      }
+    }
+
+    const stage = $("drops");
+    stage.textContent = "";
+
+    if (rows.length === 0) {
+      const p = document.createElement("p");
+      p.className = "empty";
+      p.textContent = "Nothing matches. Clear a filter.";
+      stage.append(p);
+      $("more").hidden = true;
+      return;
+    }
+
+    const slice = rows.slice(0, state.limit);
+    const html = slice.map(([b, now]) => {
+      const st = STYLE[now.tier];
+      const ink = VERB_INK[now.verb];
+      const { kind, rest } = label(b.id);
+      const price = b.ce >= b.fl ? chaos(b.ce) : chaos(b.fl);
+
+      return '<div class="drop">' +
+        icon(now.verb, st.icon, st.beam) +
+        '<span class="plate" style="font-size:' + st.size + 'px;color:' + ink +
+          ';border-color:' + ink + Math.round(st.plate * 255 + 40).toString(16).padStart(2, "0") +
+          ';background:' + ink + Math.round(st.plate * 90).toString(16).padStart(2, "0") +
+          (st.glow ? ';text-shadow:0 0 ' + st.glow + 'px ' + ink + '66' : '') + '">' +
+          '<span>' + rest + '</span>' +
+          (kind ? '<span class="base">' + kind + '</span>' : '') +
+        '</span>' +
+        '<span class="meta">' +
+          '<span class="price">' + price + '</span>' +
+          (now.vaalable ? '<span class="tag vaal">vaal ' + chaos(b.vc) + '</span>' : '') +
+          (b.th ? '<span class="tag thin">thin</span>' : '') +
+          (b.xf ? '<span class="tag exchange">exchange</span>' : '') +
+          '<span class="set-by" title="' + b.sb.replaceAll('"', "&quot;") + '"><em>set by</em> ' + b.sb + '</span>' +
+          '<span class="note">' + b.note + '</span>' +
+        '</span>' +
+      '</div>';
+    }).join("");
+
+    stage.innerHTML = html;
+    $("more").hidden = rows.length <= state.limit;
+    $("more").textContent = "Show more (" + (rows.length - state.limit).toLocaleString() + " left)";
+  }
+
+  function buildMatrix() {
+    const body = $("matrix-body");
+    for (const tier of TIERS) {
+      const tr = document.createElement("tr");
+      const th = document.createElement("th");
+      th.scope = "row";
+      th.className = "tier-label";
+      th.textContent = tier;
+      tr.append(th);
+
+      for (const verb of VERBS) {
+        const td = document.createElement("td");
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "cell";
+        button.dataset.tier = tier;
+        button.dataset.verb = verb;
+        button.setAttribute("aria-pressed", "false");
+        button.addEventListener("click", () => {
+          const on = state.tier === tier && state.verb === verb;
+          state.tier = on ? null : tier;
+          state.verb = on ? null : verb;
+          state.limit = 120;
+          render();
+        });
+        td.append(button);
+        tr.append(td);
+      }
+      body.append(tr);
+    }
+  }
+
+  function buildLegend() {
+    const box = $("legend");
+    for (const tier of TIERS) {
+      const st = STYLE[tier];
+      const row = document.createElement("div");
+      row.className = "legend-row";
+      row.innerHTML = '<span class="tier-label">' + tier + '</span>' +
+        '<span class="legend-swatches">' + VERBS.map((v) => icon(v, st.icon, st.beam)).join("") + '</span>' +
+        '<span class="rule"></span>';
+      box.append(row);
+    }
+  }
+
+  function buildFamilies() {
+    const counts = new Map();
+    for (const b of BUCKETS) counts.set(b.fam, (counts.get(b.fam) ?? 0) + 1);
+
+    const box = $("families");
+    // Biggest first: the families worth switching off are the ones filling the board.
+    for (const [family, count] of [...counts].sort((a, b) => b[1] - a[1])) {
+      const row = document.createElement("label");
+      row.className = "check";
+
+      const input = document.createElement("input");
+      input.type = "checkbox";
+      input.checked = true;
+      input.dataset.family = family;
+      input.addEventListener("change", () => {
+        if (input.checked) state.hidden.delete(family);
+        else state.hidden.add(family);
+        state.limit = 120;
+        render();
+      });
+
+      const name = document.createElement("span");
+      name.textContent = family;
+
+      const n = document.createElement("span");
+      n.className = "n";
+      n.textContent = count.toLocaleString();
+
+      row.append(input, name, n);
+      box.append(row);
+    }
+  }
+
+  /** Tick or untick every family at once. */
+  function setAllFamilies(on) {
+    for (const input of document.querySelectorAll("#families input")) {
+      input.checked = on;
+      if (on) state.hidden.delete(input.dataset.family);
+      else state.hidden.add(input.dataset.family);
+    }
+    state.limit = 120;
+    render();
+  }
+
+  buildMatrix();
+  buildLegend();
+  buildFamilies();
+
+  $("total").textContent = BUCKETS.length.toLocaleString();
+  $("stamp").textContent = GENERATED;
+
+  $("q").addEventListener("input", (e) => { state.q = e.target.value; state.limit = 120; render(); });
+  $("fam-all").addEventListener("click", () => setAllFamilies(true));
+  $("fam-none").addEventListener("click", () => setAllFamilies(false));
+  $("hide-thin").addEventListener("change", (e) => { state.hideThin = e.target.checked; render(); });
+  $("more").addEventListener("click", () => { state.limit += 240; render(); });
+  $("reset").addEventListener("click", () => {
+    state.tier = null; state.verb = null; state.q = ""; state.hideThin = false; state.limit = 120;
+    $("q").value = ""; $("hide-thin").checked = false;
+    setAllFamilies(true);
+  });
+
+  render();
+</script>

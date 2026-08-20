@@ -24,8 +24,14 @@ export type Verb = "take" | "check" | "gamble";
  * `T5` is not "quieter than T4", it is a different promise: the smallest mark the game
  * can draw, for a bucket that must appear even though it is worth nothing. Something has
  * to sit between T4 and `hidden` for a category the player has asked to always see.
+ *
+ * `varies` is not on the ladder at all, and makes no claim about loudness. It says the
+ * price depends on something the filter cannot read: a Scrying Orb is 2c or 992c
+ * depending on the map it is attuned to, and a block can see nothing past `Scrying Orb`.
+ * Tiering it at either end would be a lie in one direction or the other, so it says so
+ * instead. Manually maintained — see `hard-to-categorize.json`.
  */
-export type Tier = "T0" | "T1" | "T2" | "T3" | "T4" | "T5" | "hidden";
+export type Tier = "T0" | "T1" | "T2" | "T3" | "T4" | "T5" | "varies" | "hidden";
 
 /** Which rule built the bucket, and therefore what its id means. */
 export type BucketFamily =
@@ -56,6 +62,35 @@ export type FilterUnique = {
   readonly restrictedDrop: boolean;
 };
 
+/**
+ * What the player sets before generating. Not market data — a statement about them.
+ *
+ * A lever is set and the filter regenerated, rather than moved against a finished one.
+ * That is what lets a lever change which blocks exist at all instead of only how loud
+ * they are.
+ */
+export type Levers = {
+  /**
+   * Least a single click may be worth, in chaos, for the bucket to appear at all.
+   *
+   * **The first lever here that hides on purpose.** Everything else in this classifier
+   * serves the show-cheap baseline — a wrongly shown item costs a click, a wrongly hidden
+   * one costs the item. This one is the player answering that a click is not free, and it
+   * is allowed to win, because nobody else can price their time.
+   *
+   * In chaos rather than divine, unlike the tier cuts. The cuts are a market ladder and
+   * belong in the market's own unit; this is a floor on attention, and it does not get
+   * cheaper because divine went up.
+   *
+   * It reads differently on a stack: one click takes the whole pile, so this raises the
+   * smallest stack worth bending for rather than hiding the currency. At 3c a Chaos Orb
+   * is not shown until three of them are on the floor together.
+   *
+   * `0` disables it, and is the default — a floor nobody set should not hide anything.
+   */
+  readonly minClickValue: number;
+};
+
 /** One emitted bucket: everything the generator needs to write a block. */
 export type Bucket = {
   /** Stable identity. Goes in the block's marker comment so a runtime editor can find it. */
@@ -69,15 +104,16 @@ export type Bucket = {
   readonly ceiling: number;
   /** `ceiling / floor`. Over `RATIO_THRESHOLD` the floor is lying, and the verb changes. */
   readonly ratio: number;
-  /** Expected value of the action the verb names. What the tier is cut on. */
+  /** Expected value of the plain outcome. What the tier is cut on. */
   readonly ev: number;
   /**
    * The vaal upside is the reason to care about this bucket, or part of it.
    *
-   * A property rather than a competing bucket, because it is a lever: a player who does
-   * not vaal switches it off, and the bucket drops to `tierWithoutVaal` without anything
-   * being re-priced. A Moonstone Ring is visible for Anathema whatever this says, and
-   * visible *and* marked vaalable when Valyrium is in play.
+   * **A flag, and only a flag.** It does not move `tier` and does not enter `ev` — the
+   * bucket is tiered on what it is worth uncorrupted, and this says the corrupted outcome
+   * is the reason to touch it anyway. A 1c base with a 20c corrupted ceiling tiers as a 1c
+   * base and carries this, which is what lets the two compose downstream instead of one
+   * quietly overruling the other.
    */
   readonly vaalable: boolean;
   /** Best corrupted outcome across the bucket's members, in chaos. 0 when none is priced. */
@@ -90,10 +126,6 @@ export type Bucket = {
    * cap are about the item being vaaled, so both read this rather than `ceiling`.
    */
   readonly vaalFloor: number;
-  /** `vaalCeiling × hit rate − the orb`. What the bucket is worth to someone who vaals. */
-  readonly vaalEv: number;
-  /** The tier this bucket falls to when the player switches gambling off. */
-  readonly tierWithoutVaal: Tier;
   /**
    * Every price behind this bucket is low-confidence or barely traded. Never hides a
    * bucket on its own — showing a cheap item costs a click, hiding an expensive one
@@ -107,11 +139,22 @@ export type Bucket = {
   /** A condition the block carries beyond its key, e.g. `ilvl>=84`. Empty when none. */
   readonly note: string;
   /**
+   * Smallest stack that reaches this bucket's tier. `0` on a bucket nothing gates.
+   *
+   * The one property here that is a *quantity* rather than a fact about an item. A
+   * stackable is the same item at every tier and only the count moves, so one currency
+   * becomes several buckets — `@1`, `@11`, `@51` — each a block with its own
+   * `StackSize >=`. Divination cards are deliberately left at `0`: a set is not a value
+   * stack, and tiering a card at one card is the whole point of it.
+   */
+  readonly minStack: number;
+  /**
    * The item this bucket was tiered on, and its price.
    *
    * A bucket is tiered at its best outcome, so one member decides the treatment for
-   * everything sharing the block — and which one is not guessable from the id. Names the
-   * corrupted outcome instead when the vaal side is what set the tier.
+   * everything sharing the block — and which one is not guessable from the id. On a
+   * `gamble` it names the corrupted outcome instead: the tier still came off the plain
+   * price, but the corrupted one is what the bucket is about.
    */
   readonly setBy: string;
   /**

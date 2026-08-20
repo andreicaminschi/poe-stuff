@@ -1,0 +1,28 @@
+{
+  "_readme": [
+    "Items whose price the filter cannot see. Everything listed here is tiered 'varies'",
+    "instead of on its price, whatever that price says.",
+    "",
+    "The reason is always the same: an item filter matches a base type and nothing else,",
+    "and for these the base type does not carry the value. A Scrying Orb on the floor is",
+    "worth 2c or 992c depending on which map it is attuned to, and the block cannot tell.",
+    "Tiering it at the top claims every one is worth a divine; tiering it at the bottom",
+    "claims none is worth stopping for. Both are wrong, so neither is said.",
+    "",
+    "Names are matched after the variant bracket is stripped, so 'Scrying Orb' covers",
+    "'Scrying Orb (Basilica)' and every map added later without an edit here.",
+    "",
+    "Manually maintained. Add a name when you find a base type hiding a spread; nothing",
+    "in the market feeds can work this out on its own.",
+    "",
+    "A name that matches nothing in the league is ignored rather than an error."
+  ],
+
+  "names": [
+    "Coral Forest Chart",
+    "Coral Reef Chart",
+    "Forbidden Tome",
+    "Sandy Seabed Chart",
+    "Scrying Orb"
+  ]
+}
