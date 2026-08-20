@@ -311,6 +311,8 @@
   }
 
   .plate .base { font-weight: 500; opacity: 0.72; font-size: 0.82em; }
+  /* Level and quality ride with the name, in the plate's own ink but quieter than it. */
+  .plate .lq { font-weight: 600; opacity: 0.6; font-size: 0.8em; font-variant-numeric: tabular-nums; }
 
   .meta {
     display: flex;
@@ -333,6 +335,8 @@
   }
   .meta .tag.vaal { color: var(--game-gamble); border-color: #4a221a; }
   .meta .tag.thin { color: #6d6259; }
+  /* The game's own corrupted red, which is the one colour a player already reads. */
+  .meta .tag.corrupted { color: #d02020; border-color: #4a1414; }
   /* Priced by the Currency Exchange, not by a scraped listing. */
   .meta .tag.exchange { color: var(--game-check); border-color: #1e3540; }
   .meta .note { color: #574e47; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -484,11 +488,26 @@
     return '<svg class="icon" width="26" height="16" viewBox="0 0 26 16" aria-hidden="true">' + glow + shape + '</svg>';
   }
 
+  /**
+   * A gem's level, quality and corruption, as the classifier spelled them into the id.
+   *
+   * They belong on the plate as their own marks rather than inside the item's name: a
+   * filter block reads level and quality as conditions, and a player reads corruption as
+   * the thing that makes the gem worth what it is worth. Buckets without the suffix — a
+   * transfigured gem, a unique base, an orb — come back with nothing and print nothing.
+   */
+  const GEM_STATE = / lvl(\d+) q(\d+)( corrupted)?$/;
+
   function label(name) {
     const cut = name.indexOf(":");
     const kind = cut < 0 ? "" : name.slice(0, cut);
-    const rest = cut < 0 ? name : name.slice(cut + 1);
-    return { kind, rest };
+    let rest = cut < 0 ? name : name.slice(cut + 1);
+
+    const state = GEM_STATE.exec(rest);
+    if (!state) return { kind, rest, lq: "", corrupted: false };
+
+    rest = rest.slice(0, state.index);
+    return { kind, rest, lq: state[1] + "/" + state[2], corrupted: Boolean(state[3]) };
   }
 
   function render() {
@@ -547,7 +566,7 @@
     const html = slice.map(([b, now]) => {
       const st = STYLE[now.tier];
       const ink = VERB_INK[now.verb];
-      const { kind, rest } = label(b.id);
+      const { kind, rest, lq, corrupted } = label(b.id);
       const price = b.ce >= b.fl ? chaos(b.ce) : chaos(b.fl);
 
       return '<div class="drop">' +
@@ -557,11 +576,13 @@
           ';background:' + ink + Math.round(st.plate * 90).toString(16).padStart(2, "0") +
           (st.glow ? ';text-shadow:0 0 ' + st.glow + 'px ' + ink + '66' : '') + '">' +
           '<span>' + rest + '</span>' +
+          (lq ? '<span class="lq">' + lq + '</span>' : '') +
           (kind ? '<span class="base">' + kind + '</span>' : '') +
         '</span>' +
         '<span class="meta">' +
           '<span class="price">' + price + '</span>' +
           (now.vaalable ? '<span class="tag vaal">vaal ' + chaos(b.vc) + '</span>' : '') +
+          (corrupted ? '<span class="tag corrupted">corrupted</span>' : '') +
           (b.th ? '<span class="tag thin">thin</span>' : '') +
           (b.xf ? '<span class="tag exchange">exchange</span>' : '') +
           '<span class="set-by" title="' + b.sb.replaceAll('"', "&quot;") + '"><em>set by</em> ' + b.sb + '</span>' +
