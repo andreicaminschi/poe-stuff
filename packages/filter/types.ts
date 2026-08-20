@@ -39,6 +39,7 @@ export type BucketFamily =
   | "corruptible-uniques"
   | "div-cards"
   | "foulborn"
+  | "fragments"
   | "gems"
   | "maps"
   | "misc"
@@ -89,6 +90,19 @@ export type Levers = {
    * `0` disables it, and is the default — a floor nobody set should not hide anything.
    */
   readonly minClickValue: number;
+  /**
+   * Drop every unique map from the classification, whatever it is worth.
+   *
+   * **The one all-or-nothing lever, because the game leaves no middle setting.** A unique
+   * map cannot be told from its neighbours cheaply enough to treat them apart, so the
+   * honest choices are every unique map is worth a look or none of them are. This is the
+   * player picking one.
+   *
+   * It deletes buckets rather than quieting them, which is why it is set before
+   * generating and not moved against a finished filter. `false` is the default: it hides
+   * on purpose, and nothing that hides on purpose gets to be the default here.
+   */
+  readonly hideUniqueMaps: boolean;
 };
 
 /** One emitted bucket: everything the generator needs to write a block. */
@@ -138,6 +152,26 @@ export type Bucket = {
   readonly slots: number;
   /** A condition the block carries beyond its key, e.g. `ilvl>=84`. Empty when none. */
   readonly note: string;
+  /**
+   * Verbatim `.filter` lines the block must carry, one per entry. Empty on most buckets.
+   *
+   * **The escape hatch, and it exists because some keys are not derivable from anything
+   * else here.** The generator writes a block's conditions out of the bucket's own fields
+   * wherever it can — the family gives the class, the id gives the tier, `minStack` gives
+   * a `StackSize >=`. Where a flag would have to be invented to say what the block needs,
+   * the bucket says it in the filter's own words instead.
+   *
+   * The eight-modifier maps are the case that forced it. Counting an item's modifiers is
+   * not a condition the grammar has, and the way it is actually done —
+   * `HasExplicitMod >=8 "a" "e" "i" "o" "u" "y"`, leaning on every modifier name
+   * containing a vowel — is a trick, not a property. No boolean on this type could carry
+   * it and no generator would reinvent it, so it travels literally.
+   *
+   * Lines are emitted after the derived conditions, in order, unindented. Nothing
+   * validates them: they are already in the target language, which is the point and the
+   * risk.
+   */
+  readonly conditions: readonly string[];
   /**
    * Smallest stack that reaches this bucket's tier. `0` on a bucket nothing gates.
    *

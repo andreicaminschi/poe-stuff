@@ -27,6 +27,8 @@ type Row = {
   /** `thin`. */
   th: boolean;
   note: string;
+  /** Verbatim `.filter` lines the block carries. Empty on everything derivable. */
+  cond: readonly string[];
   /** `setBy` — which item the tier was cut on. */
   sb: string;
   /** `fromExchange` — whether that cut came off the Currency Exchange. */
@@ -47,6 +49,7 @@ const toRow = (bucket: Bucket): Row => ({
   vf: round(bucket.vaalFloor),
   th: bucket.thin,
   note: bucket.note,
+  cond: bucket.conditions,
   sb: bucket.setBy,
   xf: bucket.fromExchange,
   ex: bucket.examples.slice(0, 2),
