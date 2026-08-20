@@ -193,3 +193,28 @@ export type ExceptionalGem = {
   /** `strength`, `dexterity`, `intelligence`, or `none` for the gems tied to neither. */
   readonly primaryAttribute: string;
 };
+
+/**
+ * One row of the transfigured-gem query, exactly as Cargo sends it.
+ *
+ * `base_item` is the whole discriminator, which is why the row is two columns wide.
+ */
+export type CargoTransfiguredGemRow = {
+  readonly name: string;
+  readonly base_item: string;
+};
+
+/**
+ * One transfigured gem — an alternate version of a base skill gem, cut from a Divine Font
+ * in the Labyrinth.
+ *
+ * Nothing in the item's own data marks it as transfigured. What marks it is `base_item`
+ * pointing back at the gem it was cut from: among gems that column is set on the 214
+ * transfigured ones and null on every other. Matching the `" of "` in the name instead
+ * would also catch Herald of Ash, Wave of Conviction and 25 more base gems.
+ */
+export type TransfiguredGem = {
+  readonly name: string;
+  /** The base skill gem this one is a transfiguration of: `Ethereal Knives`. */
+  readonly baseItem: string;
+};
