@@ -1303,6 +1303,12 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@poe/filter-eval@workspace:packages/filter-eval":
+  version: 0.0.0-use.local
+  resolution: "@poe/filter-eval@workspace:packages/filter-eval"
+  languageName: unknown
+  linkType: soft
+
 "@poe/filter@workspace:packages/filter":
   version: 0.0.0-use.local
   resolution: "@poe/filter@workspace:packages/filter"
