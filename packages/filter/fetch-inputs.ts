@@ -3,6 +3,8 @@ import { createLimiter } from "@poe/ggg/rate-limiter";
 import { getCompactData } from "@poe/poe-watch/get-compact-data";
 import { getCorruptionData } from "@poe/poe-watch/get-corruption-data";
 import { getExchangeRatios } from "@poe/poe-watch/get-exchange-ratios";
+import { getExceptionalGems } from "@poe/poe-wiki/get-exceptional-gems";
+import { getTransfiguredGems } from "@poe/poe-wiki/get-transfigured-gems";
 import { getUniqueItems as getWikiUniques } from "@poe/poe-wiki/get-unique-items";
 import type { ClassifyInput } from "./classify.ts";
 import { mergeUniques } from "./merge-uniques.ts";
@@ -15,8 +17,8 @@ import { mergeUniques } from "./merge-uniques.ts";
  * disk with the league and the hour in its key, which makes a re-run within the hour free
  * and a stale entry impossible.
  *
- * The four calls that can go in parallel do. Only GGG is paced, and only because it is
- * GGG: one request through a limiter, where PoeWatch and the wiki publish no budget.
+ * The calls that can go in parallel do. Only GGG is paced, and only because it is GGG:
+ * one request through a limiter, where PoeWatch and the wiki publish no budget.
  */
 
 /**
@@ -35,29 +37,38 @@ export type FetchedInput = ClassifyInput & {
     readonly exchange: number;
     readonly ggg: number;
     readonly wiki: number;
+    readonly exceptionalGems: number;
+    readonly transfiguredGems: number;
   };
 };
 
 export async function fetchInputs(league: string): Promise<FetchedInput> {
-  const [items, corruptions, exchange, ggg, wiki] = await Promise.all([
-    getCompactData(league),
-    getCorruptionData(league),
-    getExchangeRatios(league, "poe1"),
-    getGggUniques({ limiter: createLimiter(OPENING_RULES) }),
-    getWikiUniques(),
-  ]);
+  const [items, corruptions, exchange, ggg, wiki, exceptionalGems, transfiguredGems] =
+    await Promise.all([
+      getCompactData(league),
+      getCorruptionData(league),
+      getExchangeRatios(league, "poe1"),
+      getGggUniques({ limiter: createLimiter(OPENING_RULES) }),
+      getWikiUniques(),
+      getExceptionalGems(),
+      getTransfiguredGems(),
+    ]);
 
   return {
     items,
     corruptions,
     exchange,
     uniques: mergeUniques(ggg, wiki),
+    exceptionalGems: exceptionalGems.map((gem) => gem.name),
+    transfiguredGems: transfiguredGems.map((gem) => gem.name),
     counts: {
       items: items.length,
       corruptions: corruptions.length,
       exchange: exchange.length,
       ggg: ggg.length,
       wiki: wiki.length,
+      exceptionalGems: exceptionalGems.length,
+      transfiguredGems: transfiguredGems.length,
     },
   };
 }

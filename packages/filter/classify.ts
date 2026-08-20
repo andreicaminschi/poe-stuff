@@ -1,5 +1,6 @@
 import type {
   ExchangeRatioItem,
+  GemItem,
   ItemCorruptions,
   ItemData,
 } from "@poe/poe-watch/types";
@@ -45,6 +46,25 @@ const TIER_CUTS: readonly (readonly [Tier, number])[] = [
   ["T3", 1 / 40],
   ["T4", 1 / 200],
 ];
+
+/**
+ * The ladder as a ranking, loudest first, with `hidden` as its quiet end.
+ *
+ * `varies` is deliberately absent: it is not on the ladder and nothing clamps against it.
+ */
+const TIER_RANK: readonly Tier[] = ["T0", "T1", "T2", "T3", "T4", "T5", "hidden"];
+
+/**
+ * A tier, raised to a floor if the price put it below one.
+ *
+ * The floor never lowers anything — a bucket that earned T0 keeps it. It only stops the
+ * ladder going quieter than a category is allowed to be, which is how "exceptional gems
+ * are never below T2" is said once rather than in every branch that builds one.
+ */
+const atLeast = (tier: Tier, floor: Tier): Tier =>
+  tier === "varies" || TIER_RANK.indexOf(tier) <= TIER_RANK.indexOf(floor)
+    ? tier
+    : floor;
 
 /**
  * `ceiling / floor` above which the floor is lying and the verb is no longer `take`.
@@ -291,6 +311,97 @@ const GEM_LEVELS = new Set([1, 20, 21]);
  */
 const GEM_QUALITIES = new Set([0, 20, 23]);
 
+/** The top of the ordinary range. Levelling reaches it; only a corruption passes it. */
+const MAX_GEM_LEVEL = 20;
+
+const MAX_GEM_QUALITY = 20;
+
+/**
+ * Past what levelling can reach, on either axis.
+ *
+ * **The only state an ordinary gem is ever worth a block in.** Everything at or below
+ * 20/20 is either what a vendor sells or what a socket produces, and neither arrives on
+ * the floor: a levelled gem is levelled in a socket, not dropped. What does arrive is a
+ * corrupted one out of a Vaal vessel, and that is exactly the state past this line.
+ */
+const overCorrupted = (item: GemItem): boolean =>
+  item.gemLevel > MAX_GEM_LEVEL || item.gemQuality > MAX_GEM_QUALITY;
+
+/**
+ * The prefix that marks a Vaal gem.
+ *
+ * Complete and exclusive: every Vaal gem in the game is spelled this way and nothing else
+ * is. There is no flag to read instead — PoeWatch files a Vaal gem in `gem` like any
+ * other.
+ */
+const VAAL_PREFIX = "Vaal ";
+
+/**
+ * A Vaal gem — which is to say, a corruption outcome wearing a different name.
+ *
+ * **It gates in beside the over-rolled states and for the same reason.** A Vaal Orb can
+ * raise the level, raise the quality, or turn the gem Vaal, and the third is no less an
+ * outcome than the other two. Reading only the numbers would file a Vaal Blight at 20/20
+ * as a levelled gem that could not have dropped, when it is the one thing on that branch
+ * that certainly did.
+ */
+const isVaalGem = (name: string): boolean => name.startsWith(VAAL_PREFIX);
+
+/**
+ * The suffix that marks a Trarthus gem.
+ *
+ * They are shaped like transfigurations and the wiki files them as such — same
+ * `base_item` pointing back at the skill they alter — but they are not cut from a Divine
+ * Font. They drop, already at 20/20, which is why they are the one ordinary gem that
+ * needs that state and why the name is the only thing separating them from the 200-odd
+ * gems the player made on purpose.
+ */
+const TRARTHUS_SUFFIX = " of Trarthus";
+
+/**
+ * The state a gem is in when it hits the floor, and so the only one worth pricing a drop
+ * at.
+ *
+ * Shared by the exceptional gems and the Trarthus ones for the same reason: both drop and
+ * neither is levelled by whoever finds it. Every other state they trade in is somebody's
+ * work after the fact.
+ */
+const DROP_LEVEL = 1;
+
+const DROP_QUALITY = 0;
+
+/**
+ * The quietest an exceptional gem may be tiered.
+ *
+ * These do not drop from the general pool, they cap at level 3 or 4 rather than 20, and
+ * the cheap ones are still worth several times a click. Tiering one at T4 off a soft week
+ * on the market would be reading a number the item's own rarity contradicts.
+ */
+const EXCEPTIONAL_MIN_TIER: Tier = "T2";
+
+/**
+ * How a gem is filed, which decides how much of its identity reaches the bucket key.
+ *
+ * Three rules, because gems arrive on the floor three different ways:
+ *
+ * - `exceptional` — the game's `Exceptional` tag, read off the wiki. These are the gems
+ *   that are worth money as they drop, so they are priced at level 1 quality 0 and shown
+ *   whatever that price says. Never hidden.
+ * - `transfigured` — cut from a Divine Font by the player. The value is the *event*, not
+ *   the number: the player did something to get it and should see that it happened, and
+ *   no price on the floor tells them which transfiguration is the good one. Tiered
+ *   `varies` and left alone.
+ * - `trarthus` — the twelve `X of Trarthus` gems. Transfigured in shape and a drop in
+ *   fact: the wiki has them dropping from area level 5, so they are priced where they
+ *   land, at level 1 quality 0, exactly as an exceptional gem is.
+ * - `vendor` — everything else, active and support alike. Buyable for a wisdom scroll, so
+ *   nothing at or under 20/20 is worth a block and only a corruption past it is.
+ *
+ * None of the four can be hidden. Three of them are somewhere the player has been, and the
+ * fourth is what a Vaal vessel pays out.
+ */
+type GemKind = "exceptional" | "transfigured" | "trarthus" | "vendor";
+
 /** Categories that stack, and whose buckets a stack-size condition will later gate. */
 const STACKABLE_CATEGORIES = new Set([
   "azmeri",
@@ -407,6 +518,14 @@ type Draft = {
   /** The base type hides a spread the filter cannot read. Forces the `varies` tier. */
   varies: boolean;
   alwaysShow: boolean;
+  /**
+   * The quietest this bucket may be tiered, whatever the price says. `"hidden"` is no
+   * floor at all — the ladder decides on its own.
+   *
+   * `alwaysShow` is the same idea at its weakest setting and stays separate because it
+   * also survives the click floor, which a tier floor does not need to.
+   */
+  minTier: Tier;
   /** Best corrupted outcome anywhere in the bucket. 0 when nothing in it is corruptible. */
   vaalCeiling: number;
   /** Plain price of the member that ceiling belongs to — what the orb would destroy. */
@@ -436,6 +555,13 @@ export type ClassifyInput = {
   /** The Currency Exchange side. Wherever it has an item, it is the price. */
   readonly exchange: readonly ExchangeRatioItem[];
   readonly uniques: readonly FilterUnique[];
+  /**
+   * Every gem carrying the game's `Exceptional` tag, by name. Priced at level 1 quality
+   * 0 and never hidden — see `flatBuckets`.
+   */
+  readonly exceptionalGems: readonly string[];
+  /** Every transfigured gem, by name. Tiered `varies` — see `flatBuckets`. */
+  readonly transfiguredGems: readonly string[];
 };
 
 /**
@@ -696,6 +822,7 @@ function uniqueBaseBuckets(
       minStack: 0,
       // A unique base is exactly what the filter can read, so nothing here is unknowable.
       varies: false,
+      minTier: "hidden",
       vaalName: best.corrupted > 0 ? best.name : "",
       vaalVariant: best.corrupted > 0 ? best.corruptedVariant : "",
       vaalMod: best.corrupted > 0 ? best.corruptedMod : "",
@@ -766,6 +893,7 @@ function baseBuckets(items: readonly ItemData[]): Draft[] {
       note: paying.length === 0 ? "" : `ilvl>=${Math.min(...paying)}`,
       minStack: 0,
       varies: false,
+      minTier: "hidden",
       alwaysShow: false,
       vaalCeiling: 0,
       vaalFloor: 0,
@@ -794,14 +922,19 @@ function baseBuckets(items: readonly ItemData[]): Draft[] {
  * the market splits hard on both, so this is the coarsest thing here and the next thing
  * to split.
  */
-function flatBuckets(items: readonly ItemData[]): Draft[] {
+function flatBuckets(
+  items: readonly ItemData[],
+  gemKind: (name: string) => GemKind,
+  exceptionalGems: readonly string[],
+  transfiguredGems: readonly string[],
+): Draft[] {
   const drafts = new Map<string, Draft>();
 
-  const add = (id: string, family: BucketFamily, item: ItemData): void => {
+  const add = (id: string, family: BucketFamily, item: ItemData): Draft => {
     const draft = drafts.get(id);
 
     if (draft === undefined) {
-      drafts.set(id, {
+      const seeded: Draft = {
         id,
         family,
         verb: "take",
@@ -813,6 +946,7 @@ function flatBuckets(items: readonly ItemData[]): Draft[] {
         note: "",
         minStack: 0,
         varies: HARD_TO_CATEGORIZE.has(withoutVariant(item.name)),
+        minTier: "hidden",
         alwaysShow: false,
         vaalCeiling: 0,
         vaalFloor: 0,
@@ -826,8 +960,10 @@ function flatBuckets(items: readonly ItemData[]): Draft[] {
         // never got here — `classify` took it out first.
         topFromExchange: false,
         examples: [`${item.name} ${Math.round(price(item))}c`],
-      });
-      return;
+      };
+
+      drafts.set(id, seeded);
+      return seeded;
     }
 
     draft.floor = Math.min(draft.floor, price(item));
@@ -841,6 +977,8 @@ function flatBuckets(items: readonly ItemData[]): Draft[] {
     if (draft.examples.length < 3) {
       draft.examples.push(`${item.name} ${Math.round(price(item))}c`);
     }
+
+    return draft;
   };
 
   for (const item of items) {
@@ -849,9 +987,52 @@ function flatBuckets(items: readonly ItemData[]): Draft[] {
     if (UNIQUE_CATEGORIES.has(item.category) && item.frame === 3) continue;
 
     if (item.category === "gem") {
-      // Level and quality are in the key because a filter can read both, and the market
-      // splits hard on them. Collapsing them is what let one bad row set the tier for
-      // every Enlighten Support on the floor.
+      const kind = gemKind(item.name);
+
+      // The event is the value, so there is nothing to price and nothing to split on.
+      // One bucket per transfiguration, every level and quality in it.
+      //
+      // Corrupted rows are thrown out rather than folded in. A Divine Font cuts a gem
+      // uncorrupted, so a corrupted transfiguration is one somebody vaaled afterwards and
+      // is not a thing that reaches a floor — and it is not a harmless extra either. It
+      // was setting the price: `Lightning Tendrils of Escalation` read 6,946c off a
+      // level 21 quality 23 listing, which is a number no drop of it will ever be worth.
+      if (kind === "transfigured") {
+        if (item.gemIsCorrupted) continue;
+
+        add(`gem:${item.name}`, "gems", item).varies = true;
+        continue;
+      }
+
+      // Priced where it drops and nowhere else — which for these is the only place they
+      // ever are. An exceptional gem caps at level 3 or 4, so it has no 20/20 to be
+      // priced at, and quality above 0 is somebody's investment rather than a drop.
+      if (kind === "exceptional") {
+        if (item.gemLevel !== DROP_LEVEL) continue;
+        if (item.gemQuality !== DROP_QUALITY) continue;
+
+        const draft = add(`gem:${item.name}`, "gems", item);
+        draft.alwaysShow = true;
+        draft.minTier = EXCEPTIONAL_MIN_TIER;
+        continue;
+      }
+
+      // A Trarthus gem is the one transfiguration-shaped item that drops rather than
+      // being cut, so it is priced like a drop: where it lands, and nowhere else. The
+      // levelled and corrupted ones it also trades at are what somebody did to it later.
+      if (kind === "trarthus") {
+        if (item.gemLevel !== DROP_LEVEL) continue;
+        if (item.gemQuality !== DROP_QUALITY) continue;
+
+        add(`gem:${item.name}`, "gems", item).alwaysShow = true;
+        continue;
+      }
+
+      // What is left is every ordinary gem, active and support alike, and it earns a
+      // block in one case: a corruption went past what levelling can reach. That is the
+      // whole of what drops — 20/20 and under is a vendor purchase or a socket, and the
+      // 2,000-odd buckets that used to sit there said nothing except that.
+      if (!overCorrupted(item) && !isVaalGem(item.name)) continue;
       if (!GEM_LEVELS.has(item.gemLevel)) continue;
       if (!GEM_QUALITIES.has(item.gemQuality)) continue;
 
@@ -860,7 +1041,7 @@ function flatBuckets(items: readonly ItemData[]): Draft[] {
         `gem:${item.name} lvl${item.gemLevel} q${item.gemQuality}${corrupted}`,
         "gems",
         item,
-      );
+      ).alwaysShow = true;
     } else if (item.category === "maps") {
       if (item.frame === 3) {
         add(`unique-map:${identify(item.name).name}`, "unique-maps", item);
@@ -873,7 +1054,89 @@ function flatBuckets(items: readonly ItemData[]): Draft[] {
     }
   }
 
+  // None of these three may be hidden, and a bucket that does not exist is one the filter
+  // cannot show. A gem nobody listed in the state it drops in — 26 transfigurations traded
+  // only corrupted this league, and corrupted ones are thrown out above — would otherwise
+  // vanish for having a market rather than for lacking one.
+  //
+  // Seeded at no price, which is honest: there is no price. `varies` ignores it outright,
+  // and the other two are floored by `minTier` rather than by the ladder.
+  for (const name of [...exceptionalGems, ...transfiguredGems]) {
+    const id = `gem:${name}`;
+    if (drafts.has(id)) continue;
+
+    const kind = gemKind(name);
+
+    drafts.set(id, {
+      id,
+      family: "gems",
+      verb: "take",
+      floor: 0,
+      ceiling: 0,
+      // No listing behind it at all, which is the definition of thin.
+      thin: true,
+      members: 0,
+      slots: 1,
+      note: "",
+      minStack: 0,
+      varies: kind === "transfigured",
+      minTier: kind === "exceptional" ? EXCEPTIONAL_MIN_TIER : "hidden",
+      alwaysShow: true,
+      vaalCeiling: 0,
+      vaalFloor: 0,
+      vaalName: "",
+      vaalVariant: "",
+      vaalMod: "",
+      topName: name,
+      topPrice: 0,
+      topVariant: "",
+      topFromExchange: false,
+      examples: [],
+    });
+  }
+
   return [...drafts.values()];
+}
+
+/**
+ * Which of the three gem rules a name falls under.
+ *
+ * Both lists come from the wiki, which is the only place either is published: GGG's data
+ * has no gem tags, and nothing in a transfigured gem's own data says it is one.
+ *
+ * Anything on neither list is a `vendor` gem — the default, because that is what almost
+ * every gem is and because a name the wiki has not heard of is far more likely to be a new
+ * ordinary gem than a new Awakened one.
+ *
+ * The `Vaal ` prefix is tried as a fallback because the wiki files a Vaal gem as its own
+ * item and never as a transfiguration, so `Vaal Ice Nova of Frostbolts` — 47 of them in
+ * one league — is on no list under that name while `Ice Nova of Frostbolts` is. Stripping
+ * only as a fallback is what keeps Vaal Impurity of Fire and Vaal Rain of Arrows where
+ * they belong: their stripped names are on no list either, so they stay `vendor` — and
+ * a Vaal gem is a corruption outcome, which is a branch of its own further down.
+ */
+function gemKinds(input: ClassifyInput): (name: string) => GemKind {
+  const exceptional = new Set(input.exceptionalGems);
+  const transfigured = new Set(input.transfiguredGems);
+
+  const kind = (name: string): GemKind | undefined => {
+    if (exceptional.has(name)) return "exceptional";
+    // Checked inside the transfigured test rather than beside it: the wiki knows these
+    // only as transfigurations, so the suffix is a split of that set, not a rival to it.
+    if (transfigured.has(name)) {
+      return name.endsWith(TRARTHUS_SUFFIX) ? "trarthus" : "transfigured";
+    }
+    return undefined;
+  };
+
+  return (name) => {
+    const base = withoutVariant(name);
+    return (
+      kind(base) ??
+      (base.startsWith("Vaal ") ? kind(base.slice("Vaal ".length)) : undefined) ??
+      "vendor"
+    );
+  };
 }
 
 /**
@@ -967,7 +1230,10 @@ function resolve(draft: Draft, rates: Rates, levers: Levers): Bucket {
     // ladder over a number the filter will never see.
     tier: draft.varies
       ? "varies"
-      : tierFor(draft, plainEv, draft.ceiling, rates, levers),
+      : atLeast(
+          tierFor(draft, plainEv, draft.ceiling, rates, levers),
+          draft.minTier,
+        ),
     // A `take` has nothing left to learn, so both ends are the one number.
     floor: identityVerb === "take" ? worth : draft.floor,
     ceiling: identityVerb === "take" ? worth : draft.ceiling,
@@ -1089,6 +1355,7 @@ function exchangeBuckets(
         note: gated ? `stack>=${stack}` : "",
         minStack: gated ? stack : 0,
         varies: HARD_TO_CATEGORIZE.has(withoutVariant(item.name)),
+        minTier: "hidden",
         alwaysShow: false,
         vaalCeiling: 0,
         vaalFloor: 0,
@@ -1143,7 +1410,12 @@ export function classify(
     ...uniqueBaseBuckets(input.uniques, prices, false),
     ...uniqueBaseBuckets(input.uniques, prices, true),
     ...baseBuckets(items),
-    ...flatBuckets(items),
+    ...flatBuckets(
+      items,
+      gemKinds(input),
+      input.exceptionalGems,
+      input.transfiguredGems,
+    ),
     ...exchangeBuckets(exchange, quotes, rates, levers),
   ]
     .map((draft) => resolve(draft, rates, levers))
