@@ -6,3 +6,6 @@ data/raw/
 data/*
 cache/
 logs/
+
+# The tier board, built from tier-page.html by build-tier-page.ts.
+packages/filter/tiers.html

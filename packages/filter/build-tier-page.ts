@@ -19,14 +19,11 @@ type Row = {
   fam: string;
   verb: string;
   tier: string;
-  /** `tierWithoutVaal` — where the bucket lands with the vaal contribution removed. */
-  tw: string;
   fl: number;
   ce: number;
-  /** `vaalCeiling`, `vaalFloor`, `vaalEv`. The page re-decides the lever from these. */
+  /** `vaalCeiling` and `vaalFloor` — what the gamble indicator is made of. */
   vc: number;
   vf: number;
-  ve: number;
   /** `thin`. */
   th: boolean;
   note: string;
@@ -44,12 +41,10 @@ const toRow = (bucket: Bucket): Row => ({
   fam: bucket.family,
   verb: bucket.verb,
   tier: bucket.tier,
-  tw: bucket.tierWithoutVaal,
   fl: round(bucket.floor),
   ce: round(bucket.ceiling),
   vc: round(bucket.vaalCeiling),
   vf: round(bucket.vaalFloor),
-  ve: round(bucket.vaalEv),
   th: bucket.thin,
   note: bucket.note,
   sb: bucket.setBy,
