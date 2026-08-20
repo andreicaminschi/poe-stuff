@@ -108,6 +108,101 @@ describe("evaluateFilter", () => {
     expect(matches("HasInfluence Shaper", { HasInfluence: [] })).toBe(false);
   });
 
+  it("counts every socket for Sockets, ignoring where the links fall", () => {
+    // Two linked groups: a red-green-blue and a pair of blues. Five sockets in total.
+    const item: FilterItem = { Sockets: "RGB BB" };
+
+    expect(matches("Sockets >= 5", item)).toBe(true);
+    expect(matches("Sockets >= 6", item)).toBe(false);
+    expect(matches("Sockets 5", item)).toBe(true);
+    expect(matches("Sockets < 1", { Sockets: "" })).toBe(true);
+    expect(matches("Sockets < 1", item)).toBe(false);
+  });
+
+  it("asks each linked group on its own for SocketGroup", () => {
+    const item: FilterItem = { SocketGroup: "RGB BB" };
+
+    // No single group has five sockets, though the item has five.
+    expect(matches("SocketGroup >= 5", item)).toBe(false);
+    expect(matches("SocketGroup >= 3", item)).toBe(true);
+    expect(matches("SocketGroup >= 2", item)).toBe(true);
+  });
+
+  it("reads socket colours as at least, so RGB is the chromatic recipe", () => {
+    // A group holding one of each, whatever else is in there.
+    expect(matches('SocketGroup "RGB"', { SocketGroup: "RGB" })).toBe(true);
+    expect(matches('SocketGroup "RGB"', { SocketGroup: "RGBB" })).toBe(true);
+    expect(matches('SocketGroup "RGB"', { SocketGroup: "RG B" })).toBe(false);
+    expect(matches('SocketGroup "RGB"', { SocketGroup: "RRG" })).toBe(false);
+  });
+
+  it("applies the operator to the socket count and at-least to the colours", () => {
+    // The syntax doc glosses this one as five or more linked with three or more green.
+    expect(matches("SocketGroup >= 5GGG", { SocketGroup: "GGGRB" })).toBe(true);
+    expect(matches("SocketGroup >= 5GGG", { SocketGroup: "GGGGRB" })).toBe(true);
+    expect(matches("SocketGroup >= 5GGG", { SocketGroup: "GGRRB" })).toBe(false);
+    expect(matches("SocketGroup >= 5GGG", { SocketGroup: "GGGR" })).toBe(false);
+  });
+
+  it("matches abyss sockets by colour with no count at all", () => {
+    expect(matches("Sockets >= AAA", { Sockets: "AAA" })).toBe(true);
+    expect(matches("Sockets >= AAA", { Sockets: "RGBAAAA" })).toBe(true);
+    expect(matches("Sockets >= AAA", { Sockets: "RGBAA" })).toBe(false);
+  });
+
+  it("counts how many of the listed mods the item carries", () => {
+    const item: FilterItem = {
+      HasExplicitMod: ["Tyrannical Blow", "of Haast", "Merciless Edge"],
+    };
+
+    expect(matches('HasExplicitMod >=2 "of Haast" "Tyrannical"', item)).toBe(true);
+    expect(matches('HasExplicitMod >=3 "of Haast" "Tyrannical"', item)).toBe(false);
+    expect(matches('HasExplicitMod >=1 "of Tzteosh" "Tyrannical"', item)).toBe(true);
+  });
+
+  it("matches a mod name as part of the full mod, not the whole of it", () => {
+    const item: FilterItem = { HasExplicitMod: ["Tyrannical Blow"] };
+
+    // The sample writes "Elevated " with a trailing space for exactly this reason.
+    expect(matches('HasExplicitMod "Tyrannical"', item)).toBe(true);
+    expect(matches('HasExplicitMod "tyrannical"', item)).toBe(true);
+    expect(matches('HasExplicitMod "Tyrannical "', item)).toBe(true);
+    expect(matches('HasExplicitMod "Tyrannically"', item)).toBe(false);
+  });
+
+  it("reads a zero count as none of these being present", () => {
+    const clean: FilterItem = { HasExplicitMod: ["Tyrannical Blow"] };
+
+    expect(matches('HasExplicitMod =0 "Shining" "Glowing"', clean)).toBe(true);
+    expect(matches('HasExplicitMod =0 "Tyrannical"', clean)).toBe(false);
+  });
+
+  it("takes a counted line with no count as at least one, and its negation as none", () => {
+    const item: FilterItem = { HasExplicitMod: ["Tyrannical Blow"] };
+
+    expect(matches('HasExplicitMod "Tyrannical"', item)).toBe(true);
+    expect(matches('HasExplicitMod "Shining"', item)).toBe(false);
+    expect(matches('HasExplicitMod ! "Shining"', item)).toBe(true);
+    expect(matches('HasExplicitMod ! "Tyrannical"', item)).toBe(false);
+  });
+
+  it("counts nothing when the item carries no mods at all", () => {
+    expect(matches('HasExplicitMod =0 "Shining"', { HasExplicitMod: [] })).toBe(true);
+    expect(matches('HasExplicitMod >=1 "Shining"', { HasExplicitMod: [] })).toBe(false);
+  });
+
+  it("reads TransfiguredGem as a flag or as a name", () => {
+    const gem: FilterItem = { TransfiguredGem: "Leap Slam of Groundbreaking" };
+    const plain: FilterItem = { TransfiguredGem: "" };
+
+    expect(matches("TransfiguredGem True", gem)).toBe(true);
+    expect(matches("TransfiguredGem True", plain)).toBe(false);
+    expect(matches("TransfiguredGem False", plain)).toBe(true);
+    expect(matches('TransfiguredGem "Leap Slam"', gem)).toBe(true);
+    expect(matches('TransfiguredGem "Cyclone"', gem)).toBe(false);
+    expect(matches('TransfiguredGem == "Leap Slam"', gem)).toBe(false);
+  });
+
   it("fails a condition whose key the item does not hold, negated or not", () => {
     expect(matches("Corrupted True", {})).toBe(false);
     expect(matches("Corrupted ! True", {})).toBe(false);
@@ -115,6 +210,9 @@ describe("evaluateFilter", () => {
     expect(matches("BaseType ! Divine", {})).toBe(false);
     expect(matches("HasInfluence ! Shaper", {})).toBe(false);
     expect(matches("Rarity != Unique", {})).toBe(false);
+    expect(matches("Sockets < 1", {})).toBe(false);
+    expect(matches('HasExplicitMod =0 "Shining"', {})).toBe(false);
+    expect(matches("TransfiguredGem False", {})).toBe(false);
   });
 
   it("needs every condition in a block to match", () => {
