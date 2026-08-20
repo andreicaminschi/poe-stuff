@@ -1,0 +1,236 @@
+import { describe, it, expect } from "@jest/globals";
+import { evaluateFilter } from "./evaluate-filter.ts";
+import { parseFilter } from "./parse-filter.ts";
+import type { FilterItem } from "./filter-ast.ts";
+
+const filter = (...lines: string[]): string => lines.join("\n");
+
+const evaluate = (text: string, item: FilterItem) => evaluateFilter(parseFilter(text), item);
+
+/** True when the one block in `text` matched, whatever it says. */
+const matches = (condition: string, item: FilterItem): boolean =>
+  evaluate(filter("Show", `\t${condition}`), item).verdict === "Show";
+
+describe("evaluateFilter", () => {
+  it("matches a boolean condition against the item and flips it under !", () => {
+    expect(matches("Corrupted True", { Corrupted: true })).toBe(true);
+    expect(matches("Corrupted True", { Corrupted: false })).toBe(false);
+    expect(matches("Corrupted False", { Corrupted: false })).toBe(true);
+    expect(matches("Corrupted ! True", { Corrupted: false })).toBe(true);
+    expect(matches("Corrupted != True", { Corrupted: true })).toBe(false);
+  });
+
+  it("compares a numeric condition with every operator", () => {
+    const item: FilterItem = { ItemLevel: 68 };
+
+    expect(matches("ItemLevel 68", item)).toBe(true);
+    expect(matches("ItemLevel = 68", item)).toBe(true);
+    expect(matches("ItemLevel == 68", item)).toBe(true);
+    expect(matches("ItemLevel ! 68", item)).toBe(false);
+    expect(matches("ItemLevel != 69", item)).toBe(true);
+    expect(matches("ItemLevel < 69", item)).toBe(true);
+    expect(matches("ItemLevel <= 68", item)).toBe(true);
+    expect(matches("ItemLevel > 68", item)).toBe(false);
+    expect(matches("ItemLevel >= 68", item)).toBe(true);
+  });
+
+  it("compares an ordered condition along its ladder rather than alphabetically", () => {
+    const rare: FilterItem = { Rarity: "Rare" };
+
+    expect(matches("Rarity > Magic", rare)).toBe(true);
+    expect(matches("Rarity >= Rare", rare)).toBe(true);
+    expect(matches("Rarity < Unique", rare)).toBe(true);
+    expect(matches("Rarity Unique", rare)).toBe(false);
+    expect(matches("Rarity != Unique", rare)).toBe(true);
+    expect(matches("Rarity < Normal", { Rarity: "Normal" })).toBe(false);
+    expect(matches("Rarity >= Normal", { Rarity: "Unique" })).toBe(true);
+  });
+
+  it("fails an ordered condition when the item holds a value the ladder never heard of", () => {
+    expect(matches("Rarity > Magic", { Rarity: "Legendary" })).toBe(false);
+  });
+
+  it("matches an ordered condition against any of the values it lists", () => {
+    expect(matches("Rarity Normal Magic Rare", { Rarity: "Rare" })).toBe(true);
+    expect(matches("Rarity Normal Magic Rare", { Rarity: "Unique" })).toBe(false);
+    expect(matches("Rarity Normal Magic", { Rarity: "normal" })).toBe(true);
+    expect(matches("Rarity ! Normal Magic", { Rarity: "Rare" })).toBe(true);
+    expect(matches("Rarity ! Normal Magic", { Rarity: "Magic" })).toBe(false);
+  });
+
+  it("matches an ordered value whole, never as part of another", () => {
+    expect(matches("Rarity == Rare", { Rarity: "Rare" })).toBe(true);
+    expect(matches("Rarity Rare", { Rarity: "Rare" })).toBe(true);
+  });
+
+  it("matches part of the name on = and the whole name on ==", () => {
+    const item: FilterItem = { BaseType: "Chaos Orb" };
+
+    expect(matches("BaseType Orb", item)).toBe(true);
+    expect(matches("BaseType == Orb", item)).toBe(false);
+    expect(matches('BaseType == "Chaos Orb"', item)).toBe(true);
+  });
+
+  it("compares text without caring about case", () => {
+    expect(matches('BaseType "chaos orb"', { BaseType: "Chaos Orb" })).toBe(true);
+    expect(matches('BaseType == "CHAOS ORB"', { BaseType: "Chaos Orb" })).toBe(true);
+    expect(matches("Class currency", { Class: "Stackable Currency" })).toBe(true);
+  });
+
+  it("matches a text condition when any one of its values matches", () => {
+    const item: FilterItem = { BaseType: "Chaos Orb" };
+
+    expect(matches('BaseType "Divine Orb" "Chaos Orb"', item)).toBe(true);
+    expect(matches('BaseType "Divine Orb" "Exalted Orb"', item)).toBe(false);
+  });
+
+  it("flips a text condition as a whole under !, so no value may match", () => {
+    const item: FilterItem = { BaseType: "Chaos Orb" };
+
+    expect(matches("BaseType ! Divine", item)).toBe(true);
+    expect(matches("BaseType ! Divine Chaos", item)).toBe(false);
+    expect(matches('BaseType != "Chaos Orb"', item)).toBe(false);
+  });
+
+  it("matches an enum condition against any influence the item carries", () => {
+    const item: FilterItem = { HasInfluence: ["Shaper"] };
+
+    expect(matches("HasInfluence Shaper", item)).toBe(true);
+    expect(matches("HasInfluence Elder", item)).toBe(false);
+    expect(matches("HasInfluence Elder Shaper", item)).toBe(true);
+    expect(matches("HasInfluence ! Elder", item)).toBe(true);
+    expect(matches("HasInfluence shaper", item)).toBe(true);
+  });
+
+  it("reads HasInfluence None as an item carrying no influence at all", () => {
+    expect(matches("HasInfluence None", { HasInfluence: [] })).toBe(true);
+    expect(matches("HasInfluence None", { HasInfluence: ["Shaper"] })).toBe(false);
+    expect(matches("HasInfluence Shaper", { HasInfluence: [] })).toBe(false);
+  });
+
+  it("fails a condition whose key the item does not hold, negated or not", () => {
+    expect(matches("Corrupted True", {})).toBe(false);
+    expect(matches("Corrupted ! True", {})).toBe(false);
+    expect(matches("ItemLevel < 100", {})).toBe(false);
+    expect(matches("BaseType ! Divine", {})).toBe(false);
+    expect(matches("HasInfluence ! Shaper", {})).toBe(false);
+    expect(matches("Rarity != Unique", {})).toBe(false);
+  });
+
+  it("needs every condition in a block to match", () => {
+    const block = filter("Show", "\tCorrupted True", "\tRarity Unique");
+
+    expect(evaluate(block, { Corrupted: true, Rarity: "Unique" }).verdict).toBe("Show");
+    expect(evaluate(block, { Corrupted: false, Rarity: "Unique" }).verdict).toBe("none");
+  });
+
+  it("stops at the first matching block and reports its keyword", () => {
+    const text = filter("Hide", "\tRarity Normal", "Show", "\tRarity Unique");
+
+    expect(evaluate(text, { Rarity: "Normal" }).verdict).toBe("Hide");
+    expect(evaluate(text, { Rarity: "Unique" }).verdict).toBe("Show");
+  });
+
+  it("reports Minimal when a Minimal block is what stopped the walk", () => {
+    expect(evaluate(filter("Minimal", "\tRarity Normal"), { Rarity: "Normal" }).verdict).toBe(
+      "Minimal",
+    );
+  });
+
+  it("keeps walking past a matching block that says Continue", () => {
+    const text = filter(
+      "Show",
+      "\tRarity Unique",
+      "\tContinue",
+      "\t#@ tier=T3 verb=check",
+      "Hide",
+      "\tCorrupted True",
+      "\t#@ tier=hidden",
+    );
+
+    const result = evaluate(text, { Rarity: "Unique", Corrupted: true });
+
+    expect(result.verdict).toBe("Hide");
+    expect(result.notes).toEqual({ tier: "hidden", verb: "check" });
+  });
+
+  it("lets a later block beat an earlier one on the same key", () => {
+    const text = filter(
+      "Show",
+      "\tRarity Unique",
+      "\tContinue",
+      "\t#@ tier=T3 verb=check",
+      "Show",
+      "\tRarity Unique",
+      "\t#@ tier=T1",
+    );
+
+    const result = evaluate(text, { Rarity: "Unique" });
+
+    expect(result.notes).toEqual({ tier: "T1", verb: "check" });
+  });
+
+  it("keeps every contribution in order, tagged with the block that made it", () => {
+    const text = filter(
+      "Show",
+      "\tRarity Unique",
+      "\tContinue",
+      "\t#@ tier=T3 verb=check",
+      "Show",
+      "\tRarity Unique",
+      "\t#@ tier=T1",
+    );
+
+    const result = evaluate(text, { Rarity: "Unique" });
+
+    expect(result.contributions).toEqual([
+      { key: "tier", value: "T3", line: 1 },
+      { key: "verb", value: "check", line: 1 },
+      { key: "tier", value: "T1", line: 5 },
+    ]);
+  });
+
+  it("skips the notes of a block that did not match", () => {
+    const text = filter(
+      "Show",
+      "\tCorrupted True",
+      "\tContinue",
+      "\t#@ tier=T0",
+      "Show",
+      "\tRarity Unique",
+      "\t#@ tier=T1",
+    );
+
+    const result = evaluate(text, { Corrupted: false, Rarity: "Unique" });
+
+    expect(result.notes).toEqual({ tier: "T1" });
+    expect(result.contributions).toHaveLength(1);
+  });
+
+  it("answers none when nothing matched", () => {
+    const result = evaluate(filter("Show", "\tRarity Unique", "\t#@ tier=T1"), {
+      Rarity: "Normal",
+    });
+
+    expect(result.verdict).toBe("none");
+    expect(result.notes).toEqual({});
+    expect(result.contributions).toEqual([]);
+  });
+
+  it("answers none when the last matching block still says Continue", () => {
+    const text = filter("Show", "\tRarity Unique", "\tContinue", "\t#@ tier=T1");
+    const result = evaluate(text, { Rarity: "Unique" });
+
+    expect(result.verdict).toBe("none");
+    expect(result.notes).toEqual({ tier: "T1" });
+  });
+
+  it("handles the worked example from the plan", () => {
+    const text = filter("Show", "\tFoulborn True", "\tRarity Unique", "\t#@ tier=T1 verb=take");
+
+    const result = evaluate(text, { Foulborn: true, Rarity: "Unique" });
+
+    expect(result.verdict).toBe("Show");
+    expect(result.notes).toEqual({ tier: "T1", verb: "take" });
+  });
+});

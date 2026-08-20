@@ -1,0 +1,12 @@
+{
+  "name": "@poe/filter-eval",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./evaluate-filter": "./evaluate-filter.ts",
+    "./filter-ast": "./filter-ast.ts",
+    "./parse-filter": "./parse-filter.ts"
+  }
+}
