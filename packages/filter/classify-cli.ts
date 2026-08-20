@@ -10,6 +10,7 @@ import type { Bucket, Levers, Tier, Verb } from "./types.ts";
  *     node --env-file=packages/filter/.env packages/filter/classify-cli.ts
  *     node --env-file=packages/filter/.env packages/filter/classify-cli.ts --league Standard
  *     node --env-file=packages/filter/.env packages/filter/classify-cli.ts --min-click 3
+ *     node --env-file=packages/filter/.env packages/filter/classify-cli.ts --gold-per-divine 800000
  *
  * `--min-click` is the player lever: the least a single click may be worth, in chaos.
  * It is a flag rather than env because it is the one input meant to be moved between
@@ -23,6 +24,15 @@ import type { Bucket, Levers, Tier, Verb } from "./types.ts";
  */
 
 const DEFAULT_OUT = "packages/filter/buckets-draft.json";
+
+/**
+ * What a divine is worth in gold when the player has not said.
+ *
+ * Gold is untradeable, so this is a preference and not a rate — see `goldPerDivine` on
+ * `Levers`. It lives here rather than in `classify.ts` because a default is what a caller
+ * gets, and `classify`'s own default levers are for a caller passing none at all.
+ */
+const DEFAULT_GOLD_PER_DIVINE = 1_000_000;
 
 const args = process.argv.slice(2);
 
@@ -56,11 +66,17 @@ if (minClick !== undefined && !(Number(minClick) >= 0)) {
   throw new Error(`--min-click wants chaos, got ${minClick}`);
 }
 
+const goldPerDivine = flag("gold-per-divine");
+if (goldPerDivine !== undefined && !(Number(goldPerDivine) > 0)) {
+  throw new Error(`--gold-per-divine wants gold, got ${goldPerDivine}`);
+}
+
 // A bare `--hide-unique-maps` is the whole flag. It takes no value because it has no
 // middle setting — the lever is there precisely because the game offers all or nothing.
 const levers: Levers = {
   minClickValue: Number(minClick ?? 0),
   hideUniqueMaps: args.includes("--hide-unique-maps"),
+  goldPerDivine: Number(goldPerDivine ?? DEFAULT_GOLD_PER_DIVINE),
 };
 
 const TIERS: readonly Tier[] = [

@@ -11,6 +11,12 @@ Everything here exists to make rate-limited requests to GGG without earning a ba
 also sinks the Currency Exchange hourly digests, which come off the CDN under no budget
 at all.
 
+The second half is what the prices are for. `@poe/filter` turns a league's market into an
+item filter — every drop the game can show, priced, tiered, and written out as blocks —
+and `@poe/filter-eval` reads a `.filter` back to check that the file says what the
+classifier meant. Neither touches GGG's budget: they price off PoeWatch and the wiki, and
+ask GGG only which uniques exist.
+
 What is not in the repo today: no schema validation of response bodies. The only schedule
 is the currency sweep, and it is a BullMQ job scheduler in redis rather than a cron.
 `compose.yaml` runs the backing services; `@poe/workers` connects to redis, minio and the
@@ -24,6 +30,9 @@ packages/ledger/       # @poe/ledger — job, cohort and currency-hour tables on
 packages/workers/      # @poe/workers — queue workers, job handlers, CLIs
 packages/util/         # @util/core — env, cache-key, file-cache, sleep
 packages/poe-wiki/     # @poe/poe-wiki — Cargo queries against poewiki.net
+packages/poe-watch/    # @poe/poe-watch — league price digests from api.poe.watch
+packages/filter/       # @poe/filter — market to buckets to a .filter. CLIs + pipeline.md
+packages/filter-eval/  # @poe/filter-eval — parse and run a .filter. Depends on nothing
 research/              # design notes, archived. Not a spec of what is built
 trino/                 # Dockerfile + catalog for the trino service in compose.yaml
 compose.yaml           # redis, minio, ledger postgres, hive metastore + postgres, trino
@@ -39,7 +48,10 @@ eslint.config.ts       # flat config. No `lint` script in package.json
 | `@poe/ggg` | `@poe/ggg/call`, `/rate-limiter`, `/parse-rate-limit-headers`, `/errors`, `/config`, `/search`, `/fetch-page`, `/fetch-currency-hour`, `/get-unique-items`, `/types` | The GGG service: one function per endpoint, over one request through a limiter. Owns every GGG URL. See [packages/ggg/README.md](packages/ggg/README.md). |
 | `@util/core` | `@util/core/env`, `/cache-key`, `/file-cache`, `/sleep` | `requireEnv`/`optionalEnv` — the only place `process.env` is read. `cacheKey` for stable S3/Redis keys. `fileCache<T>` — JSON on disk, one file per key, backing both the GGG response cache and the PoeWatch digest cache. |
 | `@poe/ledger` | `@poe/ledger/db`, `/migrate`, `/cohorts`, `/jobs`, `/currency`, `/types` | The job ledger on postgres: cohort rows, job rows, the queries that decide completion, and one row per collected currency hour. |
-| `@poe/poe-wiki` | `@poe/poe-wiki/get-unique-items`, `/get-influence-mods`, `/get-corrupted-mods`, `/cargo`, `/wiki-text`, `/types` | The wiki's Cargo tables. `getUniqueItems` — every unique's name, base item, item class and drop-restriction flag. `getInfluenceMods` — every influence modifier by equipment slot, with spawn weight. `getCorruptedMods` — the corrupted-implicit pool a Vaal Orb draws from, weighted per item class. Not GGG, and the only source for any of it. |
+| `@poe/poe-wiki` | `@poe/poe-wiki/get-unique-items`, `/get-influence-mods`, `/get-corrupted-mods`, `/get-exceptional-gems`, `/get-transfigured-gems`, `/cargo`, `/wiki-text`, `/types` | The wiki's Cargo tables. `getUniqueItems` — every unique's name, base item, item class and drop-restriction flag. `getInfluenceMods` — every influence modifier by equipment slot, with spawn weight. `getCorruptedMods` — the corrupted-implicit pool a Vaal Orb draws from, weighted per item class. `getExceptionalGems` and `getTransfiguredGems` — which gems cap below level 20, and which were cut from a Divine Font. Not GGG, and the only source for any of it. |
+| `@poe/poe-watch` | `@poe/poe-watch/get-compact-data`, `/get-corruption-data`, `/get-exchange-ratios`, `/types` | The PoeWatch price digests: one league's whole market per call, the corrupted-implicit outcomes per item, and the Currency Exchange book. Not GGG and not the wiki — a third party scraping trade listings, which is why a price from here is a listing rather than a sale. `/compact` needs `all=true` or it answers without a single crafting base. |
+| `@poe/filter` | `@poe/filter/classify`, `/emit-filter`, `/verify-filter`, `/fetch-inputs`, `/merge-uniques`, `/build-tier-page`, `/types` | Turning a market into an item filter. `classify` prices every *bucket* — the set of items sharing what the game shows at drop time — and gives each a tier and a verb; `emitFilter` writes the blocks; `verifyFilter` runs the finished file back over its own buckets and fails on any the wrong block answers for. Owns the levers a player sets. See [packages/filter/pipeline.md](packages/filter/pipeline.md). |
+| `@poe/filter-eval` | `@poe/filter-eval/parse-filter`, `/evaluate-filter`, `/filter-ast`, `/format-note` | The `.filter` grammar as code: a parser, an evaluator that decides which block takes an item, and the `#@` note a generated block carries its bucket in. Depends on no other package on purpose — it is the independent reader that checks what `@poe/filter` wrote. |
 | `@poe/workers` | `@poe/workers/worker`, `/handlers`, `/queries`, `/queues`, `/keys`, `/pages`, `/file-cache` | The BullMQ worker loop and job handlers, S3 writes, and the `cohort-cli.ts`/`worker-cli.ts`/`currency-cli.ts` entry points. Calls GGG through `@poe/ggg` and owns no URLs of its own. |
 
 Cross-package imports resolve through the `exports` map in that package's
@@ -82,6 +94,8 @@ import.
 | `POE_WATCH_BASE_URL` | Base of the PoeWatch API, trailing slash stripped. Not GGG — it publishes no rate limits, so nothing behind it draws on the GGG budget | [packages/poe-watch/get-compact-data.ts](packages/poe-watch/get-compact-data.ts), [packages/poe-watch/get-corruption-data.ts](packages/poe-watch/get-corruption-data.ts) |
 | `CACHE_DIR` | Folder holding cached responses. Optional, local only — unset means every request goes to GGG, which is what production wants. `@poe/ggg` also keeps the hour-keyed unique-item digest here | [packages/ggg/get-unique-items.ts](packages/ggg/get-unique-items.ts), [packages/workers/file-cache.ts](packages/workers/file-cache.ts) |
 | `POE_WATCH_CACHE_DIR` | Folder holding cached league digests, one per league per hour. Optional — unset means every call re-downloads tens of megabytes. The hour is in the key, so entries never expire, they only stop being asked for | [packages/poe-watch/get-compact-data.ts](packages/poe-watch/get-compact-data.ts), [packages/poe-watch/get-corruption-data.ts](packages/poe-watch/get-corruption-data.ts) |
+| `POE_WATCH_LEAGUE` | The league the filter classifies. Overridden by `--league` on any of the filter CLIs, which is how a second league is built without editing the file | [packages/filter/classify-cli.ts](packages/filter/classify-cli.ts), [packages/filter/filter-cli.ts](packages/filter/filter-cli.ts) |
+| `FILTER_PORT` | Port the tier board serves on, default 8123. Bound to loopback — it is a dev tool with no authentication | [packages/filter/serve-cli.ts](packages/filter/serve-cli.ts) |
 
 `compose.yaml` reads its own set (`MINIO_ROOT_USER`, `REDIS_PORT`, `LEDGER_USER`,
 `LEDGER_PORT`, `TRINO_PORT`, …), all with defaults, from the shell or a root `.env` that
@@ -119,6 +133,18 @@ Start the local stack:
 docker compose up -d
 ```
 
+Build the item filter — fetch the league, classify it, emit and verify the blocks:
+
+```bash
+yarn filter
+```
+
+Classify and open the tier board on the result:
+
+```bash
+yarn tiers
+```
+
 ## Local stack
 
 Production is AWS. The containers exist to stand in for AWS services on a laptop, and
@@ -141,8 +167,11 @@ convenience, and nothing depends on one being present in production.
 `packages/ggg` has a `README.md` and Mermaid `.mmd` diagrams in `packages/ggg/docs/`.
 `packages/workers` has `docs/pipeline.md` with `pipeline.mmd` and `currency.mmd` beside
 it, but no README.
-`packages/util` and `packages/ledger` have neither. Write a package README with the
-`/document` command.
+`packages/filter` has `pipeline.md`, which is the two-phase build and what each phase
+writes, and `buckets-draft.md`, which is a commentary on the classification the last run
+produced — numbers in it move every run and it says so.
+`packages/util`, `packages/ledger`, `packages/poe-watch` and `packages/filter-eval` have
+neither. Write a package README with the `/document` command.
 
 [docs/item-filter-syntax.md](docs/item-filter-syntax.md) is how filters work in PoE: the
 `.filter` grammar as GGG documents it — `Show`/`Hide`/`Minimal` blocks, `Continue`,

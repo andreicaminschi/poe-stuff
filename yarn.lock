@@ -1303,7 +1303,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@poe/filter-eval@workspace:packages/filter-eval":
+"@poe/filter-eval@workspace:^, @poe/filter-eval@workspace:packages/filter-eval":
   version: 0.0.0-use.local
   resolution: "@poe/filter-eval@workspace:packages/filter-eval"
   languageName: unknown
@@ -1312,12 +1312,20 @@ __metadata:
 "@poe/filter@workspace:packages/filter":
   version: 0.0.0-use.local
   resolution: "@poe/filter@workspace:packages/filter"
+  dependencies:
+    "@poe/filter-eval": "workspace:^"
   languageName: unknown
   linkType: soft
 
 "@poe/ggg@workspace:^, @poe/ggg@workspace:packages/ggg":
   version: 0.0.0-use.local
   resolution: "@poe/ggg@workspace:packages/ggg"
+  languageName: unknown
+  linkType: soft
+
+"@poe/item@workspace:packages/item":
+  version: 0.0.0-use.local
+  resolution: "@poe/item@workspace:packages/item"
   languageName: unknown
   linkType: soft
 

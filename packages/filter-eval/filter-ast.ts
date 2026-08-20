@@ -209,6 +209,7 @@ export const APPLY_KEYS = {
     "gems",
     "maps",
     "misc",
+    "replicas",
     "stackables",
     "unique-maps",
     "uniques-by-base",
