@@ -115,6 +115,7 @@ console.error(
     // that omits them is a grid nobody can compare against yesterday's.
     `divine ${marketRates(input.exchange).divine.toFixed(1)}c, click floor ${levers.minClickValue}c`,
     `${counts.ggg} uniques from GGG, ${counts.wiki} from the wiki, ${input.uniques.filter((unique) => unique.restrictedDrop).length} restricted`,
+    `${counts.exceptionalGems} exceptional gems, ${counts.transfiguredGems} transfigured, from the wiki`,
     `${buckets.length} buckets, ${buckets.filter((bucket) => bucket.thin).length} thin`,
     "",
     summarize(buckets),
