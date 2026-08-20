@@ -9,6 +9,7 @@
     "./get-corrupted-mods": "./get-corrupted-mods.ts",
     "./get-exceptional-gems": "./get-exceptional-gems.ts",
     "./get-influence-mods": "./get-influence-mods.ts",
+    "./get-transfigured-gems": "./get-transfigured-gems.ts",
     "./get-unique-items": "./get-unique-items.ts",
     "./types": "./types.ts",
     "./wiki-text": "./wiki-text.ts"
