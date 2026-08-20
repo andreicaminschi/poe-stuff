@@ -144,5 +144,10 @@ it, but no README.
 `packages/util` and `packages/ledger` have neither. Write a package README with the
 `/document` command.
 
+[docs/item-filter-syntax.md](docs/item-filter-syntax.md) is how filters work in PoE: the
+`.filter` grammar as GGG documents it — `Show`/`Hide`/`Minimal` blocks, `Continue`,
+`Import`, the operators, every condition and every action. Anything the filter code emits
+has to be a line in there.
+
 `research/` holds design notes written before the code — treat them as history, not as a
 description of what exists.
