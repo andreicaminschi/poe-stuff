@@ -169,6 +169,60 @@ Show # $type->decorators->rareeg $tier->topilvl84
 	SetTextColor 245 190 0 255
 	Continue`;
 
+/** From "Sockets and Links". `SocketGroup "RGB"` is the chromatic recipe. */
+const CHROMATIC = `Show # %D5 $type->socketslinks $tier->rgbsmall1
+	Width 2
+	Height 2
+	Rarity Normal Magic Rare
+	SocketGroup "RGB"
+	#@ id=rgbsmall1
+	SetFontSize 45
+	PlayAlertSound 2 300
+	MinimapIcon 2 Grey Hexagon
+
+Show # %D5 $type->socketslinks $tier->rgbsmall2
+	Width 1
+	Height <= 4
+	Rarity Normal Magic Rare
+	SocketGroup "RGB"
+	#@ id=rgbsmall2
+	SetFontSize 45
+	MinimapIcon 2 Grey Hexagon`;
+
+/** From the uniques section. Colours with no count at all. */
+const ABYSS = `Show # $type->uniques $tier->4xabysshelmet
+	Sockets >= AAAA
+	Rarity Unique
+	BaseType == "Bone Circlet"
+	#@ id=4xabysshelmet
+	SetFontSize 45
+	PlayAlertSound 6 300
+	MinimapIcon 0 Red Star
+
+Show # $type->uniques $tier->3xabyss
+	Sockets >= AAA
+	Rarity Unique
+	BaseType == "Carnal Armour"
+	#@ id=3xabyss
+	SetFontSize 45
+	PlayAlertSound 6 300`;
+
+/**
+ * From "Endgame - Rare - Weapons". One block, all three counted forms: no count at all, an
+ * explicit `>=3`, and `=0` for mods that must be absent.
+ */
+const RARE_WEAPON = `Show # %D5 $type->rareid $tier->weapon_phys
+	Identified True
+	DropLevel >= 50
+	Rarity Rare
+	Class == "Bows" "Claws" "Daggers" "One Hand Axes" "One Hand Maces" "One Hand Swords" "Thrusting One Hand Swords" "Two Hand Axes" "Two Hand Maces" "Two Hand Swords" "Wands" "Warstaves"
+	HasExplicitMod "Merciless" "Tyrannical" "Cruel" "of the Underground" "Subterranean" "of Many" "of Tacati" "Tacati's"
+	HasExplicitMod >=3 "Merciless" "Tyrannical" "Flaring" "Dictator's" "Emperor's" "of Celebration" "of Incision" "of Dissolution" "of Destruction" "of the Underground" "Subterranean" "of Many" "of Tacati" "Tacati's" "Veil"
+	HasExplicitMod =0 "Heavy" "Serrated" "Wicked" "Vicious" "Glinting" "Burnished" "Polished" "Honed" "of Needling" "of Skill"
+	#@ id=weapon-phys
+	SetFontSize 45
+	PlayAlertSound 3 300`;
+
 const evaluate = (text: string, item: FilterItem) => evaluateFilter(parseFilter(text), item);
 
 /** The `id` note of the last block that matched, which is how these fixtures name blocks. */
@@ -387,6 +441,72 @@ describe("evaluateFilter, on real NeverSink text", () => {
 
     // Width 1 and Height 1 is tinyrares, not largerares; no links, so no four-link border.
     expect(result.contributions.map((one) => one.value)).toEqual(["tinyrares", "topilvl84"]);
+  });
+
+  it("takes a linked RGB for the chromatic recipe whatever else is in the group", () => {
+    const small: FilterItem = { Width: 2, Height: 2, Rarity: "Normal" };
+
+    expect(idOf(CHROMATIC, { ...small, SocketGroup: "RGB" })).toBe("rgbsmall1");
+    // A fourth socket in the same group does not spoil it.
+    expect(idOf(CHROMATIC, { ...small, SocketGroup: "RGBB" })).toBe("rgbsmall1");
+    // Split across two groups, nothing is linked R-G-B, so the recipe does not hold.
+    expect(evaluate(CHROMATIC, { ...small, SocketGroup: "RG B" }).verdict).toBe("none");
+    expect(evaluate(CHROMATIC, { ...small, SocketGroup: "RRG" }).verdict).toBe("none");
+  });
+
+  it("sizes the chromatic blocks by the item that carries the sockets", () => {
+    const sockets = "RGB";
+
+    expect(idOf(CHROMATIC, { Width: 2, Height: 2, Rarity: "Magic", SocketGroup: sockets })).toBe(
+      "rgbsmall1",
+    );
+    expect(idOf(CHROMATIC, { Width: 1, Height: 4, Rarity: "Magic", SocketGroup: sockets })).toBe(
+      "rgbsmall2",
+    );
+    // A unique is outside `Rarity Normal Magic Rare` on both blocks.
+    expect(
+      evaluate(CHROMATIC, { Width: 2, Height: 2, Rarity: "Unique", SocketGroup: sockets })
+        .verdict,
+    ).toBe("none");
+  });
+
+  it("counts abyss sockets with no socket count to go by", () => {
+    const helmet: FilterItem = { Rarity: "Unique", BaseType: "Bone Circlet" };
+
+    expect(idOf(ABYSS, { ...helmet, Sockets: "AAAA" })).toBe("4xabysshelmet");
+    expect(evaluate(ABYSS, { ...helmet, Sockets: "AAA" }).verdict).toBe("none");
+    // The three-abyss block wants a different base entirely.
+    expect(
+      idOf(ABYSS, { Rarity: "Unique", BaseType: "Carnal Armour", Sockets: "AAAR" }),
+    ).toBe("3xabyss");
+  });
+
+  it("holds a rare weapon to all three counted forms at once", () => {
+    const weapon: FilterItem = {
+      Identified: true,
+      DropLevel: 60,
+      Rarity: "Rare",
+      Class: "Two Hand Swords",
+      HasExplicitMod: ["Merciless Blow", "Tyrannical Edge", "Flaring Blade"],
+    };
+
+    expect(idOf(RARE_WEAPON, weapon)).toBe("weapon-phys");
+
+    // One mod short of the `>=3` line.
+    expect(
+      evaluate(RARE_WEAPON, {
+        ...weapon,
+        HasExplicitMod: ["Merciless Blow", "Tyrannical Edge"],
+      }).verdict,
+    ).toBe("none");
+
+    // A "Heavy" prefix trips the `=0` line, which is there to keep hybrid rolls out.
+    expect(
+      evaluate(RARE_WEAPON, {
+        ...weapon,
+        HasExplicitMod: [...(weapon.HasExplicitMod ?? []), "Heavy Blade"],
+      }).verdict,
+    ).toBe("none");
   });
 
   it("names the block that set each decorator by its line", () => {

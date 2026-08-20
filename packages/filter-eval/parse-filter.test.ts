@@ -187,16 +187,114 @@ describe("parseFilter", () => {
     );
   });
 
-  it("throws on each condition whose kind is still stage 2", () => {
-    for (const line of [
-      "SocketGroup >= 5GGG",
-      "Sockets 6",
-      'HasEnchantment "Enchantment Bane Damage 2"',
-      'HasExplicitMod >=2 "of Haast" "of Tzteosh"',
-      'TransfiguredGem "Leap Slam"',
-    ]) {
-      expect(() => parseFilter(filter("Show", `\t${line}`))).toThrow(/stage 2/);
-    }
+  it("reads a socket line that names only a count", () => {
+    const [block] = parseFilter(filter("Show", "\tSockets >= 3"));
+
+    expect(block?.conditions[0]?.operator).toBe(">=");
+    expect(block?.conditions[0]?.sockets).toEqual({ count: 3, colours: {} });
+  });
+
+  it("reads a socket line that names only colours", () => {
+    // The sample writes `Sockets >= AAAA` for abyss sockets, with no count at all.
+    const [block] = parseFilter(filter("Show", "\tSockets >= AAAA"));
+
+    expect(block?.conditions[0]?.sockets).toEqual({ colours: { A: 4 } });
+  });
+
+  it("reads a socket line that names both, counting each colour", () => {
+    const [block] = parseFilter(filter("Show", "\tSocketGroup >= 5GGG"));
+
+    expect(block?.conditions[0]?.sockets).toEqual({ count: 5, colours: { G: 3 } });
+  });
+
+  it("reads a quoted socket spec with the operator left out", () => {
+    const [block] = parseFilter(filter("Show", '\tSocketGroup "RGB"'));
+
+    expect(block?.conditions[0]?.operator).toBe("=");
+    expect(block?.conditions[0]?.sockets).toEqual({ colours: { R: 1, G: 1, B: 1 } });
+  });
+
+  it("reads socket colours whatever case they are written in", () => {
+    const [block] = parseFilter(filter("Show", "\tSockets 5ggg"));
+
+    expect(block?.conditions[0]?.sockets).toEqual({ count: 5, colours: { G: 3 } });
+  });
+
+  it("throws on a socket colour that is not one of the six", () => {
+    expect(() => parseFilter(filter("Show", "\tSockets >= 5GGX"))).toThrow(
+      /line 2: Sockets does not know the socket colour "X": it takes R, G, B, A, D, W/,
+    );
+  });
+
+  it("throws on a socket spec that is neither a count nor colours", () => {
+    expect(() => parseFilter(filter("Show", '\tSockets ""'))).toThrow(
+      /line 2: Sockets takes a count and colours/,
+    );
+  });
+
+  it("reads a count glued to its operator the way the sample writes it", () => {
+    const [block] = parseFilter(
+      filter("Show", '\tHasExplicitMod >=2 "of Haast" "of Tzteosh"'),
+    );
+
+    expect(block?.conditions[0]).toMatchObject({
+      operator: ">=",
+      count: 2,
+      values: ["of Haast", "of Tzteosh"],
+    });
+  });
+
+  it("reads a zero count as asking for none of the listed names", () => {
+    // 28 lines in the sample are `HasExplicitMod =0 "..."`.
+    const [block] = parseFilter(filter("Show", '\tHasExplicitMod =0 "Shining" "Glowing"'));
+
+    expect(block?.conditions[0]).toMatchObject({ operator: "=", count: 0 });
+  });
+
+  it("reads a count spaced away from its operator, as the syntax doc writes it", () => {
+    const [block] = parseFilter(filter("Show", '\tHasExplicitMod >= 4 "of Haast"'));
+
+    expect(block?.conditions[0]).toMatchObject({
+      operator: ">=",
+      count: 4,
+      values: ["of Haast"],
+    });
+  });
+
+  it("takes a counted line with no count as asking for at least one", () => {
+    const [block] = parseFilter(filter("Show", '\tHasExplicitMod "Tyrannical" "Merciless"'));
+
+    expect(block?.conditions[0]).toMatchObject({
+      operator: ">=",
+      count: 1,
+      values: ["Tyrannical", "Merciless"],
+    });
+  });
+
+  it("takes a negated counted line with no count as asking for none", () => {
+    const [block] = parseFilter(filter("Show", '\tHasExplicitMod ! "Tyrannical"'));
+
+    expect(block?.conditions[0]).toMatchObject({ operator: "=", count: 0 });
+  });
+
+  it("throws when a count is given but no names to count", () => {
+    expect(() => parseFilter(filter("Show", "\tHasExplicitMod >=2"))).toThrow(
+      /line 2: HasExplicitMod needs at least one value/,
+    );
+  });
+
+  it("reads TransfiguredGem both as a flag and as a name", () => {
+    const [flag] = parseFilter(filter("Show", "\tTransfiguredGem True"));
+    expect(flag?.conditions[0]).toMatchObject({ kind: "gem", values: ["True"] });
+
+    const [named] = parseFilter(filter("Show", '\tTransfiguredGem "Leap Slam"'));
+    expect(named?.conditions[0]).toMatchObject({ kind: "gem", values: ["Leap Slam"] });
+  });
+
+  it("throws when TransfiguredGem is given more than one value", () => {
+    expect(() => parseFilter(filter("Show", "\tTransfiguredGem True False"))).toThrow(
+      /line 2: TransfiguredGem takes exactly one value, got 2/,
+    );
   });
 
   it("throws when a text condition is given an ordering operator", () => {

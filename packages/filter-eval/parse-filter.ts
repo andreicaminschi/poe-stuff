@@ -4,7 +4,8 @@ import {
   CONDITIONS,
   CONDITIONS_BY_LOWER,
   EQUALITY_OPERATORS,
-  STAGE_1_KINDS,
+  NEGATING_OPERATORS,
+  SOCKET_COLOURS,
 } from "./filter-ast.ts";
 import type {
   ApplyKey,
@@ -14,6 +15,8 @@ import type {
   Keyword,
   Note,
   Operator,
+  SocketColour,
+  SocketSpec,
 } from "./filter-ast.ts";
 
 /**
@@ -142,22 +145,79 @@ const requireOneValue = (
 const listed = (allowed: readonly string[], value: string): boolean =>
   allowed.some((one) => one.toLowerCase() === value.toLowerCase());
 
+/** A count glued to its operator, the way `HasExplicitMod >=2` writes it. */
+const GLUED_COUNT = /^(==|!=|>=|<=|=|!|<|>)(\d+)$/;
+
+/** A socket spec: a count, some colour letters, or both. `5GGG`, `6`, `AAAA`, `RGB`. */
+const SOCKET_SPEC = /^(\d+)?([A-Za-z]*)$/;
+
+/**
+ * Read `5GGG` into a count of five and three greens. Either half may be missing, but not
+ * both — the sample writes `Sockets >= 3` and `Sockets >= AAAA` about equally.
+ */
+const parseSocketSpec = (
+  name: ConditionName,
+  values: readonly string[],
+  line: number,
+): SocketSpec => {
+  const value = requireOneValue(name, values, line);
+  const found = SOCKET_SPEC.exec(value);
+  const digits = found?.[1];
+  const letters = found?.[2] ?? "";
+
+  if (found === null || (digits === undefined && letters === "")) {
+    fail(line, `${name} takes a count and colours, got ${JSON.stringify(value)}`);
+  }
+
+  const colours: Partial<Record<SocketColour, number>> = {};
+  for (const letter of letters.toUpperCase()) {
+    if (!(SOCKET_COLOURS as readonly string[]).includes(letter)) {
+      fail(
+        line,
+        `${name} does not know the socket colour ${JSON.stringify(letter)}: ` +
+          `it takes ${SOCKET_COLOURS.join(", ")}`,
+      );
+    }
+    const colour = letter as SocketColour;
+    colours[colour] = (colours[colour] ?? 0) + 1;
+  }
+
+  return digits === undefined ? { colours } : { count: Number(digits), colours };
+};
+
 const parseCondition = (name: ConditionName, rest: string, line: number): FilterCondition => {
   const entry = CONDITIONS[name];
   const { kind } = entry;
 
-  // Rejected before the values are looked at, so a stage-2 line never has to tokenize —
-  // `HasExplicitMod >=2 "of Haast"` glues its operator to a count and nothing here reads
-  // that yet.
-  if (!(STAGE_1_KINDS as readonly string[]).includes(kind)) {
-    fail(line, `${name} is not supported yet: ${kind} conditions are stage 2`);
-  }
-
   const tokens = tokenize(rest, line);
-  const first = tokens[0];
-  const hasOperator = first !== undefined && OPERATORS.has(first);
-  const operator = (hasOperator ? first : "=") as Operator;
-  const values = hasOperator ? tokens.slice(1) : tokens;
+
+  // A counted line may glue its count to its operator: `HasExplicitMod >=2 "of Haast"`,
+  // and `HasExplicitMod =0 "..."` for none of them. The sample writes it that way 111
+  // times and spaces it out never, but the syntax doc spaces it, so both are read.
+  const head = tokens[0];
+  const glued = kind === "counted" && head !== undefined ? GLUED_COUNT.exec(head) : null;
+
+  let operator: Operator;
+  let values: readonly string[];
+  let count: number | undefined;
+
+  if (glued !== null) {
+    operator = glued[1] as Operator;
+    count = Number(glued[2]);
+    values = tokens.slice(1);
+  } else {
+    const hasOperator = head !== undefined && OPERATORS.has(head);
+    operator = (hasOperator ? head : "=") as Operator;
+    values = tokens.slice(hasOperator ? 1 : 0);
+
+    // Spaced form. Only a written operator introduces a count, so a bare leading number
+    // stays a name — nothing in the grammar says `HasEnchantment 2 "x"` means anything.
+    const next = values[0];
+    if (kind === "counted" && hasOperator && next !== undefined && /^\d+$/.test(next)) {
+      count = Number(next);
+      values = values.slice(1);
+    }
+  }
 
   if (values.length === 0) fail(line, `${name} needs at least one value`);
 
@@ -215,8 +275,27 @@ const parseCondition = (name: ConditionName, rest: string, line: number): Filter
       requireEqualityOperator(name, operator, line);
       break;
     }
-    default:
-      fail(line, `${name} is not supported yet: ${kind} conditions are stage 2`);
+    case "sockets": {
+      const spec = parseSocketSpec(name, values, line);
+      return { name, kind, operator, values, sockets: spec, line };
+    }
+    case "counted": {
+      if (count !== undefined) {
+        return { name, kind, operator, values, count, line };
+      }
+      // No count written. `HasExplicitMod "A" "B"` wants one or more of them, and the
+      // negated form wants none — which is the same thing the sample spells `=0`.
+      const negating = (NEGATING_OPERATORS as readonly string[]).includes(operator);
+      return negating
+        ? { name, kind, operator: "=", values, count: 0, line }
+        : { name, kind, operator: ">=", values, count: 1, line };
+    }
+    case "gem": {
+      // Either True/False or a gem name, so the only check is that there is one of them.
+      requireOneValue(name, values, line);
+      requireEqualityOperator(name, operator, line);
+      break;
+    }
   }
 
   return { name, kind, operator, values, line };

@@ -19,24 +19,37 @@ export const NEGATING_OPERATORS = ["!", "!="] as const;
 /** A block header. `Continue` and `Import` are keywords in the doc but not block headers. */
 export type Keyword = "Show" | "Hide" | "Minimal";
 
-/**
- * How a condition compares. Stage 1 implements the first five; the parser throws on the
- * rest, naming the line, so a filter that uses one fails out loud instead of quietly
- * matching nothing.
- */
+/** How a condition compares. Every kind here has a parser and a matcher. */
 export type ConditionKind =
   | "boolean"
   | "numeric"
   | "ordered"
   | "strings"
   | "enums"
-  // Stage 2 below. Each needs a small parser of its own.
   | "sockets"
   | "counted"
   | "gem";
 
-/** The kinds stage 1 knows how to match. */
-export const STAGE_1_KINDS = ["boolean", "numeric", "ordered", "strings", "enums"] as const;
+/** `R` red, `G` green, `B` blue, `A` abyss, `D` delve, `W` white. */
+export type SocketColour = "R" | "G" | "B" | "A" | "D" | "W";
+
+export const SOCKET_COLOURS = ["R", "G", "B", "A", "D", "W"] as const;
+
+/**
+ * What a socket line asks for. `5GGG` is a count of 5 and three greens; `AAAA` is four
+ * abyss sockets and no count at all; `6` is a count and no colours.
+ *
+ * The operator applies to the count. Colours are always "at least", which is the reading
+ * the syntax doc puts on its own `SocketGroup >= 5GGG` example — five or more sockets with
+ * three or more green — and the only one that leaves `SocketGroup "RGB"`, the chromatic
+ * recipe, matching anything.
+ */
+export type SocketSpec = {
+  /** Absent when the line named only colours. */
+  readonly count?: number;
+  /** How many of each colour are wanted, at minimum. */
+  readonly colours: Readonly<Partial<Record<SocketColour, number>>>;
+};
 
 /**
  * Every condition name in `docs/item-filter-syntax.md`, with the kind it compares as.
@@ -121,12 +134,18 @@ export const CONDITIONS = {
     values: ["Shaper", "Elder", "Crusader", "Hunter", "Redeemer", "Warlord", "None"],
   },
 
-  // --- stage 2 -------------------------------------------------------------------------
+  // --- sockets -------------------------------------------------------------------------
+  // `SocketGroup` asks within one linked group, `Sockets` ignores the links.
   SocketGroup: { kind: "sockets" },
   Sockets: { kind: "sockets" },
+
+  // --- counted -------------------------------------------------------------------------
+  // A list of names with an optional count of how many of them must be present.
   HasEnchantment: { kind: "counted" },
   HasExplicitMod: { kind: "counted" },
-  // "True/False, gem name" fits no single kind, so it waits for a matcher of its own.
+
+  // --- gem -----------------------------------------------------------------------------
+  // "True/False, gem name" — the only condition that takes either.
   TransfiguredGem: { kind: "gem" },
 } as const satisfies Record<
   string,
@@ -201,7 +220,15 @@ export const APPLY_KEYS = {
 
 export type ApplyKey = keyof typeof APPLY_KEYS;
 
-/** What the item holds for a condition of each kind. */
+/**
+ * What the item holds for a condition of each kind.
+ *
+ * `sockets` is the item's sockets as space-separated linked groups — `"RGB BB"` is a linked
+ * red-green-blue and a linked pair of blues. `Sockets` reads every letter and ignores the
+ * spaces; `SocketGroup` tries each group on its own.
+ *
+ * `gem` is the name of the transfigured gem, and `""` for an item that is not one.
+ */
 type KindValue<K extends ConditionKind> = K extends "boolean"
   ? boolean
   : K extends "numeric"
@@ -231,6 +258,13 @@ export type FilterCondition = {
   readonly kind: ConditionKind;
   readonly operator: Operator;
   readonly values: readonly string[];
+  /** Present on `sockets`: the count and colours the line asks for. */
+  readonly sockets?: SocketSpec;
+  /**
+   * Present on `counted`: how many of the listed names must be there, compared with
+   * `operator`. A line that writes no count means one or more.
+   */
+  readonly count?: number;
   /** 1-based line this condition was read from. */
   readonly line: number;
 };
