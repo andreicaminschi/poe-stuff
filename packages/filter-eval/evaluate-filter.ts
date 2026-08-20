@@ -6,6 +6,7 @@ import type {
   FilterBlock,
   FilterCondition,
   FilterItem,
+  MatchedBlock,
   Operator,
   SocketColour,
   SocketSpec,
@@ -221,9 +222,12 @@ export function evaluateFilter(
 ): EvalResult {
   const notes: Partial<Record<ApplyKey, string>> = {};
   const contributions: Contribution[] = [];
+  const matched: MatchedBlock[] = [];
 
   for (const block of blocks) {
     if (!block.conditions.every((condition) => matchCondition(condition, item))) continue;
+
+    matched.push({ line: block.line, keyword: block.keyword, freehand: block.freehand });
 
     for (const note of block.notes) {
       // Tagged with the block header, not the note line, so a failing test can name the
@@ -232,10 +236,10 @@ export function evaluateFilter(
       notes[note.key] = note.value;
     }
 
-    if (!block.continues) return { verdict: block.keyword, notes, contributions };
+    if (!block.continues) return { verdict: block.keyword, notes, contributions, matched };
   }
 
   // Nothing stopped the walk — either nothing matched, or the last block that did said
   // `Continue` and there was nothing after it.
-  return { verdict: "none", notes, contributions };
+  return { verdict: "none", notes, contributions, matched };
 }

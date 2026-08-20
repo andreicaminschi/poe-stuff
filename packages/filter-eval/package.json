@@ -7,6 +7,7 @@
   "exports": {
     "./evaluate-filter": "./evaluate-filter.ts",
     "./filter-ast": "./filter-ast.ts",
+    "./format-note": "./format-note.ts",
     "./parse-filter": "./parse-filter.ts"
   }
 }
