@@ -43,6 +43,7 @@ export type BucketFamily =
   | "gems"
   | "maps"
   | "misc"
+  | "replicas"
   | "stackables"
   | "unique-maps"
   | "uniques-by-base";
@@ -103,6 +104,21 @@ export type Levers = {
    * on purpose, and nothing that hides on purpose gets to be the default here.
    */
   readonly hideUniqueMaps: boolean;
+  /**
+   * How much gold one divine orb is worth to this player.
+   *
+   * **The one price in the file that is not a market price, because gold has no market.**
+   * It cannot be traded, so no feed quotes it and none ever will — the exchange has no
+   * pair for it and `/compact` has no row. What a pile is worth is therefore a statement
+   * about what the player does with gold, which is what makes it a lever rather than a
+   * rate: at 1,000,000 to the divine a coin is a fifth of a thousandth of a chaos, and
+   * every gold block in the filter follows from that one number.
+   *
+   * Stated as gold per divine rather than chaos per gold because that is the direction the
+   * number is actually known in — nobody has an intuition for 0.0002c, everybody has one
+   * for a million gold to the divine.
+   */
+  readonly goldPerDivine: number;
 };
 
 /** One emitted bucket: everything the generator needs to write a block. */
@@ -153,23 +169,25 @@ export type Bucket = {
   /** A condition the block carries beyond its key, e.g. `ilvl>=84`. Empty when none. */
   readonly note: string;
   /**
-   * Verbatim `.filter` lines the block must carry, one per entry. Empty on most buckets.
+   * Every `.filter` condition line the block carries, in order. The whole of it.
    *
-   * **The escape hatch, and it exists because some keys are not derivable from anything
-   * else here.** The generator writes a block's conditions out of the bucket's own fields
-   * wherever it can — the family gives the class, the id gives the tier, `minStack` gives
-   * a `StackSize >=`. Where a flag would have to be invented to say what the block needs,
-   * the bucket says it in the filter's own words instead.
+   * **The bucket says what it matches, in the filter's own words, and nothing downstream
+   * guesses.** The id used to be the only answer, and it is prose: `map:nightmare` is a
+   * base type spelled `Nightmare Map`, `stack:research/Forbidden Tome 68-70` is a base
+   * type and an area level fused, and `misc:/Ancient Wombgift` has an empty category
+   * where the slash implies one. An emitter reversing nine grammars gets those wrong
+   * silently. The classifier has the row in hand and writes the lines instead.
    *
-   * The eight-modifier maps are the case that forced it. Counting an item's modifiers is
-   * not a condition the grammar has, and the way it is actually done —
-   * `HasExplicitMod >=8 "a" "e" "i" "o" "u" "y"`, leaning on every modifier name
-   * containing a vowel — is a trick, not a property. No boolean on this type could carry
-   * it and no generator would reinvent it, so it travels literally.
+   * The eight-modifier maps are why the field is *lines* rather than a structure.
+   * Counting an item's modifiers is not a condition the grammar has, and the way it is
+   * actually done — `HasExplicitMod >=8 "a" "e" "i" "o" "u" "y"`, leaning on every
+   * modifier name containing a vowel — is a trick, not a property. No field on this type
+   * could carry it and no emitter would reinvent it, so everything travels literally and
+   * the trick is not a special case.
    *
-   * Lines are emitted after the derived conditions, in order, unindented. Nothing
-   * validates them: they are already in the target language, which is the point and the
-   * risk.
+   * Written through `formatCondition`, so a name carrying a `#` throws here rather than
+   * truncating a block that then quietly matches the wrong thing. Empty is a bug: a block
+   * with no conditions matches every item on the floor.
    */
   readonly conditions: readonly string[];
   /**
@@ -205,4 +223,111 @@ export type Bucket = {
   readonly alwaysShow: boolean;
   /** A few members, priced, best first. For reading the draft, not for emitting. */
   readonly examples: readonly string[];
+};
+
+/**
+ * `R G B A`, in the order a `Set*Color` line writes them.
+ *
+ * Alpha is spelled out rather than left to the game's default, because the default is not
+ * the same number for all three lines — 240 on a background, 255 on a border and a text
+ * colour. A table that omits it would be three different tables.
+ */
+export type Rgba = readonly [number, number, number, number];
+
+/** The eleven names `MinimapIcon` and `PlayEffect` both take. */
+export type EffectColour =
+  | "Blue"
+  | "Brown"
+  | "Cyan"
+  | "Green"
+  | "Grey"
+  | "Orange"
+  | "Pink"
+  | "Purple"
+  | "Red"
+  | "White"
+  | "Yellow";
+
+/** Every shape `MinimapIcon` accepts. */
+export type IconShape =
+  | "Circle"
+  | "Cross"
+  | "Diamond"
+  | "Hexagon"
+  | "Kite"
+  | "Moon"
+  | "Pentagon"
+  | "Raindrop"
+  | "Square"
+  | "Star"
+  | "Triangle"
+  | "UpsideDownHouse";
+
+/** One `MinimapIcon` line. `size` is 0, 1 or 2 — 0 is the largest the game draws. */
+export type MinimapIcon = {
+  readonly size: 0 | 1 | 2;
+  readonly colour: EffectColour;
+  readonly shape: IconShape;
+};
+
+/** One `PlayAlertSound` line. `id` is 1–16, `volume` 0–300. */
+export type AlertSound = {
+  readonly id: number;
+  readonly volume: number;
+};
+
+/**
+ * Which set of colours a family is drawn in.
+ *
+ * `default` is Neversink's currency ladder, and is what most of the file looks like.
+ * `unique` swaps the ladder's oranges for the unique brown and keeps a star at every rung,
+ * because a unique reads as a unique before it reads as a tier — the colour is the
+ * category and the rung is only how loud it is.
+ */
+export type Palette = "default" | "unique";
+
+/**
+ * What a verb changes about the tier it sits on. A diff, never a whole style.
+ *
+ * The tier decides the colours and the noise. This decides the mark on the minimap, and —
+ * for `gamble` — the two lines that say *do not vendor this*. Keeping it a diff is what
+ * lets a bucket be loud and a gamble at once instead of one quietly overruling the other.
+ */
+export type VerbStyle = {
+  /** The minimap icon, or `null` for none at all. */
+  readonly icon: MinimapIcon | null;
+  /**
+   * The beam over the drop, or `null`.
+   *
+   * Travels with the icon on purpose: both answer "is this worth walking to", and a beam
+   * with no icon is a drop the player can see but not find.
+   */
+  readonly beam: EffectColour | null;
+  /** A border forced over the tier's, or `null` to keep what the tier said. */
+  readonly border: Rgba | null;
+  /** Which of the tier's two backgrounds this verb paints. */
+  readonly background: "tier" | "gamble";
+};
+
+/**
+ * One rung of one palette: how loud, in what colours, with what mark per verb.
+ *
+ * Everything a block's actions come from except the block itself. No condition, no base
+ * type and no price — a style is what a tier looks like, and which items reach that tier
+ * is `classify.ts`'s business.
+ */
+export type TierStyle = {
+  readonly text: Rgba;
+  readonly border: Rgba;
+  readonly background: Rgba;
+  /**
+   * The background a `gamble` swaps in. Reddish at every rung, because red is the one
+   * thing on the ground that means *this is not what it says it is*.
+   */
+  readonly gambleBackground: Rgba;
+  /** 1–45. 45 is the largest the game draws and is what every loud tier uses. */
+  readonly fontSize: number;
+  /** The alert sound, or `null` for silence. */
+  readonly sound: AlertSound | null;
+  readonly verbs: Readonly<Record<Verb, VerbStyle>>;
 };

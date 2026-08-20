@@ -8,8 +8,8 @@ import type { ApplyKey, FilterItem } from "./filter-ast.ts";
 /**
  * The note vocabulary, against the buckets that actually exist.
  *
- * Taken from `packages/filter/buckets-draft.json` on 2026-08-20: 4580 buckets, which use
- * 56 distinct `family`/`verb`/`tier` combinations between them. They are written out here
+ * Taken from `packages/filter/buckets-draft.json` on 2026-08-20: 5847 buckets, which use
+ * 74 distinct `family`/`verb`/`tier` combinations between them. They are written out here
  * rather than read off disk, because that file is a build artefact of another package and
  * this one stands alone.
  *
@@ -21,62 +21,80 @@ import type { ApplyKey, FilterItem } from "./filter-ast.ts";
 type Triple = { family: string; verb: string; tier: string; buckets: number };
 
 const TRIPLES: readonly Triple[] = [
-  { family: "div-cards", verb: "take", tier: "T0", buckets: 11 },
+  { family: "bases", verb: "take", tier: "T0", buckets: 3 },
+  { family: "bases", verb: "take", tier: "T1", buckets: 2 },
+  { family: "bases", verb: "take", tier: "T2", buckets: 29 },
+  { family: "bases", verb: "take", tier: "T3", buckets: 115 },
+  { family: "bases", verb: "take", tier: "T4", buckets: 321 },
+  { family: "bases", verb: "take", tier: "hidden", buckets: 321 },
+  { family: "div-cards", verb: "take", tier: "T0", buckets: 13 },
   { family: "div-cards", verb: "take", tier: "T1", buckets: 24 },
   { family: "div-cards", verb: "take", tier: "T2", buckets: 38 },
-  { family: "div-cards", verb: "take", tier: "T3", buckets: 122 },
-  { family: "div-cards", verb: "take", tier: "hidden", buckets: 256 },
+  { family: "div-cards", verb: "take", tier: "T3", buckets: 121 },
+  { family: "div-cards", verb: "take", tier: "T4", buckets: 112 },
+  { family: "div-cards", verb: "take", tier: "hidden", buckets: 143 },
   { family: "foulborn", verb: "check", tier: "T0", buckets: 6 },
   { family: "foulborn", verb: "check", tier: "T1", buckets: 4 },
-  { family: "foulborn", verb: "check", tier: "T2", buckets: 2 },
-  { family: "foulborn", verb: "check", tier: "T3", buckets: 5 },
-  { family: "foulborn", verb: "gamble", tier: "T5", buckets: 2 },
+  { family: "foulborn", verb: "check", tier: "T2", buckets: 4 },
+  { family: "foulborn", verb: "check", tier: "T3", buckets: 3 },
+  { family: "foulborn", verb: "gamble", tier: "T4", buckets: 2 },
   { family: "foulborn", verb: "take", tier: "T0", buckets: 4 },
-  { family: "foulborn", verb: "take", tier: "T1", buckets: 13 },
+  { family: "foulborn", verb: "take", tier: "T1", buckets: 11 },
   { family: "foulborn", verb: "take", tier: "T2", buckets: 10 },
-  { family: "foulborn", verb: "take", tier: "T3", buckets: 49 },
-  { family: "foulborn", verb: "take", tier: "T5", buckets: 75 },
-  { family: "fragments", verb: "take", tier: "T0", buckets: 1 },
-  { family: "fragments", verb: "take", tier: "T1", buckets: 6 },
+  { family: "foulborn", verb: "take", tier: "T3", buckets: 39 },
+  { family: "foulborn", verb: "take", tier: "T4", buckets: 50 },
+  { family: "foulborn", verb: "take", tier: "T5", buckets: 37 },
+  { family: "fragments", verb: "take", tier: "T0", buckets: 2 },
+  { family: "fragments", verb: "take", tier: "T1", buckets: 5 },
   { family: "fragments", verb: "take", tier: "T2", buckets: 6 },
-  { family: "fragments", verb: "take", tier: "T3", buckets: 1 },
-  { family: "fragments", verb: "take", tier: "T5", buckets: 1 },
-  { family: "gems", verb: "take", tier: "T0", buckets: 27 },
-  { family: "gems", verb: "take", tier: "T1", buckets: 133 },
-  { family: "gems", verb: "take", tier: "T2", buckets: 320 },
-  { family: "gems", verb: "take", tier: "T3", buckets: 566 },
-  { family: "gems", verb: "take", tier: "T5", buckets: 887 },
+  { family: "fragments", verb: "take", tier: "T3", buckets: 2 },
+  { family: "gems", verb: "take", tier: "T0", buckets: 25 },
+  { family: "gems", verb: "take", tier: "T1", buckets: 130 },
+  { family: "gems", verb: "take", tier: "T2", buckets: 299 },
+  { family: "gems", verb: "take", tier: "T3", buckets: 474 },
+  { family: "gems", verb: "take", tier: "T4", buckets: 684 },
+  { family: "gems", verb: "take", tier: "T5", buckets: 307 },
   { family: "gems", verb: "take", tier: "varies", buckets: 202 },
   { family: "maps", verb: "check", tier: "T2", buckets: 1 },
-  { family: "maps", verb: "take", tier: "T2", buckets: 2 },
-  { family: "maps", verb: "take", tier: "T3", buckets: 5 },
-  { family: "maps", verb: "take", tier: "T4", buckets: 1 },
-  { family: "maps", verb: "take", tier: "T5", buckets: 2 },
-  { family: "maps", verb: "take", tier: "hidden", buckets: 20 },
+  { family: "maps", verb: "take", tier: "T2", buckets: 3 },
+  { family: "maps", verb: "take", tier: "T3", buckets: 6 },
+  { family: "maps", verb: "take", tier: "T4", buckets: 16 },
+  { family: "maps", verb: "take", tier: "hidden", buckets: 13 },
   { family: "misc", verb: "take", tier: "T0", buckets: 2 },
   { family: "misc", verb: "take", tier: "T1", buckets: 6 },
   { family: "misc", verb: "take", tier: "T2", buckets: 7 },
-  { family: "misc", verb: "take", tier: "T3", buckets: 34 },
-  { family: "misc", verb: "take", tier: "hidden", buckets: 256 },
-  { family: "stackables", verb: "take", tier: "T0", buckets: 63 },
-  { family: "stackables", verb: "take", tier: "T1", buckets: 192 },
+  { family: "misc", verb: "take", tier: "T3", buckets: 39 },
+  { family: "misc", verb: "take", tier: "T4", buckets: 181 },
+  { family: "misc", verb: "take", tier: "hidden", buckets: 89 },
+  { family: "replicas", verb: "check", tier: "T3", buckets: 1 },
+  { family: "replicas", verb: "take", tier: "T0", buckets: 1 },
+  { family: "replicas", verb: "take", tier: "T1", buckets: 6 },
+  { family: "replicas", verb: "take", tier: "T2", buckets: 21 },
+  { family: "replicas", verb: "take", tier: "T3", buckets: 38 },
+  { family: "replicas", verb: "take", tier: "T4", buckets: 18 },
+  { family: "replicas", verb: "take", tier: "hidden", buckets: 2 },
+  { family: "stackables", verb: "take", tier: "T0", buckets: 59 },
+  { family: "stackables", verb: "take", tier: "T1", buckets: 190 },
   { family: "stackables", verb: "take", tier: "T2", buckets: 293 },
-  { family: "stackables", verb: "take", tier: "T3", buckets: 423 },
-  { family: "stackables", verb: "take", tier: "hidden", buckets: 69 },
+  { family: "stackables", verb: "take", tier: "T3", buckets: 427 },
+  { family: "stackables", verb: "take", tier: "T4", buckets: 305 },
   { family: "stackables", verb: "take", tier: "varies", buckets: 5 },
+  { family: "stackables", verb: "take", tier: "hidden", buckets: 142 },
   { family: "unique-maps", verb: "check", tier: "varies", buckets: 1 },
   { family: "uniques-by-base", verb: "check", tier: "T0", buckets: 1 },
   { family: "uniques-by-base", verb: "check", tier: "T1", buckets: 2 },
-  { family: "uniques-by-base", verb: "check", tier: "T2", buckets: 7 },
-  { family: "uniques-by-base", verb: "check", tier: "T3", buckets: 26 },
-  { family: "uniques-by-base", verb: "check", tier: "hidden", buckets: 7 },
+  { family: "uniques-by-base", verb: "check", tier: "T2", buckets: 9 },
+  { family: "uniques-by-base", verb: "check", tier: "T3", buckets: 29 },
+  { family: "uniques-by-base", verb: "check", tier: "T4", buckets: 5 },
   { family: "uniques-by-base", verb: "gamble", tier: "T3", buckets: 4 },
-  { family: "uniques-by-base", verb: "gamble", tier: "hidden", buckets: 114 },
+  { family: "uniques-by-base", verb: "gamble", tier: "T4", buckets: 14 },
+  { family: "uniques-by-base", verb: "gamble", tier: "hidden", buckets: 102 },
   { family: "uniques-by-base", verb: "take", tier: "T0", buckets: 1 },
   { family: "uniques-by-base", verb: "take", tier: "T1", buckets: 5 },
-  { family: "uniques-by-base", verb: "take", tier: "T2", buckets: 65 },
-  { family: "uniques-by-base", verb: "take", tier: "T3", buckets: 158 },
-  { family: "uniques-by-base", verb: "take", tier: "hidden", buckets: 37 },
+  { family: "uniques-by-base", verb: "take", tier: "T2", buckets: 59 },
+  { family: "uniques-by-base", verb: "take", tier: "T3", buckets: 130 },
+  { family: "uniques-by-base", verb: "take", tier: "T4", buckets: 57 },
+  { family: "uniques-by-base", verb: "take", tier: "hidden", buckets: 9 },
 ];
 
 /**
@@ -183,12 +201,13 @@ describe("the note vocabulary, against real buckets", () => {
   });
 
   it("names the APPLY_KEYS values no bucket has ever used", () => {
-    // Not a failure. It records that two families are declared and unreached, so nobody
+    // Not a failure. It records which families are declared and unreached, so nobody
     // deletes them thinking they are dead, and nobody is surprised when one shows up.
+    // `bases` was on this list until `/compact` was asked for every row it has.
     const used = new Set(TRIPLES.map((triple) => triple.family));
     const unused = APPLY_KEYS.family.filter((family) => !used.has(family));
 
-    expect(unused).toEqual(["bases", "corruptible-uniques"]);
+    expect(unused).toEqual(["corruptible-uniques"]);
   });
 });
 

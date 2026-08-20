@@ -20,6 +20,51 @@ Deferred decisions. Nothing here is scheduled.
 
 ## Filter
 
+- **The Originator implicit cannot be named, so both Originator buckets key on
+  `HasImplicitMod True`.** The Originator's Memories is an implicit, and the grammar has
+  exactly one general implicit condition — carries at least one, with no way to say which.
+  There is no name-matching form; `HasEaterOfWorldsImplicit` and
+  `HasSearingExarchImplicit` are the only numeric ones and both are mechanic-specific. So
+  the blocks fire on any tier-16 map carrying any implicit: Elder and Shaper influence,
+  the occupied-by and Citadel implicits, and anything a corruption added. That is the
+  show-cheap trade rather than a bug, but it means `map:t16 originator` is really
+  "tier-16 with an implicit" and is tiered as though it were the Originator one. Worth
+  revisiting if GGG ever ships a named implicit condition, or if the over-shown set turns
+  out to be large in play. NeverSink reaches the same wall and answers it differently —
+  it ships `HasImplicitMod True` only as a `Continue` border stripe, never as a tier, so
+  the map keeps whatever tier its own properties earned and the implicit just paints the
+  border. That is the better shape and this classifier has no way to express it: `Bucket`
+  has no concept of a layer that decorates another block. See open question 3 in
+  `docs/plans/filter-exploration.md`.
+- **`HasExplicitMod` counts names in `@poe/filter-eval`, and the game counts modifiers.**
+  `matchCounted` in `packages/filter-eval/evaluate-filter.ts` counts how many of the
+  *listed* names appear as a substring of any of the item's modifiers, so the count can
+  never exceed the number of names on the line. The game counts matching *modifiers*, which
+  the line does not bound. The eight-modifier trick,
+  `HasExplicitMod >=8 "a" "e" "i" "o" "u" "y"`, asks for eight out of six names: routine in
+  the game, unsatisfiable under the evaluator. The substring direction is right and defends
+  a real case — the NeverSink sample writes `"Elevated "` with a trailing space — and that
+  case survives either way, because counting per modifier is still a substring test on each
+  one. Only the thing being counted changes. It makes `map:t16 corrupted 8 mods` the one
+  bucket `verify-filter.ts` cannot probe, so `filter-cli.ts` reports it as unverifiable
+  rather than as a wrong tier and does not fail the run on it.
+- **Nothing prices an eight-modifier map, so `map:t16 corrupted 8 mods` is floored at T2
+  by hand.** `T16_VARIANTS` in `packages/filter/classify.ts` sets an absolute tier instead
+  of a price, which is the player saying always pick one up rather than a claim about what
+  one is worth. No aggregate feed carries the item: PoeWatch has one row for every tier-16
+  map, `Map (Tier 16)` at 2c across 1.4M listings, and the Currency Exchange has none. The
+  only source that could answer is a live trade search, and the trade API has no
+  modifier-count filter either — the nearest handle is a high `map_iiq` threshold in
+  `map_filters`, which is a proxy and not the thing. Until that is built, moving the T2 is
+  the only lever, and it is a preference rather than a correction.
+- **`map:t16 corrupted unidentified` is treated as an eight-modifier map, and that is a
+  placeholder.** A corrupted map can land unidentified, `HasExplicitMod` cannot read an
+  unidentified item's modifiers, and so the ground offers nothing to tell the two apart.
+  It is floored at the same T2 on the show-cheap rule — tier at the best outcome when the
+  filter cannot distinguish — which is right in kind and unmeasured in degree. What is
+  missing is the share of unidentified corrupted t16 drops that actually carry eight
+  modifiers. If that share is small this is loud for no reason, and the bucket should fall
+  back to the plain `map:t16` tier instead.
 - **`VAAL_HIT_RATE` in `packages/filter/classify.ts` is a guess.** 0.05 stands in for the
   odds a corruption lands the outcome worth having, and every `gamble` tier is computed
   from it. The wiki publishes both the implicit tables and the logic that picks between
@@ -56,4 +101,29 @@ Deferred decisions. Nothing here is scheduled.
   item nobody lists because almost none exist. Mirror of Kalandra sits at 17 a day and is
   dropped by a floor of 20 for the second reason, not the first. Worth establishing what
   the field actually counts, and whether a scarce item needs a different test — a floor on
-  listings crossed with the price, rather than listings alone.
+  listings crossed with the price, rather than listings alone. Vial of the Ghost is the
+  clearest casualty: 994c on 6 listings, on `/compact` rather than the exchange, so nothing
+  exempts it and it has no bucket.
+- **Sockets, links and the vendor recipes need a family of their own.** Six sockets is
+  seven Jeweller's Orbs, six links is twenty Fusings, and a red-green-blue link is a
+  Chromatic — value that comes from a recipe rather than from anything a feed lists. Every
+  piece is already here: the exchange prices all three currencies, and `Sockets`,
+  `LinkedSockets` and `SocketGroup` all parse in `@poe/filter-eval`. What is missing is a
+  pass that knows a recipe's payout is a property of the *item* rather than of a market
+  row, which no existing family models — every bucket in the file today is priced by
+  somebody's listing. NeverSink spends nine blocks on this at section 1400.
+- **Whether a gem is worth a block at the state it drops in is unanswered.** The vendor
+  rule in `flatBuckets` says nothing at or under level 20, quality 20 earns a block,
+  because a gem in that state is a wisdom-scroll purchase. Three rows contradict it —
+  Herald of Ice at 10c, Herald of Thunder at 9c and Minion Life Support at 5c, all level 1
+  quality 0 and all dropped. Pricing every gem where it lands would catch them, and would
+  also catch Elemental Penetration Support at 145c and Block Chance Reduction Support,
+  which are vendor-recipe items and do not drop at all. So the rule cannot be written from
+  the price feed: it needs a source saying which gems drop. The wiki has it. Three rows at
+  under 10c is what it is worth today.
+
+
+
+
+
+- fractured items??? all bases, only high end bases? lever

@@ -1,3 +1,4 @@
+import { formatCondition } from "@poe/filter-eval/format-note";
 import type {
   ExchangeRatioItem,
   GemItem,
@@ -207,7 +208,11 @@ const maxStack = (category: string, name: string): number =>
  * A click floor of zero, because a lever nobody has touched must not be quietly hiding
  * items — the show-cheap baseline is the default, and this is what opts out of it.
  */
-const DEFAULT_LEVERS: Levers = { minClickValue: 0, hideUniqueMaps: false };
+const DEFAULT_LEVERS: Levers = {
+  minClickValue: 0,
+  hideUniqueMaps: false,
+  goldPerDivine: 1_000_000,
+};
 
 const price = (item: ItemData): number => item.mean ?? 0;
 
@@ -297,6 +302,36 @@ const identify = (raw: string): ItemIdentity => {
  */
 const priceKey = (name: string, foulborn: boolean): string =>
   foulborn ? `foulborn:${name}` : name;
+
+/**
+ * Which of the three unique passes is running, and therefore which uniques belong to it.
+ *
+ * The game hands the filter two flags that split one base's uniques into disjoint sets —
+ * `Foulborn` and `Replica` — and each set is a block of its own, above the plain one and
+ * carrying the flag. Everything else about the three passes is identical, which is why
+ * they are one function taking this rather than three functions.
+ */
+type UniqueOverlay = "plain" | "foulborn" | "replica";
+
+/** Which family each pass files its buckets under. */
+const OVERLAY_FAMILY: Record<UniqueOverlay, BucketFamily> = {
+  plain: "uniques-by-base",
+  foulborn: "foulborn",
+  replica: "replicas",
+};
+
+/** The line that says which set this is. The plain pass is the one with nothing to add. */
+const OVERLAY_CONDITION: Record<UniqueOverlay, readonly string[]> = {
+  plain: [],
+  foulborn: ["Foulborn True"],
+  replica: ["Replica True"],
+};
+
+/**
+ * A replica is a unique whose name is the ordinary one with `Replica ` in front. That is
+ * the whole of the distinction in every feed here, and it matches what the game does.
+ */
+const isReplica = (name: string): boolean => /^Replica\s+/.test(name);
 
 const UNIQUE_CATEGORIES = new Set([
   "accessories",
@@ -459,6 +494,31 @@ const stacks = (category: string, name: string): boolean =>
  */
 const isSplinter = (name: string): boolean =>
   name.endsWith(" Splinter") || name.startsWith("Splinter of ");
+
+/**
+ * A `BaseType ==` line for one name.
+ *
+ * `==` and never `=`, because `=` on text matches part of the name: `BaseType "Simulacrum"`
+ * takes a Simulacrum Splinter too, and two buckets that overlap are two blocks where the
+ * first eats the second.
+ *
+ * Through `formatCondition` so a name carrying a `#` throws here. A `#` starts a comment,
+ * so the line would load, lose its tail, and match something else entirely.
+ */
+const baseTypeIs = (name: string): string => formatCondition(`BaseType == "${name}"`);
+
+/**
+ * PoeWatch's frame number as the word the filter uses for it.
+ *
+ * Frame is how the game colours an item's name and `Rarity` is the filter's word for the
+ * same fact, so this is a spelling change and not a decision. Frame 3 is unique and is
+ * absent because every path that meets one branches on it before reaching here.
+ */
+const RARITY_BY_FRAME: Readonly<Record<number, string>> = {
+  0: "Normal",
+  1: "Magic",
+  2: "Rare",
+};
 
 /**
  * Where a name-keyed item lands: its bucket id, and the family that id belongs to.
@@ -629,6 +689,61 @@ const CHAOS_ORB: ExchangeRatioItem = {
   },
 };
 
+/** The id of the injected Gold row. Negative, because no PoeWatch id is. */
+const GOLD_ID = -2;
+
+const GOLD = "Gold";
+
+/**
+ * The smallest gold pile that must appear, and the quietest it may appear at.
+ *
+ * **A deliberate skew, and the only one in the file.** At a million gold to the divine a
+ * pile of 3,000 is worth 0.61c, which is under the T4 cut and would be hidden by every
+ * rule here — correctly, if the question were what one click of gold is worth. It is not.
+ * Gold is spent in five and six figures at the Kalguur market and accrues in piles this
+ * size, so the pile the player wants to see is smaller than the pile the ladder would
+ * show, and this is where the two are reconciled. NeverSink draws the same line in the
+ * same place, at 3,001.
+ *
+ * It sets a *floor*, so the ladder above it is untouched: 25,000 still earns T3 on the
+ * arithmetic, and a genuinely large pile still gets louder on its own. Only the bottom
+ * rung is a decision rather than a price. See `goldPerDivine`.
+ */
+const GOLD_FLOOR: { readonly stack: number; readonly tier: Tier } = {
+  stack: 3_000,
+  tier: "T4",
+};
+
+/**
+ * Gold, priced off the player's own ratio, because no market will price it.
+ *
+ * Injected as an exchange row for the same reason `CHAOS_ORB` is: the stack ladder, the
+ * tier cuts and the block shape are all machinery that already exists, and gold is an
+ * ordinary stackable currency in every respect except that its price is a preference. The
+ * zeroed fields are the shape a never-traded side comes back as, and nothing reads them.
+ */
+const goldRow = (rates: Rates, levers: Levers): ExchangeRatioItem => ({
+  id: GOLD_ID,
+  name: GOLD,
+  icon: "",
+  category: "currency",
+  chaos: {
+    value: rates.divine / levers.goldPerDivine,
+    chaosValue: rates.divine / levers.goldPerDivine,
+    lowConfidence: false,
+    timestamp: 0,
+    volume: 0,
+    change24H: 0,
+  },
+  divine: {
+    value: 0,
+    lowConfidence: false,
+    timestamp: 0,
+    volume: 0,
+    change24H: 0,
+  },
+});
+
 /** The exchange prices the rest of this file is denominated in. */
 type Rates = {
   /** One divine orb, in chaos. Every tier cut is a multiple of this. */
@@ -792,16 +907,30 @@ function uniquePrices(
  * `restrictedDrop` members are excluded, and that exclusion is the only thing keeping
  * these honest — a Viridian Jewel is never Impossible Escape, an Amethyst Ring is never
  * Original Sin, and counting them would light up every jewel on the ground.
+ *
+ * **The replica pass is the one place that exclusion is wrong, and deliberately ignored.**
+ * The wiki marks 102 of the 103 replicas restricted, which is true of where they come from
+ * — a Grand Heist, not the general pool — and would delete the whole family if it were
+ * read here. It is safe to ignore for exactly the reason it exists everywhere else: the
+ * flag guards against a block promising a unique its base cannot roll, and `Replica True`
+ * is on the block, so the block already says which item it means. Replica Alberon's
+ * Warpath is 5,564c on a Soldier Boots whose plain bucket hides.
  */
 function uniqueBaseBuckets(
   uniques: readonly FilterUnique[],
   prices: Map<string, UniquePrice>,
-  foulborn: boolean,
+  overlay: UniqueOverlay,
 ): Draft[] {
+  const foulborn = overlay === "foulborn";
+  const replica = overlay === "replica";
   const byBase = new Map<string, FilterUnique[]>();
 
   for (const unique of uniques) {
-    if (unique.restrictedDrop) continue;
+    // A dropped replica reads `Replica True`, so the block carrying that line is written
+    // above the plain one and takes it first. The plain bucket must therefore not be
+    // priced off a member it will never see.
+    if (isReplica(unique.name) !== replica) continue;
+    if (unique.restrictedDrop && !replica) continue;
     const members = byBase.get(unique.baseType);
     if (members === undefined) byBase.set(unique.baseType, [unique]);
     else members.push(unique);
@@ -824,8 +953,11 @@ function uniqueBaseBuckets(
     );
 
     drafts.push({
-      id: foulborn ? `unique:foulborn/${baseType}` : `unique:${baseType}`,
-      family: foulborn ? "foulborn" : "uniques-by-base",
+      id:
+        overlay === "plain"
+          ? `unique:${baseType}`
+          : `unique:${overlay}/${baseType}`,
+      family: OVERLAY_FAMILY[overlay],
       verb: "check",
       floor: Math.min(...plain),
       ceiling: Math.max(...plain),
@@ -838,7 +970,16 @@ function uniqueBaseBuckets(
       members: priced.length,
       slots: 0,
       note: `${priced.length}/${members.length} priced`,
-      conditions: [],
+      // A unique's BaseType is the base it rolled on, so these two lines are every unique
+      // on that base and nothing else. The Foulborn and Replica passes add their flag in
+      // front: the same base, from somewhere else, and the plain block below would take
+      // both. The extra line is also what orders them — the emitter writes the block
+      // saying more about an item above the one saying less.
+      conditions: [
+        ...OVERLAY_CONDITION[overlay],
+        "Rarity Unique",
+        baseTypeIs(baseType),
+      ],
       minStack: 0,
       // A unique base is exactly what the filter can read, so nothing here is unknowable.
       varies: false,
@@ -911,7 +1052,14 @@ function baseBuckets(items: readonly ItemData[]): Draft[] {
       members: rows.length,
       slots: rows[0].width * rows[0].height,
       note: paying.length === 0 ? "" : `ilvl>=${Math.min(...paying)}`,
-      conditions: [],
+      // The ilvl cut is the whole reason this bucket collapsed four rows into one, so it
+      // is a condition and not only a note. Without it the block takes an ilvl 60 drop at
+      // the price of an ilvl 84 one.
+      conditions: [
+        "Rarity Normal",
+        baseTypeIs(name),
+        ...(paying.length === 0 ? [] : [`ItemLevel >= ${Math.min(...paying)}`]),
+      ],
       minStack: 0,
       varies: false,
       minTier: "hidden",
@@ -947,11 +1095,25 @@ function baseBuckets(items: readonly ItemData[]): Draft[] {
  */
 function collector(): {
   drafts: Map<string, Draft>;
-  add: (id: string, family: BucketFamily, item: ItemData) => Draft;
+  add: (
+    id: string,
+    family: BucketFamily,
+    item: ItemData,
+    conditions: readonly string[],
+  ) => Draft;
 } {
   const drafts = new Map<string, Draft>();
 
-  const add = (id: string, family: BucketFamily, item: ItemData): Draft => {
+  // `conditions` is a parameter rather than something a call site assigns afterwards
+  // because a bucket without them is a block that matches the whole floor. Taking them
+  // here is what makes that unwritable. They are read on the first row only: every row
+  // folding into one bucket is by definition matched by the same lines.
+  const add = (
+    id: string,
+    family: BucketFamily,
+    item: ItemData,
+    conditions: readonly string[],
+  ): Draft => {
     const draft = drafts.get(id);
 
     if (draft === undefined) {
@@ -965,7 +1127,7 @@ function collector(): {
         members: 1,
         slots: item.width * item.height,
         note: "",
-        conditions: [],
+        conditions,
         minStack: 0,
         varies: HARD_TO_CATEGORIZE.has(withoutVariant(item.name)),
         minTier: "hidden",
@@ -1044,7 +1206,13 @@ function flatBuckets(
       if (kind === "transfigured") {
         if (item.gemIsCorrupted) continue;
 
-        add(`gem:${item.name}`, "gems", item).varies = true;
+        // **Not a BaseType.** GGG's catalog files `Ice Nova of Frostbolts` as base type
+        // `Ice Nova` with the transfiguration as a discriminator, so `BaseType ==` on the
+        // full name matches nothing and every one of these would be a block that cannot
+        // fire. The grammar has the condition that reads the discriminator.
+        add(`gem:${item.name}`, "gems", item, [
+          formatCondition(`TransfiguredGem "${item.name}"`),
+        ]).varies = true;
         continue;
       }
 
@@ -1055,7 +1223,11 @@ function flatBuckets(
         if (item.gemLevel !== DROP_LEVEL) continue;
         if (item.gemQuality !== DROP_QUALITY) continue;
 
-        const draft = add(`gem:${item.name}`, "gems", item);
+        // The name alone, with no level or quality gate. The bucket is priced off the
+        // level 1 quality 0 row because that is the only one that drops, but the block has
+        // to take a level 4 corrupted Enlighten too — that is the one worth 2,480c, and
+        // `GEM_LEVELS` is why it has no bucket of its own. See `TODO.md`.
+        const draft = add(`gem:${item.name}`, "gems", item, [baseTypeIs(item.name)]);
         draft.alwaysShow = true;
         draft.minTier = EXCEPTIONAL_MIN_TIER;
         continue;
@@ -1068,7 +1240,9 @@ function flatBuckets(
         if (item.gemLevel !== DROP_LEVEL) continue;
         if (item.gemQuality !== DROP_QUALITY) continue;
 
-        add(`gem:${item.name}`, "gems", item).alwaysShow = true;
+        add(`gem:${item.name}`, "gems", item, [
+          baseTypeIs(item.name),
+        ]).alwaysShow = true;
         continue;
       }
 
@@ -1081,14 +1255,33 @@ function flatBuckets(
       if (!GEM_QUALITIES.has(item.gemQuality)) continue;
 
       const corrupted = item.gemIsCorrupted ? " corrupted" : "";
+      // `>=` on both numbers rather than `==`. A level 21 gem is also over a level 20
+      // block's bar, and showing it at the quieter tier is the show-cheap direction of
+      // wrong; the loud block is written first and takes it before the quiet one is
+      // reached. Quality 0 writes no line at all — every gem clears it.
       add(
         `gem:${item.name} lvl${item.gemLevel} q${item.gemQuality}${corrupted}`,
         "gems",
         item,
+        [
+          baseTypeIs(item.name),
+          `GemLevel >= ${item.gemLevel}`,
+          ...(item.gemQuality > DROP_QUALITY
+            ? [`Quality >= ${item.gemQuality}`]
+            : []),
+          item.gemIsCorrupted ? "Corrupted True" : "Corrupted False",
+        ],
       ).alwaysShow = true;
     } else {
+      const base = withoutVariant(item.name);
       const { id, family } = placement(item.category, item.name);
-      add(id, family, item);
+      // `Class` only where the family is the class. A base type is unambiguous on its own
+      // — the names carrying two classes are cosmetics that never drop and the
+      // Invitations, which are one item filed twice — so everything else is the name.
+      add(id, family, item, [
+        ...(family === "div-cards" ? ['Class == "Divination Cards"'] : []),
+        baseTypeIs(base),
+      ]);
     }
   }
 
@@ -1116,7 +1309,10 @@ function flatBuckets(
       members: 0,
       slots: 1,
       note: "",
-      conditions: [],
+      conditions:
+        kind === "transfigured"
+          ? [formatCondition(`TransfiguredGem "${name}"`)]
+          : [baseTypeIs(name)],
       minStack: 0,
       varies: kind === "transfigured",
       minTier: kind === "exceptional" ? EXCEPTIONAL_MIN_TIER : "hidden",
@@ -1166,6 +1362,26 @@ const TRADED_MAPS = new Set([
 const CLEAN_T16 = "Map (Tier 16)";
 
 const NIGHTMARE_MAP = "Nightmare Map";
+
+/** PoeWatch prefixes the tier: `Blighted Map (Tier 16)`, `Blight-ravaged Map (Tier 16)`. */
+const BLIGHTED_MAP = "Blighted Map";
+
+const BLIGHT_RAVAGED_MAP = "Blight-ravaged Map";
+
+/**
+ * What a plain map block has to say to stop taking a blighted one.
+ *
+ * **Said outright rather than left to block order.** A blighted map is normal rarity at an
+ * ordinary tier, so `MapTier 9` and `Rarity Normal` describe it perfectly and the plain
+ * block would take it — and the two blocks carry the same number of conditions, which is
+ * all the emitter sorts on. Both flags are written because nothing published says whether
+ * a blight-ravaged map also answers `BlightedMap`, and a block that is right under either
+ * reading is worth two lines.
+ */
+const NOT_BLIGHTED: readonly string[] = [
+  "BlightedMap False",
+  "UberBlightedMap False",
+];
 
 /**
  * The tier-16 maps no feed prices, what each block must say, and how loud it may go.
@@ -1328,9 +1544,11 @@ const T16_VARIANTS: readonly {
  *    Chronicles under `maps` for where they are used, and the absent tier is the only
  *    thing in the payload that tells them apart from one.
  * 4. **Tier 16 splits four ways**, three of them priced by nothing at all.
- * 5. **Everything else keeps the old tier-and-frame key** — tiers 1 to 15, blighted and
- *    blight-ravaged. Those still drop as one undifferentiated thing per tier and there is
- *    nothing new to say about them.
+ * 5. **Blight and blight-ravaged are keyed on their own flag**, one bucket per tier. The
+ *    game reads them and the market prices them apart — see `NOT_BLIGHTED`.
+ * 6. **Everything else keeps the old tier-and-frame key** — tiers 1 to 15. Those still
+ *    drop as one undifferentiated thing per tier and there is nothing new to say about
+ *    them.
  */
 function mapBuckets(
   items: readonly ItemData[],
@@ -1363,7 +1581,11 @@ function mapBuckets(
       // is — and it is what keeps `resolve` reporting both ends of the spread. A `take`
       // collapses floor onto ceiling, which would print 106c as the worst outcome of a
       // bucket whose worst outcome is 1c.
-      const draft = add("unique-map", "unique-maps", item);
+      // The whole class, because that is the whole of what a block can say about one.
+      const draft = add("unique-map", "unique-maps", item, [
+        "Rarity Unique",
+        'Class == "Maps"',
+      ]);
       draft.verb = "check";
       draft.varies = true;
       draft.alwaysShow = true;
@@ -1378,21 +1600,52 @@ function mapBuckets(
         `fragment:${withoutVariant(item.name)}`,
         "fragments",
         item,
+        [baseTypeIs(withoutVariant(item.name))],
       ).alwaysShow = true;
       continue;
     }
 
     if (item.name === NIGHTMARE_MAP) {
-      add("map:nightmare", "maps", item).alwaysShow = true;
+      // The id says `nightmare` and the base type says `Nightmare Map`. Reading the
+      // first as the second is exactly the guess this field exists to stop.
+      add("map:nightmare", "maps", item, [
+        baseTypeIs(NIGHTMARE_MAP),
+      ]).alwaysShow = true;
+      continue;
+    }
+
+    // Blight and blight-ravaged leave before the tier-and-frame key, because they are a
+    // different item at the same tier and rarity. A Blighted Map (Tier 1) is 15c against
+    // 1c for the white t1 it was folded in with, and it was setting that bucket's tier —
+    // paying out the blighted price on every plain map of the tier while the blighted one
+    // had no block of its own. No rarity line: these drop white and can be alched, and
+    // showing an alched one is the cheap direction of wrong.
+    if (item.name.startsWith(BLIGHT_RAVAGED_MAP)) {
+      add(`map:blight-ravaged tier${item.mapTier}`, "maps", item, [
+        `MapTier ${item.mapTier}`,
+        "UberBlightedMap True",
+      ]);
+      continue;
+    }
+
+    if (item.name.startsWith(BLIGHTED_MAP)) {
+      add(`map:blighted tier${item.mapTier}`, "maps", item, [
+        `MapTier ${item.mapTier}`,
+        "BlightedMap True",
+      ]);
       continue;
     }
 
     if (item.name === CLEAN_T16) {
-      add("map:t16", "maps", item);
+      add("map:t16", "maps", item, ["MapTier 16", "Rarity Normal", ...NOT_BLIGHTED]);
       continue;
     }
 
-    add(`map:tier${item.mapTier} frame${item.frame}`, "maps", item);
+    add(`map:tier${item.mapTier} frame${item.frame}`, "maps", item, [
+      `MapTier ${item.mapTier}`,
+      `Rarity ${RARITY_BY_FRAME[item.frame] ?? "Normal"}`,
+      ...NOT_BLIGHTED,
+    ]);
   }
 
   // The plain t16 is resolved here rather than left to `resolve`, because the three
@@ -1427,7 +1680,9 @@ function mapBuckets(
       members: 0,
       slots: clean?.slots ?? 1,
       note: variant.note,
-      conditions: variant.conditions,
+      // The tier is in the id and nowhere in the lines, so it is written here rather than
+      // repeated in all five. `>=` because a t17 is a t16 as far as any of these go.
+      conditions: ["MapTier >= 16", ...variant.conditions],
       minStack: 0,
       varies: false,
       minTier:
@@ -1650,15 +1905,25 @@ function stackSteps(
   cap: number,
   rates: Rates,
   levers: Levers,
+  floor?: { readonly stack: number; readonly tier: Tier },
 ): number[] {
   // Where the ladder starts. One is the floor of the floor: a stack of zero is not a drop.
   const bottom = Math.max(1, Math.ceil(levers.minClickValue / unit));
 
   const steps = new Set<number>([bottom]);
 
-  for (const [, cut] of TIER_CUTS) {
+  for (const [tier, cut] of TIER_CUTS) {
+    // A hand floor replaces the rung it speaks for rather than sitting beside it. Both
+    // would be the same tier, the quieter one written first would take every stack the
+    // louder one wanted, and the louder one would be a block that cannot fire.
+    if (tier === floor?.tier) continue;
+
     const needed = Math.ceil((cut * rates.divine) / unit);
     if (needed > bottom && needed <= cap) steps.add(needed);
+  }
+
+  if (floor !== undefined && floor.stack > bottom && floor.stack <= cap) {
+    steps.add(floor.stack);
   }
 
   // A click floor no full stack can reach leaves the single item to answer for the
@@ -1696,7 +1961,13 @@ function exchangeBuckets(
 
     const cap = maxStack(item.category, item.name);
 
-    for (const stack of gated ? stackSteps(unit, cap, rates, levers) : [1]) {
+    // Gold is the only item with a stack the player insists on seeing whatever it prices
+    // at. Everything else earns every rung it gets.
+    const floor = item.name === GOLD ? GOLD_FLOOR : undefined;
+
+    for (const stack of gated
+      ? stackSteps(unit, cap, rates, levers, floor)
+      : [1]) {
       const worth = unit * stack;
       const label = stack === 1 ? item.name : `${item.name} ×${stack}`;
 
@@ -1713,10 +1984,18 @@ function exchangeBuckets(
         members: 1,
         slots: 1,
         note: gated ? `stack>=${stack}` : "",
-        conditions: [],
+        // The rung is the block. Two rungs of one currency are the same base type and
+        // differ in this line alone, which is why the larger one has to be written first.
+        conditions: [
+          baseTypeIs(withoutVariant(item.name)),
+          ...(gated ? [`StackSize >= ${stack}`] : []),
+        ],
         minStack: gated ? stack : 0,
         varies: HARD_TO_CATEGORIZE.has(withoutVariant(item.name)),
-        minTier: "hidden",
+        // Every rung at or above a hand floor inherits it. It only ever raises a tier, so
+        // the rungs the arithmetic already made louder keep what they earned.
+        minTier:
+          floor !== undefined && stack >= floor.stack ? floor.tier : "hidden",
         alwaysShow: false,
         vaalCeiling: 0,
         vaalFloor: 0,
@@ -1754,7 +2033,15 @@ export function classify(
     : [...input.exchange, CHAOS_ORB];
 
   const rates = marketRates(exchange);
-  const quotes = exchangeQuotes(exchange);
+
+  // Gold is added after the rates rather than beside chaos, because its price is derived
+  // from the divine the rates just read. Nothing else in the file needs to know it is not
+  // a market row.
+  const priced = exchange.some((item) => item.name === GOLD)
+    ? exchange
+    : [...exchange, goldRow(rates, levers)];
+
+  const quotes = exchangeQuotes(priced);
 
   // The exchange owns every id it prices, so those rows leave `/compact` here and reach
   // none of the passes below. One item, one entry, priced by the better book — rather
@@ -1764,12 +2051,14 @@ export function classify(
   const ceilings = vaalCeilings(input.corruptions);
   const prices = uniquePrices(items, ceilings);
 
-  // Twice over the uniques: the plain pass and the Foulborn one. Same rules, same ratio
-  // test, separate buckets — a Foulborn drop comes from somewhere else and gets its own
-  // section of the filter, always shown.
+  // Three times over the uniques, once per overlay. Same rules, same ratio test, three
+  // disjoint sets of buckets — a Foulborn drop and a Replica each come from somewhere
+  // else and carry a flag the filter can read, so each gets its own block above the plain
+  // one. Only Foulborn is always shown; a cheap replica is just a cheap item.
   return [
-    ...uniqueBaseBuckets(input.uniques, prices, false),
-    ...uniqueBaseBuckets(input.uniques, prices, true),
+    ...uniqueBaseBuckets(input.uniques, prices, "plain"),
+    ...uniqueBaseBuckets(input.uniques, prices, "foulborn"),
+    ...uniqueBaseBuckets(input.uniques, prices, "replica"),
     ...baseBuckets(items),
     ...mapBuckets(items, rates, levers),
     ...flatBuckets(
@@ -1778,7 +2067,7 @@ export function classify(
       input.exceptionalGems,
       input.transfiguredGems,
     ),
-    ...exchangeBuckets(exchange, quotes, rates, levers),
+    ...exchangeBuckets(priced, quotes, rates, levers),
   ]
     .map((draft) => resolve(draft, rates, levers))
     .sort((left, right) => right.ev - left.ev);

@@ -340,6 +340,10 @@
   /* Priced by the Currency Exchange, not by a scraped listing. */
   .meta .tag.exchange { color: var(--game-check); border-color: #1e3540; }
   .meta .note { color: #574e47; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* Filter lines the bucket carries literally, because nothing here could derive them.
+     Count only — the lines themselves are on the title, being the one thing in a row that
+     is already code rather than prose. */
+  .meta .cond { color: var(--game-check); border: 1px solid #1e3540; border-radius: 2px; padding: 0 3px; white-space: nowrap; }
   /* What actually decided the tier — the reason the row looks the way it does. */
   /* Truncates rather than pushing the row wide: a variant and a corrupted implicit make
      this the longest thing in the line, and the full text is on the element's title. */
@@ -587,6 +591,7 @@
           (b.xf ? '<span class="tag exchange">exchange</span>' : '') +
           '<span class="set-by" title="' + b.sb.replaceAll('"', "&quot;") + '"><em>set by</em> ' + b.sb + '</span>' +
           '<span class="note">' + b.note + '</span>' +
+          (b.cond.length ? '<span class="cond" title="' + b.cond.join("\n").replaceAll('"', "&quot;") + '">' + b.cond.length + ' verbatim</span>' : '') +
         '</span>' +
       '</div>';
     }).join("");

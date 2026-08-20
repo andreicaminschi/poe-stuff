@@ -12,7 +12,12 @@
     "A name that matches nothing in the league is ignored rather than an error.",
     "",
     "Divination cards are absent on purpose: their stack size varies by card, so they",
-    "are never stack-gated and are always tiered at a single card."
+    "are never stack-gated and are always tiered at a single card.",
+    "",
+    "Gold's 5,000,000 is a ladder bound, not a verified cap. Nothing here prices gold -",
+    "it is injected in classify.ts off the goldPerDivine lever - and nothing published",
+    "says how large a pile the game will drop. The number is set high enough not to cut",
+    "the ladder short; a rung the game can never produce is a block that never fires."
   ],
   "default": 20,
   "byCategory": {
@@ -67,6 +72,7 @@
     "Fungal Astrolabe": 10,
     "Gemcutter's Prism": 20,
     "Glassblower's Bauble": 20,
+    "Gold": 5000000,
     "Grand Eldritch Ember": 10,
     "Grand Eldritch Ichor": 10,
     "Grasping Astrolabe": 10,

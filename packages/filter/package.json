@@ -6,9 +6,14 @@
   "type": "module",
   "exports": {
     "./classify": "./classify.ts",
+    "./emit-filter": "./emit-filter.ts",
     "./merge-uniques": "./merge-uniques.ts",
     "./types": "./types.ts",
     "./build-tier-page": "./build-tier-page.ts",
-    "./fetch-inputs": "./fetch-inputs.ts"
+    "./fetch-inputs": "./fetch-inputs.ts",
+    "./verify-filter": "./verify-filter.ts"
+  },
+  "dependencies": {
+    "@poe/filter-eval": "workspace:^"
   }
 }
