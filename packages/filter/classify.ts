@@ -67,6 +67,23 @@ const atLeast = (tier: Tier, floor: Tier): Tier =>
     : floor;
 
 /**
+ * A tier, moved `rungs` louder along the ladder. Clamped at `T0`.
+ *
+ * **The only place one bucket's tier is derived from another's, and it exists because no
+ * feed prices what it is used for.** Nothing anywhere quotes a corrupted or an Originator
+ * map, so the one true thing left to say about them is that they beat the plain map of the
+ * same tier — and saying it *relatively* keeps it true when the plain map's price moves.
+ * A hardcoded `T3` would be a snapshot of one afternoon's divine rate.
+ *
+ * `varies` is returned untouched: it is not on the ladder, so there is no rung to move it
+ * from.
+ */
+const louder = (tier: Tier, rungs: number): Tier => {
+  const at = TIER_RANK.indexOf(tier);
+  return at < 0 ? tier : (TIER_RANK[Math.max(0, at - rungs)] ?? tier);
+};
+
+/**
  * `ceiling / floor` above which the floor is lying and the verb is no longer `take`.
  *
  * A generator constant, not a player lever. The player already owns the value thresholds;
@@ -190,7 +207,7 @@ const maxStack = (category: string, name: string): number =>
  * A click floor of zero, because a lever nobody has touched must not be quietly hiding
  * items — the show-cheap baseline is the default, and this is what opts out of it.
  */
-const DEFAULT_LEVERS: Levers = { minClickValue: 0 };
+const DEFAULT_LEVERS: Levers = { minClickValue: 0, hideUniqueMaps: false };
 
 const price = (item: ItemData): number => item.mean ?? 0;
 
@@ -513,6 +530,8 @@ type Draft = {
   members: number;
   slots: number;
   note: string;
+  /** Verbatim `.filter` lines this block must carry. Empty on everything derivable. */
+  conditions: readonly string[];
   /** Smallest stack that reaches this bucket. 0 on everything a stack does not gate. */
   minStack: number;
   /** The base type hides a spread the filter cannot read. Forces the `varies` tier. */
@@ -819,6 +838,7 @@ function uniqueBaseBuckets(
       members: priced.length,
       slots: 0,
       note: `${priced.length}/${members.length} priced`,
+      conditions: [],
       minStack: 0,
       // A unique base is exactly what the filter can read, so nothing here is unknowable.
       varies: false,
@@ -891,6 +911,7 @@ function baseBuckets(items: readonly ItemData[]): Draft[] {
       members: rows.length,
       slots: rows[0].width * rows[0].height,
       note: paying.length === 0 ? "" : `ilvl>=${Math.min(...paying)}`,
+      conditions: [],
       minStack: 0,
       varies: false,
       minTier: "hidden",
@@ -915,19 +936,19 @@ function baseBuckets(items: readonly ItemData[]): Draft[] {
 }
 
 /**
- * Everything whose bucket is just its name: gems, cards, maps, stackables, and the long
- * tail of relics, corpses and blueprints.
+ * Somewhere to accumulate drafts by bucket id, and the one rule for folding a row into
+ * one of them.
  *
- * Gems collapse on name and corruption only. A filter can read gem level and quality and
- * the market splits hard on both, so this is the coarsest thing here and the next thing
- * to split.
+ * Shared by the name-keyed pass and the map pass, because the fold is identical either
+ * way: the floor is the worst member, the ceiling is the best, and the best is what the
+ * bucket names as having set it. Only the *key* differs between the two, and the key is
+ * the caller's business — which is the whole reason maps could stop being an `else if`
+ * inside `flatBuckets` once their key stopped being their name.
  */
-function flatBuckets(
-  items: readonly ItemData[],
-  gemKind: (name: string) => GemKind,
-  exceptionalGems: readonly string[],
-  transfiguredGems: readonly string[],
-): Draft[] {
+function collector(): {
+  drafts: Map<string, Draft>;
+  add: (id: string, family: BucketFamily, item: ItemData) => Draft;
+} {
   const drafts = new Map<string, Draft>();
 
   const add = (id: string, family: BucketFamily, item: ItemData): Draft => {
@@ -944,6 +965,7 @@ function flatBuckets(
         members: 1,
         slots: item.width * item.height,
         note: "",
+        conditions: [],
         minStack: 0,
         varies: HARD_TO_CATEGORIZE.has(withoutVariant(item.name)),
         minTier: "hidden",
@@ -981,8 +1003,30 @@ function flatBuckets(
     return draft;
   };
 
+  return { drafts, add };
+}
+
+/**
+ * Everything whose bucket is just its name: gems, cards, stackables, and the long tail of
+ * relics, corpses and blueprints.
+ *
+ * Gems collapse on name and corruption only. A filter can read gem level and quality and
+ * the market splits hard on both, so this is the coarsest thing here and the next thing
+ * to split.
+ */
+function flatBuckets(
+  items: readonly ItemData[],
+  gemKind: (name: string) => GemKind,
+  exceptionalGems: readonly string[],
+  transfiguredGems: readonly string[],
+): Draft[] {
+  const { drafts, add } = collector();
+
   for (const item of items) {
     if (ignored(item) || item.category === "bases") continue;
+    // Maps are keyed on what the filter can read off the ground rather than on a name —
+    // see `mapBuckets`.
+    if (item.category === "maps") continue;
     // Uniques are bucketed by base, not by name — see `checkBuckets`.
     if (UNIQUE_CATEGORIES.has(item.category) && item.frame === 3) continue;
 
@@ -1042,12 +1086,6 @@ function flatBuckets(
         "gems",
         item,
       ).alwaysShow = true;
-    } else if (item.category === "maps") {
-      if (item.frame === 3) {
-        add(`unique-map:${identify(item.name).name}`, "unique-maps", item);
-      } else {
-        add(`map:tier${item.mapTier ?? "?"} frame${item.frame}`, "maps", item);
-      }
     } else {
       const { id, family } = placement(item.category, item.name);
       add(id, family, item);
@@ -1078,6 +1116,7 @@ function flatBuckets(
       members: 0,
       slots: 1,
       note: "",
+      conditions: [],
       minStack: 0,
       varies: kind === "transfigured",
       minTier: kind === "exceptional" ? EXCEPTIONAL_MIN_TIER : "hidden",
@@ -1088,6 +1127,320 @@ function flatBuckets(
       vaalVariant: "",
       vaalMod: "",
       topName: name,
+      topPrice: 0,
+      topVariant: "",
+      topFromExchange: false,
+      examples: [],
+    });
+  }
+
+  return [...drafts.values()];
+}
+
+/**
+ * The map rows that are trade goods rather than drops, and so earn no block.
+ *
+ * Every one of these is bought, not found. A filter block for an item nothing puts on the
+ * floor is a block that can never fire, and eleven of them at the top of the map section
+ * is eleven chances to mis-order the ones that can.
+ *
+ * Kept as a name list because there is nothing in the payload to derive it from. PoeWatch
+ * files these beside the maps that *do* drop, with the same category, the same tier and
+ * the same shape — the only thing separating them is what the game does with them, which
+ * no feed reports.
+ */
+const TRADED_MAPS = new Set([
+  "Al-Hezmin's Map",
+  "Baran's Map",
+  "Drox's Map",
+  "Shaper Guardian Map",
+  "The Constrictor's Map",
+  "The Enslaver's Map",
+  "The Eradicator's Map",
+  "The Purifier's Map",
+  "Vaal Temple Map",
+  "Veritania's Map",
+]);
+
+/** PoeWatch's name for a plain tier-16 map: 1.4 million listings of one nameless item. */
+const CLEAN_T16 = "Map (Tier 16)";
+
+const NIGHTMARE_MAP = "Nightmare Map";
+
+/**
+ * The tier-16 maps no feed prices, what each block must say, and how loud it may go.
+ *
+ * **Corruption alone is not the thing worth seeing — eight modifiers is.** A map that was
+ * corrupted and gained nothing is a plain t16 and is priced as one. So corrupted splits
+ * three ways here, on the one axis the ground can be asked about: whether the modifiers
+ * are readable, and whether there are eight of them.
+ *
+ * The count travels as `conditions` — verbatim filter lines — because the grammar has no
+ * way to count an item's modifiers. `HasExplicitMod` takes a count and matches
+ * substrings, so eight matches against the vowels is eight modifiers, every modifier name
+ * containing at least one. `Identified True` guards it: identification is what makes
+ * explicit modifiers readable, and without the guard the block silently never fires on a
+ * fresh drop.
+ *
+ * **The blocks overlap, and the ladder is what separates them.** Their conditions nest:
+ * `Corrupted True Identified True` matches everything the eight-modifier block matches,
+ * and the plain Originator block matches every corrupted Originator map. So the emitter
+ * must write the loud one first and let first-match-wins do the rest. That ordering falls
+ * out of the tiers below rather than being arranged anywhere, which is worth knowing
+ * before any of them is moved.
+ *
+ * **The Originator pair ignores identification, and therefore counts no modifiers.** See
+ * `CORRUPTED`.
+ *
+ * `floor` is where the ladder may not go below: `rungs` counts up from wherever the plain
+ * t16 landed, `tier` names an absolute. Relative is the better answer wherever the thing
+ * is "worth more than a plain map" — it survives the plain map's price moving. Absolute is
+ * for a bucket the player has decided about regardless of what anything costs.
+ */
+const EIGHT_MODS: readonly string[] = [
+  "Corrupted True",
+  "Identified True",
+  'HasExplicitMod >=8 "a" "e" "i" "o" "u" "y"',
+];
+
+const CORRUPTED_IDENTIFIED: readonly string[] = [
+  "Corrupted True",
+  "Identified True",
+];
+
+/**
+ * Corrupted, read or unread.
+ *
+ * **What the Originator blocks use, and the reason they do not count modifiers.** The
+ * implicit is the whole reason one of those is loud, and an implicit stays legible on an
+ * unidentified item — so gating on identification would drop half the drops for a
+ * distinction that was never the point. Counting modifiers costs exactly that gate, since
+ * `HasExplicitMod` cannot read an unidentified item, so the two go together: no
+ * identification requirement, no eight-modifier count.
+ */
+const CORRUPTED: readonly string[] = ["Corrupted True"];
+
+/**
+ * What an Originator map can actually be asked about, and it is blunter than the item.
+ *
+ * The Originator's Memories is an *implicit*, so none of the explicit machinery reaches
+ * it — no substring match, no count, no vowel trick. The grammar offers exactly one
+ * general implicit condition, `HasImplicitMod True`, meaning *carries at least one*. It
+ * cannot be told which implicit, and there is no name-matching form: the only two numeric
+ * implicit conditions are `HasEaterOfWorldsImplicit` and `HasSearingExarchImplicit`, both
+ * specific to those mechanics.
+ *
+ * **So this fires on any tier-16 map carrying any implicit**, which is the show-cheap
+ * trade rather than an accident — the alternative is a bucket with no key at all. What
+ * else lands in it is bounded and mostly worth seeing anyway: the Elder and Shaper
+ * influence implicits, the occupied-by and Citadel ones, and whatever a corruption added.
+ * See `TODO.md`.
+ */
+const ORIGINATOR: readonly string[] = ["HasImplicitMod True"];
+
+/**
+ * The same map before anybody read it, and the only honest thing left to say about one.
+ *
+ * A corrupted map can land unidentified, and identification is what makes explicit
+ * modifiers readable — so the count in `EIGHT_MODS` cannot run and there is no way to ask
+ * whether this is the eight-modifier map or an ordinary corrupted one. Both are on the
+ * floor looking identical.
+ *
+ * Which is `check`, exactly as the verb is defined: the filter cannot tell which item this
+ * is, and hovering is free. It is floored at the eight-modifier tier rather than the plain
+ * one, which is the show-cheap rule doing its job — tier the bucket at its best outcome
+ * when the filter cannot distinguish. **A placeholder, and deliberately the expensive
+ * one.** See `TODO.md`.
+ */
+const UNIDENTIFIED: readonly string[] = ["Corrupted True", "Identified False"];
+
+const T16_VARIANTS: readonly {
+  id: string;
+  label: string;
+  note: string;
+  conditions: readonly string[];
+  verb: Verb;
+  floor: { rungs: number } | { tier: Tier };
+}[] = [
+  {
+    id: "map:t16 corrupted 8 mods",
+    label: "Corrupted Map (Tier 16), 8 mods",
+    // Absolute rather than relative, because this is not a claim about the market. It is
+    // the player saying always pick one up, and a plain t16 going cheap must not quiet it.
+    // The number it is actually worth is an open question — see `TODO.md`.
+    note: "8 mods — always take, unpriced",
+    conditions: EIGHT_MODS,
+    verb: "take",
+    floor: { tier: "T2" },
+  },
+  {
+    id: "map:t16 corrupted unidentified",
+    label: "Unidentified Corrupted Map (Tier 16)",
+    note: "might be 8 mods — treated as one",
+    conditions: UNIDENTIFIED,
+    verb: "check",
+    floor: { tier: "T2" },
+  },
+  {
+    id: "map:t16 corrupted",
+    label: "Corrupted Map (Tier 16)",
+    // Nothing prices a corrupted map that gained no modifiers, and nothing needs to: it
+    // is a plain t16 that has been vaaled, so it lands exactly where a plain t16 lands.
+    note: "no 8-mod count — tiered as a plain t16",
+    conditions: CORRUPTED_IDENTIFIED,
+    verb: "take",
+    floor: { rungs: 0 },
+  },
+  {
+    id: "map:t16 originator",
+    label: "Originator Map (Tier 16)",
+    note: "any t16 carrying an implicit",
+    conditions: ORIGINATOR,
+    verb: "take",
+    floor: { rungs: 1 },
+  },
+  {
+    id: "map:t16 originator corrupted",
+    label: "Corrupted Originator Map (Tier 16)",
+    note: "any corrupted t16 carrying an implicit",
+    conditions: [...CORRUPTED, ...ORIGINATOR],
+    verb: "take",
+    floor: { rungs: 2 },
+  },
+];
+
+/**
+ * Every map, keyed on what a filter can actually read off the ground.
+ *
+ * **Maps stopped dropping with names, and that is why they are no longer bucketed like
+ * everything else.** The name rule that still works for gems and cards says nothing here:
+ * `Map (Tier 16)` is one identity covering 1.4 million listings, and what separates one
+ * t16 from the next — corruption, the Originator implicit — has no row in any feed and
+ * has to be asserted instead.
+ *
+ * So this pass does three different things at once, and the order below is the whole
+ * rule:
+ *
+ * 1. **Traded maps leave.** They do not drop. See `TRADED_MAPS`.
+ * 2. **Unique maps are one `varies` bucket**, always shown, and the `hideUniqueMaps` lever
+ *    deletes it. Nothing separates one from another — see the branch.
+ * 3. **Tierless rows are not maps.** PoeWatch files invitations, reliquary keys and the
+ *    Chronicles under `maps` for where they are used, and the absent tier is the only
+ *    thing in the payload that tells them apart from one.
+ * 4. **Tier 16 splits four ways**, three of them priced by nothing at all.
+ * 5. **Everything else keeps the old tier-and-frame key** — tiers 1 to 15, blighted and
+ *    blight-ravaged. Those still drop as one undifferentiated thing per tier and there is
+ *    nothing new to say about them.
+ */
+function mapBuckets(
+  items: readonly ItemData[],
+  rates: Rates,
+  levers: Levers,
+): Draft[] {
+  const { drafts, add } = collector();
+
+  for (const item of items) {
+    if (ignored(item) || item.category !== "maps") continue;
+    if (TRADED_MAPS.has(item.name)) continue;
+
+    if (item.frame === 3) {
+      // All or nothing, because the game leaves no middle setting — see `hideUniqueMaps`.
+      if (levers.hideUniqueMaps) continue;
+
+      // One bucket for all of them, and no tier at all.
+      //
+      // **A unique map has no key.** Its base is the same nameless `Map (Tier N)` every
+      // other map dropped from, and the filter has no condition that reads an item's
+      // name — so `Replica Cortex` at 110c and `Death and Taxes` at 1c are one item as
+      // far as a block can tell. Per-name buckets would be 25 blocks of which 24 could
+      // never be written.
+      //
+      // `varies` rather than a tier off the best member, because tiering at 110c would
+      // promise a payday on every white-tier junk map, and tiering lower would hide the
+      // Cortex. The honest answer is that the ladder does not apply, which is the one
+      // thing `varies` exists to say.
+      // `check` is the verb's own definition — the filter cannot tell which item this
+      // is — and it is what keeps `resolve` reporting both ends of the spread. A `take`
+      // collapses floor onto ceiling, which would print 106c as the worst outcome of a
+      // bucket whose worst outcome is 1c.
+      const draft = add("unique-map", "unique-maps", item);
+      draft.verb = "check";
+      draft.varies = true;
+      draft.alwaysShow = true;
+      continue;
+    }
+
+    // Never hidden, whatever it is worth. A Polaric Invitation at 7c and a Cosmic
+    // Reliquary Key at 2,388c are the same promise to the player: this category always
+    // appears, and the cheap end gets a smaller mark rather than no mark.
+    if (item.mapTier == null) {
+      add(
+        `fragment:${withoutVariant(item.name)}`,
+        "fragments",
+        item,
+      ).alwaysShow = true;
+      continue;
+    }
+
+    if (item.name === NIGHTMARE_MAP) {
+      add("map:nightmare", "maps", item).alwaysShow = true;
+      continue;
+    }
+
+    if (item.name === CLEAN_T16) {
+      add("map:t16", "maps", item);
+      continue;
+    }
+
+    add(`map:tier${item.mapTier} frame${item.frame}`, "maps", item);
+  }
+
+  // The plain t16 is resolved here rather than left to `resolve`, because the three
+  // variants are defined against where it lands and nothing else in this file can tell
+  // them where that is. Same arithmetic `resolve` will redo for it a moment later: one
+  // member, floor and ceiling agree, so the expected value is simply the price.
+  const clean = drafts.get("map:t16");
+  const cleanTier =
+    clean === undefined
+      ? // No plain t16 in the feed at all. Something is badly wrong upstream, and the
+        // variants still drop — so they are floored off the quiet end rather than left
+        // out, which shows them at the smallest mark instead of hiding them.
+        "hidden"
+      : tierFor(
+          clean,
+          Math.max(clean.floor, clean.ceiling),
+          clean.ceiling,
+          rates,
+          levers,
+        );
+
+  for (const variant of T16_VARIANTS) {
+    drafts.set(variant.id, {
+      id: variant.id,
+      family: "maps",
+      verb: variant.verb,
+      // Seeded at no price, which is honest: there is no price. The tier comes off
+      // `minTier` alone, exactly as it does for a gem nobody has listed.
+      floor: 0,
+      ceiling: 0,
+      thin: true,
+      members: 0,
+      slots: clean?.slots ?? 1,
+      note: variant.note,
+      conditions: variant.conditions,
+      minStack: 0,
+      varies: false,
+      minTier:
+        "tier" in variant.floor
+          ? variant.floor.tier
+          : louder(cleanTier, variant.floor.rungs),
+      alwaysShow: true,
+      vaalCeiling: 0,
+      vaalFloor: 0,
+      vaalName: "",
+      vaalVariant: "",
+      vaalMod: "",
+      topName: variant.label,
       topPrice: 0,
       topVariant: "",
       topFromExchange: false,
@@ -1197,7 +1550,13 @@ function resolve(draft: Draft, rates: Rates, levers: Levers): Bucket {
         : 1;
 
   // Floor and ceiling agree, so there is nothing left to learn by hovering.
-  const identityVerb: Verb = ratio > RATIO_THRESHOLD ? draft.verb : "take";
+  //
+  // A bucket nothing prices is exempt, and keeps whatever verb it declared. The test asks
+  // whether this bucket's two ends disagree; with no price there are no ends, so it has
+  // nothing to say and no business overruling a branch that already knows the filter
+  // cannot identify what it matched.
+  const identityVerb: Verb =
+    draft.ceiling <= 0 || ratio > RATIO_THRESHOLD ? draft.verb : "take";
 
   const worth = Math.max(draft.floor, draft.ceiling);
   const plainEv =
@@ -1246,6 +1605,7 @@ function resolve(draft: Draft, rates: Rates, levers: Levers): Bucket {
     members: draft.members,
     slots: draft.slots,
     note: draft.note,
+    conditions: draft.conditions,
     minStack: draft.minStack,
     // On a gamble, the corrupted outcome is the whole reason the bucket exists, so it is
     // what gets named — even though the plain price is what set the tier. Everywhere else
@@ -1353,6 +1713,7 @@ function exchangeBuckets(
         members: 1,
         slots: 1,
         note: gated ? `stack>=${stack}` : "",
+        conditions: [],
         minStack: gated ? stack : 0,
         varies: HARD_TO_CATEGORIZE.has(withoutVariant(item.name)),
         minTier: "hidden",
@@ -1410,6 +1771,7 @@ export function classify(
     ...uniqueBaseBuckets(input.uniques, prices, false),
     ...uniqueBaseBuckets(input.uniques, prices, true),
     ...baseBuckets(items),
+    ...mapBuckets(items, rates, levers),
     ...flatBuckets(
       items,
       gemKinds(input),

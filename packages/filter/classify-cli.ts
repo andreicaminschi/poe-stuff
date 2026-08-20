@@ -56,7 +56,12 @@ if (minClick !== undefined && !(Number(minClick) >= 0)) {
   throw new Error(`--min-click wants chaos, got ${minClick}`);
 }
 
-const levers: Levers = { minClickValue: Number(minClick ?? 0) };
+// A bare `--hide-unique-maps` is the whole flag. It takes no value because it has no
+// middle setting — the lever is there precisely because the game offers all or nothing.
+const levers: Levers = {
+  minClickValue: Number(minClick ?? 0),
+  hideUniqueMaps: args.includes("--hide-unique-maps"),
+};
 
 const TIERS: readonly Tier[] = [
   "T0",
