@@ -5,6 +5,7 @@ import {
   CONDITIONS_BY_LOWER,
   EQUALITY_OPERATORS,
   NEGATING_OPERATORS,
+  REQUIRED_KEYS,
   SOCKET_COLOURS,
 } from "./filter-ast.ts";
 import type {
@@ -45,16 +46,30 @@ const OPERATORS: ReadonlySet<string> = new Set([
   ">=",
 ]);
 
-/** One `key=value` pair. Deliberately narrow — the note format has one spelling. */
-const NOTE_PAIR = /^[a-z][a-z0-9-]*=[^\s]+$/;
+/** A note key. Deliberately narrow — the note format has one spelling. */
+const NOTE_KEY = /^[a-z][a-z0-9-]*$/;
+
+/**
+ * A line and the comment trailing it.
+ *
+ * An extra condition the generation phase adds is a real condition line, not a marker of
+ * its own — a marker would be a comment, the game would skip it, and the filter being
+ * validated would not be the filter that runs. So provenance rides along in an ordinary
+ * trailing comment, which is kept here rather than thrown away.
+ */
+type Split = { code: string; comment: string };
 
 /** A block under construction. Same shape as `FilterBlock`, minus the `readonly`. */
 type BlockDraft = {
   keyword: Keyword;
   conditions: FilterCondition[];
   notes: Note[];
+  comment: string;
+  freehand: string;
   continues: boolean;
   line: number;
+  /** Set once the `#@` line is read. Nothing may follow it. */
+  closed: boolean;
 };
 
 const fail = (line: number, message: string): never => {
@@ -69,16 +84,18 @@ const fail = (line: number, message: string): never => {
  * times, as `Show # %D8 $type->6l` — so a trailing comment has to be dropped from every
  * line rather than only recognised on lines that are nothing else.
  */
-const codeOf = (raw: string): string => {
+const splitComment = (raw: string): Split => {
   let quoted = false;
 
   for (let at = 0; at < raw.length; at += 1) {
     const char = raw[at];
     if (char === '"') quoted = !quoted;
-    else if (char === "#" && !quoted) return raw.slice(0, at);
+    else if (char === "#" && !quoted) {
+      return { code: raw.slice(0, at), comment: raw.slice(at + 1).trim() };
+    }
   }
 
-  return raw;
+  return { code: raw, comment: "" };
 };
 
 /**
@@ -185,7 +202,12 @@ const parseSocketSpec = (
   return digits === undefined ? { colours } : { count: Number(digits), colours };
 };
 
-const parseCondition = (name: ConditionName, rest: string, line: number): FilterCondition => {
+const parseCondition = (
+  name: ConditionName,
+  rest: string,
+  line: number,
+  comment: string,
+): FilterCondition => {
   const entry = CONDITIONS[name];
   const { kind } = entry;
 
@@ -277,18 +299,18 @@ const parseCondition = (name: ConditionName, rest: string, line: number): Filter
     }
     case "sockets": {
       const spec = parseSocketSpec(name, values, line);
-      return { name, kind, operator, values, sockets: spec, line };
+      return { name, kind, operator, values, sockets: spec, comment, line };
     }
     case "counted": {
       if (count !== undefined) {
-        return { name, kind, operator, values, count, line };
+        return { name, kind, operator, values, count, comment, line };
       }
       // No count written. `HasExplicitMod "A" "B"` wants one or more of them, and the
       // negated form wants none — which is the same thing the sample spells `=0`.
       const negating = (NEGATING_OPERATORS as readonly string[]).includes(operator);
       return negating
-        ? { name, kind, operator: "=", values, count: 0, line }
-        : { name, kind, operator: ">=", values, count: 1, line };
+        ? { name, kind, operator: "=", values, count: 0, comment, line }
+        : { name, kind, operator: ">=", values, count: 1, comment, line };
     }
     case "gem": {
       // Either True/False or a gem name, so the only check is that there is one of them.
@@ -298,40 +320,79 @@ const parseCondition = (name: ConditionName, rest: string, line: number): Filter
     }
   }
 
-  return { name, kind, operator, values, line };
+  return { name, kind, operator, values, comment, line };
 };
 
 /**
- * Read one `#@` line into its pairs. The caller has already established that the line is a
- * note and not a plain comment.
+ * Read one `#@` line into its pairs and its freehand tail.
+ *
+ * Pairs come first. The freehand begins at the first token with no `=` in it and runs to
+ * the end of the line, kept verbatim. A token that has an `=` but is not a well-formed pair
+ * throws rather than starting the freehand, so `Tier=T1` and `verb=Take` are caught instead
+ * of being quietly swallowed as prose.
  */
-const parseNote = (rest: string, line: number): Note[] => {
-  const tokens = rest.split(/\s+/).filter((token) => token !== "");
-  if (tokens.length === 0) fail(line, "a #@ note needs at least one key=value pair");
+const parseNote = (
+  rest: string,
+  line: number,
+): { pairs: Note[]; freehand: string } => {
+  const pairs: Note[] = [];
+  let freehand = "";
+  let at = 0;
 
-  return tokens.map((token) => {
-    if (!NOTE_PAIR.test(token)) {
-      fail(line, `bad note pair ${JSON.stringify(token)}`);
+  while (at < rest.length) {
+    while (at < rest.length && /\s/.test(rest[at] ?? "")) at += 1;
+    if (at >= rest.length) break;
+
+    const start = at;
+    while (at < rest.length && rest[at] !== "=" && !/\s/.test(rest[at] ?? "")) at += 1;
+
+    // No `=` before the whitespace ran out, so the debug comment starts here.
+    if (rest[at] !== "=") {
+      const token = rest.slice(start, at);
+      if (token.includes("=")) fail(line, `bad note pair ${JSON.stringify(token)}`);
+      freehand = rest.slice(start).trim();
+      break;
     }
 
-    const split = token.indexOf("=");
-    const key = token.slice(0, split);
-    const value = token.slice(split + 1);
+    const key = rest.slice(start, at);
+    at += 1;
+
+    // A quoted value so a condition can hold spaces: `cond="AreaLevel >= 68"`.
+    let value: string;
+    if (rest[at] === '"') {
+      const close = rest.indexOf('"', at + 1);
+      if (close === -1) fail(line, `unterminated quote in note ${JSON.stringify(rest.trim())}`);
+      value = rest.slice(at + 1, close);
+      at = close + 1;
+    } else {
+      const from = at;
+      while (at < rest.length && !/\s/.test(rest[at] ?? "")) at += 1;
+      value = rest.slice(from, at);
+    }
+
+    if (!NOTE_KEY.test(key) || value === "") {
+      fail(line, `bad note pair ${JSON.stringify(`${key}=${value}`)}`);
+    }
 
     if (!Object.hasOwn(APPLY_KEYS, key)) {
       fail(line, `unknown note key ${JSON.stringify(key)}`);
     }
 
-    const allowed = APPLY_KEYS[key as ApplyKey];
-    if (allowed !== null && !(allowed as readonly string[]).includes(value)) {
-      fail(
-        line,
-        `${key} takes one of ${allowed.join(", ")}, got ${JSON.stringify(value)}`,
-      );
+    const allowed = APPLY_KEYS[key as ApplyKey] as readonly string[];
+    if (!allowed.includes(value)) {
+      fail(line, `${key} takes one of ${allowed.join(", ")}, got ${JSON.stringify(value)}`);
     }
 
-    return { key: key as ApplyKey, value, line };
-  });
+    pairs.push({ key: key as ApplyKey, value, line });
+  }
+
+  for (const required of REQUIRED_KEYS) {
+    if (!pairs.some((pair) => pair.key === required)) {
+      fail(line, `a #@ note needs ${REQUIRED_KEYS.join(" and ")}, and this one has no ${required}`);
+    }
+  }
+
+  return { pairs, freehand };
 };
 
 export function parseFilter(text: string): FilterBlock[] {
@@ -340,7 +401,21 @@ export function parseFilter(text: string): FilterBlock[] {
 
   const requireBlock = (line: number, what: string): BlockDraft => {
     if (current === undefined) fail(line, `${what} before any Show, Hide or Minimal block`);
-    return current as BlockDraft;
+    const block = current as BlockDraft;
+    // The `#@` line ends the block. Anything after it would be a line the note does not
+    // describe, which defeats the point of the note being the block's summary.
+    if (block.closed) {
+      fail(line, `${what} after the #@ note, which has to be the block's last line`);
+    }
+    return block;
+  };
+
+  /** Every block has to have said what it is for before the next one starts. */
+  const close = (block: BlockDraft, at: number): void => {
+    if (!block.closed) {
+      fail(at, `the block on line ${block.line} has no #@ note, and every block needs one`);
+    }
+    blocks.push(block);
   };
 
   text.split(/\r?\n/).forEach((raw, index) => {
@@ -348,7 +423,8 @@ export function parseFilter(text: string): FilterBlock[] {
     const trimmed = raw.trim();
     if (trimmed === "") return;
 
-    const code = codeOf(raw).trim();
+    const { code: rawCode, comment } = splitComment(raw);
+    const code = rawCode.trim();
 
     // Nothing but a comment. A note has to be the whole line, so this is the only place one
     // is read — a `#@` trailing a condition is a comment like any other.
@@ -360,7 +436,10 @@ export function parseFilter(text: string): FilterBlock[] {
       if (!isNote) return;
 
       const block = requireBlock(line, "a #@ note");
-      block.notes.push(...parseNote(trimmed.slice(2), line));
+      const { pairs, freehand } = parseNote(trimmed.slice(2), line);
+      block.notes.push(...pairs);
+      block.freehand = freehand;
+      block.closed = true;
       return;
     }
 
@@ -376,8 +455,17 @@ export function parseFilter(text: string): FilterBlock[] {
       if (rest !== "") {
         fail(line, `${keyword} takes nothing after it, got ${JSON.stringify(rest)}`);
       }
-      if (current !== undefined) blocks.push(current);
-      current = { keyword, conditions: [], notes: [], continues: false, line };
+      if (current !== undefined) close(current, line);
+      current = {
+        keyword,
+        conditions: [],
+        notes: [],
+        comment,
+        freehand: "",
+        continues: false,
+        line,
+        closed: false,
+      };
       return;
     }
 
@@ -393,17 +481,20 @@ export function parseFilter(text: string): FilterBlock[] {
     const name = CONDITIONS_BY_LOWER.get(lower);
     if (name !== undefined) {
       const block = requireBlock(line, `the condition ${name}`);
-      block.conditions.push(parseCondition(name, rest, line));
+      block.conditions.push(parseCondition(name, rest, line, comment));
       return;
     }
 
-    // Actions never change what matches, so they are skipped — but only the ones that are
-    // really actions. Anything else is a typo and has to be heard about.
-    if (ACTIONS.has(lower)) return;
+    // Actions never change what matches, so their values are skipped — but they still have
+    // to sit inside a block and before its note, or the note is not describing them.
+    if (ACTIONS.has(lower)) {
+      requireBlock(line, `the action ${head}`);
+      return;
+    }
 
     fail(line, `unknown condition ${JSON.stringify(head)}`);
   });
 
-  if (current !== undefined) blocks.push(current);
+  if (current !== undefined) close(current, text.split(/\r?\n/).length);
   return blocks;
 }

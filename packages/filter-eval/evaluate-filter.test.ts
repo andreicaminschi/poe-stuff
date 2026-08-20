@@ -5,11 +5,14 @@ import type { FilterItem } from "./filter-ast.ts";
 
 const filter = (...lines: string[]): string => lines.join("\n");
 
+/** The `#@` line every block has to end with, when the test does not care what it says. */
+const NOTE = "\t#@ tier=T1 verb=take";
+
 const evaluate = (text: string, item: FilterItem) => evaluateFilter(parseFilter(text), item);
 
 /** True when the one block in `text` matched, whatever it says. */
 const matches = (condition: string, item: FilterItem): boolean =>
-  evaluate(filter("Show", `\t${condition}`), item).verdict === "Show";
+  evaluate(filter("Show", `\t${condition}`, NOTE), item).verdict === "Show";
 
 describe("evaluateFilter", () => {
   it("matches a boolean condition against the item and flips it under !", () => {
@@ -216,23 +219,23 @@ describe("evaluateFilter", () => {
   });
 
   it("needs every condition in a block to match", () => {
-    const block = filter("Show", "\tCorrupted True", "\tRarity Unique");
+    const block = filter("Show", "\tCorrupted True", "\tRarity Unique", NOTE);
 
     expect(evaluate(block, { Corrupted: true, Rarity: "Unique" }).verdict).toBe("Show");
     expect(evaluate(block, { Corrupted: false, Rarity: "Unique" }).verdict).toBe("none");
   });
 
   it("stops at the first matching block and reports its keyword", () => {
-    const text = filter("Hide", "\tRarity Normal", "Show", "\tRarity Unique");
+    const text = filter("Hide", "\tRarity Normal", NOTE, "Show", "\tRarity Unique", NOTE);
 
     expect(evaluate(text, { Rarity: "Normal" }).verdict).toBe("Hide");
     expect(evaluate(text, { Rarity: "Unique" }).verdict).toBe("Show");
   });
 
   it("reports Minimal when a Minimal block is what stopped the walk", () => {
-    expect(evaluate(filter("Minimal", "\tRarity Normal"), { Rarity: "Normal" }).verdict).toBe(
-      "Minimal",
-    );
+    const text = filter("Minimal", "\tRarity Normal", NOTE);
+
+    expect(evaluate(text, { Rarity: "Normal" }).verdict).toBe("Minimal");
   });
 
   it("keeps walking past a matching block that says Continue", () => {
@@ -240,16 +243,16 @@ describe("evaluateFilter", () => {
       "Show",
       "\tRarity Unique",
       "\tContinue",
-      "\t#@ tier=T3 verb=check",
+      "\t#@ tier=T3 verb=check family=gems",
       "Hide",
       "\tCorrupted True",
-      "\t#@ tier=hidden",
+      "\t#@ tier=hidden verb=check",
     );
 
     const result = evaluate(text, { Rarity: "Unique", Corrupted: true });
 
     expect(result.verdict).toBe("Hide");
-    expect(result.notes).toEqual({ tier: "hidden", verb: "check" });
+    expect(result.notes).toEqual({ tier: "hidden", verb: "check", family: "gems" });
   });
 
   it("lets a later block beat an earlier one on the same key", () => {
@@ -257,15 +260,17 @@ describe("evaluateFilter", () => {
       "Show",
       "\tRarity Unique",
       "\tContinue",
-      "\t#@ tier=T3 verb=check",
+      "\t#@ tier=T3 verb=check family=gems",
       "Show",
       "\tRarity Unique",
-      "\t#@ tier=T1",
+      "\t#@ tier=T1 verb=take",
     );
 
     const result = evaluate(text, { Rarity: "Unique" });
 
-    expect(result.notes).toEqual({ tier: "T1", verb: "check" });
+    // tier and verb are overwritten; family is untouched because the later block is silent
+    // about it.
+    expect(result.notes).toEqual({ tier: "T1", verb: "take", family: "gems" });
   });
 
   it("keeps every contribution in order, tagged with the block that made it", () => {
@@ -276,7 +281,7 @@ describe("evaluateFilter", () => {
       "\t#@ tier=T3 verb=check",
       "Show",
       "\tRarity Unique",
-      "\t#@ tier=T1",
+      "\t#@ tier=T1 verb=take",
     );
 
     const result = evaluate(text, { Rarity: "Unique" });
@@ -285,6 +290,24 @@ describe("evaluateFilter", () => {
       { key: "tier", value: "T3", line: 1 },
       { key: "verb", value: "check", line: 1 },
       { key: "tier", value: "T1", line: 5 },
+      { key: "verb", value: "take", line: 5 },
+    ]);
+  });
+
+  it("lists each block that matched, in order, with its freehand", () => {
+    const text = filter(
+      "Show",
+      "\tRarity Unique",
+      "\tContinue",
+      "\t#@ tier=T3 verb=check first pass",
+      "Show",
+      "\tRarity Unique",
+      "\t#@ tier=T1 verb=take",
+    );
+
+    expect(evaluate(text, { Rarity: "Unique" }).matched).toEqual([
+      { line: 1, keyword: "Show", freehand: "first pass" },
+      { line: 5, keyword: "Show", freehand: "" },
     ]);
   });
 
@@ -293,34 +316,33 @@ describe("evaluateFilter", () => {
       "Show",
       "\tCorrupted True",
       "\tContinue",
-      "\t#@ tier=T0",
+      "\t#@ tier=T0 verb=take",
       "Show",
       "\tRarity Unique",
-      "\t#@ tier=T1",
+      "\t#@ tier=T1 verb=check",
     );
 
     const result = evaluate(text, { Corrupted: false, Rarity: "Unique" });
 
-    expect(result.notes).toEqual({ tier: "T1" });
-    expect(result.contributions).toHaveLength(1);
+    expect(result.notes).toEqual({ tier: "T1", verb: "check" });
+    expect(result.matched).toHaveLength(1);
   });
 
   it("answers none when nothing matched", () => {
-    const result = evaluate(filter("Show", "\tRarity Unique", "\t#@ tier=T1"), {
-      Rarity: "Normal",
-    });
+    const result = evaluate(filter("Show", "\tRarity Unique", NOTE), { Rarity: "Normal" });
 
     expect(result.verdict).toBe("none");
     expect(result.notes).toEqual({});
     expect(result.contributions).toEqual([]);
+    expect(result.matched).toEqual([]);
   });
 
   it("answers none when the last matching block still says Continue", () => {
-    const text = filter("Show", "\tRarity Unique", "\tContinue", "\t#@ tier=T1");
+    const text = filter("Show", "\tRarity Unique", "\tContinue", NOTE);
     const result = evaluate(text, { Rarity: "Unique" });
 
     expect(result.verdict).toBe("none");
-    expect(result.notes).toEqual({ tier: "T1" });
+    expect(result.notes).toEqual({ tier: "T1", verb: "take" });
   });
 
   it("handles the worked example from the plan", () => {

@@ -196,8 +196,6 @@ export const CONDITIONS_BY_LOWER: ReadonlyMap<string, ConditionName> = new Map(
  * These are the words `@poe/filter` uses, written out rather than imported: this package
  * stands alone on purpose, and importing `Tier` or `Verb` would tie it to the package it is
  * meant to stay clear of. Adding a key is one line here.
- *
- * A `null` value list means any bare word is accepted.
  */
 export const APPLY_KEYS = {
   tier: ["T0", "T1", "T2", "T3", "T4", "T5", "varies", "hidden"],
@@ -215,10 +213,15 @@ export const APPLY_KEYS = {
     "unique-maps",
     "uniques-by-base",
   ],
-  id: null,
-} as const satisfies Record<string, readonly string[] | null>;
+} as const satisfies Record<string, readonly string[]>;
 
 export type ApplyKey = keyof typeof APPLY_KEYS;
+
+/**
+ * The keys every block has to carry. A generated filter that leaves one out is a generator
+ * that forgot what the block was for, which is the thing this package exists to catch.
+ */
+export const REQUIRED_KEYS = ["tier", "verb"] as const;
 
 /**
  * What the item holds for a condition of each kind.
@@ -265,6 +268,12 @@ export type FilterCondition = {
    * `operator`. A line that writes no count means one or more.
    */
   readonly count?: number;
+  /**
+   * The comment trailing this line, without its `#`, or `""`. Where a generator records
+   * which bucket asked for the condition — the line itself stays a real filter line, so
+   * what gets validated is what the game runs.
+   */
+  readonly comment: string;
   /** 1-based line this condition was read from. */
   readonly line: number;
 };
@@ -277,11 +286,21 @@ export type Note = {
   readonly line: number;
 };
 
-/** One `Show`/`Hide`/`Minimal` block: its conditions, its notes, and whether it continues. */
+/**
+ * One `Show`/`Hide`/`Minimal` block.
+ *
+ * Every block ends with its `#@` line, and that line carries at least `tier` and `verb`.
+ * The shape is fixed on purpose: this reads filters a generator wrote, and a block that
+ * cannot say what it is for is a bug in the generator.
+ */
 export type FilterBlock = {
   readonly keyword: Keyword;
   readonly conditions: readonly FilterCondition[];
   readonly notes: readonly Note[];
+  /** Whatever followed the pairs on the `#@` line, kept verbatim. `""` when there was none. */
+  readonly freehand: string;
+  /** The comment trailing the block header, without its `#`, or `""`. */
+  readonly comment: string;
   /** Whether the block carries a `Continue` line. */
   readonly continues: boolean;
   /** 1-based line of the block header. */
@@ -296,6 +315,15 @@ export type Contribution = {
   readonly line: number;
 };
 
+/** One block that matched, for reading back when a validation fails. */
+export type MatchedBlock = {
+  /** 1-based line of the block header. */
+  readonly line: number;
+  readonly keyword: Keyword;
+  /** The block's freehand debug text, or `""`. */
+  readonly freehand: string;
+};
+
 /** What the walk down the blocks came back with. */
 export type EvalResult = {
   /** The keyword of the block that stopped the walk, or `none` if nothing stopped it. */
@@ -304,4 +332,6 @@ export type EvalResult = {
   readonly notes: Readonly<Partial<Record<ApplyKey, string>>>;
   /** Every contribution in the order it was made, including ones later overwritten. */
   readonly contributions: readonly Contribution[];
+  /** Every block that matched, in order, with the freehand its author left behind. */
+  readonly matched: readonly MatchedBlock[];
 };
