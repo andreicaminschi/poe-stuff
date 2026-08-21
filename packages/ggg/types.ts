@@ -159,6 +159,20 @@ export type TradeItemsResponse = {
 export type UniqueItem = { readonly name: string; readonly type: string };
 
 /**
+ * A non-unique item as the trade data knows it: the name the game prints on it, and the
+ * group `GET /data/items` filed it under. `category` is the group's id — `weapon.bow`,
+ * `card`, `currency` — and `label` the heading the trade site prints for it.
+ *
+ * The group is the only thing in that payload saying what an entry is, so it travels with
+ * the row: `type` alone cannot tell a bow from a divination card.
+ */
+export type ItemBase = {
+  readonly type: string;
+  readonly category: string;
+  readonly label: string;
+};
+
+/**
  * One row of `GET /data/stats`: a stat the trade site will search on, with every rolled
  * number written as `#`. `type` repeats the group it arrived in — `explicit`, `implicit`,
  * `pseudo`, `fractured`, and the rest — and is also the prefix of `id`.
