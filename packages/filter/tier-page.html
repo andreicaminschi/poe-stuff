@@ -15,9 +15,17 @@
     --accent: #af6025;
     --accent-soft: #f0e2d5;
 
-    --take: #a06a12;
-    --check: #2c6f8c;
-    --gamble: #a8331f;
+    /* Tier owns colour. Nine steps, each nameable on sight, dark enough for a white
+       panel — the stage has its own brighter set, since it paints on near-black. */
+    --t-0: #c62a45;
+    --t-1: #a86200;
+    --t-2: #7d6b00;
+    --t-3: #2e7a37;
+    --t-4: #1e6a9c;
+    --t-5: #4f5b8f;
+    --t-6: #5c666e;
+    --t-varies: #9c3a95;
+    --t-hidden: #9a9086;
 
     /* The preview is a window into the game, so it keeps its ground in both themes. */
     --game: #0a0908;
@@ -43,9 +51,15 @@
       --accent: #d08a47;
       --accent-soft: #33241a;
 
-      --take: #e0a64b;
-      --check: #58a7c8;
-      --gamble: #c8452f;
+      --t-0: #ff3d5a;
+      --t-1: #ff9f2e;
+      --t-2: #ffe14d;
+      --t-3: #7ddc6a;
+      --t-4: #4ea8de;
+      --t-5: #8f9fd0;
+      --t-6: #7e8a94;
+      --t-varies: #d67fd0;
+      --t-hidden: #6b615a;
     }
   }
 
@@ -60,9 +74,15 @@
     --accent: #d08a47;
     --accent-soft: #33241a;
 
-    --take: #e0a64b;
-    --check: #58a7c8;
-    --gamble: #c8452f;
+    --t-0: #ff3d5a;
+    --t-1: #ff9f2e;
+    --t-2: #ffe14d;
+    --t-3: #7ddc6a;
+    --t-4: #4ea8de;
+    --t-5: #8f9fd0;
+    --t-6: #7e8a94;
+    --t-varies: #d67fd0;
+    --t-hidden: #6b615a;
   }
 
   * { box-sizing: border-box; }
@@ -156,9 +176,6 @@
 
   .matrix { width: 100%; border-collapse: collapse; font-size: 12px; }
   .matrix th { font-weight: 600; color: var(--ink-3); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; padding: 0 0 calc(var(--sp) * 2); }
-  .matrix th.verb-take { color: var(--take); }
-  .matrix th.verb-check { color: var(--check); }
-  .matrix th.verb-gamble { color: var(--gamble); }
   .matrix td { padding: 0; }
   .matrix th:first-child { text-align: left; }
 
@@ -187,6 +204,30 @@
     padding-right: calc(var(--sp) * 2);
     white-space: nowrap;
   }
+
+  /* The rail names a tier in the same colour the stage draws it in. One class per tier
+     rather than an inline style, so the light and dark values swap with the theme. */
+  .t-T0 { color: var(--t-0); }
+  .t-T1 { color: var(--t-1); }
+  .t-T2 { color: var(--t-2); }
+  .t-T3 { color: var(--t-3); }
+  .t-T4 { color: var(--t-4); }
+  .t-T5 { color: var(--t-5); }
+  .t-T6 { color: var(--t-6); }
+  .t-varies { color: var(--t-varies); }
+  .t-hidden { color: var(--t-hidden); }
+
+  /* `.matrix th` carries a colour of its own and outranks a lone class, so the row
+     headers take the tier ink through a selector that outranks it back. */
+  .matrix th.t-T0 { color: var(--t-0); }
+  .matrix th.t-T1 { color: var(--t-1); }
+  .matrix th.t-T2 { color: var(--t-2); }
+  .matrix th.t-T3 { color: var(--t-3); }
+  .matrix th.t-T4 { color: var(--t-4); }
+  .matrix th.t-T5 { color: var(--t-5); }
+  .matrix th.t-T6 { color: var(--t-6); }
+  .matrix th.t-varies { color: var(--t-varies); }
+  .matrix th.t-hidden { color: var(--t-hidden); }
 
   /* ---------- controls ---------- */
 
@@ -276,17 +317,75 @@
   }
   .stage-head .eyebrow { color: #6d6259; }
 
-  .drops { display: flex; flex-direction: column; align-items: flex-start; gap: calc(var(--sp) * 2); }
+  .drops { display: flex; flex-direction: column; align-items: stretch; gap: calc(var(--sp) * 2); }
 
-  /* One drop: minimap icon, the label plate, then the numbers. */
+  /* One drop: tier badge, minimap icon, the label plate, then the numbers. */
   .drop {
     display: grid;
-    grid-template-columns: 26px minmax(0, auto) 1fr;
+    grid-template-columns: 50px 26px minmax(0, auto) 1fr;
     align-items: center;
     gap: calc(var(--sp) * 3);
     width: 100%;
     padding: 1px 0;
     animation: settle 220ms ease both;
+  }
+
+  /* ---------- the tier badge ---------- */
+
+  /* Redundant with the plate's colour and size on purpose: the tier is the question the
+     board exists to answer, and reading it should never mean comparing two rows. */
+  .badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    border: 1px solid;
+    border-radius: 2px;
+    padding: 1px 0 2px;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    line-height: 1.1;
+  }
+
+  .pips { display: flex; gap: 2px; height: 3px; }
+  .pips i { width: 3px; height: 3px; border-radius: 50%; background: currentColor; }
+  .pips i.off { opacity: 0.22; }
+
+  /* ---------- the tier band ---------- */
+
+  .band {
+    position: sticky;
+    /* Under the page header, which is sticky too — without this the band slides beneath
+       it and the tier being read scrolls away unlabelled. */
+    top: 65px;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: calc(var(--sp) * 3);
+    margin: calc(var(--sp) * 5) 0 calc(var(--sp) * 1);
+    padding: calc(var(--sp) * 1.5) 0;
+    background: var(--game);
+    color: var(--band);
+  }
+  .band:first-child { margin-top: 0; }
+
+  .band .badge { flex-direction: row; align-items: baseline; padding: 1px 6px; gap: 5px; }
+  .band .pips { align-self: center; }
+
+  .band-name {
+    font-family: Alegreya, Georgia, serif;
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .band-says { color: #6d6259; font-size: 11px; }
+  .band-rule { flex: 1; height: 1px; background: currentColor; opacity: 0.28; }
+  .band-n {
+    font-family: "IBM Plex Mono", monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 11px;
+    color: #6d6259;
   }
 
   @keyframes settle { from { opacity: 0; transform: translateY(-2px); } to { opacity: 1; transform: none; } }
@@ -333,6 +432,22 @@
     letter-spacing: 0.06em;
     text-transform: uppercase;
   }
+  /* The action, said twice over: the glyph repeats the minimap icon's shape, and the
+     plate beside it wears the matching border style. Colour is spent on the tier. */
+  .meta .verb {
+    border: 1px solid #342c26;
+    border-radius: 2px;
+    padding: 0 5px;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #9a8d81;
+  }
+  .meta .verb::before { margin-right: 4px; }
+  .meta .verb.take::before { content: "\25CF"; }
+  .meta .verb.check::before { content: "\25C6"; }
+  .meta .verb.gamble::before { content: "\25B2"; }
+
   .meta .tag.vaal { color: var(--game-gamble); border-color: #4a221a; }
   .meta .tag.thin { color: #6d6259; }
   /* The game's own corrupted red, which is the one colour a player already reads. */
@@ -372,7 +487,24 @@
   .legend-row { display: flex; align-items: center; gap: calc(var(--sp) * 3); }
   .legend-row .tier-label { min-width: 46px; padding: 0; }
   .legend-row .rule { flex: 1; height: 1px; background: var(--line); }
-  .legend-swatches { display: flex; gap: calc(var(--sp) * 2); }
+  /* Badge on a white panel: it borrows the row's tier colour rather than carrying a
+     wash, which at these sizes would only muddy the ink. */
+  .legend-row .badge { min-width: 44px; border-color: currentColor; background: none; }
+  .legend-says { color: var(--ink-3); font-size: 11px; }
+  .legend-word { font-size: 12px; min-width: 46px; color: var(--ink-2); }
+
+  /* The plate's border style, at plate weight, so the key matches what the stage draws. */
+  .legend-sample {
+    font-family: Alegreya, Georgia, serif;
+    font-weight: 700;
+    font-size: 12px;
+    color: var(--ink-3);
+    border: 1px solid var(--ink-3);
+    border-radius: 2px;
+    padding: 0 6px;
+  }
+  .legend-sample.check { border-style: dashed; }
+  .legend-sample.gamble { border-style: double; border-width: 3px; }
 </style>
 
 <div class="top">
@@ -390,9 +522,9 @@
         <thead>
           <tr>
             <th scope="col"></th>
-            <th scope="col" class="verb-take">take</th>
-            <th scope="col" class="verb-check">check</th>
-            <th scope="col" class="verb-gamble">gamble</th>
+            <th scope="col">&#9679; take</th>
+            <th scope="col">&#9670; check</th>
+            <th scope="col">&#9650; gamble</th>
           </tr>
         </thead>
         <tbody id="matrix-body"></tbody>
@@ -418,8 +550,13 @@
     </section>
 
     <section class="card">
-      <span class="eyebrow">Icon key</span>
-      <div class="legend-grid" id="legend"></div>
+      <span class="eyebrow">Tiers &mdash; colour, size, pips</span>
+      <div class="legend-grid" id="legend-tiers"></div>
+    </section>
+
+    <section class="card">
+      <span class="eyebrow">Actions &mdash; shape, border</span>
+      <div class="legend-grid" id="legend-verbs"></div>
     </section>
   </aside>
 
@@ -439,24 +576,45 @@
   const BUCKETS = /*__BUCKETS__*/[];
   const GENERATED = "/*__STAMP__*/";
 
-  const TIERS = ["T0", "T1", "T2", "T3", "T4", "T5", "varies", "hidden"];
+  const TIERS = ["T0", "T1", "T2", "T3", "T4", "T5", "T6", "varies", "hidden"];
   const VERBS = ["take", "check", "gamble"];
 
-  // How loud each tier draws. Size and weight carry the tier; colour carries the verb.
-  const STYLE = {
-    T0:     { size: 25, glow: 16, plate: 0.24, icon: 11, beam: true },
-    T1:     { size: 20, glow: 10, plate: 0.18, icon: 9,  beam: true },
-    T2:     { size: 16.5, glow: 0, plate: 0.13, icon: 7.5, beam: false },
-    T3:     { size: 14.5, glow: 0, plate: 0.09, icon: 6,  beam: false },
-    T4:     { size: 13, glow: 0, plate: 0.05, icon: 4.5, beam: false },
-    T5:     { size: 11, glow: 0, plate: 0.03, icon: 3,  beam: false },
-    // Off the ladder: no glow, no beam, a plate to say it is drawn at all. It makes no
-    // loudness claim, so it borrows T3's size and nothing else.
-    varies: { size: 14.5, glow: 0, plate: 0.09, icon: 6,  beam: false },
-    hidden: { size: 11, glow: 0, plate: 0, icon: 0, beam: false }
+  /**
+   * How each tier draws.
+   *
+   * Four redundant channels, because one is never enough to read a rung off a single
+   * row: `ink` is the tier's own colour, `size` and `glow` its loudness, `pips` the rung
+   * counted out, and `badge` the rung written down. The inks are the dark half of the
+   * `--t-*` ramp — the stage is near-black in either theme, so it never takes the light
+   * set the rail uses.
+   */
+  const TIER = {
+    T0:     { ink: "#ff3d5a", size: 26,   glow: 18, wash: 0.24, isz: 11,  pips: 7, beam: true,  badge: "T0",  name: "tier 0", says: "stop what you are doing" },
+    T1:     { ink: "#ff9f2e", size: 21,   glow: 11, wash: 0.18, isz: 9.5, pips: 6, beam: true,  badge: "T1",  name: "tier 1", says: "worth crossing the map for" },
+    T2:     { ink: "#ffe14d", size: 17.5, glow: 0,  wash: 0.13, isz: 8,   pips: 5, beam: false, badge: "T2",  name: "tier 2", says: "pick up on the way past" },
+    T3:     { ink: "#7ddc6a", size: 15,   glow: 0,  wash: 0.09, isz: 7,   pips: 4, beam: false, badge: "T3",  name: "tier 3", says: "pick up when convenient" },
+    T4:     { ink: "#4ea8de", size: 13.5, glow: 0,  wash: 0.05, isz: 6,   pips: 3, beam: false, badge: "T4",  name: "tier 4", says: "shown, rarely worth the click" },
+    // The bottom two are not "quieter than T4", they are the smallest marks the game can
+    // draw for something that must appear anyway — hence the cool hues off the heat ramp.
+    T5:     { ink: "#8f9fd0", size: 12,   glow: 0,  wash: 0.03, isz: 5,   pips: 2, beam: false, badge: "T5",  name: "tier 5", says: "always shown: crafting mats" },
+    T6:     { ink: "#7e8a94", size: 11,   glow: 0,  wash: 0.02, isz: 4,   pips: 1, beam: false, badge: "T6",  name: "tier 6", says: "always shown: floor sweepings" },
+    // Off the ladder: no rung to count, so no pips, and a hue that is not on the ramp.
+    // It makes no loudness claim either, so it borrows T3's size and nothing else.
+    varies: { ink: "#d67fd0", size: 15,   glow: 0,  wash: 0.09, isz: 7,   pips: 0, beam: false, badge: "VAR", name: "varies", says: "price depends on the roll" },
+    hidden: { ink: "#6b615a", size: 11.5, glow: 0,  wash: 0.02, isz: 0,   pips: 0, beam: false, badge: "HID", name: "hidden", says: "the game never draws it" }
   };
 
-  const VERB_INK = { take: "#e0a64b", check: "#58a7c8", gamble: "#c8452f" };
+  /**
+   * How each action draws — in every channel except colour, which the tier has taken.
+   *
+   * `shape` is the minimap glyph, `border` the style the plate's own frame wears. A row
+   * says its verb three times: icon, plate frame, and the word in the meta line.
+   */
+  const VERB = {
+    take:   { border: "solid",  width: 1, says: "grab it off the ground" },
+    check:  { border: "dashed", width: 1, says: "hover it, the roll decides" },
+    gamble: { border: "double", width: 3, says: "vaal it and hope" }
+  };
 
   // `hidden` holds the families switched off, so a family added by a later run of the
   // classifier shows up rather than needing to be opted in.
@@ -464,6 +622,25 @@
 
   const $ = (id) => document.getElementById(id);
   const chaos = (n) => (n >= 1000 ? Math.round(n / 1000) + "k" : Math.round(n)) + "c";
+
+  /** Two hex digits of alpha, for the washes a plate is tinted with. */
+  const alpha = (n) => Math.round(Math.max(0, Math.min(255, n))).toString(16).padStart(2, "0");
+
+  /** The tier as a count: filled to its rung, hollow to six. Nothing for the two that
+      sit off the ladder — a rung they do not have should not be drawn as zero. */
+  function pips(tier) {
+    if (TIER[tier].pips === 0) return "";
+    let out = '<span class="pips">';
+    for (let i = 0; i < 7; i += 1) out += '<i class="' + (i < TIER[tier].pips ? "on" : "off") + '"></i>';
+    return out + "</span>";
+  }
+
+  /** The chip that opens every row and every band: the tier written down, then counted. */
+  function badge(tier) {
+    const t = TIER[tier];
+    return '<span class="badge" style="color:' + t.ink + ';border-color:' + t.ink +
+      '66;background:' + t.ink + '14">' + t.badge + pips(tier) + '</span>';
+  }
 
   /**
    * What one bucket is, as the classifier decided it.
@@ -478,9 +655,19 @@
     return { tier: b.tier, verb: b.verb, vaalable: b.vc > 0 && b.verb === "gamble" };
   }
 
-  function icon(verb, size, beam) {
+  /**
+   * The minimap glyph: the verb's shape, drawn at the tier's size in the tier's colour.
+   *
+   * One mark carrying both dimensions is the point — the shape answers "what do I do"
+   * and the colour and size answer "how much do I care", without two things to compare.
+   * `paint` overrides the ink for the legend, which sits on a panel rather than the
+   * stage and needs the theme's own foreground.
+   */
+  function icon(verb, tier, paint) {
+    const t = TIER[tier];
+    const size = t.isz, beam = t.beam;
     if (size <= 0) return '<svg class="icon" width="26" height="16"></svg>';
-    const ink = VERB_INK[verb];
+    const ink = paint || t.ink;
     const c = 13, m = 8, s = size / 2;
     // Shape says the verb: a disc to take, a diamond to hover, a triangle to gamble.
     const shape = verb === "take"
@@ -566,24 +753,53 @@
       return;
     }
 
+    // Grouped by tier, loudest first, and by price inside a tier — so a band opens with
+    // the item that set it and the ladder reads straight down the page.
+    const top = ([b]) => Math.max(b.ce, b.fl);
+    rows.sort((a, b) => (TIERS.indexOf(a[1].tier) - TIERS.indexOf(b[1].tier)) || (top(b) - top(a)));
+
+    // Counted over every match rather than the slice, so a band header does not shrink
+    // just because "show more" is the only thing between it and the rest of its tier.
+    const perTier = new Map();
+    for (const row of rows) perTier.set(row[1].tier, (perTier.get(row[1].tier) ?? 0) + 1);
+
     const slice = rows.slice(0, state.limit);
+    let open = null;
+
     const html = slice.map(([b, now]) => {
-      const st = STYLE[now.tier];
-      const ink = VERB_INK[now.verb];
+      const t = TIER[now.tier];
+      const v = VERB[now.verb];
+      const ink = t.ink;
       const { kind, rest, lq, corrupted } = label(b.id);
       const price = b.ce >= b.fl ? chaos(b.ce) : chaos(b.fl);
 
-      return '<div class="drop">' +
-        icon(now.verb, st.icon, st.beam) +
-        '<span class="plate" style="font-size:' + st.size + 'px;color:' + ink +
-          ';border-color:' + ink + Math.round(st.plate * 255 + 40).toString(16).padStart(2, "0") +
-          ';background:' + ink + Math.round(st.plate * 90).toString(16).padStart(2, "0") +
-          (st.glow ? ';text-shadow:0 0 ' + st.glow + 'px ' + ink + '66' : '') + '">' +
+      // A band opens each run of one tier and sticks under the header while it scrolls,
+      // so the rung is on screen for every row beneath it.
+      let head = "";
+      if (now.tier !== open) {
+        open = now.tier;
+        head = '<div class="band" style="--band:' + ink + '">' + badge(now.tier) +
+          '<span class="band-name">' + t.name + '</span>' +
+          '<span class="band-says">' + t.says + '</span>' +
+          '<span class="band-rule"></span>' +
+          '<span class="band-n">' + perTier.get(now.tier).toLocaleString() + '</span>' +
+        '</div>';
+      }
+
+      return head + '<div class="drop">' +
+        badge(now.tier) +
+        icon(now.verb, now.tier) +
+        '<span class="plate" style="font-size:' + t.size + 'px;color:' + ink +
+          ';border-style:' + v.border + ';border-width:' + v.width + 'px' +
+          ';border-color:' + ink + alpha(t.wash * 255 + 40) +
+          ';background:' + ink + alpha(t.wash * 90) +
+          (t.glow ? ';text-shadow:0 0 ' + t.glow + 'px ' + ink + '66' : '') + '">' +
           '<span>' + rest + '</span>' +
           (lq ? '<span class="lq">' + lq + '</span>' : '') +
           (kind ? '<span class="base">' + kind + '</span>' : '') +
         '</span>' +
         '<span class="meta">' +
+          '<span class="verb ' + now.verb + '">' + now.verb + '</span>' +
           '<span class="price">' + price + '</span>' +
           (now.vaalable ? '<span class="tag vaal">vaal ' + chaos(b.vc) + '</span>' : '') +
           (corrupted ? '<span class="tag corrupted">corrupted</span>' : '') +
@@ -607,7 +823,8 @@
       const tr = document.createElement("tr");
       const th = document.createElement("th");
       th.scope = "row";
-      th.className = "tier-label";
+      // Same colour the stage paints the tier in, so the rail and the board agree.
+      th.className = "tier-label t-" + tier;
       th.textContent = tier;
       tr.append(th);
 
@@ -633,16 +850,36 @@
     }
   }
 
+  /**
+   * Two keys, because the board says two things at once now.
+   *
+   * The tier key is drawn in the theme's colours rather than the stage's, since it sits
+   * on a panel — the badge picks the row's tier up through `currentColor`. The action
+   * key never names a tier: it shows the shape and the plate's frame, nothing else.
+   */
   function buildLegend() {
-    const box = $("legend");
+    const tiers = $("legend-tiers");
     for (const tier of TIERS) {
-      const st = STYLE[tier];
+      const t = TIER[tier];
+      const row = document.createElement("div");
+      row.className = "legend-row t-" + tier;
+      row.innerHTML = '<span class="badge">' + t.badge + pips(tier) + '</span>' +
+        '<span class="legend-word">' + t.name + '</span>' +
+        '<span class="legend-says">' + t.says + '</span>';
+      tiers.append(row);
+    }
+
+    const verbs = $("legend-verbs");
+    for (const verb of VERBS) {
       const row = document.createElement("div");
       row.className = "legend-row";
-      row.innerHTML = '<span class="tier-label">' + tier + '</span>' +
-        '<span class="legend-swatches">' + VERBS.map((v) => icon(v, st.icon, st.beam)).join("") + '</span>' +
-        '<span class="rule"></span>';
-      box.append(row);
+      // Drawn at T2's size: big enough to tell three shapes apart, and making no claim
+      // about which rung the shape belongs to.
+      row.innerHTML = icon(verb, "T2", "var(--ink-2)") +
+        '<span class="legend-word">' + verb + '</span>' +
+        '<span class="legend-sample ' + verb + '">plate</span>' +
+        '<span class="legend-says">' + VERB[verb].says + '</span>';
+      verbs.append(row);
     }
   }
 
