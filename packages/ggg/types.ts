@@ -173,6 +173,52 @@ export type ItemBase = {
 };
 
 /**
+ * One row of `GET /data/static`: an item the trade site names rather than searches for by
+ * base type — the currencies, fragments, essences, cards and the rest of the exchange's
+ * stock. `id` is the string the Currency Exchange keys a market by, `text` the name the
+ * site prints, and `image` a path on GGG's CDN. That last one is missing by the group
+ * rather than by the item: `Cards`, `Beasts`, `Heist`, `Sanctum`, `MapsSpecial`,
+ * `MapsUnique` and `Legacy` arrive without a single image between them, and every other
+ * group has one on every row — 655 of 1,411 rows carry no picture.
+ *
+ * A row with `id` `sep` is a divider drawn between groups of buttons, not an item. Its
+ * `text` is the heading the divider prints, or empty for a plain rule.
+ */
+export type TradeStaticEntry = {
+  readonly id: string;
+  readonly text: string;
+  readonly image?: string;
+};
+
+/**
+ * Envelope returned by `GET /data/static`. Entries arrive grouped the way the exchange
+ * groups them, 22 groups of them, every one carrying a label.
+ */
+export type TradeStaticResponse = {
+  readonly result: readonly {
+    readonly id: string;
+    readonly label: string;
+    readonly entries: readonly TradeStaticEntry[];
+  }[];
+};
+
+/**
+ * A static item with the group it arrived in kept alongside it: `category` is the group's
+ * id and `label` the heading the trade site prints for it — `Currency`, `Fragments`,
+ * `DeliriumOrbs`, `Essences`, `Cards`.
+ *
+ * The group is the whole point of reading this endpoint. It is GGG saying which kind of
+ * currency an item is, which nothing else in the API does.
+ */
+export type StaticItem = {
+  readonly id: string;
+  readonly text: string;
+  readonly image?: string;
+  readonly category: string;
+  readonly label: string;
+};
+
+/**
  * One row of `GET /data/stats`: a stat the trade site will search on, with every rolled
  * number written as `#`. `type` repeats the group it arrived in — `explicit`, `implicit`,
  * `pseudo`, `fractured`, and the rest — and is also the prefix of `id`.
