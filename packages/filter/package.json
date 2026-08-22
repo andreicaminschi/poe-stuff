@@ -7,6 +7,7 @@
   "exports": {
     "./classify": "./classify.ts",
     "./emit-filter": "./emit-filter.ts",
+    "./explain-item": "./explain-item.ts",
     "./merge-uniques": "./merge-uniques.ts",
     "./types": "./types.ts",
     "./build-tier-page": "./build-tier-page.ts",
@@ -14,6 +15,7 @@
     "./verify-filter": "./verify-filter.ts"
   },
   "dependencies": {
-    "@poe/filter-eval": "workspace:^"
+    "@poe/filter-eval": "workspace:^",
+    "@poe/item": "workspace:^"
   }
 }

@@ -1314,6 +1314,7 @@ __metadata:
   resolution: "@poe/filter@workspace:packages/filter"
   dependencies:
     "@poe/filter-eval": "workspace:^"
+    "@poe/item": "workspace:^"
   languageName: unknown
   linkType: soft
 
@@ -1323,7 +1324,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@poe/item@workspace:packages/item":
+"@poe/item@workspace:^, @poe/item@workspace:packages/item":
   version: 0.0.0-use.local
   resolution: "@poe/item@workspace:packages/item"
   languageName: unknown
