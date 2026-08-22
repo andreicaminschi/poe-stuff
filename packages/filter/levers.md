@@ -1,111 +1,187 @@
 # Levers
 
-Every tunable number the classifier currently holds, and what moving it does. Written from
-the code, not from the design — `packages/filter/classify.ts` unless another file is named.
-Line numbers are deliberately absent; grep the name.
+Everything a player can adjust, and what moving it does.
 
-A **lever** is a number the player owns. It says whether *this player* cares, and moving it
-must never require re-pricing anything. Everything else on this page is a constant: a
-modelling choice or a market fact that happens to be typed in by hand for now. The
-distinction matters because the exploration doc caps the number of levers at the number of
-visually distinguishable treatments — every real lever spends part of a fixed budget, and
-the constants below must not quietly become knobs.
+This is the page to read before building a UI over the generator. It is written from the
+code — `tiers.json` and `classify.ts` unless another file is named — and it is the contract
+a settings screen would bind to.
 
-## Levers — player-owned, safe to move at runtime
+## The one rule that shapes the UI
 
-| Name | Unit | Default | Applies to | Moves at runtime? |
+**Every lever is read at classify time, and nothing is adjustable afterwards.** There is no
+runtime layer: moving a lever does not re-colour a finished filter, it changes which blocks
+exist at all. A T3 cut that moves deletes some blocks and creates others; a click floor that
+rises removes stack rungs entirely.
+
+So the flow a UI has to implement is *set the levers, regenerate, reload in game* — not
+*drag a slider and watch the file change*. The whole pipeline is three phases and takes as
+long as the market fetch, which the hour caches make free on a re-run.
+
+One consequence worth designing around: the game reads a filter **once, when it is
+selected**. Writing the file is not enough — the player has to re-select it in game before
+anything they changed is visible.
+
+## Where a lever lives
+
+| Home | What is in it | Reachable from a UI |
+| --- | --- | --- |
+| `tiers.json` | every lever below, the ladders, the curated lists | yes — it is data, edit and regenerate |
+| CLI flags | a few of the player levers, overriding the file | yes, if the UI shells out |
+| env | the league and the board's port | yes |
+| `classify.ts` constants | modelling decisions | **no — see "Not levers"** |
+
+## Player levers
+
+The five settings a player owns. All live under `levers` in `tiers.json`.
+
+| Lever | Type | Default | Range | Flag |
 | --- | --- | --- | --- | --- |
-| `MAX_GAMBLE_FLOOR` | chaos | `2` | every bucket with a vaal ceiling | yes |
-| `TIER_CUTS` | chaos, per tier | `3000 / 300 / 40 / 5 / 1` | every bucket | yes |
-| `alwaysShow` (Foulborn) | on/off | on | the Foulborn buckets | yes |
-| `MIN_DAILY_LISTINGS` | listings per day | `20` | every row from `/compact` | **no** |
+| `minClickValue` | number, chaos | `0` | `>= 0` | `--min-click` |
+| `goldPerDivine` | number, gold | `1000000` | `> 0` | `--gold-per-divine` |
+| `hideUniqueMaps` | boolean | `false` | — | `--hide-unique-maps` |
+| `gambleCeiling` | number, chaos | `30` | `>= 0` | none yet |
+| `gambleExclude.enabled` | boolean | `false` | — | none yet |
+| `gambleExclude.cutoff` | number, chaos | `100` | `> 0` | none yet |
 
-**`MIN_DAILY_LISTINGS` — the listings floor.** Below it a row is not evidence of a price
-and is not read at all. It answers open question 4 of the exploration doc — emit on thin
-data, or stay silent — and it is the only lever that overrides the show-cheap baseline,
-because a price with no listings behind it is not a cheap item, it is not an item.
+**`minClickValue` — the least a single click may be worth.**
+The one lever that hides on purpose. Everything else in the classifier serves the
+show-cheap baseline; this is the player answering that a click is not free, and it is
+allowed to win because nobody else can price their time. In chaos rather than divine: it is
+a floor on attention, and it does not get cheaper because divine went up.
 
-It is also the only lever that **cannot move at runtime**: it decides which rows are read,
-so changing it means re-running the classifier. A generator lever, not a profile one.
+It reads differently on a stack. One click takes the whole pile, so it raises the smallest
+stack worth bending for rather than hiding the currency — at 3c a Chaos Orb is not shown
+until three are on the floor together. `0` disables it and is the default.
 
-**Rows the Currency Exchange priced are exempt.** The floor disbelieves a scraped listing
-nobody acted on; an exchange row is a real book, where low volume means scarce. Median
-exchange volume is 3,566 against a floor built for numbers near 20, and the rows it would
-cut there are Mirror of Kalandra at 1 and House of Mirrors at 1 — the opposite of what the
-floor is for.
+Three things override it: a rung marked `persistent`, a bucket marked `alwaysShow`, and any
+item matched by `neverHidden`. A UI should say so, because a player who sets 5c and still
+sees 1c scarabs has not found a bug.
 
-On `/compact` it removes three fabricated prices that had each set a tier. What `daily`
-actually counts is still open in `TODO.md`: an item nobody lists because it is worthless
-and an item nobody lists because almost none exist look identical through it.
+**`goldPerDivine` — what a pile of gold is worth to this player.**
+The one price in the file that is not a market price, because gold cannot be traded and no
+feed quotes it. Stated as gold per divine because that is the direction the number is known
+in — nobody has an intuition for 0.0002c. Every gold block follows from it.
 
-**`MAX_GAMBLE_FLOOR` — the loss cap.** The most the player will destroy on a corruption.
-Read against `vaalFloor`, the plain price of the member whose corrupted price sets the
-ceiling — the item the orb actually destroys, which is often not the item setting the
-bucket's plain ceiling. Absolute where the ratio test is relative, and that is the point:
-Kalandra's Touch at 525c passes the ratio at 91× and is still a ring almost nobody vaals.
-Failing it demotes to `take`, never hides. At 2c it holds 163 buckets vaalable out of 479
-that pass the ratio; 5c gives 227, 10c gives 298. **2c excludes Valyrium**, which is 5c
-plain in this snapshot.
+**`hideUniqueMaps` — drop the unique-map treatment entirely.**
+The one all-or-nothing lever, because the game leaves no middle setting: a unique map
+cannot be told from its neighbours, so either every unique map is worth a look or none are.
+`false` is the default, since it hides on purpose and nothing that hides on purpose is a
+default here.
 
-**`TIER_CUTS` — the value floor, five times over.** The bottom cut is the doc's "minimum
-value to show a `take`", and the others are the same lever repeated per treatment. Moving
-the whole ladder is a profile change; moving one cut re-sorts buckets between two
-treatments. Not yet split into a per-verb floor, which the doc asks for — a player who will
-not tab out mid-map wants a different floor for `price` than for `take`.
+**`gambleCeiling` — the most a unique base may be worth and still be offered as a gamble.**
+A base is marked as a vaal gamble when its dearest unique is at or under this, some unique
+on it corrupts into something worth 5x its price, and it did not already earn T2 or louder
+on its own. At 30c Moonstone Ring is a gamble and Heavy Belt never is, because Mageblood
+shares the base.
 
-**`alwaysShow` — the Foulborn toggle.** Hardcoded `true` for the Foulborn pass. It is the
-switch that keeps a category on screen at `T5` when it is worth nothing. Currently not
-reachable from outside `classify`, and it is the one on this page that most obviously wants
-to be a real profile field.
+**`gambleExclude` — let the player ignore the expensive uniques on a base.**
+Off by default, because it is the one setting that can lose an item. On, uniques dearer than
+`cutoff` stop counting toward the base's gamble price — so a Heavy Belt prices off
+Siegebreaker at 40c with Mageblood set aside, and becomes gamble-eligible. The claim being
+made is *I will recognise a Mageblood rather than vaal it by accident*.
 
-## Constants — modelling choices, not knobs
+`gambleCeiling` and `gambleExclude` have **no CLI flag yet** and are file-only.
 
-| Name | Value | Why it is not a lever |
+## Ladders
+
+One row per tier per family, under `ladders` in `tiers.json`. A UI could expose these as an
+advanced panel; they are the numbers most likely to be retuned in a league.
+
+| Ladder | Cuts | Notes |
 | --- | --- | --- |
-| `RATIO_THRESHOLD` | `10` | The player already owns the value thresholds. A second knob here is how this grows into forty checkboxes. |
-| `T0_CEILING` | `20_000` | The ceiling-driven exception: a one-in-a-million drop is worth nothing on average and still stops the map. Moving it changes what "stop the map" means, which is a design decision, not a preference. |
-| `CHECK_DISCOUNT` | `0.3` | How much of a `check` ceiling to count. A guess at how often the good outcome is the one on the floor. Should become a real number from drop weights, not a knob. |
-| ilvl cut, `best / 2` | half the best price | Where a base bucket puts its `ItemLevel >=`. An approximation, in the generous direction. |
+| `currency` | T0 5div, T1 0.7div, T2 0.1div, T3 0.05div, T4 click floor, T5/T6 leaguestart | div-cards share it, at stack 1 |
+| `gems` | T0 5div, T1 0.7div, T2 0.1div, T3 0.05div, T4 click floor, T5 quality gate | |
+| `bases` | T0 quality gate, T1 1div, T2 0.5div, T3 0.1div, T4 0.01div | thin prices disqualify a base outright |
+| `uniques` | T0 5div, T1 1div, T2 50c, T3 20c, T4 catch-all | foulborn shares it, drawn purple |
+| `maps` | no cuts — five named treatments | not priced at all |
+| `default` | T0 10div, T1 1div, T2 0.2div, T3 0.025div, T4 0.005div | for the families `buckets/` has no doc for: misc, replicas |
 
-## Market facts currently typed in by hand
+Fields on a row:
 
-Neither levers nor constants. These are numbers the data should supply and does not yet.
+| Field | Meaning |
+| --- | --- |
+| `cut` | the price that wins the rung. `null` means the rung is won some other way |
+| `unit` | `divine` (default) or `chaos`. See below |
+| `clickFloor` | this rung is won by clearing `minClickValue`, and nothing else |
+| `persistent` | no click floor may hide this rung |
+| `template`, `sound`, `size`, `beam`, `icon` | how the rung is drawn — see `buckets/buckets.md` |
+| `gambleTemplate` | the template a gamble swaps in at this rung |
 
-| Name | Value | Should come from |
+**`unit` is per row, and the split is deliberate.** A cut that says *this is a serious drop*
+belongs in divine, or it re-tiers the whole game as chaos drifts. A cut that asks *is this
+worth hovering over* belongs in chaos, because hovering does not get more expensive because
+divine went up. So the unique ladder's top two rungs are divine and its bottom two are
+chaos — a divine-denominated 20c floor silently became 60c over one league and hid every
+40c unique, which is the bug this field exists to prevent.
+
+## Curated lists
+
+Hand-maintained data. A UI would present these as editable lists rather than numbers.
+
+| List | Where | What |
 | --- | --- | --- |
-| `VAAL_HIT_RATE` | `0.05` | The wiki's implicit tables and the logic that picks between them. Every `gamble` tier is scaled by this, so the tiers are currently ordered right and scaled arbitrarily. See `TODO.md`. |
-| `VAAL_ORB_COST` | `1` | The market. A Vaal Orb has a price and it moves. |
+| `leagueStart.currency.T5` / `.T6` | `tiers.json` | crafting mats and scrolls shown below `untilAreaLevel`, but only while the price ladder would hide them |
+| `leagueStart.untilAreaLevel` | `tiers.json` | default `68` |
+| `leagueStart.gemQuality` / `.baseQuality` | `tiers.json` | `10` and `30` — the quality gates for the gem T5 and base T0 rungs |
+| `neverHidden` | `tiers.json` | currency the click floor may not hide. Today: the `AllflameEmbers` group, and anything whose name contains `Scarab` |
+| `check` | `tiers.json` | how a check verb is marked — text, border, beam, size, icon. Gold is the colour code of check |
+| `names` | `hard-to-categorize.json` | base types whose price the filter cannot see, forced to the `varies` tier |
+| `byName` / `byCategory` | `max-stacks.json` | how many of each item fit in a stack, which bounds the stack ladder |
 
-## Data guards — cleaning, not policy
+`neverHidden` is **not** a promotion. Matched items keep the rung their own price earns and
+that rung's styling; the only thing removed is the floor's veto. A 1c scarab is drawn as a
+1c scarab — it is simply drawn.
 
-| Name | Test | Effect |
+## Not levers
+
+Modelling decisions in `classify.ts`. They decide what a *word* means, and a definition that
+moves between runs is not a definition. **A UI should not expose these.**
+
+| Constant | Value | What it decides |
 | --- | --- | --- |
-| `isTroll` | `lowConfidence && daily <= 2 && mean > 5000` | Drops the row. Subsumed by `MIN_DAILY_LISTINGS` at any setting above 2, and kept for when the floor is lowered. |
-| `isThin` | 84 | `lowConfidence \|\| daily < 10` | Flags the bucket. Never hides it — a thin bucket lands at T4, shown quietly. |
-| `restrictedDrop` default (`merge-uniques.ts`) | absent → `false` | An unknown restriction keeps the unique in its base's bucket, where it can only raise the ceiling. The loud direction, on purpose. |
+| `MIN_DAILY_LISTINGS` | `20` | below this a row is not evidence of a price and is not read at all |
+| `RATIO_THRESHOLD` | `10` | `ceiling / floor` above which a bucket's floor is lying |
+| `VAAL_GAMBLE_RATIO` | `20` | how many times its price a corrupted outcome must clear to be a gamble |
+| `CHECK_DISCOUNT` | `0.3` | how much of a check's ceiling counts toward its reported value |
+| `T0_CEILING` | `100` div | the lottery-ticket override, and only on the `default` ladder |
+| `MAX_GAMBLE_FLOOR` | `2` chaos | the old loss cap. Still used by the non-unique gamble path |
+| `GOLD_FLOOR` | `3000` at T4 | the smallest gold pile that must appear |
+| `EXCEPTIONAL_MIN_TIER` | `T2` | the quietest an exceptional gem may be tiered |
 
-## Levers the design names and the code does not have
+`MIN_DAILY_LISTINGS` is the one that most looks like a lever and is not: it decides which
+rows are read at all, so it cannot move without re-running the classifier, and it is the
+only rule in the file that overrides the show-cheap baseline. Rows the Currency Exchange
+priced are exempt — that is a real book, where low volume means scarce rather than fake.
 
-From section 5 of `docs/plans/filter-exploration.md`. Each is a number a player owns, so
-each spends visual budget, and none exists yet:
+## Flags and env
 
-- **Minimum expected value to show a `gamble`.** Separate from the loss cap: the cap is
-  what you will risk, this is what the risk has to be worth. Needs a real `VAAL_HIT_RATE`
-  first or it is a threshold on a made-up number.
-- **Liquidity class.** Instant versus has-to-be-traded. The one no current filter can
-  express, and it needs listing counts and time-to-sell — observable from collected trade
-  data and nowhere else.
-- **Bulky sellable bases, on/off.** Slot cost is already computed per bucket (`slots`) and
-  nothing reads it. The toggle is used far more than the number beside it.
-- **Minimum expected value to show an `id`, and a separate one for `price`.** No buckets
-  carry those verbs yet — unidentified rares are not in this dataset.
-- **Whether `collect` appears at all.** Recipes are a playstyle, not a valuation. No
-  `collect` verb exists.
-- **Do I craft?** Turns crafting-base buckets on and off wholesale. No such bucket exists.
+| Flag | Phase | What |
+| --- | --- | --- |
+| `--league` | 1 | the league to classify, over `POE_WATCH_LEAGUE` |
+| `--min-click` | 1 | see above |
+| `--gold-per-divine` | 1 | see above |
+| `--hide-unique-maps` | 1 | see above |
+| `--in`, `--out` | 1–3 | artifact paths. `pipeline-cli.ts` owns these and drops any it is given |
+| `--no-install` | 3 | write the styled filter but leave the game folder alone |
+| `--game-dir` | 3 | install somewhere other than `Documents\My Games\Path of Exile` |
+| `--serve` | after 3 | open the tier board, only on a filter that verified |
 
-## The shape a lever has to keep
+| Env | Read by | What |
+| --- | --- | --- |
+| `POE_WATCH_LEAGUE` | phase 1 | the league, when no `--league` is given |
+| `FILTER_PORT` | `serve-cli.ts` | the tier board's port, default 8123 |
 
-The runtime editor must never decide what an item *is*. That is why `tierWithoutVaal` sits
-beside `tier` on every bucket: switching gambling off picks the other number that is already
-computed, and re-prices nothing. Any lever added later has to precompute both sides the same
-way, or it belongs in the generator instead.
+The cache directories are in the root `CLAUDE.md`; they change nothing about the output.
+
+## What a UI still needs
+
+Gaps between this page and a settings screen, in the order they bite:
+
+1. **`gambleCeiling` and `gambleExclude` have no flag.** A UI shelling out to the CLI cannot
+   set them without writing `tiers.json` first.
+2. **No lever is validated as a set.** Nothing checks that a ladder's cuts descend, or that
+   a click floor sits below the lowest cut. A UI should validate before regenerating, or
+   the player gets a filter with a block that cannot fire.
+3. **No preview.** The only way to see what a lever did is to regenerate and read
+   `buckets-draft.json` or the tier board. A UI wanting live feedback needs the classifier
+   callable in-process — it already is, via `classify()`.

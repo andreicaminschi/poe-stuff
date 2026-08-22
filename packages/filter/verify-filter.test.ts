@@ -21,6 +21,7 @@ const BLANK: Bucket = {
   family: "misc",
   verb: "take",
   tier: "T3",
+  upTo: "T3",
   floor: 0,
   ceiling: 0,
   ratio: 1,
@@ -40,7 +41,18 @@ const BLANK: Bucket = {
   examples: [],
 };
 
-const bucket = (over: Partial<Bucket>): Bucket => ({ ...BLANK, ...over });
+/**
+ * A bucket, with only the fields a test cares about spelled out.
+ *
+ * `upTo` follows `tier` unless a case sets it, because on everything but a unique check the
+ * two are the same rung — and a fixture that overrode one and not the other would emit an
+ * `upto=` note it never meant to ask for.
+ */
+const bucket = (over: Partial<Bucket>): Bucket => {
+  const merged = { ...BLANK, ...over };
+
+  return { ...merged, upTo: over.upTo ?? merged.tier };
+};
 
 const check = (buckets: readonly Bucket[]) => verifyFilter(buckets, emitFilter(buckets));
 

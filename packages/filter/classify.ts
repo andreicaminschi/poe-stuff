@@ -1,4 +1,5 @@
 import { formatCondition } from "@poe/filter-eval/format-note";
+import type { ItemBase, StaticItem } from "@poe/ggg/types";
 import type {
   ExchangeRatioItem,
   GemItem,
@@ -7,6 +8,19 @@ import type {
 } from "@poe/poe-watch/types";
 import hardToCategorize from "./hard-to-categorize.json" with { type: "json" };
 import maxStacks from "./max-stacks.json" with { type: "json" };
+import shards from "./shards.json" with { type: "json" };
+import {
+  FILE_LEVERS,
+  LADDERS,
+  LADDER_ROWS,
+  LEAGUE_START,
+  cutsFor,
+  isPersistent,
+  neverHidden,
+  quietestRung,
+  UNIQUE_CUTS,
+} from "./tiers.ts";
+import type { LadderName, TierRow } from "./tiers.ts";
 import type {
   Bucket,
   BucketFamily,
@@ -39,21 +53,37 @@ import type {
  * `T1` is exactly one divine on purpose: a Divine Orb on the floor is the reference drop,
  * and every other cut is placed relative to it. The four below reproduce the chaos numbers
  * this ladder was tuned at, back when divine was 200c.
+ *
+ * **This is the `default` ladder now, and it is on its way out.** `buckets/` gives currency,
+ * gems, bases and uniques cuts of their own, and each of those will read its own rows out
+ * of `tiers.json`. What is left here answers for the two families no doc covers yet — `misc`
+ * and `replicas` — which is why the numbers are unchanged rather than re-tuned.
  */
-const TIER_CUTS: readonly (readonly [Tier, number])[] = [
-  ["T0", 10],
-  ["T1", 1],
-  ["T2", 1 / 5],
-  ["T3", 1 / 40],
-  ["T4", 1 / 200],
-];
+const TIER_CUTS: readonly (readonly [Tier, number])[] = cutsFor(
+  LADDERS.default,
+);
 
 /**
  * The ladder as a ranking, loudest first, with `hidden` as its quiet end.
  *
  * `varies` is deliberately absent: it is not on the ladder and nothing clamps against it.
+ *
+ * `T6` sits between `T5` and `hidden` now that the currency ladder puts buckets there. It
+ * was left out while `louder` existed, because that function counted rungs backwards from
+ * an index and a longer list silently moved every map tiered relative to another one.
+ * `maps.md` replaced all of that with five asserted treatments, so nothing counts rungs any
+ * more and the row is safe to add.
  */
-const TIER_RANK: readonly Tier[] = ["T0", "T1", "T2", "T3", "T4", "T5", "hidden"];
+const TIER_RANK: readonly Tier[] = [
+  "T0",
+  "T1",
+  "T2",
+  "T3",
+  "T4",
+  "T5",
+  "T6",
+  "hidden",
+];
 
 /**
  * A tier, raised to a floor if the price put it below one.
@@ -66,23 +96,6 @@ const atLeast = (tier: Tier, floor: Tier): Tier =>
   tier === "varies" || TIER_RANK.indexOf(tier) <= TIER_RANK.indexOf(floor)
     ? tier
     : floor;
-
-/**
- * A tier, moved `rungs` louder along the ladder. Clamped at `T0`.
- *
- * **The only place one bucket's tier is derived from another's, and it exists because no
- * feed prices what it is used for.** Nothing anywhere quotes a corrupted or an Originator
- * map, so the one true thing left to say about them is that they beat the plain map of the
- * same tier — and saying it *relatively* keeps it true when the plain map's price moves.
- * A hardcoded `T3` would be a snapshot of one afternoon's divine rate.
- *
- * `varies` is returned untouched: it is not on the ladder, so there is no rung to move it
- * from.
- */
-const louder = (tier: Tier, rungs: number): Tier => {
-  const at = TIER_RANK.indexOf(tier);
-  return at < 0 ? tier : (TIER_RANK[Math.max(0, at - rungs)] ?? tier);
-};
 
 /**
  * `ceiling / floor` above which the floor is lying and the verb is no longer `take`.
@@ -183,7 +196,8 @@ const MAX_STACK_BY_CATEGORY = new Map<string, number>(
  * There are 137 of them and there will be more every league, so the table holds
  * `Scrying Orb` once and the bracket is stripped on the way in.
  */
-const withoutVariant = (name: string): string => name.replace(/ \([^()]*\)$/, "");
+const withoutVariant = (name: string): string =>
+  name.replace(/ \([^()]*\)$/, "");
 
 /**
  * The stack ceiling for one item.
@@ -196,22 +210,53 @@ const withoutVariant = (name: string): string => name.replace(/ \([^()]*\)$/, ""
  * The exact name still wins over the stripped one, so a variant that really does stack
  * differently can be listed on its own and will be found first.
  */
-const maxStack = (category: string, name: string): number =>
-  MAX_STACK_BY_NAME.get(name) ??
-  MAX_STACK_BY_NAME.get(withoutVariant(name)) ??
-  MAX_STACK_BY_CATEGORY.get(category) ??
-  maxStacks.default;
+/**
+ * Items no stack size is known for, collected as they are met.
+ *
+ * **A stack ceiling that was guessed is a rung the filter may promise and the game can
+ * never deliver.** `stackSteps` drops any rung needing more than the cap, so a default that
+ * is too low silently deletes the loud blocks for a currency that really does pile up, and
+ * one too high writes a `T0` block for a stack that cannot exist. Neither failure shows up
+ * anywhere except in play, which is why the misses are named out loud instead of absorbed.
+ *
+ * Module-level because the lookup is called from three passes and threading a collector
+ * through all of them would be plumbing for a diagnostic. Read and cleared by the CLI.
+ */
+const UNKNOWN_STACKS = new Set<string>();
+
+/** Every item that fell through to the default stack size on this run. */
+export const unknownStacks = (): readonly string[] =>
+  [...UNKNOWN_STACKS].sort();
+
+const maxStack = (category: string, name: string): number => {
+  const known =
+    MAX_STACK_BY_NAME.get(name) ??
+    MAX_STACK_BY_NAME.get(withoutVariant(name)) ??
+    MAX_STACK_BY_CATEGORY.get(category);
+
+  if (known !== undefined) return known;
+
+  UNKNOWN_STACKS.add(`${category}/${withoutVariant(name)}`);
+
+  return maxStacks.default;
+};
 
 /**
  * What the player gets when they set nothing.
  *
  * A click floor of zero, because a lever nobody has touched must not be quietly hiding
  * items — the show-cheap baseline is the default, and this is what opts out of it.
+ *
+ * Read out of `tiers.json` rather than written here, so the numbers a player edits and the
+ * numbers a caller gets for free are the same numbers. A default typed into the code as
+ * well would be a second copy, and the two would disagree the first time one was changed.
  */
 const DEFAULT_LEVERS: Levers = {
-  minClickValue: 0,
-  hideUniqueMaps: false,
-  goldPerDivine: 1_000_000,
+  minClickValue: FILE_LEVERS.minClickValue,
+  hideUniqueMaps: FILE_LEVERS.hideUniqueMaps,
+  goldPerDivine: FILE_LEVERS.goldPerDivine,
+  gambleCeiling: FILE_LEVERS.gambleCeiling,
+  gambleExclude: FILE_LEVERS.gambleExclude,
 };
 
 const price = (item: ItemData): number => item.mean ?? 0;
@@ -333,13 +378,188 @@ const OVERLAY_CONDITION: Record<UniqueOverlay, readonly string[]> = {
  */
 const isReplica = (name: string): boolean => /^Replica\s+/.test(name);
 
-const UNIQUE_CATEGORIES = new Set([
-  "accessories",
+/**
+ * What GGG says each item is, keyed by the name a price arrives under.
+ *
+ * **The join that makes GGG the source of truth rather than PoeWatch.** A `/compact` row
+ * carries a name and a category, and only the name is worth anything: the category is
+ * PoeWatch's own filing — `bases` lumps every white item together, `currency` holds
+ * essences and oils and fossils — and none of it is what the game or the filter thinks.
+ * GGG answers the two questions that actually decide a block:
+ *
+ * - `category` — the group `/data/items` puts a base type in: `armour`, `weapon`,
+ *   `accessory`, `flask`, `tincture`, `jewel`, `gem`, `map`, `currency`, `card`. This is
+ *   the word the docs in `buckets/` are written in.
+ * - `staticGroup` — the group `/data/static` puts an exchange item in: `Currency`,
+ *   `Fragments`, `Essences`, `Oils`, `Delve`. The kind of currency, which `/data/items`
+ *   flattens away and nothing else publishes.
+ * - `unique` — whether GGG's own unique list has an item under this name. The only
+ *   honest test of whether a frame-3 row names a unique the game can drop.
+ *
+ * Base types collide across groups exactly once that matters: `Energy Blade` is a skill
+ * gem and a weapon base. Every caller settles that before asking, by branching on the
+ * row's frame first — a frame-4 row is a gem whatever this map last wrote for the name.
+ * The other hundred collisions are numeric ids GGG lists under both `currency` and `map`,
+ * and no priced row is ever named `10021`.
+ */
+type GggIndex = {
+  /** The `/data/items` group for a base type, or `undefined` when GGG has no such base. */
+  readonly categoryOf: (name: string) => string | undefined;
+  /** The `/data/static` group for an exchange item, or `undefined`. */
+  readonly staticGroupOf: (name: string) => string | undefined;
+  /** Whether GGG lists a unique under this exact name. */
+  readonly isUnique: (name: string) => boolean;
+};
+
+/**
+ * Build the join, once per classification.
+ *
+ * Names are looked up variant-stripped and through `BASE_TYPE_RENAMES`, because that is
+ * the only spelling both feeds agree on — PoeWatch writes `Scrying Orb (Basilica)` and
+ * `Logbook (Black Scythe Mercenaries)` where the game has `Scrying Orb` and
+ * `Expedition Logbook`.
+ */
+function gggIndex(
+  itemBases: readonly ItemBase[],
+  staticItems: readonly StaticItem[],
+  uniques: readonly FilterUnique[],
+): GggIndex {
+  const categories = new Map<string, string>();
+  for (const base of itemBases) categories.set(base.type, base.category);
+
+  const groups = new Map<string, string>();
+  for (const item of staticItems) groups.set(item.text, item.category);
+
+  const uniqueNames = new Set(uniques.map((unique) => unique.name));
+
+  return {
+    categoryOf: (name) => categories.get(gameName(name)),
+    staticGroupOf: (name) => groups.get(gameName(name)),
+    isUnique: (name) => uniqueNames.has(name),
+  };
+}
+
+/**
+ * The GGG categories a white base may be classified from — every group `/data/items` files
+ * a piece of equipment under.
+ *
+ * Wider than what `bases.md` asks for, and that is the point: this is what
+ * `baseBuckets` *considers*, so it is also what `flatBuckets` must leave alone. A jewel
+ * base that `bases.md` excludes is not thereby a stackable — it is an undocumented base,
+ * and the honest answer is no block rather than a `misc:` one.
+ */
+const EQUIPMENT_CATEGORIES = new Set([
+  "accessory",
   "armour",
-  "flasks",
-  "jewels",
-  "weapons",
+  "flask",
+  "heistequipment",
+  "jewel",
+  "tincture",
+  "weapon",
 ]);
+
+/**
+ * The GGG categories `bases.md` includes, and the whole of what earns a base block.
+ *
+ * `jewel` and `heistequipment` are the two `EQUIPMENT_CATEGORIES` left out, which drops 213
+ * of the 19,895 white rows PoeWatch prices. That is the doc's instruction, not an accident:
+ * a jewel base is a 1×1 with no craftable spread and a heist brooch is bought, not found.
+ */
+const BASE_CATEGORIES = new Set([
+  "accessory",
+  "armour",
+  "flask",
+  "tincture",
+  "weapon",
+]);
+
+/**
+ * The `/data/static` groups `currency.md` calls currency.
+ *
+ * **GGG's own division of currency into its kinds, and the whole membership test.** It is
+ * every group the endpoint publishes except `Cards`, which `divination-cards.md` owns.
+ *
+ * `Misc` is in the doc's list and absent here because GGG publishes it empty — zero
+ * entries, so it names nothing and a line for it would be a line that never matches.
+ *
+ * **What this excludes is the point of it.** `/data/static` is the Currency Exchange's
+ * stock list rather than a census of currency, and it names 327 of the 502 stackable rows
+ * PoeWatch prices. The other 175 — Facetor's Lens, the Vials, every Scrying Orb, the heist
+ * idols — are not currency by this definition and get no block. They are not lost: the
+ * catch-all at the end of the file shows anything no block claimed, loudly.
+ */
+const CURRENCY_GROUPS = new Set([
+  "Currency",
+  "Fragments",
+  "Ducats",
+  "EnshroudingCrystals",
+  "Keepers",
+  "AllflameEmbers",
+  "Runegrafts",
+  "Ancestor",
+  "Sanctum",
+  "Heist",
+  "Expedition",
+  "DeliriumOrbs",
+  "Catalysts",
+  "Oils",
+  "Delve",
+  "Essences",
+  "Beasts",
+  "MapKey",
+  "MapsSpecial",
+  "MapsUnique",
+  "Legacy",
+]);
+
+/** The one static group that is not currency. `divination-cards.md` owns it. */
+const CARD_GROUP = "Cards";
+
+/**
+ * The two currencies this file injects because no feed will name them.
+ *
+ * Chaos is the unit the exchange quotes everything else against, so it has no pair and no
+ * row; gold cannot be traded, so it has no market at all. Both are currency by any reading
+ * — they are missing from the static list for reasons that have nothing to do with what
+ * they are, and a membership test that reads that absence as an answer is reading noise.
+ *
+ * See `CHAOS_ORB` and `goldRow` for why each is injected in the first place.
+ */
+const INJECTED = new Set(["Chaos Orb", "Gold"]);
+
+/** PoeWatch's frame for a white item, which is the only rarity a crafting base has. */
+const NORMAL_FRAME = 0;
+
+/** PoeWatch's frame for a unique. */
+const UNIQUE_FRAME = 3;
+
+/** PoeWatch's frame for a gem. Every one of its 9,241 gem rows carries it and nothing else does. */
+const GEM_FRAME = 4;
+
+/**
+ * A gem, and the narrowing that lets `gemLevel` be read.
+ *
+ * **GGG is deliberately not asked here.** `Energy Blade` is a skill gem and a weapon base
+ * under one name, so `/data/items` lists it twice and a base-type lookup answers with
+ * whichever group it read last — 13 gem rows would come back as weapons. PoeWatch's own
+ * category is exact on this one, and the frame is the second opinion that makes it safe:
+ * the two agree on all 9,241 rows, and it is the category that carries the type.
+ */
+const isGem = (item: ItemData): item is GemItem =>
+  item.category === "gem" && item.frame === GEM_FRAME;
+
+/**
+ * A white piece of equipment: the thing `baseBuckets` is about.
+ *
+ * **Shared between the pass that claims these and the pass that must not.** `flatBuckets`
+ * files everything it is handed by name, so anything `baseBuckets` considers has to leave
+ * there — including the jewel and heist-gear bases `bases.md` excludes. Those are not
+ * stackables and not `misc:`; they are undocumented bases, and no block is the honest
+ * answer until a doc says otherwise.
+ */
+const isWhiteBase = (item: ItemData, ggg: GggIndex): boolean =>
+  item.frame === NORMAL_FRAME &&
+  EQUIPMENT_CATEGORIES.has(ggg.categoryOf(item.name) ?? "");
 
 /**
  * The only gem levels worth a block.
@@ -454,6 +674,50 @@ const EXCEPTIONAL_MIN_TIER: Tier = "T2";
  */
 type GemKind = "exceptional" | "transfigured" | "trarthus" | "vendor";
 
+/**
+ * GGG categories that never lie on a floor, so no block can ever match one.
+ *
+ * `monster` is 224 of Einhar's beasts — Black Mórrigan, Farrul, a Craicic Croaker. They
+ * are captured into a menagerie and traded from there, and the trade site searches them,
+ * which is why GGG's item catalogue lists them at all. Nothing ever drops one.
+ *
+ * Left in, each becomes `BaseType == "Black Mórrigan"`, and the game stops parsing the
+ * file at the first base type it does not have. Dropping a category is a stronger claim
+ * than dropping a row, which is why it is a named list and not a condition inline.
+ *
+ * Read off GGG rather than PoeWatch now, which is the same 224 rows by a better route:
+ * `monsters` was PoeWatch's word for them, and this is the game's.
+ */
+const NOT_ON_THE_FLOOR = new Set(["monster"]);
+
+/**
+ * Where PoeWatch and the game disagree about what a base type is called.
+ *
+ * PoeWatch names an Expedition Logbook `Logbook (Black Scythe Mercenaries)`. The bracket
+ * comes off with every other variant — the filter cannot read a faction off the ground —
+ * and what is left is `Logbook`, which is not a base type the game has. It is
+ * `Expedition Logbook`.
+ *
+ * A rename rather than a special case, because there is nothing to reason about: two
+ * feeds, one item, two spellings. Keyed on the variant-stripped name.
+ */
+const BASE_TYPE_RENAMES: Readonly<Record<string, string>> = {
+  Logbook: "Expedition Logbook",
+};
+
+/**
+ * A priced row's name, spelled the way the game spells it.
+ *
+ * The one place the two feeds are reconciled, and therefore the only key anything joins
+ * on. Both steps are lossy on purpose: the bracket goes because a filter cannot read a
+ * faction or an attunement off the ground, and the rename goes because two feeds calling
+ * one item two things is not something to reason about at the call site.
+ */
+const gameName = (name: string): string => {
+  const stripped = withoutVariant(name);
+  return BASE_TYPE_RENAMES[stripped] ?? stripped;
+};
+
 /** Categories that stack, and whose buckets a stack-size condition will later gate. */
 const STACKABLE_CATEGORIES = new Set([
   "azmeri",
@@ -505,20 +769,8 @@ const isSplinter = (name: string): boolean =>
  * Through `formatCondition` so a name carrying a `#` throws here. A `#` starts a comment,
  * so the line would load, lose its tail, and match something else entirely.
  */
-const baseTypeIs = (name: string): string => formatCondition(`BaseType == "${name}"`);
-
-/**
- * PoeWatch's frame number as the word the filter uses for it.
- *
- * Frame is how the game colours an item's name and `Rarity` is the filter's word for the
- * same fact, so this is a spelling change and not a decision. Frame 3 is unique and is
- * absent because every path that meets one branches on it before reaching here.
- */
-const RARITY_BY_FRAME: Readonly<Record<number, string>> = {
-  0: "Normal",
-  1: "Magic",
-  2: "Rare",
-};
+const baseTypeIs = (name: string): string =>
+  formatCondition(`BaseType == "${name}"`);
 
 /**
  * Where a name-keyed item lands: its bucket id, and the family that id belongs to.
@@ -530,18 +782,39 @@ const RARITY_BY_FRAME: Readonly<Record<number, string>> = {
 function placement(
   category: string,
   name: string,
-): { id: string; family: BucketFamily } {
+  ggg: GggIndex,
+): { id: string; family: BucketFamily } | undefined {
   // The bracket goes first. A filter matches a base type, and `Scrying Orb (Basilica)` is
   // not one — the game puts a Scrying Orb on the floor and the block can read nothing
   // past that. Keeping the variants apart would write 87 blocks where 86 can never fire,
   // all of them matching the item the first one already caught.
   const base = withoutVariant(name);
 
-  if (category === "card") return { id: `card:${base}`, family: "div-cards" };
-  if (stacks(category, base)) {
-    return { id: `stack:${category}/${base}`, family: "stackables" };
+  // The two rows this file injects, and the one place they have to be let through by
+  // name. Neither is on the exchange and that is not an omission: chaos is the unit every
+  // other price is quoted in, so it has no pair of its own, and gold cannot be traded at
+  // all. Judged by the static list they would both vanish — and gold vanishing takes the
+  // `goldPerDivine` lever with it and sends every pile to the catch-all.
+  if (INJECTED.has(base))
+    return { id: `stack:Currency/${base}`, family: "stackables" };
+
+  const group = ggg.staticGroupOf(base);
+
+  // Cards are a static group like any other and are deliberately not currency: they have
+  // their own doc, their own family and a ladder that never counts a stack.
+  if (group === CARD_GROUP) return { id: `card:${base}`, family: "div-cards" };
+
+  // `currency.md` names the groups that are currency, and this is that list applied. An
+  // item GGG's exchange does not name is not currency and gets no block here — see
+  // `CURRENCY_GROUPS`.
+  if (group !== undefined && CURRENCY_GROUPS.has(group)) {
+    return { id: `stack:${group}/${base}`, family: "stackables" };
   }
-  return { id: `misc:${category}/${base}`, family: "misc" };
+
+  // PoeWatch still files a handful of things the exchange has never heard of. They are
+  // not currency by the only definition this file now has, so they are left unclassified
+  // rather than filed under a category invented for them.
+  return undefined;
 }
 
 /**
@@ -554,6 +827,10 @@ function placement(
  * Matched on the variant-stripped name, so one entry covers every bracket the league adds.
  */
 const HARD_TO_CATEGORIZE = new Set<string>(hardToCategorize.names);
+
+/** The orb each shard makes, and how many of it that takes. See `shards.json`. */
+const SHARD_ORB = new Map<string, string>(Object.entries(shards.byName));
+const SHARDS_PER_ORB = shards.per;
 
 /** What one item is worth once corrupted, at its best believable outcome. */
 type VaalCeiling = {
@@ -583,6 +860,16 @@ type UniquePrice = {
 type Draft = {
   id: string;
   family: BucketFamily;
+  /**
+   * Which ladder this bucket is cut against.
+   *
+   * **One tier word, several ladders, and the family is not enough to pick one.** `T2`
+   * means 0.1 divine of currency, 0.5 divine of base and 5 divine of unique on the check
+   * branch — three different promises wearing one label — so the rung a bucket earns is
+   * only meaningful beside the ladder it was measured on. `default` is the old single
+   * ladder, kept for the families `buckets/` has no doc for yet.
+   */
+  ladder: LadderName;
   verb: Verb;
   floor: number;
   ceiling: number;
@@ -598,6 +885,16 @@ type Draft = {
   varies: boolean;
   alwaysShow: boolean;
   /**
+   * The click floor may not hide this, whatever it is worth.
+   *
+   * **Weaker than `alwaysShow` and deliberately so.** `alwaysShow` floors a bucket onto the
+   * quietest rung its ladder has, which is a promotion for something worth nothing. This
+   * only removes the floor's veto: the bucket keeps the rung its own price earned and the
+   * styling that rung gives it. A cheap scarab is drawn as a cheap scarab — it is simply
+   * drawn. See `neverHidden` in `tiers.json`.
+   */
+  neverHidden: boolean;
+  /**
    * The quietest this bucket may be tiered, whatever the price says. `"hidden"` is no
    * floor at all — the ladder decides on its own.
    *
@@ -605,6 +902,20 @@ type Draft = {
    * also survives the click floor, which a tier floor does not need to.
    */
   minTier: Tier;
+  /**
+   * The price this bucket is judged against the gamble ceiling on, in chaos.
+   *
+   * The base's most expensive unique — what the player stands to destroy by vaaling
+   * blind — and *not* the same number as `ceiling` once the exclusion lever is on. Heavy
+   * Belt's ceiling is Mageblood; with expensive uniques excluded above 100c, the number
+   * that matters is Siegebreaker at 40c. 0 on anything that is not a unique base.
+   */
+  gamblePrice: number;
+  /**
+   * Some unique on this base corrupts into something worth `VAAL_GAMBLE_RATIO` times what
+   * it is. The half of the gamble test that is about the orb rather than the player.
+   */
+  gambleWorthy: boolean;
   /** Best corrupted outcome anywhere in the bucket. 0 when nothing in it is corruptible. */
   vaalCeiling: number;
   /** Plain price of the member that ceiling belongs to — what the orb would destroy. */
@@ -634,6 +945,25 @@ export type ClassifyInput = {
   /** The Currency Exchange side. Wherever it has an item, it is the price. */
   readonly exchange: readonly ExchangeRatioItem[];
   readonly uniques: readonly FilterUnique[];
+  /**
+   * Every base type the trade site searches on, from GGG's `/data/items`, with the group
+   * it arrived in.
+   *
+   * **This is what makes a base type a base type.** PoeWatch files a row under a category
+   * of its own devising and names it whatever its scraper read; GGG says which of those
+   * names the game actually puts on the floor, and what kind of thing it is. A row that
+   * joins to nothing here is a row no block can safely be written from.
+   */
+  readonly itemBases: readonly ItemBase[];
+  /**
+   * Every item the exchange names rather than searches for by base type, from
+   * `/data/static`, with the group it arrived in.
+   *
+   * The group is the whole reason to read it: it is GGG dividing currency into its kinds —
+   * `Currency`, `Fragments`, `Essences`, `Oils` — which `/data/items` flattens into one
+   * `currency` and PoeWatch splits along different lines again.
+   */
+  readonly staticItems: readonly StaticItem[];
   /**
    * Every gem carrying the game's `Exceptional` tag, by name. Priced at level 1 quality
    * 0 and never hidden — see `flatBuckets`.
@@ -766,11 +1096,60 @@ export function marketRates(exchange: readonly ExchangeRatioItem[]): Rates {
   const divine = row === undefined ? 0 : exchangePrice(row);
 
   if (divine <= 0) {
-    throw new Error("no Divine Orb price on the exchange: every tier cut needs it");
+    throw new Error(
+      "no Divine Orb price on the exchange: every tier cut needs it",
+    );
   }
 
   return { divine };
 }
+
+/**
+ * What a shard is worth, taken from the orb it makes rather than from its own quote.
+ *
+ * **The exchange cannot price a shard and the shape of the book is why.** The chaos side
+ * quotes in whole chaos, so a bulk shard trade is recorded at one chaos each — and with a
+ * shard market that trades single digits a day, one such trade is the price. Alteration
+ * Shard came back at `1c` on a volume of 1 against an Orb of Alteration at `0.12c`: 167×
+ * its real worth, with the busiest currency pair in the game as the counter-example.
+ *
+ * **One rule, and it is traffic: a shard keeps its own price only if it traded at least as
+ * much as its orb did.** Not `lowConfidence` — PoeWatch left that flag off Transmutation
+ * Shard, quoted at `1c` against an orb at `0.005379c`, so the flag catches some of this
+ * and misses the rest. Volume catches all of it, because the thing wrong with a shard
+ * quote is always that too few trades set it.
+ *
+ * Nothing is expected to pass. A shard market is never busier than the orb market, so in
+ * practice every shard is priced off its orb, and the test is what makes that a finding
+ * rather than an assumption — the day a shard really does out-trade its orb, its own price
+ * is the better one and this steps out of the way.
+ *
+ * The orb's volume has to be a real one, which is what keeps the injected Chaos Orb from
+ * vouching for a Chaos Shard: its price is `1` by definition and its volume is `0`, and
+ * *at least as much as the orb* is true of anything against a zero.
+ *
+ * Returns nothing for anything that is not a shard, for a shard whose orb the league does
+ * not price, and for a shard that out-traded its orb. All three mean *use the row's own
+ * price*, which is what the caller does.
+ */
+const shardPrice = (
+  item: ExchangeRatioItem,
+  byName: ReadonlyMap<string, ExchangeRatioItem>,
+): number | undefined => {
+  const name = SHARD_ORB.get(item.name);
+  if (name === undefined) return undefined;
+
+  const orb = byName.get(name);
+  if (orb === undefined) return undefined;
+
+  const traded = orb.chaos.volume;
+  if (traded > 0 && item.chaos.volume >= traded) return undefined;
+
+  const price = exchangePrice(orb);
+  // An orb the league does not price cannot correct anything, so the shard keeps its own
+  // quote rather than falling out of the filter entirely.
+  return price > 0 ? price / SHARDS_PER_ORB : undefined;
+};
 
 /**
  * The chaos price of every item the exchange has a real market for, keyed by the id
@@ -786,12 +1165,13 @@ export function marketRates(exchange: readonly ExchangeRatioItem[]): Rates {
 function exchangeQuotes(
   exchange: readonly ExchangeRatioItem[],
 ): Map<number, number> {
+  const byName = new Map(exchange.map((item) => [item.name, item]));
   const quotes = new Map<number, number>();
 
   for (const item of exchange) {
     // A side that never traded comes back as zeroes rather than absent, and a zero is not
     // a price — leaving it out lets `/compact` answer for that item instead.
-    const price = exchangePrice(item);
+    const price = shardPrice(item, byName) ?? exchangePrice(item);
     if (price > 0) quotes.set(item.id, price);
   }
 
@@ -848,22 +1228,31 @@ function vaalCeilings(
  * outcome.
  *
  * Rows naming a base rather than a unique — PoeWatch prices `Unidentified Foulborn Onyx
- * Amulet` — simply join to nothing later and fall out, because no unique carries that
- * name.
+ * Amulet` — are turned away by `isUnique` rather than left to join to nothing later.
+ *
+ * **GGG's unique list is the whole membership test now.** It used to be a set of PoeWatch
+ * categories a unique price was allowed to arrive in, which was a guess about somebody
+ * else's filing: a unique Relic came in under `sanctum`, a Tincture under `azmeri`, a Vaal
+ * Aspect under `currency`, and every league adds a category the list has not heard of. The
+ * question was never which drawer PoeWatch used — it was whether the game has a unique by
+ * this name, and that is a list GGG publishes.
  */
 function uniquePrices(
   items: readonly ItemData[],
   ceilings: Map<number, VaalCeiling>,
+  ggg: GggIndex,
 ): Map<string, UniquePrice> {
   const prices = new Map<string, UniquePrice>();
 
   for (const item of items) {
-    if (item.frame !== 3 || ignored(item)) continue;
-    if (!UNIQUE_CATEGORIES.has(item.category) && item.category !== "maps") {
-      continue;
-    }
+    if (item.frame !== UNIQUE_FRAME || ignored(item)) continue;
 
+    // Identify first, ask GGG second. The row is spelled `Unidentified Foulborn
+    // Headhunter (Culling)` and the unique is called `Headhunter`; asking before the
+    // prefixes and the roll come off would turn away every Foulborn price in the feed.
     const { name, foulborn, variant } = identify(item.name);
+    if (!ggg.isUnique(name)) continue;
+
     const key = priceKey(name, foulborn);
     const seen = prices.get(key);
 
@@ -920,6 +1309,7 @@ function uniqueBaseBuckets(
   uniques: readonly FilterUnique[],
   prices: Map<string, UniquePrice>,
   overlay: UniqueOverlay,
+  levers: Levers,
 ): Draft[] {
   const foulborn = overlay === "foulborn";
   const replica = overlay === "replica";
@@ -930,10 +1320,27 @@ function uniqueBaseBuckets(
     // above the plain one and takes it first. The plain bucket must therefore not be
     // priced off a member it will never see.
     if (isReplica(unique.name) !== replica) continue;
-    if (unique.restrictedDrop && !replica) continue;
     const members = byBase.get(unique.baseType);
     if (members === undefined) byBase.set(unique.baseType, [unique]);
     else members.push(unique);
+  }
+
+  // **The restriction is dropped per base, not per unique, and only where it protects
+  // something.** Excluding a restricted member stops a common base being priced off a
+  // unique it cannot roll — a Viridian Jewel is never Impossible Escape. But on a base
+  // where *every* unique is restricted there is no common drop to protect: excluding them
+  // all left the base with nothing priced and no block at all, which hid Voices at 224,438c
+  // and every Timeless jewel. Those items still land on the floor, and a filter that says
+  // nothing about them is the one failure this classifier is built to avoid.
+  //
+  // The replica pass keeps every member for the reason it always did: the wiki marks 102 of
+  // the 103 replicas restricted, and `Replica True` is on the block, so the block already
+  // says which item it means.
+  for (const [baseType, members] of byBase) {
+    if (replica) continue;
+
+    const droppable = members.filter((member) => !member.restrictedDrop);
+    if (droppable.length > 0) byBase.set(baseType, droppable);
   }
 
   const drafts: Draft[] = [];
@@ -947,9 +1354,37 @@ function uniqueBaseBuckets(
 
     priced.sort((left, right) => right.plain - left.plain);
     const plain = priced.map((member) => member.plain);
-    const top = priced.reduce((left, right) => (right.plain > left.plain ? right : left));
+    const top = priced.reduce((left, right) =>
+      right.plain > left.plain ? right : left,
+    );
     const best = priced.reduce((left, right) =>
       right.corrupted > left.corrupted ? right : left,
+    );
+
+    // **The exclusion lever, and the only place a member is allowed to be ignored.**
+    // Normally a base is worth its most expensive unique, which is what stops Heavy Belt
+    // ever being a gamble: Mageblood shares it. A player who knows that and wants Bisco's
+    // Leash marked anyway names a price above which a unique stops counting — the claim
+    // being that they will recognise a Mageblood on the ground rather than vaal it by
+    // accident. Off by default, because it is the one setting here that can lose an item.
+    const counted = levers.gambleExclude.enabled
+      ? priced.filter((member) => member.plain <= levers.gambleExclude.cutoff)
+      : priced;
+
+    // Every member is over the cutoff, so there is nothing cheap on this base at all and
+    // no gamble to offer. Zero rather than `-Infinity`, which would read as free.
+    const gamblePrice =
+      counted.length === 0
+        ? 0
+        : Math.max(...counted.map((member) => member.plain));
+
+    // **Per member, not against the base's ceiling.** The question is whether *some*
+    // unique here is worth more corrupted than kept, and Anathema at 10c into something
+    // far larger is that — measured against Anathema, not against Shavronne's Revelation
+    // which happens to share the base and is not the item being vaaled.
+    const gambleWorthy = counted.some(
+      (member) =>
+        member.plain > 0 && member.corrupted > member.plain * VAAL_GAMBLE_RATIO,
     );
 
     drafts.push({
@@ -958,9 +1393,15 @@ function uniqueBaseBuckets(
           ? `unique:${baseType}`
           : `unique:${overlay}/${baseType}`,
       family: OVERLAY_FAMILY[overlay],
+      // Replicas keep the old single ladder: they have no doc of their own, and the user
+      // asked for nothing to be built for them yet. The plain and Foulborn passes run
+      // `uniques.md`'s take-and-check pair.
+      ladder: overlay === "replica" ? "default" : "uniques",
       verb: "check",
       floor: Math.min(...plain),
       ceiling: Math.max(...plain),
+      gamblePrice,
+      gambleWorthy,
       vaalCeiling: best.corrupted,
       // The best vaal and the best plain outcome are often different uniques on one base
       // — Moonstone Ring's ceiling is Shavronne's Revelation, its vaal is Anathema. The
@@ -994,6 +1435,7 @@ function uniqueBaseBuckets(
       // and nothing here comes off that book.
       topFromExchange: false,
       alwaysShow: foulborn,
+      neverHidden: false,
       examples: priced
         .slice(0, 3)
         .map((member) => `${member.name} ${Math.round(member.plain)}c`),
@@ -1011,14 +1453,32 @@ function uniqueBaseBuckets(
  * list four rows, so the rows for one base collapse to a block carrying that cut. The cut
  * is the lowest ilvl still worth at least half the best — an approximation, and the
  * generous direction of one.
+ *
+ * **Which rows are bases is GGG's answer, not PoeWatch's.** A white row is one the game
+ * files under `accessory`, `armour`, `flask`, `weapon` or `tincture` — the five categories
+ * `bases.md` names. PoeWatch's own `bases` category agrees on 19,682 of its 19,895 rows and
+ * the 213 it adds are jewel and heist-gear bases the doc leaves out, so this is the doc's
+ * list applied rather than a second opinion about what a base is.
  */
-function baseBuckets(items: readonly ItemData[]): Draft[] {
+function baseBuckets(items: readonly ItemData[], ggg: GggIndex): Draft[] {
   // A non-empty tuple: every group is created with its first row, and saying so is what
   // lets `rows[0]` stand for the footprint without a guard that can never fire.
   const groups = new Map<string, [ItemData, ...ItemData[]]>();
 
   for (const item of items) {
-    if (item.category !== "bases" || ignored(item)) continue;
+    if (ignored(item)) continue;
+    if (!isWhiteBase(item, ggg)) continue;
+    if (!BASE_CATEGORIES.has(ggg.categoryOf(item.name) ?? "")) continue;
+
+    // **The one place `bases.md` inverts the show-cheap baseline, and it says so
+    // outright:** *for bases low confidence, thin and low volume means the price is
+    // disqualified*. Everywhere else a thin price keeps its bucket at the bottom of the
+    // ladder, because showing a cheap item costs a click and hiding a dear one costs the
+    // item. A base is the exception because the thing being claimed is different — an ilvl
+    // 86 base block is a promise that somebody will *buy* this, and two listings nobody
+    // answered is not evidence of a buyer. The row is dropped rather than tiered low, so a
+    // base whose every row is thin gets no block at all.
+    if (isThin(item)) continue;
 
     // Influenced white bases are skipped on purpose. What one is worth depends on the
     // influence mod pool it can roll, and a single number per base is not a price of
@@ -1045,6 +1505,7 @@ function baseBuckets(items: readonly ItemData[]): Draft[] {
     const draft: Draft = {
       id: `base:${name}`,
       family: "bases",
+      ladder: "bases",
       verb: "take",
       floor: best,
       ceiling: best,
@@ -1064,6 +1525,9 @@ function baseBuckets(items: readonly ItemData[]): Draft[] {
       varies: false,
       minTier: "hidden",
       alwaysShow: false,
+      neverHidden: false,
+      gamblePrice: 0,
+      gambleWorthy: false,
       vaalCeiling: 0,
       vaalFloor: 0,
       vaalName: "",
@@ -1120,6 +1584,8 @@ function collector(): {
       const seeded: Draft = {
         id,
         family,
+        // Overwritten by the caller that knows which ladder it is filing under.
+        ladder: "default",
         verb: "take",
         floor: price(item),
         ceiling: price(item),
@@ -1132,6 +1598,11 @@ function collector(): {
         varies: HARD_TO_CATEGORIZE.has(withoutVariant(item.name)),
         minTier: "hidden",
         alwaysShow: false,
+        // Set by the caller that knows the item's static group — `collector` is handed rows
+        // and nothing else.
+        neverHidden: false,
+        gamblePrice: 0,
+        gambleWorthy: false,
         vaalCeiling: 0,
         vaalFloor: 0,
         vaalName: "",
@@ -1181,18 +1652,36 @@ function flatBuckets(
   gemKind: (name: string) => GemKind,
   exceptionalGems: readonly string[],
   transfiguredGems: readonly string[],
+  ggg: GggIndex,
 ): Draft[] {
   const { drafts, add } = collector();
 
   for (const item of items) {
-    if (ignored(item) || item.category === "bases") continue;
-    // Maps are keyed on what the filter can read off the ground rather than on a name —
-    // see `mapBuckets`.
-    if (item.category === "maps") continue;
-    // Uniques are bucketed by base, not by name — see `checkBuckets`.
-    if (UNIQUE_CATEGORIES.has(item.category) && item.frame === 3) continue;
+    if (ignored(item)) continue;
+    // Every white piece of equipment belongs to `baseBuckets`, including the categories
+    // `bases.md` leaves out — see `isWhiteBase`.
+    if (isWhiteBase(item, ggg)) continue;
+    // Maps are five asserted treatments and no per-name buckets at all — see `mapBuckets`.
+    //
+    // **A tierless `maps` row is not a map.** PoeWatch files Invitations, Reliquary Keys
+    // and the Chronicles under `maps` for where they are *used*, and the absent tier is
+    // the only thing in the payload that separates them from something that drops as one.
+    // Those fall through to the name-keyed pass below, where the static list decides
+    // whether they are currency — which is where `currency.md` puts `MapKey`,
+    // `MapsSpecial` and `MapsUnique`.
+    if (item.category === "maps" && item.mapTier != null) continue;
+    if (item.category === "maps" && item.frame === UNIQUE_FRAME) continue;
+    // Uniques are bucketed by base, not by name — see `uniqueBaseBuckets`. Every frame 3
+    // leaves here: a unique's name is not a base type, PoeWatch never sends the base type
+    // beside it, and a block keyed on the name is one the game refuses to parse. A unique
+    // whose base nothing knows is better unclassified — the catch-all at the end of the
+    // file still shows it, loudly.
+    if (item.frame === UNIQUE_FRAME) continue;
+    // Traded, and never on the floor. See `NOT_ON_THE_FLOOR`.
+    if (NOT_ON_THE_FLOOR.has(ggg.categoryOf(item.name) ?? "")) continue;
 
-    if (item.category === "gem") {
+    // Category and frame together, and GGG deliberately not consulted — see `isGem`.
+    if (isGem(item)) {
       const kind = gemKind(item.name);
 
       // The event is the value, so there is nothing to price and nothing to split on.
@@ -1210,9 +1699,11 @@ function flatBuckets(
         // `Ice Nova` with the transfiguration as a discriminator, so `BaseType ==` on the
         // full name matches nothing and every one of these would be a block that cannot
         // fire. The grammar has the condition that reads the discriminator.
-        add(`gem:${item.name}`, "gems", item, [
+        const transfigured = add(`gem:${item.name}`, "gems", item, [
           formatCondition(`TransfiguredGem "${item.name}"`),
-        ]).varies = true;
+        ]);
+        transfigured.varies = true;
+        transfigured.ladder = "gems";
         continue;
       }
 
@@ -1227,9 +1718,12 @@ function flatBuckets(
         // level 1 quality 0 row because that is the only one that drops, but the block has
         // to take a level 4 corrupted Enlighten too — that is the one worth 2,480c, and
         // `GEM_LEVELS` is why it has no bucket of its own. See `TODO.md`.
-        const draft = add(`gem:${item.name}`, "gems", item, [baseTypeIs(item.name)]);
+        const draft = add(`gem:${item.name}`, "gems", item, [
+          baseTypeIs(item.name),
+        ]);
         draft.alwaysShow = true;
         draft.minTier = EXCEPTIONAL_MIN_TIER;
+        draft.ladder = "gems";
         continue;
       }
 
@@ -1240,9 +1734,16 @@ function flatBuckets(
         if (item.gemLevel !== DROP_LEVEL) continue;
         if (item.gemQuality !== DROP_QUALITY) continue;
 
-        add(`gem:${item.name}`, "gems", item, [
-          baseTypeIs(item.name),
-        ]).alwaysShow = true;
+        // Written like every other transfiguration, because GGG catalogues it as one:
+        // `Blast Rain of Trarthus` is base type `Blast Rain` with a discriminator, exactly
+        // as `Ice Nova of Frostbolts` is. Only the *pricing* differs — this one drops — and
+        // a `BaseType ==` on the full name is a base type the game does not have, which
+        // stops it parsing the file rather than quietly matching nothing.
+        const trarthus = add(`gem:${item.name}`, "gems", item, [
+          formatCondition(`TransfiguredGem "${item.name}"`),
+        ]);
+        trarthus.alwaysShow = true;
+        trarthus.ladder = "gems";
         continue;
       }
 
@@ -1259,7 +1760,7 @@ function flatBuckets(
       // block's bar, and showing it at the quieter tier is the show-cheap direction of
       // wrong; the loud block is written first and takes it before the quiet one is
       // reached. Quality 0 writes no line at all — every gem clears it.
-      add(
+      const overRolled = add(
         `gem:${item.name} lvl${item.gemLevel} q${item.gemQuality}${corrupted}`,
         "gems",
         item,
@@ -1271,17 +1772,31 @@ function flatBuckets(
             : []),
           item.gemIsCorrupted ? "Corrupted True" : "Corrupted False",
         ],
-      ).alwaysShow = true;
+      );
+      overRolled.alwaysShow = true;
+      overRolled.ladder = "gems";
     } else {
-      const base = withoutVariant(item.name);
-      const { id, family } = placement(item.category, item.name);
+      const base = gameName(item.name);
+      const placed = placement(item.category, item.name, ggg);
+      // Not currency and not a card, so nothing here claims it. The catch-all at the end
+      // of the filter still shows it — see `CURRENCY_GROUPS`.
+      if (placed === undefined) continue;
+
       // `Class` only where the family is the class. A base type is unambiguous on its own
       // — the names carrying two classes are cosmetics that never drop and the
       // Invitations, which are one item filed twice — so everything else is the name.
-      add(id, family, item, [
-        ...(family === "div-cards" ? ['Class == "Divination Cards"'] : []),
+      const flat = add(placed.id, placed.family, item, [
+        ...(placed.family === "div-cards"
+          ? ['Class == "Divination Cards"']
+          : []),
         baseTypeIs(base),
       ]);
+      // Cards run the currency ladder too — `divination-cards.md` says so, and differs
+      // only in never counting a stack.
+      flat.ladder = "currency";
+      // Scarabs and allflames answer to no click floor. Assigned rather than or-ed: every
+      // row folding into one bucket shares a name, so they all give the same answer.
+      flat.neverHidden = neverHidden(base, ggg.staticGroupOf(item.name));
     }
   }
 
@@ -1301,6 +1816,7 @@ function flatBuckets(
     drafts.set(id, {
       id,
       family: "gems",
+      ladder: "gems",
       verb: "take",
       floor: 0,
       ceiling: 0,
@@ -1310,13 +1826,18 @@ function flatBuckets(
       slots: 1,
       note: "",
       conditions:
-        kind === "transfigured"
+        // Both transfiguration shapes, for the reason the emitting branch above gives:
+        // the game knows the base gem and the discriminator, never the joined name.
+        kind === "transfigured" || kind === "trarthus"
           ? [formatCondition(`TransfiguredGem "${name}"`)]
           : [baseTypeIs(name)],
       minStack: 0,
       varies: kind === "transfigured",
       minTier: kind === "exceptional" ? EXCEPTIONAL_MIN_TIER : "hidden",
       alwaysShow: true,
+      neverHidden: false,
+      gamblePrice: 0,
+      gambleWorthy: false,
       vaalCeiling: 0,
       vaalFloor: 0,
       vaalName: "",
@@ -1334,376 +1855,168 @@ function flatBuckets(
 }
 
 /**
- * The map rows that are trade goods rather than drops, and so earn no block.
+ * The eight-modifier count, done the only way the grammar allows.
  *
- * Every one of these is bought, not found. A filter block for an item nothing puts on the
- * floor is a block that can never fire, and eleven of them at the top of the map section
- * is eleven chances to mis-order the ones that can.
+ * There is no condition that counts an item's modifiers, so this leans on the fact that
+ * every modifier name in the game contains a vowel: eight or more explicit mods matching
+ * `a e i o u y` is eight or more explicit mods. A trick rather than a property, which is
+ * why it travels to the emitter as a literal line and nothing downstream tries to rebuild
+ * it from a structure.
  *
- * Kept as a name list because there is nothing in the payload to derive it from. PoeWatch
- * files these beside the maps that *do* drop, with the same category, the same tier and
- * the same shape — the only thing separating them is what the game does with them, which
- * no feed reports.
- */
-const TRADED_MAPS = new Set([
-  "Al-Hezmin's Map",
-  "Baran's Map",
-  "Drox's Map",
-  "Shaper Guardian Map",
-  "The Constrictor's Map",
-  "The Enslaver's Map",
-  "The Eradicator's Map",
-  "The Purifier's Map",
-  "Vaal Temple Map",
-  "Veritania's Map",
-]);
-
-/** PoeWatch's name for a plain tier-16 map: 1.4 million listings of one nameless item. */
-const CLEAN_T16 = "Map (Tier 16)";
-
-const NIGHTMARE_MAP = "Nightmare Map";
-
-/** PoeWatch prefixes the tier: `Blighted Map (Tier 16)`, `Blight-ravaged Map (Tier 16)`. */
-const BLIGHTED_MAP = "Blighted Map";
-
-const BLIGHT_RAVAGED_MAP = "Blight-ravaged Map";
-
-/**
- * What a plain map block has to say to stop taking a blighted one.
- *
- * **Said outright rather than left to block order.** A blighted map is normal rarity at an
- * ordinary tier, so `MapTier 9` and `Rarity Normal` describe it perfectly and the plain
- * block would take it — and the two blocks carry the same number of conditions, which is
- * all the emitter sorts on. Both flags are written because nothing published says whether
- * a blight-ravaged map also answers `BlightedMap`, and a block that is right under either
- * reading is worth two lines.
- */
-const NOT_BLIGHTED: readonly string[] = [
-  "BlightedMap False",
-  "UberBlightedMap False",
-];
-
-/**
- * The tier-16 maps no feed prices, what each block must say, and how loud it may go.
- *
- * **Corruption alone is not the thing worth seeing — eight modifiers is.** A map that was
- * corrupted and gained nothing is a plain t16 and is priced as one. So corrupted splits
- * three ways here, on the one axis the ground can be asked about: whether the modifiers
- * are readable, and whether there are eight of them.
- *
- * The count travels as `conditions` — verbatim filter lines — because the grammar has no
- * way to count an item's modifiers. `HasExplicitMod` takes a count and matches
- * substrings, so eight matches against the vowels is eight modifiers, every modifier name
- * containing at least one. `Identified True` guards it: identification is what makes
- * explicit modifiers readable, and without the guard the block silently never fires on a
- * fresh drop.
- *
- * **The blocks overlap, and the ladder is what separates them.** Their conditions nest:
- * `Corrupted True Identified True` matches everything the eight-modifier block matches,
- * and the plain Originator block matches every corrupted Originator map. So the emitter
- * must write the loud one first and let first-match-wins do the rest. That ordering falls
- * out of the tiers below rather than being arranged anywhere, which is worth knowing
- * before any of them is moved.
- *
- * **The Originator pair ignores identification, and therefore counts no modifiers.** See
- * `CORRUPTED`.
- *
- * `floor` is where the ladder may not go below: `rungs` counts up from wherever the plain
- * t16 landed, `tier` names an absolute. Relative is the better answer wherever the thing
- * is "worth more than a plain map" — it survives the plain map's price moving. Absolute is
- * for a bucket the player has decided about regardless of what anything costs.
+ * `Class == "Maps"` beside it because the count alone is not a map claim. A rare with a
+ * long enough mod list answers this too, and the block that takes it is a map block.
  */
 const EIGHT_MODS: readonly string[] = [
-  "Corrupted True",
-  "Identified True",
+  'Class == "Maps"',
   'HasExplicitMod >=8 "a" "e" "i" "o" "u" "y"',
 ];
 
-const CORRUPTED_IDENTIFIED: readonly string[] = [
-  "Corrupted True",
-  "Identified True",
+/**
+ * Any map carrying an implicit, which on a map is what an Originator does to it.
+ *
+ * *On a map.* Off one, an implicit is what most of the game's gear has — so the class is
+ * half of this condition, not decoration on it. Without it the block claims every ring,
+ * every shield, every base with a line above the separator.
+ */
+const ORIGINATOR: readonly string[] = [
+  'Class == "Maps"',
+  "HasImplicitMod True",
 ];
 
-/**
- * Corrupted, read or unread.
- *
- * **What the Originator blocks use, and the reason they do not count modifiers.** The
- * implicit is the whole reason one of those is loud, and an implicit stays legible on an
- * unidentified item — so gating on identification would drop half the drops for a
- * distinction that was never the point. Counting modifiers costs exactly that gate, since
- * `HasExplicitMod` cannot read an unidentified item, so the two go together: no
- * identification requirement, no eight-modifier count.
- */
-const CORRUPTED: readonly string[] = ["Corrupted True"];
+/** The one map the game gives a name of its own, and so the one a base type can read. */
+const NIGHTMARE_MAP = "Nightmare Map";
 
 /**
- * What an Originator map can actually be asked about, and it is blunter than the item.
+ * The whole of what a filter has to say about a map.
  *
- * The Originator's Memories is an *implicit*, so none of the explicit machinery reaches
- * it — no substring match, no count, no vowel trick. The grammar offers exactly one
- * general implicit condition, `HasImplicitMod True`, meaning *carries at least one*. It
- * cannot be told which implicit, and there is no name-matching form: the only two numeric
- * implicit conditions are `HasEaterOfWorldsImplicit` and `HasSearingExarchImplicit`, both
- * specific to those mechanics.
+ * **`maps.md` prices nothing, and that is the change.** Every earlier version of this pass
+ * tiered maps off a market — one bucket per tier per rarity, blighted split from plain, the
+ * t16 variants pinned relative to whatever a plain t16 was worth that afternoon. None of it
+ * survived contact with the question the doc actually asks, which is not *what is this map
+ * worth* but *what kind of map is this*. A map is run, not sold; the thing worth marking is
+ * the one carrying eight modifiers, and no feed prices that.
  *
- * **So this fires on any tier-16 map carrying any implicit**, which is the show-cheap
- * trade rather than an accident — the alternative is a bucket with no key at all. What
- * else lands in it is bounded and mostly worth seeing anyway: the Elder and Shaper
- * influence implicits, the occupied-by and Citadel ones, and whatever a corruption added.
- * See `TODO.md`.
+ * So there are five treatments and no ladder. The order here is the order they are written
+ * in, and it is load-bearing: the three loud ones say more about an item than `Rarity
+ * Normal` does, and a plain-map block written above them would take an eight-mod map first.
+ *
+ * `MapTier` appears nowhere on purpose. `maps.md` says *all normal maps no matter the
+ * tier*, and a tier condition is exactly the per-tier bucketing the doc replaced.
  */
-const ORIGINATOR: readonly string[] = ["HasImplicitMod True"];
-
-/**
- * The same map before anybody read it, and the only honest thing left to say about one.
- *
- * A corrupted map can land unidentified, and identification is what makes explicit
- * modifiers readable — so the count in `EIGHT_MODS` cannot run and there is no way to ask
- * whether this is the eight-modifier map or an ordinary corrupted one. Both are on the
- * floor looking identical.
- *
- * Which is `check`, exactly as the verb is defined: the filter cannot tell which item this
- * is, and hovering is free. It is floored at the eight-modifier tier rather than the plain
- * one, which is the show-cheap rule doing its job — tier the bucket at its best outcome
- * when the filter cannot distinguish. **A placeholder, and deliberately the expensive
- * one.** See `TODO.md`.
- */
-const UNIDENTIFIED: readonly string[] = ["Corrupted True", "Identified False"];
-
-const T16_VARIANTS: readonly {
-  id: string;
-  label: string;
-  note: string;
-  conditions: readonly string[];
-  verb: Verb;
-  floor: { rungs: number } | { tier: Tier };
+const MAP_TREATMENTS: readonly {
+  readonly treatment: string;
+  readonly id: string;
+  readonly label: string;
+  readonly note: string;
+  readonly tier: Tier;
+  readonly conditions: readonly string[];
+  readonly unique: boolean;
 }[] = [
   {
-    id: "map:t16 corrupted 8 mods",
-    label: "Corrupted Map (Tier 16), 8 mods",
-    // Absolute rather than relative, because this is not a claim about the market. It is
-    // the player saying always pick one up, and a plain t16 going cheap must not quiet it.
-    // The number it is actually worth is an open question — see `TODO.md`.
-    note: "8 mods — always take, unpriced",
+    treatment: "eight-mod",
+    id: "map:8-mod",
+    label: "Map with eight modifiers",
+    note: "eight explicit modifiers",
+    tier: "T0",
     conditions: EIGHT_MODS,
-    verb: "take",
-    floor: { tier: "T2" },
+    unique: false,
   },
   {
-    id: "map:t16 corrupted unidentified",
-    label: "Unidentified Corrupted Map (Tier 16)",
-    note: "might be 8 mods — treated as one",
-    conditions: UNIDENTIFIED,
-    verb: "check",
-    floor: { tier: "T2" },
+    treatment: "nightmare",
+    id: "map:nightmare",
+    label: NIGHTMARE_MAP,
+    note: "the one map with a base type of its own",
+    tier: "T1",
+    conditions: [baseTypeIs(NIGHTMARE_MAP)],
+    unique: false,
   },
   {
-    id: "map:t16 corrupted",
-    label: "Corrupted Map (Tier 16)",
-    // Nothing prices a corrupted map that gained no modifiers, and nothing needs to: it
-    // is a plain t16 that has been vaaled, so it lands exactly where a plain t16 lands.
-    note: "no 8-mod count — tiered as a plain t16",
-    conditions: CORRUPTED_IDENTIFIED,
-    verb: "take",
-    floor: { rungs: 0 },
-  },
-  {
-    id: "map:t16 originator",
-    label: "Originator Map (Tier 16)",
-    note: "any t16 carrying an implicit",
+    treatment: "originator",
+    id: "map:originator",
+    label: "Originator Map",
+    note: "any map carrying an implicit",
+    tier: "T2",
     conditions: ORIGINATOR,
-    verb: "take",
-    floor: { rungs: 1 },
+    unique: false,
   },
   {
-    id: "map:t16 originator corrupted",
-    label: "Corrupted Originator Map (Tier 16)",
-    note: "any corrupted t16 carrying an implicit",
-    conditions: [...CORRUPTED, ...ORIGINATOR],
-    verb: "take",
-    floor: { rungs: 2 },
+    // Still one block for all of them, and for the reason it always was: a unique map's
+    // base is the same nameless `Map (Tier N)` every other map dropped from, and no
+    // condition reads an item's name. `Replica Cortex` and `Death and Taxes` are one item
+    // as far as a block can tell.
+    treatment: "unique",
+    id: "map:unique",
+    label: "Unique map",
+    note: "every unique map, which is as far as a block can see",
+    tier: "T3",
+    conditions: ["Rarity Unique", 'Class == "Maps"'],
+    unique: true,
+  },
+  {
+    treatment: "normal",
+    id: "map:normal",
+    label: "Map",
+    note: "every map of every tier",
+    tier: "T4",
+    conditions: ['Class == "Maps"'],
+    unique: false,
   },
 ];
 
 /**
- * Every map, keyed on what a filter can actually read off the ground.
+ * The five map blocks, asserted rather than priced.
  *
- * **Maps stopped dropping with names, and that is why they are no longer bucketed like
- * everything else.** The name rule that still works for gems and cards says nothing here:
- * `Map (Tier 16)` is one identity covering 1.4 million listings, and what separates one
- * t16 from the next — corruption, the Originator implicit — has no row in any feed and
- * has to be asserted instead.
+ * No `items` argument, because nothing in the market feed changes any of this. That is the
+ * point of the rewrite: the answer to *how should a map be drawn* comes out of `maps.md`
+ * and `tiers.json`, and a price would only be able to contradict it.
  *
- * So this pass does three different things at once, and the order below is the whole
- * rule:
- *
- * 1. **Traded maps leave.** They do not drop. See `TRADED_MAPS`.
- * 2. **Unique maps are one `varies` bucket**, always shown, and the `hideUniqueMaps` lever
- *    deletes it. Nothing separates one from another — see the branch.
- * 3. **Tierless rows are not maps.** PoeWatch files invitations, reliquary keys and the
- *    Chronicles under `maps` for where they are used, and the absent tier is the only
- *    thing in the payload that tells them apart from one.
- * 4. **Tier 16 splits four ways**, three of them priced by nothing at all.
- * 5. **Blight and blight-ravaged are keyed on their own flag**, one bucket per tier. The
- *    game reads them and the market prices them apart — see `NOT_BLIGHTED`.
- * 6. **Everything else keeps the old tier-and-frame key** — tiers 1 to 15. Those still
- *    drop as one undifferentiated thing per tier and there is nothing new to say about
- *    them.
+ * The tier is carried on `minTier` with `alwaysShow` beside it, which is how a bucket with
+ * no price reaches a rung at all — the same way an unlisted gem does. Nothing here can be
+ * hidden by the click floor, which is `maps.md` marking four of the five persistent and
+ * the fifth being a unique the player asked to see.
  */
-function mapBuckets(
-  items: readonly ItemData[],
-  rates: Rates,
-  levers: Levers,
-): Draft[] {
-  const { drafts, add } = collector();
+function mapBuckets(levers: Levers): Draft[] {
+  return MAP_TREATMENTS.flatMap((treatment) => {
+    // All or nothing, because the game leaves no middle setting — see `hideUniqueMaps`.
+    if (treatment.unique && levers.hideUniqueMaps) return [];
 
-  for (const item of items) {
-    if (ignored(item) || item.category !== "maps") continue;
-    if (TRADED_MAPS.has(item.name)) continue;
-
-    if (item.frame === 3) {
-      // All or nothing, because the game leaves no middle setting — see `hideUniqueMaps`.
-      if (levers.hideUniqueMaps) continue;
-
-      // One bucket for all of them, and no tier at all.
-      //
-      // **A unique map has no key.** Its base is the same nameless `Map (Tier N)` every
-      // other map dropped from, and the filter has no condition that reads an item's
-      // name — so `Replica Cortex` at 110c and `Death and Taxes` at 1c are one item as
-      // far as a block can tell. Per-name buckets would be 25 blocks of which 24 could
-      // never be written.
-      //
-      // `varies` rather than a tier off the best member, because tiering at 110c would
-      // promise a payday on every white-tier junk map, and tiering lower would hide the
-      // Cortex. The honest answer is that the ladder does not apply, which is the one
-      // thing `varies` exists to say.
-      // `check` is the verb's own definition — the filter cannot tell which item this
-      // is — and it is what keeps `resolve` reporting both ends of the spread. A `take`
-      // collapses floor onto ceiling, which would print 106c as the worst outcome of a
-      // bucket whose worst outcome is 1c.
-      // The whole class, because that is the whole of what a block can say about one.
-      const draft = add("unique-map", "unique-maps", item, [
-        "Rarity Unique",
-        'Class == "Maps"',
-      ]);
-      draft.verb = "check";
-      draft.varies = true;
-      draft.alwaysShow = true;
-      continue;
-    }
-
-    // Never hidden, whatever it is worth. A Polaric Invitation at 7c and a Cosmic
-    // Reliquary Key at 2,388c are the same promise to the player: this category always
-    // appears, and the cheap end gets a smaller mark rather than no mark.
-    if (item.mapTier == null) {
-      add(
-        `fragment:${withoutVariant(item.name)}`,
-        "fragments",
-        item,
-        [baseTypeIs(withoutVariant(item.name))],
-      ).alwaysShow = true;
-      continue;
-    }
-
-    if (item.name === NIGHTMARE_MAP) {
-      // The id says `nightmare` and the base type says `Nightmare Map`. Reading the
-      // first as the second is exactly the guess this field exists to stop.
-      add("map:nightmare", "maps", item, [
-        baseTypeIs(NIGHTMARE_MAP),
-      ]).alwaysShow = true;
-      continue;
-    }
-
-    // Blight and blight-ravaged leave before the tier-and-frame key, because they are a
-    // different item at the same tier and rarity. A Blighted Map (Tier 1) is 15c against
-    // 1c for the white t1 it was folded in with, and it was setting that bucket's tier —
-    // paying out the blighted price on every plain map of the tier while the blighted one
-    // had no block of its own. No rarity line: these drop white and can be alched, and
-    // showing an alched one is the cheap direction of wrong.
-    if (item.name.startsWith(BLIGHT_RAVAGED_MAP)) {
-      add(`map:blight-ravaged tier${item.mapTier}`, "maps", item, [
-        `MapTier ${item.mapTier}`,
-        "UberBlightedMap True",
-      ]);
-      continue;
-    }
-
-    if (item.name.startsWith(BLIGHTED_MAP)) {
-      add(`map:blighted tier${item.mapTier}`, "maps", item, [
-        `MapTier ${item.mapTier}`,
-        "BlightedMap True",
-      ]);
-      continue;
-    }
-
-    if (item.name === CLEAN_T16) {
-      add("map:t16", "maps", item, ["MapTier 16", "Rarity Normal", ...NOT_BLIGHTED]);
-      continue;
-    }
-
-    add(`map:tier${item.mapTier} frame${item.frame}`, "maps", item, [
-      `MapTier ${item.mapTier}`,
-      `Rarity ${RARITY_BY_FRAME[item.frame] ?? "Normal"}`,
-      ...NOT_BLIGHTED,
-    ]);
-  }
-
-  // The plain t16 is resolved here rather than left to `resolve`, because the three
-  // variants are defined against where it lands and nothing else in this file can tell
-  // them where that is. Same arithmetic `resolve` will redo for it a moment later: one
-  // member, floor and ceiling agree, so the expected value is simply the price.
-  const clean = drafts.get("map:t16");
-  const cleanTier =
-    clean === undefined
-      ? // No plain t16 in the feed at all. Something is badly wrong upstream, and the
-        // variants still drop — so they are floored off the quiet end rather than left
-        // out, which shows them at the smallest mark instead of hiding them.
-        "hidden"
-      : tierFor(
-          clean,
-          Math.max(clean.floor, clean.ceiling),
-          clean.ceiling,
-          rates,
-          levers,
-        );
-
-  for (const variant of T16_VARIANTS) {
-    drafts.set(variant.id, {
-      id: variant.id,
-      family: "maps",
-      verb: variant.verb,
-      // Seeded at no price, which is honest: there is no price. The tier comes off
-      // `minTier` alone, exactly as it does for a gem nobody has listed.
+    const draft: Draft = {
+      id: treatment.id,
+      family: treatment.unique ? "unique-maps" : "maps",
+      // Maps are not cut against anything. The ladder only supplies the quiet end that
+      // `minTier` then raises, and `default` is the one every unpriced bucket uses.
+      ladder: "default",
+      verb: "take",
+      // Seeded at no price, which is honest: there is no price, and asking for one was the
+      // mistake this pass exists to undo.
       floor: 0,
       ceiling: 0,
       thin: true,
       members: 0,
-      slots: clean?.slots ?? 1,
-      note: variant.note,
-      // The tier is in the id and nowhere in the lines, so it is written here rather than
-      // repeated in all five. `>=` because a t17 is a t16 as far as any of these go.
-      conditions: ["MapTier >= 16", ...variant.conditions],
+      slots: 1,
+      note: treatment.note,
+      conditions: treatment.conditions,
       minStack: 0,
       varies: false,
-      minTier:
-        "tier" in variant.floor
-          ? variant.floor.tier
-          : louder(cleanTier, variant.floor.rungs),
+      minTier: treatment.tier,
       alwaysShow: true,
+      neverHidden: false,
+      gamblePrice: 0,
+      gambleWorthy: false,
       vaalCeiling: 0,
       vaalFloor: 0,
       vaalName: "",
       vaalVariant: "",
       vaalMod: "",
-      topName: variant.label,
+      topName: treatment.label,
       topPrice: 0,
       topVariant: "",
       topFromExchange: false,
       examples: [],
-    });
-  }
+    };
 
-  return [...drafts.values()];
+    return [draft];
+  });
 }
 
 /**
@@ -1741,7 +2054,9 @@ function gemKinds(input: ClassifyInput): (name: string) => GemKind {
     const base = withoutVariant(name);
     return (
       kind(base) ??
-      (base.startsWith("Vaal ") ? kind(base.slice("Vaal ".length)) : undefined) ??
+      (base.startsWith("Vaal ")
+        ? kind(base.slice("Vaal ".length))
+        : undefined) ??
       "vendor"
     );
   };
@@ -1761,20 +2076,50 @@ function tierFor(
   rates: Rates,
   levers: Levers,
 ): Tier {
+  const quietest = quietestRung(draft.ladder);
+
+  // The lottery-ticket override, and only on the ladder that has no doc of its own. The
+  // four documented ladders state their cuts outright — bases `T0` is a quality condition
+  // and currency `T0` is five divine — so an override that promotes on ceiling alone would
+  // be a rule contradicting the file it is supposed to implement.
+  if (draft.ladder === "default" && ceiling >= T0_CEILING * rates.divine) {
+    return "T0";
+  }
+
   // The cuts are in divine and everything measured here is in chaos, so the ladder is
   // converted rather than the prices. One multiplication against thousands of them.
-  if (ceiling >= T0_CEILING * rates.divine) return "T0";
+  for (const row of LADDER_ROWS[draft.ladder]) {
+    // The rung the player's own floor defines. It sits below every priced cut on its
+    // ladder, so reaching it means nothing dearer claimed the bucket and the only question
+    // left is whether the player would bend down for it at all.
+    if (row.clickFloor) {
+      // `neverHidden` keeps the rung rather than raising one — see the field. It is checked
+      // beside the floor rather than after it because this *is* the floor's exception.
+      if (ev >= levers.minClickValue || draft.neverHidden) return row.tier;
+      return draft.alwaysShow ? quietest : "hidden";
+    }
 
-  // The click floor outranks the ladder, which is why it is tested before it rather than
-  // after: a bucket clearing T4 on value can still be under what the player will bend
-  // down for, and the player's answer is the one that counts. It sits *below* the T0
-  // ceiling override on purpose — a lottery ticket is not what anyone means by this — and
-  // an always-shown category still gets its smallest mark rather than none.
-  if (ev < levers.minClickValue) return draft.alwaysShow ? "T5" : "hidden";
+    if (row.cut == null) continue;
+    if (ev < row.cut * rates.divine) continue;
 
-  for (const [tier, cut] of TIER_CUTS) if (ev >= cut * rates.divine) return tier;
+    // **The click floor is tested here rather than before the ladder, and that is the
+    // whole of what `persistent` means.** A rung the file marks persistent is one no
+    // ground-floor rule may take away: on league start a divine is 60c, so a 5c floor
+    // would erase the entire T3 band at 3c and the player would have been told the
+    // third-loudest tier in the filter does not exist. Everything else still answers to
+    // the floor, because nobody else can price the player's time.
+    if (row.persistent || ev >= levers.minClickValue) return row.tier;
+
+    return draft.alwaysShow ? quietest : "hidden";
+  }
+
+  if (ev < levers.minClickValue && !draft.alwaysShow) return "hidden";
   // A category the player asked to always see gets the smallest mark instead of none.
-  if (draft.alwaysShow) return "T5";
+  if (draft.alwaysShow) return quietest;
+
+  // A thin price is not evidence of a cheap item, so it keeps the bucket at the bottom of
+  // the ladder rather than dropping it. Bases are the exception and settle it earlier —
+  // `bases.md` disqualifies a thin price outright, so those rows never reach here.
   return draft.thin ? "T4" : "hidden";
 }
 
@@ -1796,6 +2141,111 @@ function tierFor(
  * this bucket reads on its own, the verb says what kind of decision it is, and how the two
  * combine on screen is decided where the filter is written — not here.
  */
+/** The rungs a gamble may sit on. `uniques.md` offers one on the check branch only. */
+const GAMBLE_TIERS: ReadonlySet<Tier> = new Set<Tier>(["T3", "T4"]);
+
+/**
+ * The loudest rung a set of cuts gives a price, or `undefined` when it clears none.
+ *
+ * The cuts are in divine and the price is in chaos, so the ladder is converted rather than
+ * the price — one multiplication per rung instead of one per bucket.
+ */
+const rungFor = (
+  rows: readonly TierRow[],
+  value: number,
+  rates: Rates,
+): TierRow | undefined =>
+  rows.find(
+    (row) =>
+      row.cut != null &&
+      value >= row.cut * (row.unit === "chaos" ? 1 : rates.divine),
+  );
+
+/**
+ * A unique base, measured twice against one ladder.
+ *
+ * **One set of cuts, read against two prices.** `take` is the *guaranteed* value — the
+ * cheapest unique on the base, what the player is certain to get. `check` is the
+ * *aspirational* value — the dearest, what the base could turn out to be. Both are run down
+ * the same rungs, and the answer is the comparison between them:
+ *
+ * - **They agree** → that rung, verb `take`. Every unique on this base is worth the same
+ *   sort of money, so there is nothing left to learn by hovering.
+ * - **They differ** → still the *take* rung, verb `check`. The base could be worth more
+ *   than it is guaranteed to be, and that is worth marking — but it is not worth showing
+ *   the item as though the good outcome had already happened.
+ *
+ * **The aspirational value never raises the tier, and that is the point.** It used to: a
+ * base whose cheapest unique was 100c and whose dearest was 2,042c was drawn at the
+ * dearest, so a Ghastly Eye Jewel worth 100c arrived with the whoosh and the white
+ * background reserved for a five-divine drop. The loudness a filter spends is a promise
+ * about what is on the ground, and the only thing actually on the ground is the guaranteed
+ * value. So the rung comes off the floor, and the upside is carried by the verb — which
+ * the styler draws as a gold border, a larger label and a yellow star, over whatever the take
+ * rung already looked like.
+ *
+ * **The last rung has a cut like every other, and a base under it earns nothing.** It used
+ * to catch everything, which made `T4` the answer to *any price at all* — a 1c unique drew
+ * a block, and 362 of the 563 priced bases sat on the quietest rung the file has. `T4` is
+ * meant to be a drop worth bending down for, so it is `0.05` divine like the rungs above it
+ * are `0.1` and `0.25`, and what fails it is hidden.
+ *
+ * That is not the old failure it looks like. The old design ran *two* ladders whose bottom
+ * rungs were a factor of ten apart — a take bottoming at 10c and a check at 102c — so 72
+ * bases fell between the two and vanished with nothing having decided they should. Here one
+ * ladder is asked twice and a base is hidden by a cut it was actually measured against.
+ *
+ * **A base whose guarantee fails the ladder but whose upside clears it is a check at `T4`.**
+ * Heavy Belt is guaranteed 1c and might be Mageblood; Leather Belt might be Headhunter. The
+ * aspirational value still does not raise the tier — `T4` is the floor of the ladder, not a
+ * rung the ceiling won — but it does decide the base is worth drawing at all, which is the
+ * whole of what a check says.
+ */
+function uniqueRung(
+  draft: Draft,
+  rates: Rates,
+):
+  | { tier: Tier; upTo: Tier; branch: "take" | "check"; ev: number }
+  | undefined {
+  const last = UNIQUE_CUTS[UNIQUE_CUTS.length - 1];
+  if (last === undefined) return undefined;
+
+  // A base nothing priced has no floor and no ceiling to measure, so it earns nothing —
+  // unlike a base priced at a penny, which is measured and found wanting.
+  if (draft.members === 0) return undefined;
+
+  const take = rungFor(UNIQUE_CUTS, draft.floor, rates);
+  const check = rungFor(UNIQUE_CUTS, draft.ceiling, rates);
+
+  // Neither price reached the bottom cut. Nothing on this base is worth the floor and
+  // nothing on it might be, so there is no rung and `resolve` hides it.
+  if (check === undefined) return undefined;
+
+  // The guarantee cleared nothing and the upside cleared something: the quietest rung the
+  // ladder has, as a check. `last` rather than `check.tier` — the ceiling says *look*, it
+  // does not say *how loud*.
+  if (take === undefined) {
+    return {
+      tier: last.tier,
+      upTo: check.tier,
+      branch: "check",
+      ev: draft.ceiling * CHECK_DISCOUNT,
+    };
+  }
+
+  // The tier is the take rung either way — the check rung never decides how loud the block
+  // is. It is carried out as `upTo` because the styler wants it for one thing only: the
+  // beam, which scales with the *upside* rather than the guarantee. See `styleFor`.
+  return take.tier === check.tier
+    ? { tier: take.tier, upTo: take.tier, branch: "take", ev: draft.floor }
+    : {
+        tier: take.tier,
+        upTo: check.tier,
+        branch: "check",
+        ev: draft.ceiling * CHECK_DISCOUNT,
+      };
+}
+
 function resolve(draft: Draft, rates: Rates, levers: Levers): Bucket {
   const ratio =
     draft.floor > 0
@@ -1814,40 +2264,132 @@ function resolve(draft: Draft, rates: Rates, levers: Levers): Bucket {
     draft.ceiling <= 0 || ratio > RATIO_THRESHOLD ? draft.verb : "take";
 
   const worth = Math.max(draft.floor, draft.ceiling);
+
+  // The dual ladder, and the one place a bucket is measured twice.
+  //
+  // **`onUniqueLadder` and `unique` are different questions and both are needed.** The
+  // first says which rules apply; the second says what they returned, and `undefined` from
+  // it is a real answer — a base too cheap for either branch. Collapsing the two lets a
+  // base that cleared nothing fall through to the rules it is not governed by, which is
+  // how a hidden Carved Wand came out labelled `gamble`.
+  const onUniqueLadder = draft.ladder === "uniques";
+  const unique = onUniqueLadder ? uniqueRung(draft, rates) : undefined;
+
   const plainEv =
-    identityVerb === "check" ? draft.ceiling * CHECK_DISCOUNT : worth;
+    unique !== undefined
+      ? unique.ev
+      : onUniqueLadder || identityVerb === "check"
+        ? draft.ceiling * CHECK_DISCOUNT
+        : worth;
 
   // `gamble` is not "has vaal upside" — nearly everything has vaal upside. It is "the
-  // vaal upside is the reason to touch this", and only the ratio says that. Demand
-  // raising the plain price is what demotes a bucket back out of it.
+  // vaal upside is the reason to touch this".
   //
-  // The loss cap is the second half, and it is absolute where the ratio is relative:
-  // Kalandra's Touch is 525c plain against a 47,738c corrupted ceiling, which passes the
-  // ratio at 91× and is still a ring almost nobody will actually destroy.
-  const vaalable =
-    draft.vaalCeiling > draft.vaalFloor * VAAL_GAMBLE_RATIO &&
-    draft.vaalFloor <= MAX_GAMBLE_FLOOR;
+  // **`uniques.md` rewrote what that means, and it is now three tests rather than two.**
+  // The base must be one the filter could not identify anyway (the check branch won), it
+  // must be quiet enough that a blind vaal is plausible (`T3` or `T4`), and it must be
+  // cheap enough that the player said they would spend it. The old absolute loss cap is
+  // gone: `gambleCeiling` is the player's own number and does the same job better.
+  // **A gamble is a base cheap enough to destroy that pays out when destroyed, and the
+  // rung it earned is not part of that test.** `uniques.md` says gambles *apply to t3 and
+  // t4*, and reading that as a cut the base must clear makes the feature unreachable: the
+  // check branch reaches `T4` at half a divine, while the gamble ceiling caps the base at
+  // a handful of chaos, so no base could ever satisfy both. The doc's own worked examples
+  // settle it — Anathema at 10c and Bisco's Leash at 10c are the cases it was written for,
+  // and neither clears a check cut. So `T3`/`T4` is where a gamble is *drawn*, and what it
+  // rules out is a base already loud on its own merits: nothing at `T2` or above needs to
+  // be sold as a lottery ticket.
+  const tooLoudToGamble =
+    unique !== undefined &&
+    TIER_RANK.indexOf(unique.tier) < TIER_RANK.indexOf("T3");
 
-  // A base that is already worth hovering stays a `check` and carries `vaalable` beside
-  // it. Moonstone Ring is visible for Anathema whether or not anyone vaals Valyrium.
-  const verb: Verb =
-    identityVerb === "check" ? "check" : vaalable ? "gamble" : identityVerb;
+  const vaalable = onUniqueLadder
+    ? !tooLoudToGamble &&
+      draft.gambleWorthy &&
+      draft.gamblePrice > 0 &&
+      draft.gamblePrice <= levers.gambleCeiling
+    : draft.vaalCeiling > draft.vaalFloor * VAAL_GAMBLE_RATIO &&
+      draft.vaalFloor <= MAX_GAMBLE_FLOOR;
+
+  /**
+   * Where a gamble is drawn when its own price earned it nothing.
+   *
+   * The corrupted outcome is the entire reason the block exists, so a base that cleared no
+   * cut still has to appear — at the quiet end, which is what `T3`/`T4` means here.
+   */
+  const gambleTier: Tier =
+    unique !== undefined && GAMBLE_TIERS.has(unique.tier) ? unique.tier : "T4";
+
+  /**
+   * The player's click floor, applied to a rung the unique ladder handed back.
+   *
+   * **`persistent` is the source of truth and this is the only thing that can be told
+   * otherwise.** Every rung on the unique ladder carries the flag today, so nothing here
+   * changes a single tier — which is the point. The floor has to be *wired* for the flag to
+   * mean anything, or a rung added later without it would be just as immune as the ones
+   * that earned the exemption, and the file would be claiming a rule it does not run.
+   *
+   * The cuts are quoted in divine and the floor in chaos, and that disagreement is settled
+   * here rather than reconciled: a persistent rung keeps its tier at any floor the player
+   * sets, and a rung that wants the floor to bite is a rung that drops the flag.
+   *
+   * `hidden` and `varies` are not rungs and pass through untouched — there is nothing left
+   * to hide, and nothing measured to hide it by.
+   */
+  const floored = (tier: Tier): Tier => {
+    if (tier === "hidden" || tier === "varies") return tier;
+    if (isPersistent("uniques", tier)) return tier;
+    if (plainEv >= levers.minClickValue) return tier;
+
+    return draft.alwaysShow ? quietestRung("uniques") : "hidden";
+  };
+
+  // On a unique base the branch that won names the verb: a take is the claim that
+  // everything on this base is worth it, a check that one of them might be. A base that
+  // cleared neither is a `check` it will never show — the tier hides it — and saying so
+  // is more honest than calling it a take. Elsewhere a base already worth hovering stays a
+  // `check` and carries `vaalable` beside it.
+  const verb: Verb = onUniqueLadder
+    ? vaalable
+      ? "gamble"
+      : (unique?.branch ?? "check")
+    : identityVerb === "check"
+      ? "check"
+      : vaalable
+        ? "gamble"
+        : identityVerb;
+
+  // Plain price, plain ceiling. A Gilded Sallet worth 1c is tiered as a 1c item and lands
+  // where a 1c item lands — the 20c corrupted outcome is carried by the verb.
+  //
+  // `varies` outranks all of it, the click floor included. There is no point running a
+  // ladder over a number the filter will never see.
+  //
+  // A unique base that cleared neither branch has no rung, and the ordinary ladder has no
+  // business inventing one for it — its cuts are the take cuts, which this base has already
+  // failed. It hides, unless the overlay asked to always be seen.
+  const resolved: Tier = draft.varies
+    ? "varies"
+    : atLeast(
+        onUniqueLadder
+          ? floored(
+              vaalable
+                ? gambleTier
+                : (unique?.tier ??
+                    (draft.alwaysShow ? quietestRung("uniques") : "hidden")),
+            )
+          : tierFor(draft, plainEv, draft.ceiling, rates, levers),
+        draft.minTier,
+      );
 
   return {
     id: draft.id,
     family: draft.family,
     verb,
-    // Plain price, plain ceiling. A Gilded Sallet worth 1c is tiered as a 1c item and
-    // lands where a 1c item lands — the 20c corrupted outcome is carried by the verb.
-    //
-    // `varies` outranks all of it, the click floor included. There is no point running a
-    // ladder over a number the filter will never see.
-    tier: draft.varies
-      ? "varies"
-      : atLeast(
-          tierFor(draft, plainEv, draft.ceiling, rates, levers),
-          draft.minTier,
-        ),
+    tier: resolved,
+    // The rung this could turn out to be, which only differs on a unique check. The styler
+    // reads it for the beam and nothing else — see `upTo` on `Bucket`.
+    upTo: unique?.upTo ?? resolved,
     // A `take` has nothing left to learn, so both ends are the one number.
     floor: identityVerb === "take" ? worth : draft.floor,
     ceiling: identityVerb === "take" ? worth : draft.ceiling,
@@ -1888,13 +2430,17 @@ function resolve(draft: Draft, rates: Rates, levers: Levers): Bucket {
  * smallest stack reaching each cut — and the filter picks the right rung with a
  * `StackSize >=` it can already read.
  *
- * **The click floor is a rung of its own, and the bottom of the ladder.** One click takes
- * the whole pile, so a floor on what a click is worth is a floor on the stack — at 3c a
- * Chaos Orb starts at `@3`, a rung no tier cut asked for, and everything under it goes.
+ * **The click floor is a rung of its own, but never the bottom one.** One click takes the
+ * whole pile, so a floor on what a click is worth is a floor on the stack — at 3c a Chaos
+ * Orb starts at `@3`, a rung no tier cut asked for. What is under it still needs a block
+ * to go into.
  *
- * Failing that, `1` is the ladder, even when a single one is worth nothing. That bucket
- * resolves to `hidden` and says so, which is a different and more useful answer than the
- * item being absent from the classification.
+ * **`1` is always the bottom of the ladder, even when a single one is worth nothing.** It
+ * resolves to `hidden` and says so, which is a different and far more useful answer than
+ * the item being absent from the classification — absent means no block claims a stack of
+ * two Orbs of Unmaking, and what catches it is the magenta block that means the generator
+ * is broken. The floor hides; it does not shout. Items on `neverHidden` keep their own
+ * tier at this rung instead, which is that list doing its job at the size it matters most.
  *
  * Rungs needing more than the item's stack ceiling are dropped rather than clamped.
  * Clamping would promote a pile of scrolls to T0 by putting the T0 label on a stack of
@@ -1905,14 +2451,24 @@ function stackSteps(
   cap: number,
   rates: Rates,
   levers: Levers,
+  ladder: LadderName,
   floor?: { readonly stack: number; readonly tier: Tier },
 ): number[] {
-  // Where the ladder starts. One is the floor of the floor: a stack of zero is not a drop.
+  // Where the paying rungs start. One is the floor of the floor: a stack of zero is not a
+  // drop.
   const bottom = Math.max(1, Math.ceil(levers.minClickValue / unit));
 
-  const steps = new Set<number>([bottom]);
+  // `1` beside it, always, and it is the rung the click floor hides. Written after the
+  // paying rungs — the emitter orders a shared shape by its threshold — so it takes only
+  // the stacks none of them wanted.
+  const steps = new Set<number>([1, bottom]);
 
-  for (const [tier, cut] of TIER_CUTS) {
+  // **The bucket's own ladder, not the default one.** A rung is only worth a block if the
+  // cut that grades the bucket actually falls on it, and the two came from different
+  // ladders until this was passed in: the rungs were built from the default cuts while
+  // `tierFor` graded against the currency cuts, so a stack of six chaos got a block and a
+  // stack of eleven — the first that clears currency T3 — did not.
+  for (const [tier, cut] of cutsFor(LADDER_ROWS[ladder])) {
     // A hand floor replaces the rung it speaks for rather than sitting beside it. Both
     // would be the same tier, the quieter one written first would take every stack the
     // louder one wanted, and the louder one would be a block that cannot fire.
@@ -1949,6 +2505,7 @@ function exchangeBuckets(
   quotes: Map<number, number>,
   rates: Rates,
   levers: Levers,
+  ggg: GggIndex,
 ): Draft[] {
   const drafts: Draft[] = [];
 
@@ -1956,7 +2513,13 @@ function exchangeBuckets(
     const unit = quotes.get(item.id);
     if (unit === undefined) continue;
 
-    const { id, family } = placement(item.category, item.name);
+    const placed = placement(item.category, item.name, ggg);
+    // An exchange row the static list does not name. Chaos Orb and Gold are injected
+    // rather than fetched, so both are here — and both are named by GGG, which is what
+    // keeps this from quietly dropping the unit the whole ladder is denominated in.
+    if (placed === undefined) continue;
+
+    const { id, family } = placed;
     const gated = stacks(item.category, item.name);
 
     const cap = maxStack(item.category, item.name);
@@ -1966,7 +2529,7 @@ function exchangeBuckets(
     const floor = item.name === GOLD ? GOLD_FLOOR : undefined;
 
     for (const stack of gated
-      ? stackSteps(unit, cap, rates, levers, floor)
+      ? stackSteps(unit, cap, rates, levers, "currency", floor)
       : [1]) {
       const worth = unit * stack;
       const label = stack === 1 ? item.name : `${item.name} ×${stack}`;
@@ -1977,6 +2540,9 @@ function exchangeBuckets(
         // apart by name alone.
         id: gated ? `${id}@${stack}` : id,
         family,
+        // Currency and divination cards share one ladder — `divination-cards.md` says so
+        // outright, and differs only in never counting a stack.
+        ladder: "currency",
         verb: "take",
         floor: worth,
         ceiling: worth,
@@ -1997,6 +2563,12 @@ function exchangeBuckets(
         minTier:
           floor !== undefined && stack >= floor.stack ? floor.tier : "hidden",
         alwaysShow: false,
+        neverHidden: neverHidden(
+          withoutVariant(item.name),
+          ggg.staticGroupOf(item.name),
+        ),
+        gamblePrice: 0,
+        gambleWorthy: false,
         vaalCeiling: 0,
         vaalFloor: 0,
         vaalName: "",
@@ -2012,6 +2584,220 @@ function exchangeBuckets(
   }
 
   return drafts;
+}
+
+/**
+ * The leaguestart rungs: the crafting mats worth seeing while there is nothing better.
+ *
+ * **The two rungs on the currency ladder that are not won on price, because at league
+ * start price is the wrong question.** An Orb of Alteration is worth a fraction of a chaos
+ * and a fresh character still wants every one of them — so `currency.md` names them
+ * outright and gates the block on `AreaLevel`, which is the one thing the filter can read
+ * that stands in for "how far along is this character".
+ *
+ * **A currency that earns a rung on price does not get one of these.** That is the doc's
+ * own rule — *if a currency from this list becomes eligible to move higher on tiers then
+ * it will be removed from this list* — and it falls out of asking for the priced tier
+ * first: an Alchemy Orb that has climbed to `T3` is loud everywhere, not quiet above
+ * level 68. Only the ones the ladder hides get a block here.
+ *
+ * Written at stack 1 with no `StackSize` line. The point is to see the single orb on the
+ * floor, and a stack rung would be a quieter block that a louder one already answers for.
+ */
+/**
+ * A bucket with no price behind it, asserted onto a rung.
+ *
+ * Four rules in `buckets/` name a rung directly instead of earning one — the two
+ * leaguestart currency lists, the 30-quality base and the 10-quality gem. None of them is
+ * a market claim and none can be derived from a feed, so all four are built the same way:
+ * seeded at no price, floored onto the rung by `minTier`, and kept out of the click floor's
+ * reach by `alwaysShow`.
+ */
+const assertedBucket = (fields: {
+  readonly id: string;
+  readonly family: BucketFamily;
+  readonly ladder: LadderName;
+  readonly tier: Tier;
+  readonly note: string;
+  readonly conditions: readonly string[];
+  readonly label: string;
+}): Draft => ({
+  id: fields.id,
+  family: fields.family,
+  ladder: fields.ladder,
+  verb: "take",
+  floor: 0,
+  ceiling: 0,
+  thin: true,
+  members: 0,
+  slots: 1,
+  note: fields.note,
+  conditions: fields.conditions,
+  minStack: 0,
+  varies: false,
+  minTier: fields.tier,
+  alwaysShow: true,
+  neverHidden: false,
+  gamblePrice: 0,
+  gambleWorthy: false,
+  vaalCeiling: 0,
+  vaalFloor: 0,
+  vaalName: "",
+  vaalVariant: "",
+  vaalMod: "",
+  topName: fields.label,
+  topPrice: 0,
+  topVariant: "",
+  topFromExchange: false,
+  examples: [],
+});
+
+/**
+ * The two rules that are about quality rather than price.
+ *
+ * `bases.md` makes any 30-quality white item the top of the base ladder, and `gems.md`
+ * makes any 10-quality gem the leaguestart rung. Neither is a market statement — 30 is
+ * simply the most quality an item can carry, and a 10-quality gem is one somebody will
+ * want early — so neither has a cut and both are asserted.
+ *
+ * The base block excludes maps by class. A 30% quality map is a real thing and it is not a
+ * crafting base; without the line it would out-specify `maps.md`'s own block and be drawn
+ * as the loudest base in the file.
+ */
+function qualityBuckets(): Draft[] {
+  return [
+    assertedBucket({
+      id: "base:quality30",
+      family: "bases",
+      ladder: "bases",
+      tier: "T0",
+      note: `the most quality an item can carry`,
+      conditions: [
+        "Rarity Normal",
+        `Quality >= ${LEAGUE_START.baseQuality}`,
+        formatCondition('Class != "Maps"'),
+      ],
+      label: `any ${LEAGUE_START.baseQuality}% quality base`,
+    }),
+    assertedBucket({
+      id: "gem:quality10",
+      family: "gems",
+      ladder: "gems",
+      tier: "T5",
+      note: `leaguestart, area level under ${LEAGUE_START.untilAreaLevel}`,
+      conditions: [
+        formatCondition('Class "Gems"'),
+        `Quality >= ${LEAGUE_START.gemQuality}`,
+        `AreaLevel < ${LEAGUE_START.untilAreaLevel}`,
+      ],
+      label: `any ${LEAGUE_START.gemQuality}% quality gem`,
+    }),
+  ];
+}
+
+function leagueStartBuckets(
+  priced: ReadonlyMap<string, Tier>,
+  ggg: GggIndex,
+): Draft[] {
+  const drafts: Draft[] = [];
+  const rungs: readonly (readonly [Tier, readonly string[]])[] = [
+    ["T5", LEAGUE_START.currency.T5],
+    ["T6", LEAGUE_START.currency.T6],
+  ];
+
+  for (const [tier, names] of rungs) {
+    for (const name of names) {
+      // Already loud on its own merits, so the doc takes it off the list.
+      if ((priced.get(name) ?? "hidden") !== "hidden") continue;
+
+      // A name the game does not have is a typo in `tiers.json`, and a `BaseType` the game
+      // refuses stops it reading the rest of the file. Better no block than that.
+      if (ggg.categoryOf(name) === undefined) continue;
+
+      drafts.push({
+        id: `leaguestart:${name}`,
+        family: "stackables",
+        ladder: "currency",
+        verb: "take",
+        floor: 0,
+        ceiling: 0,
+        thin: true,
+        members: 0,
+        slots: 1,
+        note: `leaguestart, area level under ${LEAGUE_START.untilAreaLevel}`,
+        conditions: [
+          baseTypeIs(name),
+          `AreaLevel < ${LEAGUE_START.untilAreaLevel}`,
+        ],
+        minStack: 0,
+        varies: false,
+        // The rung is the whole point of the bucket, so it is asserted rather than earned.
+        // `alwaysShow` is what stops the click floor taking it away.
+        minTier: tier,
+        alwaysShow: true,
+        neverHidden: false,
+        gamblePrice: 0,
+        gambleWorthy: false,
+        vaalCeiling: 0,
+        vaalFloor: 0,
+        vaalName: "",
+        vaalVariant: "",
+        vaalMod: "",
+        topName: name,
+        topPrice: 0,
+        topVariant: "",
+        topFromExchange: false,
+        examples: [],
+      });
+    }
+  }
+
+  return drafts;
+}
+
+/**
+ * Priced rows that would be written as a base type the game does not have.
+ *
+ * **The one failure the GGG join can still produce, and it is fatal rather than untidy.**
+ * A name-keyed bucket becomes `BaseType == "…"`, and the game stops parsing the file at
+ * the first base type it does not recognise — so the filter does not lose one block, it
+ * loses every block below it. Silence about that is the worst possible reporting.
+ *
+ * Only the rows that would actually reach a `BaseType ==` line are counted. Uniques are
+ * bucketed by base and never by name; gems the game catalogues as a transfiguration are
+ * written with `TransfiguredGem` and are not base types at all, which is why frame 4 is
+ * exempt and why 2,294 unjoined transfiguration rows are not an error.
+ *
+ * Returned rather than logged, because deciding what to do about it is a caller's business
+ * and this file writes nothing to a console.
+ */
+export function unjoinedNames(
+  input: ClassifyInput,
+): readonly { readonly name: string; readonly category: string }[] {
+  const ggg = gggIndex(input.itemBases, input.staticItems, input.uniques);
+  const seen = new Set<string>();
+  const rows: { name: string; category: string }[] = [];
+
+  for (const item of input.items) {
+    if (
+      ignored(item) ||
+      item.frame === UNIQUE_FRAME ||
+      item.frame === GEM_FRAME
+    ) {
+      continue;
+    }
+    if (isWhiteBase(item, ggg)) continue;
+    if (item.category === "maps") continue;
+
+    const name = gameName(item.name);
+    if (ggg.categoryOf(name) !== undefined) continue;
+    if (seen.has(name)) continue;
+
+    seen.add(name);
+    rows.push({ name, category: item.category });
+  }
+
+  return rows;
 }
 
 /**
@@ -2048,27 +2834,56 @@ export function classify(
   // than a listing-priced entry and an exchange-priced one disagreeing in public.
   const items = input.items.filter((item) => !quotes.has(item.id));
 
+  // Built once and handed to every pass. It is the answer to "what is this", and asking
+  // it is the first thing each pass does.
+  const ggg = gggIndex(input.itemBases, input.staticItems, input.uniques);
+
   const ceilings = vaalCeilings(input.corruptions);
-  const prices = uniquePrices(items, ceilings);
+  const prices = uniquePrices(items, ceilings, ggg);
 
   // Three times over the uniques, once per overlay. Same rules, same ratio test, three
   // disjoint sets of buckets — a Foulborn drop and a Replica each come from somewhere
   // else and carry a flag the filter can read, so each gets its own block above the plain
   // one. Only Foulborn is always shown; a cheap replica is just a cheap item.
-  return [
-    ...uniqueBaseBuckets(input.uniques, prices, "plain"),
-    ...uniqueBaseBuckets(input.uniques, prices, "foulborn"),
-    ...uniqueBaseBuckets(input.uniques, prices, "replica"),
-    ...baseBuckets(items),
-    ...mapBuckets(items, rates, levers),
+  const earned = [
+    ...uniqueBaseBuckets(input.uniques, prices, "plain", levers),
+    ...uniqueBaseBuckets(input.uniques, prices, "foulborn", levers),
+    ...uniqueBaseBuckets(input.uniques, prices, "replica", levers),
+    ...baseBuckets(items, ggg),
+    ...mapBuckets(levers),
     ...flatBuckets(
       items,
       gemKinds(input),
       input.exceptionalGems,
       input.transfiguredGems,
+      ggg,
     ),
-    ...exchangeBuckets(priced, quotes, rates, levers),
-  ]
-    .map((draft) => resolve(draft, rates, levers))
-    .sort((left, right) => right.ev - left.ev);
+    ...exchangeBuckets(priced, quotes, rates, levers, ggg),
+    ...qualityBuckets(),
+  ].map((draft) => resolve(draft, rates, levers));
+
+  // The loudest rung each currency reached on price, which is what decides whether it is
+  // still a leaguestart item. Resolved first because the question is about the answer,
+  // not the inputs — see `leagueStartBuckets`.
+  const loudest = new Map<string, Tier>();
+  for (const bucket of earned) {
+    if (bucket.family !== "stackables") continue;
+
+    const name =
+      bucket.id.slice(bucket.id.indexOf("/") + 1).split("@")[0] ?? "";
+    const seen = loudest.get(name);
+    if (
+      seen === undefined ||
+      TIER_RANK.indexOf(bucket.tier) < TIER_RANK.indexOf(seen)
+    ) {
+      loudest.set(name, bucket.tier);
+    }
+  }
+
+  return [
+    ...earned,
+    ...leagueStartBuckets(loudest, ggg).map((draft) =>
+      resolve(draft, rates, levers),
+    ),
+  ].sort((left, right) => right.ev - left.ev);
 }

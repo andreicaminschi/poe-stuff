@@ -1,0 +1,43 @@
+{
+  "_readme": [
+    "Which orb a shard makes, for pricing a shard the exchange cannot price.",
+    "",
+    "The Currency Exchange cannot quote finer than one chaos on the chaos side, so a bulk",
+    "shard trade is recorded at one chaos each and a single trade sets the price. That is",
+    "how Alteration Shard came back at 1c against an Orb of Alteration at 0.12c - 167x its",
+    "real worth, on one trade in twenty-four hours. The orb is the answer: it trades in the",
+    "hundreds of thousands and twenty shards make one.",
+    "",
+    "classify.ts trusts a shard's own quote only when the shard traded at least as much as",
+    "its orb did. Volume is the whole test - not PoeWatch's lowConfidence flag, which it",
+    "left off Transmutation Shard at 1c against an orb at 0.005379c. Nothing here is",
+    "expected to pass - a shard market is never busier than the orb market - which is the",
+    "point: the shard's quote is the one that has to earn its place, not the orb's.",
+    "",
+    "Every shard in the game is twenty to the orb, so 'per' is one number rather than a",
+    "column. It is here rather than in classify.ts so a shard that arrives at some other",
+    "count is a data fix.",
+    "",
+    "A shard the league does not price is ignored rather than an error, the same as",
+    "max-stacks.json. Fracturing and Divine Shard are listed because GGG names them, not",
+    "because either has been seen on the exchange."
+  ],
+  "per": 20,
+  "byName": {
+    "Alchemy Shard": "Orb of Alchemy",
+    "Alteration Shard": "Orb of Alteration",
+    "Ancient Shard": "Ancient Orb",
+    "Annulment Shard": "Orb of Annulment",
+    "Binding Shard": "Orb of Binding",
+    "Chaos Shard": "Chaos Orb",
+    "Divine Shard": "Divine Orb",
+    "Engineer's Shard": "Engineer's Orb",
+    "Exalted Shard": "Exalted Orb",
+    "Fracturing Shard": "Fracturing Orb",
+    "Harbinger's Shard": "Harbinger's Orb",
+    "Horizon Shard": "Orb of Horizons",
+    "Mirror Shard": "Mirror of Kalandra",
+    "Regal Shard": "Regal Orb",
+    "Transmutation Shard": "Orb of Transmutation"
+  }
+}

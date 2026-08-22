@@ -3,6 +3,7 @@ import { optionalEnv } from "@util/core/env";
 import { classify, marketRates } from "./classify.ts";
 import { emitFilter, planBlocks } from "./emit-filter.ts";
 import { fetchInputs } from "./fetch-inputs.ts";
+import { FILE_LEVERS } from "./tiers.ts";
 import { verifyFilter } from "./verify-filter.ts";
 import type { Bucket, Levers } from "./types.ts";
 
@@ -61,6 +62,9 @@ const load = async (): Promise<{ buckets: readonly Bucket[]; stamp: string }> =>
     minClickValue: Number(minClick ?? 0),
     hideUniqueMaps: args.includes("--hide-unique-maps"),
     goldPerDivine: Number(goldPerDivine ?? DEFAULT_GOLD_PER_DIVINE),
+    // No flag for either yet. They come off `tiers.json`, where the player sets them.
+    gambleCeiling: FILE_LEVERS.gambleCeiling,
+    gambleExclude: FILE_LEVERS.gambleExclude,
   };
 
   console.error(`fetching ${league}…`);

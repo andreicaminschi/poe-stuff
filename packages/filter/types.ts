@@ -21,9 +21,12 @@ export type Verb = "take" | "check" | "gamble";
 /**
  * How loud. Drives font size, sound, beam and minimap icon.
  *
- * `T5` is not "quieter than T4", it is a different promise: the smallest mark the game
- * can draw, for a bucket that must appear even though it is worth nothing. Something has
- * to sit between T4 and `hidden` for a category the player has asked to always see.
+ * `T5` and `T6` are not "quieter than T4", they are a different promise: the smallest
+ * marks the game can draw, for a bucket that must appear even though it is worth nothing.
+ * Something has to sit between T4 and `hidden` for a category the player has asked to
+ * always see. Two rungs rather than one because the leaguestart currency the player wants
+ * on screen is itself two groups — the crafting mats worth bending for, and the wisdom
+ * scrolls that are only worth seeing while there is nothing better.
  *
  * `varies` is not on the ladder at all, and makes no claim about loudness. It says the
  * price depends on something the filter cannot read: a Scrying Orb is 2c or 992c
@@ -31,7 +34,16 @@ export type Verb = "take" | "check" | "gamble";
  * Tiering it at either end would be a lie in one direction or the other, so it says so
  * instead. Manually maintained — see `hard-to-categorize.json`.
  */
-export type Tier = "T0" | "T1" | "T2" | "T3" | "T4" | "T5" | "varies" | "hidden";
+export type Tier =
+  | "T0"
+  | "T1"
+  | "T2"
+  | "T3"
+  | "T4"
+  | "T5"
+  | "T6"
+  | "varies"
+  | "hidden";
 
 /** Which rule built the bucket, and therefore what its id means. */
 export type BucketFamily =
@@ -119,6 +131,36 @@ export type Levers = {
    * for a million gold to the divine.
    */
   readonly goldPerDivine: number;
+  /**
+   * The most a unique base may be worth, in chaos, and still be worth a Vaal Orb.
+   *
+   * **The player pricing their own curiosity, and the thing that makes `gamble` a lever
+   * rather than a constant.** A base is a gamble candidate when everything on it is cheap
+   * enough to destroy without regret — so this is a ceiling on the *base*, read off its
+   * most expensive unique, not on the one being corrupted.
+   *
+   * Moonstone Ring is the case it was written for. Anathema is around 10c and vaals into
+   * something worth far more, so at a 30c ceiling the ring is marked; at 5c it is not,
+   * because losing Anathema costs more than the player said they would spend.
+   */
+  readonly gambleCeiling: number;
+  /**
+   * Drop the expensive uniques on a base before reading its ceiling.
+   *
+   * **Off by default, because it is the one setting here that can lose an item.** A base
+   * is normally priced at its most expensive unique, which is what stops Heavy Belt ever
+   * being a gamble: Mageblood shares it. A player who knows that, and wants Bisco's Leash
+   * marked for vaaling anyway, turns this on and names the price above which a unique
+   * stops counting — anything dearer is assumed to be identified on sight rather than
+   * corrupted by accident.
+   *
+   * `cutoff` is in chaos and is only read when `enabled`. At 100c a Heavy Belt prices off
+   * Siegebreaker at 40c, with Mageblood and Dyadian Dawn set aside.
+   */
+  readonly gambleExclude: {
+    readonly enabled: boolean;
+    readonly cutoff: number;
+  };
 };
 
 /** One emitted bucket: everything the generator needs to write a block. */
@@ -221,6 +263,19 @@ export type Bucket = {
    * smaller mark rather than no mark.
    */
   readonly alwaysShow: boolean;
+  /**
+   * The rung this bucket could turn out to belong to — its aspirational tier.
+   *
+   * **Equal to `tier` on everything except a unique `check`, and that is the whole of what
+   * it is for.** A unique base is drawn at what it is *guaranteed* to be worth, so a 1c
+   * Heavy Belt is a 1c label. But a beam is the only mark the game draws out in the world,
+   * and how far worth walking a drop is depends on the upside rather than the guarantee —
+   * so the beam is taken from this rung instead, and recoloured to say it is a maybe.
+   *
+   * Carried to the styler in the `#@` note, which is why it is on the bucket rather than
+   * computed twice.
+   */
+  readonly upTo: Tier;
   /** A few members, priced, best first. For reading the draft, not for emitting. */
   readonly examples: readonly string[];
 };
@@ -276,58 +331,46 @@ export type AlertSound = {
   readonly volume: number;
 };
 
-/**
- * Which set of colours a family is drawn in.
- *
- * `default` is Neversink's currency ladder, and is what most of the file looks like.
- * `unique` swaps the ladder's oranges for the unique brown and keeps a star at every rung,
- * because a unique reads as a unique before it reads as a tier — the colour is the
- * category and the rung is only how loud it is.
- */
-export type Palette = "default" | "unique";
 
 /**
- * What a verb changes about the tier it sits on. A diff, never a whole style.
+ * Everything a block's action lines say, already resolved.
  *
- * The tier decides the colours and the noise. This decides the mark on the minimap, and —
- * for `gamble` — the two lines that say *do not vendor this*. Keeping it a diff is what
- * lets a bucket be loud and a gamble at once instead of one quietly overruling the other.
- */
-export type VerbStyle = {
-  /** The minimap icon, or `null` for none at all. */
-  readonly icon: MinimapIcon | null;
-  /**
-   * The beam over the drop, or `null`.
-   *
-   * Travels with the icon on purpose: both answer "is this worth walking to", and a beam
-   * with no icon is a drop the player can see but not find.
-   */
-  readonly beam: EffectColour | null;
-  /** A border forced over the tier's, or `null` to keep what the tier said. */
-  readonly border: Rgba | null;
-  /** Which of the tier's two backgrounds this verb paints. */
-  readonly background: "tier" | "gamble";
-};
-
-/**
- * One rung of one palette: how loud, in what colours, with what mark per verb.
+ * **One complete style, not a tier plus a diff.** The earlier shape had a tier carrying the
+ * colours and the noise and a verb carrying only the mark on top, which worked while a verb
+ * changed nothing else. `uniques.md` broke that: on a unique base a `take` is size L with a
+ * sound, and a `check` at the same rung is size S in silence — so the verb decides the
+ * loudness too. Once a verb can change every field, a diff is a whole style written
+ * awkwardly.
  *
- * Everything a block's actions come from except the block itself. No condition, no base
- * type and no price — a style is what a tier looks like, and which items reach that tier
- * is `classify.ts`'s business.
+ * Nothing here knows about a bucket, a price or a condition. It is what a block looks like;
+ * which items reach it is `classify.ts`'s business.
  */
-export type TierStyle = {
+export type BlockStyle = {
   readonly text: Rgba;
   readonly border: Rgba;
   readonly background: Rgba;
-  /**
-   * The background a `gamble` swaps in. Reddish at every rung, because red is the one
-   * thing on the ground that means *this is not what it says it is*.
-   */
-  readonly gambleBackground: Rgba;
-  /** 1–45. 45 is the largest the game draws and is what every loud tier uses. */
+  /** 1–45. 45 is the largest the game draws. The size names live in `buckets.md`. */
   readonly fontSize: number;
   /** The alert sound, or `null` for silence. */
   readonly sound: AlertSound | null;
-  readonly verbs: Readonly<Record<Verb, VerbStyle>>;
+  /**
+   * Keep the noise the game itself makes when the item lands.
+   *
+   * NeverSink's filters call this "drop" and `buckets.md` borrows the word: the metallic
+   * clatter of a weapon or the high `pling` of an orb, which an item can carry *as well as*
+   * a filter alert sound. It writes `EnableDropSound`, and it only says anything next to an
+   * alert sound — which is exactly where `buckets.md` asks for it, on all four of its
+   * sounds.
+   */
+  readonly dropSound: boolean;
+  /**
+   * The beam over the drop, or `null`.
+   *
+   * Always permanent. `buckets.md` writes `Beam:<colour>:Permanent` everywhere and has no
+   * temporary beam at all — one that shows only as the item lands is one the player misses
+   * while looking somewhere else, which defeats the point of asking for a beam.
+   */
+  readonly beam: EffectColour | null;
+  /** The minimap icon, or `null` for none at all. */
+  readonly icon: MinimapIcon | null;
 };

@@ -40,8 +40,11 @@ hard-to-categorize.json # items tiered `varies`, whatever their price says
 tier-page.html          # the board's template. Data goes in its __BUCKETS__ slot
 emit-filter.test.ts     # block merging and ordering
 verify-filter.test.ts   # probe items, shadowing, the unprobeable case
-pipeline.md             # the two phases and what each one writes
-levers.md               # every tunable number, and what moving it does
+pipeline.md             # the three phases and what each one writes
+levers.md               # everything a player can adjust. Read this before building a UI
+styles.md               # how a block is drawn, and which choices were not the docs'
+tiers.json              # the ladders, the curated lists and the player levers
+buckets/                # the design docs the ladders and styling are built from
 buckets-draft.md        # commentary on the classification the last run produced
 ```
 

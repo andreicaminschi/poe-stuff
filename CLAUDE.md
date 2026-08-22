@@ -172,9 +172,16 @@ convenience, and nothing depends on one being present in production.
 `packages/ggg` has a `README.md` and Mermaid `.mmd` diagrams in `packages/ggg/docs/`.
 `packages/workers` has `docs/pipeline.md` with `pipeline.mmd` and `currency.mmd` beside
 it, but no README.
-`packages/filter` has `pipeline.md`, which is the two-phase build and what each phase
-writes, and `buckets-draft.md`, which is a commentary on the classification the last run
-produced — numbers in it move every run and it says so.
+`packages/filter` has `pipeline.md`, the three-phase build and what each phase writes;
+`levers.md`, everything a player can adjust and the page to read before putting a UI over
+the generator; `styles.md`, how a block is drawn and which colour choices came from nobody;
+and `buckets-draft.md`, a commentary on the classification the last run produced — numbers
+in it move every run and it says so.
+
+`packages/filter/buckets/` holds the design docs the ladders and styling are built from —
+one per family, plus `buckets.md` for the shared template, sound and size tables. They are a
+specification rather than history: `tiers.json` is their numbers made machine-readable, and
+where the two disagree the doc is right and the JSON is what gets changed.
 `packages/util`, `packages/ledger`, `packages/poe-watch` and `packages/filter-eval` have
 neither. Write a package README with the `/document` command.
 

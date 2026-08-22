@@ -1,7 +1,13 @@
 import { writeFile } from "node:fs/promises";
 import { optionalEnv } from "@util/core/env";
-import { classify, marketRates } from "./classify.ts";
+import {
+  classify,
+  marketRates,
+  unjoinedNames,
+  unknownStacks,
+} from "./classify.ts";
 import { fetchInputs } from "./fetch-inputs.ts";
+import { FILE_LEVERS } from "./tiers.ts";
 import type { Bucket, Levers, Tier, Verb } from "./types.ts";
 
 /**
@@ -77,6 +83,10 @@ const levers: Levers = {
   minClickValue: Number(minClick ?? 0),
   hideUniqueMaps: args.includes("--hide-unique-maps"),
   goldPerDivine: Number(goldPerDivine ?? DEFAULT_GOLD_PER_DIVINE),
+  // No flag for either yet. They come off `tiers.json`, which is where the player sets
+  // them — see `gambleCeiling` on `Levers`.
+  gambleCeiling: FILE_LEVERS.gambleCeiling,
+  gambleExclude: FILE_LEVERS.gambleExclude,
 };
 
 const TIERS: readonly Tier[] = [
@@ -129,6 +139,27 @@ await writeFile(out, `${JSON.stringify(buckets, null, 1)}\n`);
 
 const { counts } = input;
 
+/**
+ * Rows GGG has no base type for, named out loud.
+ *
+ * Each one would be written as a `BaseType ==` the game does not recognise, and the game
+ * stops reading the file at the first of those — so this is not a tidiness report, it is
+ * the list of things that would silently delete the rest of the filter. A handful are
+ * printed rather than all of them, because the count is the alarm and the names are only
+ * there to start the search.
+ */
+const unjoined = unjoinedNames(input);
+const NAMED = 8;
+
+/**
+ * Items that fell through to the default stack size, named as `currency.md` asks.
+ *
+ * A guessed ceiling is not a cosmetic problem: `stackSteps` drops every rung above it, so
+ * one that is too low deletes the loud blocks for a currency that really does pile up.
+ * Adding the row to `max-stacks.json` is the fix, and this is the list to work from.
+ */
+const guessedStacks = unknownStacks();
+
 console.error(
   [
     `${counts.items} rows, ${counts.corruptions} corrupted items, ${counts.exchange} exchange rows`,
@@ -136,8 +167,29 @@ console.error(
     // that omits them is a grid nobody can compare against yesterday's.
     `divine ${marketRates(input.exchange).divine.toFixed(1)}c, click floor ${levers.minClickValue}c`,
     `${counts.ggg} uniques from GGG, ${counts.wiki} from the wiki, ${input.uniques.filter((unique) => unique.restrictedDrop).length} restricted`,
+    `${counts.itemBases} base types and ${counts.staticItems} static items from GGG`,
     `${counts.exceptionalGems} exceptional gems, ${counts.transfiguredGems} transfigured, from the wiki`,
     `${buckets.length} buckets, ${buckets.filter((bucket) => bucket.thin).length} thin`,
+    ...(unjoined.length === 0
+      ? []
+      : [
+          `${unjoined.length} priced names GGG has no base type for — each one would be a BaseType the game refuses:`,
+          ...unjoined
+            .slice(0, NAMED)
+            .map((row) => `  ${row.category}/${row.name}`),
+          ...(unjoined.length > NAMED
+            ? [`  … and ${unjoined.length - NAMED} more`]
+            : []),
+        ]),
+    ...(guessedStacks.length === 0
+      ? []
+      : [
+          `${guessedStacks.length} items with no stack size in max-stacks.json, on the default:`,
+          ...guessedStacks.slice(0, NAMED).map((name) => `  ${name}`),
+          ...(guessedStacks.length > NAMED
+            ? [`  … and ${guessedStacks.length - NAMED} more`]
+            : []),
+        ]),
     "",
     summarize(buckets),
     "",
