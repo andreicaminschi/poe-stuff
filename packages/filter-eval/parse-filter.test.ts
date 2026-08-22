@@ -408,7 +408,7 @@ describe("parseFilter", () => {
 
   it("throws on a note value that is off its key's list", () => {
     expect(() => parseFilter(annotated("Show", "\t#@ tier=T9"))).toThrow(
-      /line 2: tier takes one of T0, T1, T2, T3, T4, T5, varies, hidden, got "T9"/,
+      /line 2: tier takes one of T0, T1, T2, T3, T4, T5, T6, varies, hidden, got "T9"/,
     );
     expect(() => parseFilter(annotated("Show", "\t#@ verb=Take"))).toThrow(
       /line 2: verb takes one of take, check, gamble, got "Take"/,
