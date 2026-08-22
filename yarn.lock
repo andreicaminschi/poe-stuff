@@ -1338,6 +1338,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@poe/poe-ninja@workspace:packages/poe-ninja":
+  version: 0.0.0-use.local
+  resolution: "@poe/poe-ninja@workspace:packages/poe-ninja"
+  languageName: unknown
+  linkType: soft
+
 "@poe/poe-watch@workspace:packages/poe-watch":
   version: 0.0.0-use.local
   resolution: "@poe/poe-watch@workspace:packages/poe-watch"
