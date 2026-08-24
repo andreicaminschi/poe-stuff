@@ -12,7 +12,7 @@ export default {
   // "test" script in package.json.
   extensionsToTreatAsEsm: [".ts"],
 
-  roots: ["<rootDir>/packages"],
+  roots: ["<rootDir>/packages", "<rootDir>/services"],
   testMatch: ["**/*.test.ts"],
 
   transform: {

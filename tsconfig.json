@@ -23,5 +23,5 @@
     "resolveJsonModule": true,
     "isolatedModules": true
   },
-  "include": ["packages/**/*.ts"]
+  "include": ["packages/**/*.ts", "services/**/*.ts"]
 }

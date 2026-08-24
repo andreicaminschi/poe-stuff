@@ -1318,9 +1318,18 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@poe/ggg@workspace:^, @poe/ggg@workspace:packages/ggg":
+"@poe/filterv2@workspace:packages/filterv2":
   version: 0.0.0-use.local
-  resolution: "@poe/ggg@workspace:packages/ggg"
+  resolution: "@poe/filterv2@workspace:packages/filterv2"
+  dependencies:
+    "@poe/ggg": "workspace:^"
+    "@poe/poe-watch": "workspace:^"
+  languageName: unknown
+  linkType: soft
+
+"@poe/ggg@workspace:^, @poe/ggg@workspace:services/ggg":
+  version: 0.0.0-use.local
+  resolution: "@poe/ggg@workspace:services/ggg"
   languageName: unknown
   linkType: soft
 
@@ -1345,7 +1354,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@poe/poe-watch@workspace:packages/poe-watch":
+"@poe/poe-watch@workspace:^, @poe/poe-watch@workspace:packages/poe-watch":
   version: 0.0.0-use.local
   resolution: "@poe/poe-watch@workspace:packages/poe-watch"
   languageName: unknown
