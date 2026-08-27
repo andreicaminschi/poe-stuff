@@ -1,8 +1,4 @@
-import { cacheKey } from "@util/core/cache-key";
-import { optionalEnv } from "@util/core/env";
-import { fileCache } from "@util/core/file-cache";
 import { call } from "./call.ts";
-import { tradeApiUrl } from "./config.ts";
 import type {
   GGGStaticGroupData,
   GGGStaticItem,
@@ -32,27 +28,27 @@ export const mapGGGStaticGroupDataToGGGStaticItems = (
  *
  * The groups are flattened and stamped onto each row, and the divider rows the site draws
  * between blocks of buttons are dropped.
+ *
+ * The hour goes into the cache key, so a stored answer is only ever read back inside the
+ * hour that wrote it. Old files are never deleted, they only stop being asked for.
  */
 export async function getStaticItems({
   limiter,
+  tradeApiUrl,
+  userAgent,
+  cache,
   onEvent,
 }: GggContext): Promise<readonly GGGStaticItem[]> {
-  const root = optionalEnv("CACHE_DIR");
-  const cache =
-    root === undefined ? undefined : fileCache<readonly GGGStaticItem[]>(root);
-  const key = cacheKey("data-static", String(Math.floor(Date.now() / HOUR_MS)));
-
-  const cached = await cache?.get(key);
-  if (cached !== undefined) return cached;
-
   const response = await call<GGGStaticItemDataResponse>(
-    `${tradeApiUrl()}/data/static`,
-    { limiter, onEvent },
+    `${tradeApiUrl}/data/static`,
+    {
+      userAgent,
+      limiter,
+      cache,
+      onEvent,
+      cacheSalt: String(Math.floor(Date.now() / HOUR_MS)),
+    },
   );
 
-  const items = response.result.flatMap(mapGGGStaticGroupDataToGGGStaticItems);
-
-  await cache?.set(key, items);
-
-  return items;
+  return response.result.flatMap(mapGGGStaticGroupDataToGGGStaticItems);
 }

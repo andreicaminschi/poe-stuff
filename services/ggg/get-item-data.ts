@@ -1,8 +1,4 @@
-import { cacheKey } from "@util/core/cache-key";
-import { optionalEnv } from "@util/core/env";
-import { fileCache } from "@util/core/file-cache";
 import { call } from "./call.ts";
-import { tradeApiUrl } from "./config.ts";
 import type {
   GGGItem,
   GGGItemData,
@@ -42,30 +38,24 @@ export const mapGGGItemGroupDataToGGGItemGroup = (
  * The item list the trade site loads to populate its search: every name it will let you
  * pick, grouped into the broad categories it shows. Base types, uniques with the base
  * each rolls on, and a row per variant for transfigured gems and blighted maps.
+ *
+ * The hour goes into the cache key, so a stored answer is only ever read back inside the
+ * hour that wrote it. Old files are never deleted, they only stop being asked for.
  */
 export async function getItemData({
   limiter,
+  tradeApiUrl,
+  userAgent,
+  cache,
   onEvent,
 }: GggContext): Promise<readonly GGGItemGroup[]> {
-  const root = optionalEnv("CACHE_DIR");
-  const cache =
-    root === undefined ? undefined : fileCache<readonly GGGItemGroup[]>(root);
-  const key = cacheKey(
-    "data-items-kind",
-    String(Math.floor(Date.now() / HOUR_MS)),
-  );
+  const response = await call<GGGItemDataResponse>(`${tradeApiUrl}/data/items`, {
+    userAgent,
+    limiter,
+    cache,
+    onEvent,
+    cacheSalt: String(Math.floor(Date.now() / HOUR_MS)),
+  });
 
-  const cached = await cache?.get(key);
-  if (cached !== undefined) return cached;
-
-  const response = await call<GGGItemDataResponse>(
-    `${tradeApiUrl()}/data/items`,
-    { limiter, onEvent },
-  );
-
-  const groups = response.result.map(mapGGGItemGroupDataToGGGItemGroup);
-
-  await cache?.set(key, groups);
-
-  return groups;
+  return response.result.map(mapGGGItemGroupDataToGGGItemGroup);
 }

@@ -1348,15 +1348,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@poe/poe-ninja@workspace:packages/poe-ninja":
+"@poe/poe-ninja@workspace:services/poe-ninja":
   version: 0.0.0-use.local
-  resolution: "@poe/poe-ninja@workspace:packages/poe-ninja"
+  resolution: "@poe/poe-ninja@workspace:services/poe-ninja"
   languageName: unknown
   linkType: soft
 
-"@poe/poe-watch@workspace:^, @poe/poe-watch@workspace:packages/poe-watch":
+"@poe/poe-watch@workspace:^, @poe/poe-watch@workspace:services/poe-watch":
   version: 0.0.0-use.local
-  resolution: "@poe/poe-watch@workspace:packages/poe-watch"
+  resolution: "@poe/poe-watch@workspace:services/poe-watch"
   languageName: unknown
   linkType: soft
 

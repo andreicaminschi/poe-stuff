@@ -28,7 +28,7 @@ services/ggg/
 ├── call.ts                          # the request: pace, send, fold headers back, retry or throw
 ├── rate-limiter.ts                  # createLimiter — FIFO queue, rolling windows, penalty deadline
 ├── parse-rate-limit-headers.ts      # wire format of the rate-limit headers; no limiter calls
-├── config.ts                        # tradeApiUrl, currencyApiUrl — the only GGG URLs in the repo
+├── config.ts                        # the default GGG URLs — the only ones in the repo
 ├── errors.ts                        # GggHttpError
 ├── types.ts                         # types more than one endpoint needs
 ├── get-item-data.ts                 # GET /data/items + its mappers
@@ -63,7 +63,7 @@ services/ggg/
 
 ### Not exported
 
-`call`, `createLimiter`, `tradeApiUrl`, `currencyApiUrl`, `parseRules`, `parseState` and
+`call`, `createLimiter`, the URL defaults in `config.ts`, `parseRules`, `parseState` and
 `parseRetryAfter` are internal. A raw request or a bare limiter cannot be built from
 outside the package.
 
@@ -74,7 +74,7 @@ outside the package.
 ```ts
 import { createGGGService } from "@poe/ggg/service";
 
-const ggg = createGGGService();
+const ggg = createGGGService({ userAgent: "poe-stuff/1.0 (contact: you@example.com)" });
 ```
 
 ### Group every item GGG names by its category
@@ -82,7 +82,7 @@ const ggg = createGGGService();
 ```ts
 import { createGGGService } from "@poe/ggg/service";
 
-const ggg = createGGGService();
+const ggg = createGGGService({ userAgent: "poe-stuff/1.0 (contact: you@example.com)" });
 const categories = await ggg.getItemData();
 
 for (const category of categories) {
@@ -98,7 +98,7 @@ for (const category of categories) {
 ```ts
 import { createGGGService } from "@poe/ggg/service";
 
-const ggg = createGGGService();
+const ggg = createGGGService({ userAgent: "poe-stuff/1.0 (contact: you@example.com)" });
 
 const search = await ggg.searchListings(
   { query: { status: { option: "online" }, type: "Chaos Orb" }, sort: { price: "asc" } },
@@ -117,6 +117,7 @@ import { createGGGService } from "@poe/ggg/service";
 import type { CallEvent } from "@poe/ggg/types";
 
 const ggg = createGGGService({
+  userAgent: "poe-stuff/1.0 (contact: you@example.com)",
   onEvent: (event: CallEvent) => {
     if (event.type === "wait") console.error(`held ${event.ms}ms — ${event.reason}`);
     if (event.type === "penalize") console.error(`restricted ${event.seconds}s`);
@@ -131,7 +132,7 @@ await ggg.getStats();
 ```ts
 import { createGGGService } from "@poe/ggg/service";
 
-const ggg = createGGGService();
+const ggg = createGGGService({ userAgent: "poe-stuff/1.0 (contact: you@example.com)" });
 
 let hourId = 486_000;
 for (let collected = 0; collected < 24; collected++) {
@@ -142,24 +143,37 @@ for (let collected = 0; collected < 24; collected++) {
 }
 ```
 
-## Environment
+## Options
 
-| Var | Holds | Example |
+**This package reads no environment.** Nothing here touches `process.env`, there is no
+`.env` to load, and every knob is an argument to `createGGGService`. A consumer reads its
+own environment and hands the values over.
+
+| Option | Holds | Default |
 | --- | --- | --- |
-| `POE_USER_AGENT` | `user-agent` sent on every request | `poe-stuff/1.0 (contact: you@example.com)` |
-| `POE_TRADE_API_URL` | Base of the trade API, trailing slash stripped | `https://www.pathofexile.com/api/trade` |
-| `POE_CURRENCY_API_URL` | Base of the Currency Exchange endpoint on the CDN. The realm is part of it — the bare base is PoE1 PC | `https://web.poecdn.com/api/currency-exchange` |
-| `CACHE_DIR` | Folder holding the hour-keyed digests for `/data/items`, `/data/static` and `/data/stats`. Optional | `cache/ggg` |
+| `userAgent` | `user-agent` sent on every request | **required** |
+| `tradeApiUrl` | Base of the trade API, trailing slash stripped | `https://www.pathofexile.com/api/trade` |
+| `currencyApiUrl` | Base of the Currency Exchange endpoint on the CDN. The realm is part of it — the default is PoE1 PC | `https://web.poecdn.com/api/currency-exchange` |
+| `cache` | A `ResponseCache` answering requests from previous ones. Its presence is the whole switch | absent — every request goes to GGG |
+| `rules` | Opening rate-limit rules, replaced by GGG's own headers on the first response | one request per second |
+| `smoothAbove` | Pace instead of bursting once a window is this full, as a fraction | absent |
+| `onEvent` | Called as each request progresses | absent |
 
-This package ships no `.env`. It reads whatever the consuming package loaded with
-`node --env-file=packages/<consumer>/.env`, and `requireEnv` throws at first use rather
-than at import.
-
-GGG asks that the user agent name the application and give them a way to reach you, so
-they can contact the author instead of blocking the traffic:
+`userAgent` is the one option with no default. GGG asks that it name the application and
+give them a way to reach you, so they can contact the author instead of blocking the
+traffic — and a default would send a contact that does not exist:
 
 ```
 <app>/<version> (contact: <email>)
+```
+
+A disk cache is three lines in the consumer:
+
+```ts
+import { fileCache } from "@util/core/file-cache";
+import type { CachedResponse } from "@poe/ggg/types";
+
+const cache = fileCache<CachedResponse>("cache/ggg");
 ```
 
 ## Gotchas
@@ -177,9 +191,11 @@ they can contact the author instead of blocking the traffic:
   because the state header describes the previous response and the last slot in a window is
   the one most likely to be wrong.
 - **IP tier only.** Account and client rate-limit tiers are not read.
-- **The digest caches expire by key, not by age.** The hour is part of the cache key, so an
-  entry is only ever read back inside the hour that wrote it. Old files are never deleted,
-  they only stop being asked for.
+- **One cache, and the digests expire by key rather than by age.** `/data/items`,
+  `/data/static` and `/data/stats` put the hour into the cache key, so an entry is only ever
+  read back inside the hour that wrote it. Old files are never deleted, they only stop being
+  asked for. Everything else keys on the request alone and never expires — which is why the
+  cache belongs on a laptop and not in production.
 - **`fetchAllListings` is sequential.** Every page shares the one limiter, so racing them
   makes the run no faster and only lengthens the queue.
 

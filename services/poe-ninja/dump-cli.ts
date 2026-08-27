@@ -1,21 +1,23 @@
 import { writeFile } from "node:fs/promises";
-import { optionalEnv } from "@util/core/env";
-import { getExchangeRatios } from "./get-exchange-ratios.ts";
-import { getLeagueItems } from "./get-league-items.ts";
-import { getLeagues } from "./get-leagues.ts";
-import { ITEM_TYPES } from "./types.ts";
-import type { ItemType, NinjaExchangeItem, NinjaItem } from "./types.ts";
+import { fileCache } from "@util/core/file-cache";
+import { ITEM_TYPES } from "./get-item-overview.types.ts";
+import type { ItemType } from "./get-item-overview.types.ts";
+import type { NinjaExchangeItem } from "./get-exchange-ratios.types.ts";
+import type { NinjaItem } from "./get-league-items.types.ts";
+import { createPoeNinjaService } from "./service.ts";
+import type { CachedResponse } from "./types.ts";
 
 /**
  * Download one league's poe.ninja market and write it to a file.
  *
- *     node --env-file=packages/poe-ninja/.env packages/poe-ninja/dump-cli.ts
- *     node --env-file=packages/poe-ninja/.env packages/poe-ninja/dump-cli.ts --league Standard
- *     node --env-file=packages/poe-ninja/.env packages/poe-ninja/dump-cli.ts --exchange
+ *     node services/poe-ninja/dump-cli.ts --league Allflame
+ *     node services/poe-ninja/dump-cli.ts --league Allflame --cache-dir cache/poe-ninja
+ *     node services/poe-ninja/dump-cli.ts --league Allflame --exchange
  *
- * Nothing in the repo reads this package yet, so this is how it is exercised: run it,
- * read the counts, look at the rows. With `POE_NINJA_CACHE_DIR` set, a second run inside
- * the same hour makes no request at all.
+ * No `--env-file`: this service is configured through `createPoeNinjaService` and reads no
+ * environment. Nothing in the repo reads the package yet, so this is how it is exercised —
+ * run it, read the counts, look at the rows. With `--cache-dir`, a second run inside the
+ * same hour makes no request at all.
  *
  * The summary goes to stderr, the rows to `--out`.
  */
@@ -35,14 +37,23 @@ const flag = (name: string): string | undefined => {
   return at < 0 ? undefined : args[at + 1];
 };
 
-const league = flag("league") ?? optionalEnv("POE_NINJA_LEAGUE");
+const league = flag("league");
 if (league === undefined) {
-  throw new Error("no league: pass --league or set POE_NINJA_LEAGUE");
+  throw new Error("no league: pass --league");
 }
 
 const exchange = args.includes("--exchange");
 const out =
   flag("out") ?? (exchange ? DEFAULT_EXCHANGE_OUT : DEFAULT_ITEMS_OUT);
+
+const cacheDir = flag("cache-dir");
+
+const ninja = createPoeNinjaService({
+  userAgent: "poe-stuff/1.0 (dump-cli)",
+  ...(cacheDir === undefined
+    ? {}
+    : { cache: fileCache<CachedResponse>(cacheDir) }),
+});
 
 /**
  * A misspelled league is checked for by name, because it does not fail on its own.
@@ -52,7 +63,7 @@ const out =
  * league nobody is playing. The list is small and hour-cached, so asking costs one
  * request a day.
  */
-const leagues = await getLeagues();
+const leagues = await ninja.getLeagues();
 if (!leagues.some((known) => known.id === league)) {
   throw new Error(
     `no such league on poe.ninja: ${league}. Known: ${leagues.map((known) => known.id).join(", ")}`,
@@ -89,14 +100,14 @@ const rates = (rows: readonly NinjaExchangeItem[]): string[] => {
 };
 
 if (exchange) {
-  const rows = await getExchangeRatios(league);
+  const rows = await ninja.getExchangeRatios(league);
   await writeFile(out, `${JSON.stringify(rows, null, 1)}\n`);
 
   console.error(
     [`${rows.length} exchange rows`, ...rates(rows), "", `wrote ${out}`].join("\n"),
   );
 } else {
-  const rows = await getLeagueItems(league);
+  const rows = await ninja.getLeagueItems(league);
   await writeFile(out, `${JSON.stringify(rows, null, 1)}\n`);
 
   console.error(

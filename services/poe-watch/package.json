@@ -1,0 +1,15 @@
+{
+  "name": "@poe/poe-watch",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./service": "./service.ts",
+    "./get-compact-data.types": "./get-compact-data.types.ts",
+    "./get-corruption-data.types": "./get-corruption-data.types.ts",
+    "./get-exchange-ratios.types": "./get-exchange-ratios.types.ts",
+    "./errors": "./errors.ts",
+    "./types": "./types.ts"
+  }
+}

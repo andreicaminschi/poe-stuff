@@ -1,12 +1,13 @@
 import { fanOut } from "./fan-out.ts";
 import { getExchangeOverview } from "./get-exchange-overview.ts";
-import { EXCHANGE_TYPES } from "./types.ts";
+import { EXCHANGE_TYPES } from "./get-exchange-overview.types.ts";
 import type {
   ExchangeItemMeta,
   ExchangeLine,
   ExchangeType,
-  NinjaExchangeItem,
-} from "./types.ts";
+} from "./get-exchange-overview.types.ts";
+import type { NinjaExchangeItem } from "./get-exchange-ratios.types.ts";
+import type { PoeNinjaContext } from "./types.ts";
 
 /**
  * The Currency Exchange for one league, across all 18 exchange types.
@@ -94,9 +95,10 @@ const emptySide = { value: 0, lowConfidence: false, timestamp: 0, volume: 0, cha
 
 export async function getExchangeRatios(
   league: string,
+  context: PoeNinjaContext,
 ): Promise<readonly NinjaExchangeItem[]> {
   const perType = await fanOut(EXCHANGE_TYPES, async (type: ExchangeType) => {
-    const book = await getExchangeOverview(league, type);
+    const book = await getExchangeOverview(league, type, context);
 
     // The whole file assumes chaos. poe.ninja has quoted every PoE1 type in it, and if
     // that ever changes the prices are still numbers and every one of them is wrong by

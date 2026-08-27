@@ -1,8 +1,4 @@
-import { cacheKey } from "@util/core/cache-key";
-import { optionalEnv } from "@util/core/env";
-import { fileCache } from "@util/core/file-cache";
 import { call } from "./call.ts";
-import { tradeApiUrl } from "./config.ts";
 import type {
   GGGStat,
   GGGStatData,
@@ -26,29 +22,26 @@ export const mapGGGStatDataToGGGStat = (data: GGGStatData): GGGStat => ({
  * an item.
  *
  * The groups are flattened, since each stat repeats its group in `type`.
+ *
+ * The hour goes into the cache key, so a stored answer is only ever read back inside the
+ * hour that wrote it. Old files are never deleted, they only stop being asked for.
  */
 export async function getStats({
   limiter,
+  tradeApiUrl,
+  userAgent,
+  cache,
   onEvent,
 }: GggContext): Promise<readonly GGGStat[]> {
-  const root = optionalEnv("CACHE_DIR");
-  const cache =
-    root === undefined ? undefined : fileCache<readonly GGGStat[]>(root);
-  const key = cacheKey("trade-stats", String(Math.floor(Date.now() / HOUR_MS)));
+  const response = await call<GGGStatDataResponse>(`${tradeApiUrl}/data/stats`, {
+    userAgent,
+    limiter,
+    cache,
+    onEvent,
+    cacheSalt: String(Math.floor(Date.now() / HOUR_MS)),
+  });
 
-  const cached = await cache?.get(key);
-  if (cached !== undefined) return cached;
-
-  const response = await call<GGGStatDataResponse>(
-    `${tradeApiUrl()}/data/stats`,
-    { limiter, onEvent },
-  );
-
-  const stats = response.result.flatMap((group) =>
+  return response.result.flatMap((group) =>
     group.entries.map(mapGGGStatDataToGGGStat),
   );
-
-  await cache?.set(key, stats);
-
-  return stats;
 }

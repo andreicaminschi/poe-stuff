@@ -1,8 +1,10 @@
 import { describe, it, expect } from "@jest/globals";
 import { TYPE_RULES } from "./item-types.ts";
-import { toItem } from "./to-item.ts";
-import { ITEM_TYPES } from "./types.ts";
-import type { ItemOverviewLine } from "./types.ts";
+import { ITEM_TYPES } from "./get-item-overview.types.ts";
+import type { ItemOverviewLine } from "./get-item-overview.types.ts";
+// Aliased: the export follows the repo's mapXToY naming, and fifty call sites below do not
+// need to say it in full.
+import { mapItemOverviewLineToNinjaItem as toItem } from "./to-item.ts";
 
 /**
  * One poe.ninja row in, one filter-shaped row out.

@@ -1,6 +1,10 @@
+import { fetchJson } from "./call.ts";
 import { GAME_PATH } from "./config.ts";
-import { fetchJson } from "./fetch-json.ts";
-import type { ExchangeOverviewResponse, ExchangeType } from "./types.ts";
+import type {
+  ExchangeOverviewResponse,
+  ExchangeType,
+} from "./get-exchange-overview.types.ts";
+import type { PoeNinjaContext } from "./types.ts";
 
 /**
  * One league's Currency Exchange book for one `type`, from
@@ -16,12 +20,14 @@ import type { ExchangeOverviewResponse, ExchangeType } from "./types.ts";
  * `stash/current/currency/overview`, which is what people ask for each other's currency
  * in trade listings. The two disagree, and only one of them is a price.
  */
-export async function getExchangeOverview(
+export function getExchangeOverview(
   league: string,
   type: ExchangeType,
+  context: PoeNinjaContext,
 ): Promise<ExchangeOverviewResponse> {
   return fetchJson<ExchangeOverviewResponse>(
     `${GAME_PATH}/api/economy/exchange/current/overview`,
     { league, type },
+    context,
   );
 }

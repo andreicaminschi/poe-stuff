@@ -1,6 +1,11 @@
+import { fetchJson } from "./call.ts";
 import { GAME_PATH } from "./config.ts";
-import { fetchJson } from "./fetch-json.ts";
-import type { ItemOverviewLine, ItemOverviewResponse, ItemType } from "./types.ts";
+import type {
+  ItemOverviewLine,
+  ItemOverviewResponse,
+  ItemType,
+} from "./get-item-overview.types.ts";
+import type { PoeNinjaContext } from "./types.ts";
 
 /**
  * One league's rows for one item `type`, from
@@ -18,10 +23,12 @@ import type { ItemOverviewLine, ItemOverviewResponse, ItemType } from "./types.t
 export async function getItemOverview(
   league: string,
   type: ItemType,
+  context: PoeNinjaContext,
 ): Promise<readonly ItemOverviewLine[]> {
   const body = await fetchJson<ItemOverviewResponse>(
     `${GAME_PATH}/api/economy/stash/current/item/overview`,
     { league, type },
+    context,
   );
 
   return body.lines ?? [];

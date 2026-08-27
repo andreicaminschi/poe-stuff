@@ -1,5 +1,4 @@
 import { call } from "./call.ts";
-import { tradeApiUrl } from "./config.ts";
 import type {
   GGGListingSearch,
   GGGSearchResponseData,
@@ -18,8 +17,9 @@ export const mapGGGSearchResponseDataToGGGListingSearch = (
 export const createTradeSearchRequest = (
   query: unknown,
   league: string,
+  tradeApiUrl: string,
 ): { url: string; init: RequestInit } => ({
-  url: `${tradeApiUrl()}/search/${encodeURIComponent(league)}`,
+  url: `${tradeApiUrl}/search/${encodeURIComponent(league)}`,
   init: { method: "POST", body: JSON.stringify(query) },
 });
 
@@ -31,11 +31,12 @@ export const createTradeSearchRequest = (
 export async function searchListings(
   query: unknown,
   league: string,
-  { limiter, cache, onEvent }: GggContext,
+  { limiter, tradeApiUrl, userAgent, cache, onEvent }: GggContext,
 ): Promise<GGGListingSearch> {
-  const request = createTradeSearchRequest(query, league);
+  const request = createTradeSearchRequest(query, league, tradeApiUrl);
 
   const response = await call<GGGSearchResponseData>(request.url, {
+    userAgent,
     limiter,
     cache,
     onEvent,

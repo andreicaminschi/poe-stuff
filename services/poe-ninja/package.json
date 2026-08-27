@@ -1,0 +1,17 @@
+{
+  "name": "@poe/poe-ninja",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./service": "./service.ts",
+    "./get-leagues.types": "./get-leagues.types.ts",
+    "./get-item-overview.types": "./get-item-overview.types.ts",
+    "./get-exchange-overview.types": "./get-exchange-overview.types.ts",
+    "./get-league-items.types": "./get-league-items.types.ts",
+    "./get-exchange-ratios.types": "./get-exchange-ratios.types.ts",
+    "./errors": "./errors.ts",
+    "./types": "./types.ts"
+  }
+}

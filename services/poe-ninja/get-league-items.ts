@@ -1,8 +1,10 @@
 import { fanOut } from "./fan-out.ts";
 import { getItemOverview } from "./get-item-overview.ts";
-import { toItem } from "./to-item.ts";
-import { ITEM_TYPES } from "./types.ts";
-import type { ItemType, NinjaItem } from "./types.ts";
+import { ITEM_TYPES } from "./get-item-overview.types.ts";
+import type { ItemType } from "./get-item-overview.types.ts";
+import type { NinjaItem } from "./get-league-items.types.ts";
+import { mapItemOverviewLineToNinjaItem } from "./to-item.ts";
+import type { PoeNinjaContext } from "./types.ts";
 
 /**
  * Every priced item in one league, across all 28 item types.
@@ -28,10 +30,11 @@ import type { ItemType, NinjaItem } from "./types.ts";
  */
 export async function getLeagueItems(
   league: string,
+  context: PoeNinjaContext,
 ): Promise<readonly NinjaItem[]> {
   const perType = await fanOut(ITEM_TYPES, async (type: ItemType) => {
-    const lines = await getItemOverview(league, type);
-    return lines.map((line) => toItem(line, type));
+    const lines = await getItemOverview(league, type, context);
+    return lines.map((line) => mapItemOverviewLineToNinjaItem(line, type));
   });
 
   return perType.flat();

@@ -1,6 +1,10 @@
 import { TYPE_RULES, groupFor } from "./item-types.ts";
 import type { TypeRule } from "./item-types.ts";
-import type { ItemOverviewLine, ItemType, NinjaItem } from "./types.ts";
+import type {
+  ItemOverviewLine,
+  ItemType,
+} from "./get-item-overview.types.ts";
+import type { NinjaItem } from "./get-league-items.types.ts";
 
 /**
  * One poe.ninja row, in the shape a filter reads a market through.
@@ -144,7 +148,10 @@ const links = (value: number | string | undefined): number | undefined => {
  * it is the question that was asked, and it is the only trustworthy answer to what this
  * row is. See `item-types.ts`.
  */
-export function toItem(line: ItemOverviewLine, type: ItemType): NinjaItem {
+export function mapItemOverviewLineToNinjaItem(
+  line: ItemOverviewLine,
+  type: ItemType,
+): NinjaItem {
   const rule = TYPE_RULES[type];
   const price = line.chaosValue;
   const spark = line.sparkLine;

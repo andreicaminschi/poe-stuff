@@ -1,5 +1,4 @@
 import { call } from "./call.ts";
-import { tradeApiUrl } from "./config.ts";
 import type {
   GGGListingPage,
   GGGListingsResponseData,
@@ -12,8 +11,9 @@ export const HASHES_PER_PAGE = 10;
 export const createFetchPageRequest = (
   hashes: readonly string[],
   searchId: string,
+  tradeApiUrl: string,
 ): { url: string } => ({
-  url: `${tradeApiUrl()}/fetch/${hashes.join(",")}?query=${encodeURIComponent(searchId)}`,
+  url: `${tradeApiUrl}/fetch/${hashes.join(",")}?query=${encodeURIComponent(searchId)}`,
 });
 
 export function pageHashes(
@@ -36,11 +36,12 @@ export async function fetchListings(
   hashes: readonly string[],
   searchId: string,
   page: number,
-  { limiter, cache, onEvent }: GggContext,
+  { limiter, tradeApiUrl, userAgent, cache, onEvent }: GggContext,
 ): Promise<GGGListingPage> {
-  const request = createFetchPageRequest(hashes, searchId);
+  const request = createFetchPageRequest(hashes, searchId, tradeApiUrl);
 
   const response = await call<GGGListingsResponseData>(request.url, {
+    userAgent,
     limiter,
     cache,
     onEvent,

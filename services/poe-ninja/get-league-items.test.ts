@@ -1,18 +1,21 @@
 import { describe, it, expect, beforeEach, jest } from "@jest/globals";
+import { EXCHANGE_TYPES } from "./get-exchange-overview.types.ts";
 import { getExchangeRatios, slugId } from "./get-exchange-ratios.ts";
 import { getLeagueItems } from "./get-league-items.ts";
-import { EXCHANGE_TYPES, ITEM_TYPES } from "./types.ts";
+import { ITEM_TYPES } from "./get-item-overview.types.ts";
+import type { PoeNinjaContext } from "./types.ts";
 
 /**
  * The fan-out: 28 requests for the items, 18 for the exchange, and one answer.
  *
- * `fetch` is stubbed and the cache is off — `POE_NINJA_CACHE_DIR` is deliberately not set
- * — so these tests are about the merge and the failure, never about the network.
+ * `fetch` is stubbed and the context carries no cache, so these tests are about the merge
+ * and the failure, never about the network.
  */
 
-process.env.POE_NINJA_BASE_URL = "https://ninja.test";
-process.env.POE_USER_AGENT = "poe-stuff-test";
-delete process.env.POE_NINJA_CACHE_DIR;
+const context: PoeNinjaContext = {
+  baseUrl: "https://ninja.test",
+  userAgent: "poe-stuff-test",
+};
 
 /** The shape `fetch` returns, narrowed to the two things `fetchJson` reads. */
 const answer = (body: unknown, status = 200): unknown => ({
@@ -34,10 +37,6 @@ const stub = (
   return mock;
 };
 
-beforeEach(() => {
-  delete process.env.POE_NINJA_CACHE_DIR;
-});
-
 describe("getLeagueItems", () => {
   it("asks every type once and merges the answers", async () => {
     const calls = stub((url) =>
@@ -54,7 +53,7 @@ describe("getLeagueItems", () => {
       }),
     );
 
-    const rows = await getLeagueItems("Allflame");
+    const rows = await getLeagueItems("Allflame", context);
 
     expect(calls).toHaveBeenCalledTimes(ITEM_TYPES.length);
     expect(rows).toHaveLength(ITEM_TYPES.length);
@@ -74,7 +73,7 @@ describe("getLeagueItems", () => {
       }),
     );
 
-    const rows = await getLeagueItems("Allflame");
+    const rows = await getLeagueItems("Allflame", context);
 
     expect(rows).toHaveLength(ITEM_TYPES.length - 1);
     expect(rows.some((row) => row.ninjaType === "ShrineBelt")).toBe(false);
@@ -89,7 +88,7 @@ describe("getLeagueItems", () => {
         : answer({ lines: [] }),
     );
 
-    await expect(getLeagueItems("Allflame")).rejects.toThrow(
+    await expect(getLeagueItems("Allflame", context)).rejects.toThrow(
       /poe-ninja: UniqueArmour failed.*404/,
     );
   });
@@ -107,7 +106,7 @@ describe("getLeagueItems", () => {
           });
     });
 
-    const rows = await getLeagueItems("Allflame");
+    const rows = await getLeagueItems("Allflame", context);
 
     expect(rows.map((row) => row.name)).toEqual(["Vial of Fate"]);
     expect(calls).toHaveBeenCalledTimes(ITEM_TYPES.length + 1);
@@ -116,7 +115,7 @@ describe("getLeagueItems", () => {
   it("does not retry a 400, because asking again is the same typo twice", async () => {
     const calls = stub(() => answer({}, 400));
 
-    await expect(getLeagueItems("Allflame")).rejects.toThrow(/poe-ninja: /);
+    await expect(getLeagueItems("Allflame", context)).rejects.toThrow(/poe-ninja: /);
     // One worker fails, the pool abandons the run: no type is asked twice.
     expect(calls.mock.calls.every(([url]) => typeof url === "string")).toBe(true);
   });
@@ -149,7 +148,7 @@ describe("getExchangeRatios", () => {
       ),
     );
 
-    const rows = await getExchangeRatios("Allflame");
+    const rows = await getExchangeRatios("Allflame", context);
 
     expect(rows).toHaveLength(1);
     expect(rows[0]?.name).toBe("Divine Orb");
@@ -170,13 +169,13 @@ describe("getExchangeRatios", () => {
       ),
     );
 
-    await expect(getExchangeRatios("Allflame")).resolves.toEqual([]);
+    await expect(getExchangeRatios("Allflame", context)).resolves.toEqual([]);
   });
 
   it("asks every exchange type", async () => {
     const calls = stub(() => answer(book([], [])));
 
-    await getExchangeRatios("Allflame");
+    await getExchangeRatios("Allflame", context);
 
     expect(calls).toHaveBeenCalledTimes(EXCHANGE_TYPES.length);
   });
@@ -184,7 +183,7 @@ describe("getExchangeRatios", () => {
   it("refuses a book quoted in anything but chaos", async () => {
     stub(() => answer(book([], [], "divine")));
 
-    await expect(getExchangeRatios("Allflame")).rejects.toThrow(
+    await expect(getExchangeRatios("Allflame", context)).rejects.toThrow(
       /is quoted in divine, not chaos/,
     );
   });
@@ -198,7 +197,7 @@ describe("getExchangeRatios", () => {
       ),
     );
 
-    const rows = await getExchangeRatios("Allflame");
+    const rows = await getExchangeRatios("Allflame", context);
 
     expect(rows[0]?.category).toBe("card");
   });

@@ -94,11 +94,21 @@ export type CallEvent =
  * here — the cache is present only where responses are being replayed, and `onEvent` is
  * bound to whatever the caller wants labelled.
  *
+ * The two URLs and the user agent are here rather than read from the environment, because
+ * a service is configured by whoever builds it. Nothing in this package reads
+ * `process.env`, so it runs with no `.env` at all.
+ *
  * Passed as one object so that a new concern is a new field rather than a fifth
  * positional argument at every call site.
  */
 export type GggContext = {
   limiter: RateLimiter;
+  /** Base of the trade API, without a trailing slash. */
+  tradeApiUrl: string;
+  /** Base of the Currency Exchange endpoint on the CDN, without a trailing slash. */
+  currencyApiUrl: string;
+  /** Sent on every request. Names the application and a way to reach its author. */
+  userAgent: string;
   /** Absent in production. Its presence is the only thing that turns caching on. */
   cache?: ResponseCache;
   onEvent?: (event: CallEvent) => void;

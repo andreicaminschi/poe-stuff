@@ -1,6 +1,7 @@
+import { fetchJson } from "./call.ts";
 import { GAME_PATH } from "./config.ts";
-import { fetchJson } from "./fetch-json.ts";
-import type { EconomyLeague } from "./types.ts";
+import type { EconomyLeague } from "./get-leagues.types.ts";
+import type { PoeNinjaContext } from "./types.ts";
 
 /**
  * Every league poe.ninja has an economy for, from
@@ -16,9 +17,12 @@ import type { EconomyLeague } from "./types.ts";
  *
  * Answers with a bare array, no envelope.
  */
-export async function getLeagues(): Promise<readonly EconomyLeague[]> {
+export function getLeagues(
+  context: PoeNinjaContext,
+): Promise<readonly EconomyLeague[]> {
   return fetchJson<readonly EconomyLeague[]>(
     `${GAME_PATH}/api/economy/leagues`,
     {},
+    context,
   );
 }

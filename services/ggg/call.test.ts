@@ -7,7 +7,8 @@ import {
   afterEach,
 } from "@jest/globals";
 import { cacheKey } from "@util/core/cache-key";
-import { call } from "./call.ts";
+import { call as callWithOptions } from "./call.ts";
+import type { CallOptions } from "./call.ts";
 import { GggHttpError } from "./errors.ts";
 import type {
   CachedResponse,
@@ -44,6 +45,16 @@ function fakeLimiter() {
 let limiter = fakeLimiter();
 let fetchMock = jest.fn<FetchLike>();
 
+/**
+ * Every case wants the same user agent, so it is filled in here rather than repeated at
+ * fifty call sites. A case that cares about the header passes its own.
+ */
+const call = (
+  url: string,
+  options: Omit<CallOptions, "userAgent"> & { userAgent?: string },
+): Promise<unknown> =>
+  callWithOptions(url, { userAgent: USER_AGENT, ...options });
+
 // The clock starts at 0 so the retry-after date in one test is readable arithmetic.
 beforeEach(() => {
   jest.useFakeTimers({ now: 0 });
@@ -52,12 +63,10 @@ beforeEach(() => {
   limiter = fakeLimiter();
   fetchMock = jest.fn<FetchLike>();
   globalThis.fetch = fetchMock as unknown as typeof fetch;
-  process.env.POE_USER_AGENT = USER_AGENT;
 });
 
 afterEach(() => {
   jest.useRealTimers();
-  delete process.env.POE_USER_AGENT;
 });
 
 /** Answers each attempt in turn; the last response repeats for any further attempt. */
@@ -136,12 +145,12 @@ async function failureOf(pending: Promise<unknown>): Promise<GggHttpError> {
 
 describe("call", () => {
   describe("the outgoing request", () => {
-    it("identifies itself with the user agent configured in the environment", async () => {
+    it("identifies itself with the user agent it was handed", async () => {
       respondWith(ok({}));
 
-      await call(ENDPOINT, { limiter });
+      await call(ENDPOINT, { limiter, userAgent: "somebody-else/2.0" });
 
-      expect(headersSentOn(0)["user-agent"]).toBe(USER_AGENT);
+      expect(headersSentOn(0)["user-agent"]).toBe("somebody-else/2.0");
     });
 
     it("asks for JSON back", async () => {

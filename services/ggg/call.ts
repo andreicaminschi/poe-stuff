@@ -1,5 +1,4 @@
 import { cacheKey } from "@util/core/cache-key";
-import { requireEnv } from "@util/core/env";
 import { sleep } from "@util/core/sleep";
 import { GggHttpError } from "./errors.ts";
 import {
@@ -31,11 +30,19 @@ const backoffMs = (attempt: number) => 500 * 2 ** attempt;
 const noop = () => {};
 
 export type CallOptions = {
+  /** Sent as `user-agent`. Handed in, because this package reads no environment. */
+  userAgent: string;
   /**
    * Omit only for an endpoint that publishes no limits of its own — the static poecdn
    * digests. Everything on pathofexile.com draws on one per-IP budget and must be paced.
    */
   limiter?: RateLimiter | null;
+  /**
+   * Extra words in the cache key, for an endpoint whose URL does not say everything about
+   * when its answer stops being good. The digests pass the hour, which is what makes an
+   * entry readable only inside the hour that wrote it.
+   */
+  cacheSalt?: string;
   /** Extra attempts after the first. Leave at 0 where a job queue owns retries. */
   retries?: number;
   init?: RequestInit;
@@ -60,12 +67,20 @@ export type CallOptions = {
  * consuming it here would leave nothing to send; keying every stream the same would
  * quietly serve one request's answer to another.
  */
-function requestKey(url: string, method: string, body: RequestInit["body"]): string {
+function requestKey(
+  url: string,
+  method: string,
+  body: RequestInit["body"],
+  salt: string | undefined,
+): string {
   if (body !== undefined && body !== null && typeof body !== "string") {
     throw new TypeError("call can only cache a request whose body is a string");
   }
 
-  return cacheKey("ggg", method, url, body ?? "");
+  // Appended only when there is one, so an unsalted request keys exactly as it always did.
+  return salt === undefined
+    ? cacheKey("ggg", method, url, body ?? "")
+    : cacheKey("ggg", method, url, body ?? "", salt);
 }
 
 /**
@@ -78,9 +93,17 @@ export async function call<T = unknown>(
   url: string,
   options: CallOptions,
 ): Promise<T> {
-  const { limiter, retries = 0, init, onEvent = noop, cache } = options;
+  const {
+    userAgent,
+    limiter,
+    retries = 0,
+    init,
+    onEvent = noop,
+    cache,
+    cacheSalt,
+  } = options;
   const method = init?.method ?? "GET";
-  const key = cache && requestKey(url, method, init?.body);
+  const key = cache && requestKey(url, method, init?.body, cacheSalt);
 
   // A hit ends the call here: no slot taken, no request made, and the limiter left
   // alone. The rate-limit headers that came with a stored answer describe a budget from
@@ -110,7 +133,7 @@ export async function call<T = unknown>(
     const response = await fetch(url, {
       ...init,
       headers: {
-        "user-agent": requireEnv("POE_USER_AGENT"),
+        "user-agent": userAgent,
         accept: "application/json",
         ...(init?.body === undefined
           ? {}

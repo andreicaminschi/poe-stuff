@@ -1,4 +1,4 @@
-import type { ItemType } from "./types.ts";
+import type { ItemType } from "./get-item-overview.types.ts";
 
 /**
  * What each item `type` actually is, decided by the endpoint that was asked rather than
