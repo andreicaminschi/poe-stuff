@@ -1,0 +1,54 @@
+import { cacheKey } from "@util/core/cache-key";
+import { RepoeHttpError } from "./errors.ts";
+import type { RepoeContext } from "./types.ts";
+
+/**
+ * One GET against RePoE, answered from the cache where it can be.
+ *
+ * **No limiter, and nothing here draws on the GGG budget that `@poe/ggg` protects.** These
+ * are static JSON files on GitHub Pages. There is nothing to pace and no retry worth
+ * making: a file that failed to download is asked for again by whoever wanted it.
+ *
+ * The cache is what makes that affordable — `base_items.json` alone is 8 MB. The caller
+ * passes `salt` and every endpoint passes the day, so an entry is only ever read back
+ * within the day that wrote it. RePoE only moves when GGG ships a patch, so a day is
+ * already far finer than the data changes; old files are never deleted, they only stop
+ * being asked for.
+ *
+ * The body is asserted, not validated: callers that care hand the result to a schema.
+ */
+export async function call<T>(
+  url: string,
+  salt: string,
+  { userAgent, cache }: RepoeContext,
+): Promise<T> {
+  const key = cache && cacheKey("repoe", url, salt);
+
+  if (cache && key) {
+    const cached = await cache.get(key);
+    if (cached) return cached.body as T;
+  }
+
+  const response = await fetch(url, {
+    headers: { "user-agent": userAgent, accept: "application/json" },
+  });
+
+  if (!response.ok) throw new RepoeHttpError(url, response.status);
+
+  const body = (await response.json()) as T;
+
+  if (cache && key) {
+    await cache.set(key, {
+      url,
+      status: response.status,
+      body,
+      storedAt: new Date().toISOString(),
+    });
+  }
+
+  return body;
+}
+
+/** The day every endpoint salts its cache key with. */
+export const currentDay = (): string =>
+  String(Math.floor(Date.now() / 86_400_000));

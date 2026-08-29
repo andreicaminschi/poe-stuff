@@ -1,0 +1,13 @@
+{
+  "name": "@poe/repoe",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./service": "./service.ts",
+    "./get-base-items.types": "./get-base-items.types.ts",
+    "./errors": "./errors.ts",
+    "./types": "./types.ts"
+  }
+}

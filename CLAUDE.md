@@ -28,6 +28,7 @@ ledger postgres, the rest are unused so far.
 services/ggg/          # @poe/ggg — the GGG trade API behind a rate limiter. Has a README.md
 services/poe-watch/    # @poe/poe-watch — league price digests from api.poe.watch. Has a README.md
 services/poe-ninja/    # @poe/poe-ninja — one league's market off poe.ninja. Has a README.md
+services/repoe/        # @poe/repoe — the game's own item data, unpacked. Has a README.md
 packages/ledger/       # @poe/ledger — job, cohort and currency-hour tables on postgres
 packages/workers/      # @poe/workers — queue workers, job handlers, CLIs
 packages/util/         # @util/core — env, cache-key, file-cache, sleep
@@ -58,6 +59,7 @@ reachable contact, and a default would send one that does not exist. No service 
 | `@poe/ggg` | `@poe/ggg/service`, `/get-item-data.types`, `/get-static-items.types`, `/get-stats.types`, `/search-listings.types`, `/fetch-listings.types`, `/errors`, `/types` | The GGG trade API: every endpoint bound to one rate limiter the server's own headers keep updated. Owns every GGG URL. See [services/ggg/README.md](services/ggg/README.md). |
 | `@poe/poe-watch` | `@poe/poe-watch/service`, `/get-compact-data.types`, `/get-corruption-data.types`, `/get-exchange-ratios.types`, `/errors`, `/types` | The PoeWatch price digests: one league's whole market per call, the corrupted-implicit outcomes per item, and the exchange book. A third party scraping trade listings, which is why a price from here is a listing rather than a sale. `/compact` needs `all=true` or it answers without a single crafting base. See [services/poe-watch/README.md](services/poe-watch/README.md). |
 | `@poe/poe-ninja` | `@poe/poe-ninja/service`, `/get-leagues.types`, `/get-item-overview.types`, `/get-exchange-overview.types`, `/get-league-items.types`, `/get-exchange-ratios.types`, `/errors`, `/types` | poe.ninja's economy API, as a second opinion on the market PoeWatch scrapes. One league is 28 item calls plus 18 exchange calls — there is no whole-market endpoint. **Nothing imports it yet.** What a row *is* comes from the `type` that was asked for; `itemClass` is unusable and is read nowhere. See [services/poe-ninja/README.md](services/poe-ninja/README.md). |
+| `@poe/repoe` | `@poe/repoe/service`, `/get-base-items.types`, `/errors`, `/types` | RePoE's exports: the game's own data files, unpacked after each patch and served as static JSON off GitHub Pages. Carries no prices — this is what the game knows about an item, not what the market thinks of it. One endpoint, `base_items.json`: every base in the game, 5,461 rows and 8 MB in one request with no query and no way to ask for less. **Nothing imports it yet.** `item_class` is GGG's internal name, not the `Class` a `.filter` matches on. See [services/repoe/README.md](services/repoe/README.md). |
 
 ## Packages
 
