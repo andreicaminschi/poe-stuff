@@ -9,8 +9,8 @@ export type RepoeServiceOptions = {
   /** Sent as `user-agent` on every request. Defaults to `poe-stuff/1.0`. */
   userAgent?: string;
   /**
-   * Absent by default, which means every call re-downloads 8 MB. Handing one over is the
-   * whole switch.
+   * Absent by default, which means every call re-downloads the whole export. Handing one
+   * over is the whole switch.
    */
   cache?: ResponseCache;
 };

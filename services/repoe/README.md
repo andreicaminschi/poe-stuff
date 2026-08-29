@@ -14,7 +14,7 @@ worth; RePoE says it stacks to 20, drops from level 1, and the client draws it f
 `Art/2DItems/Currency/CurrencyWeaponQuality.dds`.
 
 One endpoint today: `base_items.json`, every base item in the game. It is a static file
-with no query, no league and no partial fetch — 8 MB and 5,461 rows, or nothing. Nothing
+with no query, no league and no partial fetch — the whole export, or nothing. Nothing
 here draws on the GGG budget and no rate limits are published, so there is no limiter; the
 cache is what makes a re-run affordable.
 
@@ -60,7 +60,7 @@ const repoe = createRepoeService();
 const bases = await repoe.getBaseItems();
 
 console.log(Object.keys(bases).length);
-// 5461
+// every base the client can show
 
 const chaos = bases["Metadata/Items/Currency/CurrencyRerollRare"];
 console.log(chaos.name, chaos.properties.stack_size);
@@ -78,8 +78,8 @@ const repoe = createRepoeService({
   cache: fileCache<CachedResponse>("cache/repoe"),
 });
 
-await repoe.getBaseItems(); // downloads 8 MB
-await repoe.getBaseItems(); // free, inside the same day
+await repoe.getBaseItems(); // downloads the whole export
+await repoe.getBaseItems(); // free, inside the same hour
 ```
 
 ### Every body armour a character can actually wear
@@ -116,28 +116,27 @@ publishes no requirement about it.
 
 ## Gotchas
 
-- **8 MB in one request, with no way to ask for less.** There is no query and no partial
-  fetch. Hand the service a cache or pay for the whole file every time.
+- **The whole export in one request, with no way to ask for less.** There is no query and
+  no partial fetch. Hand the service a cache or pay for the whole file every time.
 - **`item_class` is GGG's internal name, not the `Class` a `.filter` matches on.** The
   export mixes the two conventions in one field: `Body Armour` and `Active Skill Gem` have
   spaces, `StackableCurrency` and `AbyssJewel` do not. Nothing here maps them onto the
   display names the client shows, and a filter cannot be built from this field alone.
-- **`name` is not unique and is sometimes empty.** 5,461 rows carry 4,310 distinct names.
-  420 rows have `""` — every one of them a `StackableCurrency` placeholder such as
+- **`name` is not unique and is sometimes empty.** Two rows can share a name, and some
+  carry `""` — those are `StackableCurrency` placeholders such as
   `Metadata/Items/Currency/RandomFossilOutcome1`. The metadata id is the key; the name is a
   label.
-- **The file is not a drop table.** It holds 54 unreleased rows, 15 that exist only as a
-  unique's base, and 9 legacy ones. `release_state` is what separates them, and 5,383 rows
-  are `released`.
+- **The file is not a drop table.** It holds unreleased rows, rows that exist only as a
+  unique's base, and legacy ones. `release_state` is what separates them from `released`.
 - **Every `properties` key is present on every row, and null on most.** A flask carries no
   `attack_time`, a wand carries no `charges_max`, and both objects have both keys. Read
   `item_class` and `tags` to know which ones mean anything.
-- **`skills_granted` is null on all 5,461 rows and is typed `null`.** RePoE exports the key
-  and fills nothing. `grants_buff` is filled on 18, all utility flasks.
-- **The cache expires by key, not by age.** The day is part of every key, so an entry is
-  only read back inside the day that wrote it. RePoE only moves when GGG ships a patch, so
-  a day is already finer than the data changes. Old files are never deleted, they only stop
-  being asked for.
+- **`skills_granted` is null on every row and is typed `null`.** RePoE exports the key and
+  fills nothing. `grants_buff` is filled on utility flasks only.
+- **The cache expires by key, not by age.** The hour is part of every key, so an entry is
+  only read back inside the hour that wrote it. RePoE only moves when GGG ships a patch, so
+  an hour is already finer than the data changes. Old files are never deleted, they only
+  stop being asked for.
 - **No limiter, and no retry.** No rate limits are published and the call is one request
   for one file, so a failure is thrown rather than nursed — asking again is the caller's
   decision.

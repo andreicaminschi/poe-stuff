@@ -9,11 +9,11 @@ import type { RepoeContext } from "./types.ts";
  * are static JSON files on GitHub Pages. There is nothing to pace and no retry worth
  * making: a file that failed to download is asked for again by whoever wanted it.
  *
- * The cache is what makes that affordable — `base_items.json` alone is 8 MB. The caller
- * passes `salt` and every endpoint passes the day, so an entry is only ever read back
- * within the day that wrote it. RePoE only moves when GGG ships a patch, so a day is
- * already far finer than the data changes; old files are never deleted, they only stop
- * being asked for.
+ * The cache is what makes that affordable — `base_items.json` is the whole export in one
+ * download. The caller passes `salt` and every endpoint passes the hour, so an entry is
+ * only ever read back within the hour that wrote it. RePoE only moves when GGG ships a
+ * patch, so an hour is already far finer than the data changes; old files are never
+ * deleted, they only stop being asked for.
  *
  * The body is asserted, not validated: callers that care hand the result to a schema.
  */
@@ -49,6 +49,6 @@ export async function call<T>(
   return body;
 }
 
-/** The day every endpoint salts its cache key with. */
-export const currentDay = (): string =>
-  String(Math.floor(Date.now() / 86_400_000));
+/** The hour every endpoint salts its cache key with. */
+export const currentHour = (): string =>
+  String(Math.floor(Date.now() / 3_600_000));

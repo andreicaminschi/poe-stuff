@@ -37,7 +37,7 @@ export type RepoeContext = {
   userAgent: string;
   /**
    * Absent by default. Its presence is the only thing that turns caching on — and
-   * `base_items.json` is 8 MB a call, so a laptop wants it.
+   * `base_items.json` is the whole export on every call, so a laptop wants it.
    */
   cache?: ResponseCache;
 };

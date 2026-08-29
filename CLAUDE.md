@@ -59,7 +59,7 @@ reachable contact, and a default would send one that does not exist. No service 
 | `@poe/ggg` | `@poe/ggg/service`, `/get-item-data.types`, `/get-static-items.types`, `/get-stats.types`, `/search-listings.types`, `/fetch-listings.types`, `/errors`, `/types` | The GGG trade API: every endpoint bound to one rate limiter the server's own headers keep updated. Owns every GGG URL. See [services/ggg/README.md](services/ggg/README.md). |
 | `@poe/poe-watch` | `@poe/poe-watch/service`, `/get-compact-data.types`, `/get-corruption-data.types`, `/get-exchange-ratios.types`, `/errors`, `/types` | The PoeWatch price digests: one league's whole market per call, the corrupted-implicit outcomes per item, and the exchange book. A third party scraping trade listings, which is why a price from here is a listing rather than a sale. `/compact` needs `all=true` or it answers without a single crafting base. See [services/poe-watch/README.md](services/poe-watch/README.md). |
 | `@poe/poe-ninja` | `@poe/poe-ninja/service`, `/get-leagues.types`, `/get-item-overview.types`, `/get-exchange-overview.types`, `/get-league-items.types`, `/get-exchange-ratios.types`, `/errors`, `/types` | poe.ninja's economy API, as a second opinion on the market PoeWatch scrapes. One league is 28 item calls plus 18 exchange calls — there is no whole-market endpoint. **Nothing imports it yet.** What a row *is* comes from the `type` that was asked for; `itemClass` is unusable and is read nowhere. See [services/poe-ninja/README.md](services/poe-ninja/README.md). |
-| `@poe/repoe` | `@poe/repoe/service`, `/get-base-items.types`, `/errors`, `/types` | RePoE's exports: the game's own data files, unpacked after each patch and served as static JSON off GitHub Pages. Carries no prices — this is what the game knows about an item, not what the market thinks of it. One endpoint, `base_items.json`: every base in the game, 5,461 rows and 8 MB in one request with no query and no way to ask for less. **Nothing imports it yet.** `item_class` is GGG's internal name, not the `Class` a `.filter` matches on. See [services/repoe/README.md](services/repoe/README.md). |
+| `@poe/repoe` | `@poe/repoe/service`, `/get-base-items.types`, `/errors`, `/types` | RePoE's exports: the game's own data files, unpacked after each patch and served as static JSON off GitHub Pages. Carries no prices — this is what the game knows about an item, not what the market thinks of it. One endpoint, `base_items.json`: every base in the game, the whole export in one request with no query and no way to ask for less. **Nothing imports it yet.** `item_class` is GGG's internal name, not the `Class` a `.filter` matches on. See [services/repoe/README.md](services/repoe/README.md). |
 
 ## Packages
 
@@ -75,6 +75,26 @@ reachable contact, and a default would send one that does not exist. No service 
 Cross-package imports resolve through the `exports` map in that package's
 `package.json`. A new public entry point needs a line added there; anything absent is
 correctly unreachable. Inside a package, imports stay relative and keep `.ts`.
+
+## Layout inside a package
+
+**One folder level, never deeper.** A feature is `{feature}.ts` at the package root, and
+the functions it calls live in `{feature}/`. A nested `{feature}/{part}/{piece}.ts` buries
+the logic and makes the import path longer than the function it points at.
+
+```
+packages/filterv2/build-roster.ts          the feature
+packages/filterv2/build-roster/*.ts        what it calls
+```
+
+**One function per file is a rule of thumb, not a law: split when a test against that
+function would be meaningful.** A parser, a fetch, a decision — each earns its own file. A
+semantic wrapper over one `map`, `filter` or `Set` round-trip does not, and stays inline
+where it is used.
+
+A CLI is `{feature}-cli.ts` at the package root. Anything a CLI or another package imports
+needs a line in the `exports` map; a file under `{feature}/` is private by not being
+listed.
 
 ## Toolchain rules
 

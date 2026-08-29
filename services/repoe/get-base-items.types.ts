@@ -93,7 +93,7 @@ export type BaseItem = {
   visual_identity: BaseItemVisualIdentity;
   requirements: BaseItemRequirements | null;
   grants_buff: BaseItemBuff | null;
-  /** Null on all 5,461 rows of the current export. RePoE exports the key and fills nothing. */
+  /** Null on every row of the export. RePoE exports the key and fills nothing. */
   skills_granted: null;
 };
 
