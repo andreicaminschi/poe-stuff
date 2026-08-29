@@ -1303,18 +1303,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@poe/filter-eval@workspace:^, @poe/filter-eval@workspace:packages/filter-eval":
+"@poe/filter-eval@workspace:packages/filter-eval":
   version: 0.0.0-use.local
   resolution: "@poe/filter-eval@workspace:packages/filter-eval"
-  languageName: unknown
-  linkType: soft
-
-"@poe/filter@workspace:packages/filter":
-  version: 0.0.0-use.local
-  resolution: "@poe/filter@workspace:packages/filter"
-  dependencies:
-    "@poe/filter-eval": "workspace:^"
-    "@poe/item": "workspace:^"
   languageName: unknown
   linkType: soft
 
@@ -1334,9 +1325,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@poe/item@workspace:^, @poe/item@workspace:packages/item":
+"@poe/item-parser@workspace:packages/item-parser":
   version: 0.0.0-use.local
-  resolution: "@poe/item@workspace:packages/item"
+  resolution: "@poe/item-parser@workspace:packages/item-parser"
   languageName: unknown
   linkType: soft
 

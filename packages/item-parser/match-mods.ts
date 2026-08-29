@@ -1,7 +1,8 @@
 /**
  * Turning a modifier's text into the stat ids the trade site knows it by.
  *
- * The list of stats is GGG's own, fetched by `@poe/ggg/get-stats` and cached for an hour.
+ * The list of stats is GGG's own, fetched by `createGGGService(…).getStats()` and cached for
+ * an hour.
  * Nothing about a modifier is written down here: a modifier that ships next league is
  * matched the day it appears in that list, and this file does not change. That is the whole
  * maintenance story, and it is why matching is done against published text rather than
@@ -27,7 +28,7 @@
  */
 
 import { statIndex } from "@util/core/stat-index";
-import type { TradeStatEntry } from "@poe/ggg/types";
+import type { GGGStat } from "@poe/ggg/get-stats.types";
 import { derollText, invertScaling } from "./mod-text.ts";
 import type { ItemMod, ResolvedMod, StatMatch } from "./types.ts";
 
@@ -61,9 +62,9 @@ const defaultType = (mod: ItemMod) => (mod.header.affix === "implicit" ? "implic
  * item prints the words. Expanding here means the index is keyed on what the item actually
  * says, and the option that was chosen travels with the match so a trade query can name it.
  */
-function expand(stats: readonly TradeStatEntry[]): readonly IndexedStat[] {
+function expand(stats: readonly GGGStat[]): readonly IndexedStat[] {
   return stats.flatMap<IndexedStat>((stat) => {
-    const options = stat.option?.options;
+    const options = stat.options;
 
     if (options === undefined || options.length === 0) {
       return [{ id: stat.id, text: stat.text, type: stat.type, option: undefined }];
@@ -113,7 +114,7 @@ export type ModMatcher = {
  * The set of stat types is read off the list rather than written down, so a type GGG adds
  * later is recognised in a header the moment it appears.
  */
-export function modMatcher(stats: readonly TradeStatEntry[]): ModMatcher {
+export function modMatcher(stats: readonly GGGStat[]): ModMatcher {
   const expanded = expand(stats);
   const types = new Set(expanded.map((stat) => stat.type));
 

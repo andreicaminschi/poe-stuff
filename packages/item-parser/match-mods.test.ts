@@ -1,5 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import type { TradeStatEntry } from "@poe/ggg/types";
+import type { GGGStat } from "@poe/ggg/get-stats.types";
 import { modMatcher } from "./match-mods.ts";
 import { parseModHeader, parseModLine } from "./parse-mods.ts";
 import type { ItemMod } from "./types.ts";
@@ -13,14 +13,14 @@ import type { ItemMod } from "./types.ts";
  * counterpart are all things the published list actually does.
  */
 
-const stat = (id: string, type: string, text: string, option?: TradeStatEntry["option"]): TradeStatEntry => ({
+const stat = (id: string, type: string, text: string, options?: GGGStat["options"]): GGGStat => ({
   id: `${type}.${id}`,
   text,
   type,
-  ...(option === undefined ? {} : { option }),
+  ...(options === undefined ? {} : { options }),
 });
 
-const STATS: readonly TradeStatEntry[] = [
+const STATS: readonly GGGStat[] = [
   // The same wording under four types, which is why a header has to break the tie.
   stat("stat_3299347043", "explicit", "+# to maximum Life"),
   stat("stat_3299347043", "implicit", "+# to maximum Life"),
@@ -42,13 +42,11 @@ const STATS: readonly TradeStatEntry[] = [
   ),
 
   // A stat whose `#` stands for words rather than a number.
-  stat("pseudo_tangled_implicit_tier", "pseudo", "Eater of Worlds Implicit Modifier (#)", {
-    options: [
-      { id: 1, text: "Lesser" },
-      { id: 2, text: "Greater" },
-      { id: 3, text: "Grand" },
-    ],
-  }),
+  stat("pseudo_tangled_implicit_tier", "pseudo", "Eater of Worlds Implicit Modifier (#)", [
+    { id: 1, text: "Lesser" },
+    { id: 2, text: "Greater" },
+    { id: 3, text: "Grand" },
+  ]),
 
   // Published as a pseudo and nothing else.
   stat("pseudo_temple_legion_3", "pseudo", "Has Room: Hall of Legends (Tier 3)"),

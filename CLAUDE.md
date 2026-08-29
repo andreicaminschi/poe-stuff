@@ -13,7 +13,7 @@ at all.
 
 The second half is the item filter. `@poe/filterv2` builds the roster — every item the
 game can show, named and flagged, merged out of the trade site, the Currency Exchange,
-RePoE and the league's forum post. `@poe/item` reads one item's copied text back into a
+RePoE and the league's forum post. `@poe/item-parser` reads one item's copied text back into a
 shape the filter language can be asked about, and `@poe/filter-eval` parses a `.filter`
 and decides which block takes an item. None of the three carries a price.
 
@@ -34,11 +34,12 @@ packages/workers/      # @poe/workers — queue workers, job handlers, CLIs
 packages/util/         # @util/core — env, cache-key, file-cache, sleep
 packages/poe-wiki/     # @poe/poe-wiki — Cargo queries against poewiki.net
 packages/filterv2/     # @poe/filterv2 — every item the game can show, as one JSON file. Has a README.md
-packages/item/         # @poe/item — one item's copied text, parsed and matched
+packages/item-parser/  # @poe/item-parser — one item's copied text, parsed and matched
 packages/filter-eval/  # @poe/filter-eval — parse and run a .filter. Depends on nothing
 research/              # design notes, archived. Not a spec of what is built
 trino/                 # Dockerfile + catalog for the trino service in compose.yaml
 compose.yaml           # redis, minio, ledger postgres, hive metastore + postgres, trino
+techdebt.md            # what the repo knowingly duplicates and does not do yet, per package
 tsconfig.json          # one config, type-checks every package
 jest.config.js         # plain .js: jest loads config before any transform exists
 eslint.config.ts       # flat config. No `lint` script in package.json
@@ -70,7 +71,7 @@ reachable contact, and a default would send one that does not exist. No service 
 | `@poe/ledger` | `@poe/ledger/db`, `/migrate`, `/cohorts`, `/jobs`, `/currency`, `/types` | The job ledger on postgres: cohort rows, job rows, the queries that decide completion, and one row per collected currency hour. |
 | `@poe/poe-wiki` | `@poe/poe-wiki/get-unique-items`, `/get-influence-mods`, `/get-corrupted-mods`, `/get-exceptional-gems`, `/get-transfigured-gems`, `/cargo`, `/wiki-text`, `/types` | The wiki's Cargo tables. `getUniqueItems` — every unique's name, base item, item class and drop-restriction flag. `getInfluenceMods` — every influence modifier by equipment slot, with spawn weight. `getCorruptedMods` — the corrupted-implicit pool a Vaal Orb draws from, weighted per item class. `getExceptionalGems` and `getTransfiguredGems` — which gems cap below level 20, and which were cut from a Divine Font. Not GGG, and the only source for any of it. |
 | `@poe/filterv2` | `@poe/filterv2/build-item-list`, `/types` | The roster: every item a `.filter` could name, written to one JSON file. Merges GGG's `/data/items`, the Currency Exchange, RePoE's `base_items.json` and the league's Item Filter Information forum post, and marks the rows where they disagree. **No prices** — this answers what exists, not what it is worth. Reads the forum post by shelling out to `claude -p`. See [packages/filterv2/README.md](packages/filterv2/README.md) and [notes.md](packages/filterv2/notes.md). |
-| `@poe/item` | `@poe/item/parse-item`, `/resolve-item`, `/to-filter-item`, `/match-mods`, `/mod-text`, `/parse-header`, `/parse-mods`, `/parse-properties`, `/sections`, `/types` | One item's copied text, read back. `parseItem` is pure and needs nothing; `resolveItem` looks each modifier up in GGG's published stat list to get the ids the trade site knows it by; `toFilterItem` turns the result into the shape `@poe/filter-eval` asks conditions about. Nothing about any modifier is written down — matching is against published text, so a modifier that ships next league matches the day it appears. **Does not typecheck today**: it still imports the pre-service `@poe/ggg` API. See [packages/item/techdebt.md](packages/item/techdebt.md). |
+| `@poe/item-parser` | `@poe/item-parser/parse-item`, `/resolve-item`, `/to-filter-item`, `/match-mods`, `/mod-text`, `/parse-header`, `/parse-mods`, `/parse-properties`, `/sections`, `/types` | One item's copied text, read back. `parseItem` is pure and needs nothing; `resolveItem` looks each modifier up in GGG's published stat list to get the ids the trade site knows it by; `toFilterItem` turns the result into the shape `@poe/filter-eval` asks conditions about. Nothing about any modifier is written down — matching is against published text, so a modifier that ships next league matches the day it appears. Reads the stat list through `createGGGService`, so `item-cli.ts` needs `POE_USER_AGENT`. See [techdebt.md](techdebt.md). |
 | `@poe/filter-eval` | `@poe/filter-eval/parse-filter`, `/evaluate-filter`, `/filter-ast`, `/format-note` | The `.filter` grammar as code: a parser, an evaluator that decides which block takes an item, and the `#@` note a generated block carries its bucket in. Depends on no other package on purpose — it is the independent reader that checks what wrote a filter. |
 | `@poe/workers` | `@poe/workers/worker`, `/handlers`, `/queries`, `/queues`, `/keys`, `/pages`, `/file-cache` | The BullMQ worker loop and job handlers, S3 writes, and the `cohort-cli.ts`/`worker-cli.ts`/`currency-cli.ts` entry points. Calls GGG through `@poe/ggg` and owns no URLs of its own. |
 
@@ -131,7 +132,7 @@ its own vars and passes the values to `create<Name>Service`.
 
 | Var | Holds | Read by |
 | --- | --- | --- |
-| `POE_USER_AGENT` | `user-agent` sent on every outbound request. Must name the app and a real contact address. The three services no longer read it — they take `userAgent` as an option, and GGG refuses to default it | [packages/poe-wiki/cargo.ts](packages/poe-wiki/cargo.ts), [packages/filterv2/build-item-list-cli.ts](packages/filterv2/build-item-list-cli.ts) |
+| `POE_USER_AGENT` | `user-agent` sent on every outbound request. Must name the app and a real contact address. The three services no longer read it — they take `userAgent` as an option, and GGG refuses to default it | [packages/poe-wiki/cargo.ts](packages/poe-wiki/cargo.ts), [packages/filterv2/build-item-list-cli.ts](packages/filterv2/build-item-list-cli.ts), [packages/item-parser/item-cli.ts](packages/item-parser/item-cli.ts) |
 | `POE_CURRENCY_LEAGUE` | The one league kept out of each hourly digest. Every league arrives in one payload and there is no server-side filter | [packages/workers/config.ts](packages/workers/config.ts) |
 | `POE_CURRENCY_FROM` | Oldest hour to collect: a unix timestamp or a date. Set by hand — GGG will not say how far its history goes, and this is what stops a sweep walking back to 1970 | [packages/workers/config.ts](packages/workers/config.ts) |
 | `POE_WIKI_BASE_URL` | Base of poewiki.net, trailing slash stripped. A MediaWiki, not GGG — no rate limits published and no GGG budget touched | [packages/poe-wiki/cargo.ts](packages/poe-wiki/cargo.ts) |
@@ -208,11 +209,14 @@ draw. It also has `notes.md`, the known gaps in the item list — what the build
 and what it has not decided yet, written down where the next person looks rather than in a
 commit message.
 
-`packages/item` has `techdebt.md`, what the package knowingly duplicates and knowingly does
-not do yet, written because it was built without editing anything outside itself.
+**Tech debt goes in [techdebt.md](techdebt.md) at the root, never in a package.** One
+section per package, one heading per note: what the repo knowingly duplicates and what it
+knowingly does not do yet. A package does not get a `techdebt.md` of its own — a note is
+only read where somebody already looks, and that is one file at the root. Say what is
+wrong, why it was left, and what undoing it costs; take a note out once it is fixed.
 
-`packages/item`, `packages/ledger` and `packages/poe-wiki` have no README. Write one with
-the `/document` command.
+`packages/item-parser`, `packages/ledger` and `packages/poe-wiki` have no README. Write one
+with the `/document` command.
 
 [docs/item-filter-syntax.md](docs/item-filter-syntax.md) is how filters work in PoE: the
 `.filter` grammar as GGG documents it — `Show`/`Hide`/`Minimal` blocks, `Continue`,

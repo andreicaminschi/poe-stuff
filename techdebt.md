@@ -1,11 +1,19 @@
-# Tech debt in `@poe/item`
+# Tech debt
 
-What this package knowingly duplicates, and what it knowingly does not do yet. Written down
-because the package was built without editing anything outside itself.
+What the repo knowingly duplicates, and what it knowingly does not do yet. One section per
+package, and every package writes here rather than into a file of its own — a note is only
+useful where the next person already looks, and that is one file at the root.
 
-## Duplicated
+A note says what is wrong, why it was left, and what undoing it costs. Anything already
+fixed comes out.
 
-### 1. `derollText` belongs beside `statKey`
+## `@poe/item-parser`
+
+Written down because the package was built without editing anything outside itself.
+
+### Duplicated
+
+#### 1. `derollText` belongs beside `statKey`
 
 `mod-text.ts` takes the bracketed range off a roll — `+149(145-159)` becomes `+149` — so
 that `statKey` from `@util/core/stat-index` can key the line. Without it `statKey` reads the
@@ -17,17 +25,21 @@ lives here because this package may not edit `@util/core`. Moving it there delet
 function from `mod-text.ts` and costs nothing else — `statKey` is applied to both sides of
 the join, so stripping the range on both sides is a no-op for the callers it already has.
 
-### 2. `OPENING_RULES` in `item-cli.ts`
+#### 2. `OPENING_RULES` in `item-cli.ts`
 
-The same four lines and the same comment as `packages/filter/fetch-inputs.ts`. Both say the
-same thing: a process making one request paces against the opening rule and never sees a
-second. This repeats per file across the repo by convention rather than being shared, and
-`HOUR_MS` in the various getters does the same; noted so the repetition is a choice on
-record rather than an oversight.
+The same four lines and the same comment as `packages/workers/influence-queries-cli.ts`.
+Both say the same thing: a process making one request paces against the opening rule and
+never sees a second.
 
-## Not done
+It is now weaker than repetition. `createGGGService` defaults `rules` to the same one
+request per second, so passing `OPENING_RULES` says nothing the default does not already
+do, and deleting the constant would change no behaviour. It is kept only because the
+comment above it explains why one rule is enough here, and that reasoning is worth reading
+at the call site.
 
-### 3. The basic copy format
+### Not done
+
+#### 3. The basic copy format
 
 The game copies the advanced description format, and that is what `parse-item.ts` reads.
 The trade site's own export still writes the older one: no `{ … }` headers, no tiers, no
@@ -43,7 +55,7 @@ Modifiers read from that format also stay ambiguous. Preferring a candidate by t
 header names is what takes the sample items from 33 ambiguous matches down to 2, and a
 suffix names the kind for only some of them.
 
-### 4. Aggregate pseudo modifiers
+#### 4. Aggregate pseudo modifiers
 
 `match-mods.ts` derives alias pseudos only — the ones whose published text is the same text
 the item prints, which is the temple rooms, the logbook areas, the lake reflections and the
@@ -65,7 +77,7 @@ list, which is what keeps the result maintenance-free.
 It is not built. Alias pseudos were the part that could be had with no rules, and the ask
 was for pseudos only where they could be automated.
 
-### 5. Conditions `toFilterItem` leaves absent
+#### 5. Conditions `toFilterItem` leaves absent
 
 Listed in that file's doc comment, and absent on purpose rather than defaulted, because the
 evaluator reads a filled-in wrong value as fact. `AreaLevel` is drop context the caller
