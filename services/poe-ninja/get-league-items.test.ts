@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, jest } from "@jest/globals";
+import { describe, it, expect, jest } from "@jest/globals";
 import { EXCHANGE_TYPES } from "./get-exchange-overview.types.ts";
 import { getExchangeRatios, slugId } from "./get-exchange-ratios.ts";
 import { getLeagueItems } from "./get-league-items.ts";
