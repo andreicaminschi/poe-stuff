@@ -1,10 +1,7 @@
 import { UnrecoverableError } from "bullmq";
 import type { Job, Queue } from "bullmq";
 import { GggHttpError } from "@poe/ggg/errors";
-import { fetchCurrencyHour } from "@poe/ggg/fetch-currency-hour";
-import { fetchPage } from "@poe/ggg/fetch-page";
-import { search } from "@poe/ggg/search";
-import type { GggContext } from "@poe/ggg/types";
+import type { GGGService } from "@poe/ggg/service";
 import { finish, getCohort, outstanding, promote } from "@poe/ledger/cohorts";
 import { claimHour, openHours, settleHour } from "@poe/ledger/currency";
 import { addPages, claim, pagesFor, settle } from "@poe/ledger/jobs";
@@ -130,7 +127,7 @@ async function fail(
  */
 async function handleSearch(
   job: Job,
-  context: GggContext,
+  ggg: GGGService,
   pageQueue: Queue,
 ): Promise<void> {
   const jobKey = String(job.id);
@@ -152,7 +149,7 @@ async function handleSearch(
       }
 
       const query = findQuery(file, queryId);
-      const answer = await search(query.body, query.league, context);
+      const answer = await ggg.searchListings(query.body, query.league);
 
       await addPages(
         cohortId,
@@ -160,8 +157,8 @@ async function handleSearch(
         pageJobs(
           cohortId,
           queryId,
-          answer.id,
-          answer.result,
+          answer.searchId,
+          answer.hashes,
           query.maxPages ?? MAX_PAGES,
         ),
       );
@@ -187,7 +184,7 @@ async function handleSearch(
 }
 
 /** One page: fetch it, drop it in S3, record what was written. */
-async function handlePage(job: Job, context: GggContext): Promise<void> {
+async function handlePage(job: Job, ggg: GGGService): Promise<void> {
   const jobKey = String(job.id);
   const data = job.data as PageJobData;
 
@@ -195,18 +192,22 @@ async function handlePage(job: Job, context: GggContext): Promise<void> {
 
   try {
     const startedAt = Date.now();
-    const answer = await fetchPage(data.hashes, data.searchId, context);
+    const answer = await ggg.fetchListings(
+      data.hashes,
+      data.searchId,
+      data.page,
+    );
     const objectKey = await writePage(
       data.cohortId,
       data.queryId,
       data.page,
-      answer.result,
+      answer.listings,
     );
 
     await settle(jobKey, {
       state: "done",
       object_key: objectKey,
-      item_count: answer.result.length,
+      item_count: answer.listings.length,
       duration_ms: Date.now() - startedAt,
       fetched_at: new Date(),
     });
@@ -288,7 +289,7 @@ async function failHour(
  */
 async function handleCurrencyHour(
   job: Job,
-  context: GggContext,
+  ggg: GGGService,
 ): Promise<void> {
   const { league, hourId } = job.data as CurrencyHourJobData;
 
@@ -296,7 +297,7 @@ async function handleCurrencyHour(
 
   try {
     const startedAt = Date.now();
-    const answer = await fetchCurrencyHour(hourId, context);
+    const answer = await ggg.fetchCurrencyHour(hourId);
     const markets = answer.markets.filter(
       (market) => market.league === league,
     );
@@ -325,7 +326,7 @@ export function createHandlers(
   currencyHourQueue: Queue,
 ): Record<string, JobHandler> {
   return {
-    [SEARCH_QUEUE]: (job, context) => handleSearch(job, context, pageQueue),
+    [SEARCH_QUEUE]: (job, ggg) => handleSearch(job, ggg, pageQueue),
     [PAGE_QUEUE]: handlePage,
     [CURRENCY_QUEUE]: (job) => handleCurrencySweep(job, currencyHourQueue),
     [CURRENCY_HOUR_QUEUE]: handleCurrencyHour,

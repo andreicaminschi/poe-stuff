@@ -16,8 +16,6 @@ import {
 import type { GGGListingPage } from "./fetch-listings.types.ts";
 import { getItemData } from "./get-item-data.ts";
 import type { GGGItemGroup } from "./get-item-data.types.ts";
-import { getStaticItems } from "./get-static-items.ts";
-import type { GGGStaticItem } from "./get-static-items.types.ts";
 import { getStats } from "./get-stats.ts";
 import type { GGGStat } from "./get-stats.types.ts";
 import { createLimiter } from "./rate-limiter.ts";
@@ -69,7 +67,6 @@ export type GGGServiceOptions = {
 
 export type GGGService = {
   getItemData(): Promise<readonly GGGItemGroup[]>;
-  getStaticItems(): Promise<readonly GGGStaticItem[]>;
   getStats(): Promise<readonly GGGStat[]>;
   searchListings(query: unknown, league: string): Promise<GGGListingSearch>;
   fetchListings(
@@ -100,9 +97,22 @@ export type GGGService = {
 };
 
 /**
- * One service is one IP. GGG counts every request from an address against a single
- * budget, so a second service in the same process spends that budget twice as fast
- * without either one knowing.
+ * One service is one budget, and GGG keeps that budget per IP address.
+ *
+ * So the rule is about the address, not the object. Two services inside one process share
+ * one address and spend one budget twice as fast, neither of them aware of the other —
+ * that is the case to avoid. Two services on two machines are two addresses and two
+ * budgets, and are no problem at all.
+ *
+ * Which is what lets this scale out. Put several instances behind one shared queue, each
+ * with its own address, and every one of them builds its own service at start-up: each
+ * limiter then paces the only budget its instance can spend, and the fleet's throughput
+ * is the sum of them. Nothing is shared between the instances and nothing needs to be —
+ * a limiter that tried to would be pacing a budget GGG never charges it for.
+ *
+ * The exception inside one process is an endpoint metered under its own policy. GGG
+ * counts search and fetch separately, and a limiter holds one set of rules at a time, so
+ * a service each is how those two are paced correctly rather than a way of getting more.
  */
 export function createGGGService({
   userAgent,
@@ -126,7 +136,6 @@ export function createGGGService({
 
   return {
     getItemData: () => getItemData(context),
-    getStaticItems: () => getStaticItems(context),
     getStats: () => getStats(context),
     searchListings: (query, league) => searchListings(query, league, context),
     fetchListings: (hashes, searchId, page) =>

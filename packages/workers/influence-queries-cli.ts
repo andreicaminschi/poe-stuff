@@ -1,7 +1,7 @@
 import { writeFile } from "node:fs/promises";
-import { getStats } from "@poe/ggg/get-stats";
-import { createLimiter } from "@poe/ggg/rate-limiter";
+import { createGGGService } from "@poe/ggg/service";
 import { getInfluenceMods } from "@poe/poe-wiki/get-influence-mods";
+import { userAgent } from "./config.ts";
 import { buildInfluenceQueries } from "./influence-queries.ts";
 
 /**
@@ -30,10 +30,9 @@ if (league === undefined) {
   process.exit(1);
 }
 
-const [stats, mods] = await Promise.all([
-  getStats({ limiter: createLimiter(OPENING_RULES) }),
-  getInfluenceMods(),
-]);
+const ggg = createGGGService({ userAgent: userAgent(), rules: OPENING_RULES });
+
+const [stats, mods] = await Promise.all([ggg.getStats(), getInfluenceMods()]);
 
 const { queries, unmatched, counts } = buildInfluenceQueries(
   stats,

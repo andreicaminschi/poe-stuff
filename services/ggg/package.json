@@ -8,7 +8,6 @@
     "./errors": "./errors.ts",
     "./fetch-listings.types": "./fetch-listings.types.ts",
     "./get-item-data.types": "./get-item-data.types.ts",
-    "./get-static-items.types": "./get-static-items.types.ts",
     "./get-stats.types": "./get-stats.types.ts",
     "./search-listings.types": "./search-listings.types.ts",
     "./service": "./service.ts",

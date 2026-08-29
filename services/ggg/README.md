@@ -1,7 +1,7 @@
 # @poe/ggg
 
-GGG's Path of Exile trade API as one service object, with every endpoint sharing a single
-rate limiter.
+The Path of Exile trade site's own back end — its search, its item and modifier lists, its
+Currency Exchange digests — as one service object on one rate limiter.
 
 ## Purpose
 
@@ -11,10 +11,11 @@ back the endpoints bound to it: requests queue behind that limiter, the server's
 rate-limit headers replace the opening rules on every response, and any restriction it
 reports holds every caller for its full length.
 
-Each endpoint is a pair of files. The `.types.ts` file holds the data model — the wire
-shape GGG sends — and the domain model this package hands out. The `.ts` file holds the
-function and the mappers between the two, named `mapXToY` in the data-to-domain direction
-and `create{Action}Request` in the other.
+**Every endpoint here is one the trade website calls to draw itself.** There is no public
+API programme behind them and no documentation. `/data/items` and `/data/stats` are the
+lists the site downloads to fill its own search form, and `/search` and `/fetch` are what
+its search button does. This package reads them for other purposes, which is where most of
+the gotchas below come from.
 
 Response bodies are asserted to their data model, never validated. A caller that needs
 certainty hands the result to a schema. Limiter state lives in memory on one service
@@ -28,13 +29,11 @@ services/ggg/
 ├── call.ts                          # the request: pace, send, fold headers back, retry or throw
 ├── rate-limiter.ts                  # createLimiter — FIFO queue, rolling windows, penalty deadline
 ├── parse-rate-limit-headers.ts      # wire format of the rate-limit headers; no limiter calls
-├── config.ts                        # the default GGG URLs — the only ones in the repo
+├── config.ts                        # the default trade, CDN and forum bases
 ├── errors.ts                        # GggHttpError
 ├── types.ts                         # types more than one endpoint needs
 ├── get-item-data.ts                 # GET /data/items + its mappers
 ├── get-item-data.types.ts           # GGGItemData → GGGItem
-├── get-static-items.ts              # GET /data/static + its mapper
-├── get-static-items.types.ts        # GGGStaticItemData → GGGStaticItem
 ├── get-stats.ts                     # GET /data/stats + its mapper
 ├── get-stats.types.ts               # GGGStatData → GGGStat
 ├── search-listings.ts               # POST /search/:league + its mapper and request builder
@@ -42,24 +41,43 @@ services/ggg/
 ├── fetch-listings.ts                # GET /fetch/:hashes, page chunking, request builder
 ├── fetch-listings.types.ts          # GGGListingsResponseData → GGGListingPage
 ├── fetch-currency-hour.ts           # GET /currency-exchange/:hour, on the CDN
-├── call.test.ts
-├── parse-rate-limit-headers.test.ts
-├── rate-limiter.test.ts
+├── get-news-page.ts                 # GET /forum/view-forum/news/page/:page, as HTML
+├── get-forum-thread.ts              # GET /forum/view-thread/:id, as HTML, and the URL builder
+├── *.test.ts                        # one beside each source file
 └── docs/                            # internal Mermaid diagrams
 ```
 
 ## Public API
 
+### Entry points
+
 | Entry point | Exports | Contract |
 | --- | --- | --- |
 | `@poe/ggg/service` | `createGGGService`, `GGGService`, `GGGServiceOptions` | Builds one limiter and returns every endpoint bound to it. Opens at one request per second until GGG's headers say otherwise. |
 | `@poe/ggg/get-item-data.types` | `GGGItem`, `UniqueGGGItem`, `BaseGGGItem`, `GGGItemGroup`, `GGGItemData`, `GGGItemGroupData`, `GGGItemDataResponse` | `GGGItem` is a union on `kind`, synthesised from `flags.unique`. |
-| `@poe/ggg/get-static-items.types` | `GGGStaticItem`, `GGGStaticItemData`, `GGGStaticGroupData`, `GGGStaticItemDataResponse` | `category` and `label` carry the exchange group each row arrived in. |
 | `@poe/ggg/get-stats.types` | `GGGStat`, `GGGStatOption`, `GGGStatData`, `GGGStatOptionData`, `GGGStatGroupData`, `GGGStatDataResponse` | `options` is set on the stats picked from a list rather than typed as a number. |
 | `@poe/ggg/search-listings.types` | `GGGListingSearch`, `GGGSearchResponseData` | `hashes` holds at most 100 entries however large `matchCount` is. |
 | `@poe/ggg/fetch-listings.types` | `GGGListingPage`, `GGGListingsResponseData` | `listings` are GGG's rows untouched. |
 | `@poe/ggg/errors` | `GggHttpError` | Carries `url`, `status`, `retryable`. |
 | `@poe/ggg/types` | `RateLimiter`, `RateLimiterRule`, `RateLimitState`, `CallEvent`, `ResponseCache`, `CachedResponse`, `GggContext`, `CurrencyExchange`, `CurrencyMarket` | Types only. `CallEvent`, `ResponseCache` and `RateLimiterRule` are what `GGGServiceOptions` takes. |
+
+### Service methods
+
+Everything `createGGGService` returns. The first two are the trade site's own reference
+lists; the next four are its search; the last four are the CDN and the forum.
+
+| Method | What it is for | What comes back |
+| --- | --- | --- |
+| `getItemData()` | The name list behind the trade site's search box — every name it will let a player pick. | `GGGItemGroup[]`: the site's broad categories, each holding base types, uniques with the base each rolls on, and a row per variant for transfigured gems and blighted maps. Carries only what players have listed — see the first gotcha. |
+| `getStats()` | The modifier list behind the site's stat filters — every line it will let a player search on. | `GGGStat[]`, groups flattened, each rolled number written as `#`. `options` is set where the value is picked from a list. Includes the pseudo stats the site derives rather than reads off an item. Carries only the modifiers on items players have listed. |
+| `searchListings(query, league)` | Run one search, the way the site's search button does. | `GGGListingSearch`: the `searchId` that `fetchListings` needs, the matching listing `hashes`, `matchCount` and `complexity`. `hashes` stops at 100 however large `matchCount` is. |
+| `fetchListings(hashes, searchId, page)` | Turn one page of hashes into listings. | `GGGListingPage`: the `searchId` and `page` echoed back, and `listings` exactly as GGG sent them. |
+| `fetchAllListings(hashes, searchId, maxPages?)` | Every page a search's hashes are worth, one after another. | `GGGListingPage[]`, numbered from zero. Sequential — the pages share one limiter. |
+| `pageHashes(hashes, maxPages?)` | Cut a hash list into pages without asking GGG anything. | Arrays of at most ten hashes. **Makes no request.** |
+| `fetchCurrencyHour(hourId, options?)` | One hour of aggregate Currency Exchange history, off the CDN. This is where currency categories come from. | `CurrencyExchange`: `next_change_id` for walking the stream, and `markets`. Only `league` is asserted — every other field on a market, the category included, is passed through exactly as it arrived. Passing `league` trims the markets here rather than on the server. |
+| `getNewsPage(page)` | One page of the news forum. GGG publishes announcements as forum threads and nothing else. | The page as raw HTML. What to take out of it is the caller's problem. |
+| `getForumThread(threadId)` | One forum thread. | The thread as raw HTML. |
+| `forumThreadUrl(threadId)` | Where a thread lives, for storing beside whatever was read out of it. | The URL as a string. **Makes no request.** |
 
 ### Not exported
 
@@ -69,31 +87,23 @@ outside the package.
 
 ## Examples
 
-### Build a service
+### List every unique the trade site currently knows
 
 ```ts
 import { createGGGService } from "@poe/ggg/service";
 
 const ggg = createGGGService({ userAgent: "poe-stuff/1.0 (contact: you@example.com)" });
-```
 
-### Group every item GGG names by its category
-
-```ts
-import { createGGGService } from "@poe/ggg/service";
-
-const ggg = createGGGService({ userAgent: "poe-stuff/1.0 (contact: you@example.com)" });
-const categories = await ggg.getItemData();
-
-for (const category of categories) {
-  const uniques = category.items.filter((item) => item.kind === "unique");
-  console.log(`${category.id} ${category.items.length} items, ${uniques.length} unique`);
+for (const category of await ggg.getItemData()) {
+  for (const item of category.items) {
+    if (item.kind === "unique") console.log(`${item.name} — ${item.baseType}`);
+  }
 }
-// accessory 433 items, 289 unique
-// armour 1045 items, 549 unique
+// Headhunter — Leather Belt
+// Mageblood — Heavy Belt
 ```
 
-### Search a league, then fetch every page of listings
+### Search a league, then fetch the cheap end of it
 
 ```ts
 import { createGGGService } from "@poe/ggg/service";
@@ -142,6 +152,20 @@ for (let collected = 0; collected < 24; collected++) {
 }
 ```
 
+### Read a news thread and keep its address
+
+```ts
+import { createGGGService } from "@poe/ggg/service";
+
+const ggg = createGGGService({ userAgent: "poe-stuff/1.0 (contact: you@example.com)" });
+
+const html = await ggg.getForumThread(3_600_123);
+// paced by the same limiter as every trade request — same host, same IP budget
+
+console.log(ggg.forumThreadUrl(3_600_123));
+// https://www.pathofexile.com/forum/view-thread/3600123
+```
+
 ## Options
 
 **This package reads no environment.** Nothing here touches `process.env`, there is no
@@ -153,6 +177,7 @@ own environment and hands the values over.
 | `userAgent` | `user-agent` sent on every request | **required** |
 | `tradeApiUrl` | Base of the trade API, trailing slash stripped | `https://www.pathofexile.com/api/trade` |
 | `currencyApiUrl` | Base of the Currency Exchange endpoint on the CDN. The realm is part of it — the default is PoE1 PC | `https://web.poecdn.com/api/currency-exchange` |
+| `forumUrl` | Base of the forum. Same host and same per-IP budget as the trade API | `https://www.pathofexile.com/forum` |
 | `cache` | A `ResponseCache` answering requests from previous ones. Its presence is the whole switch | absent — every request goes to GGG |
 | `rules` | Opening rate-limit rules, replaced by GGG's own headers on the first response | one request per second |
 | `smoothAbove` | Pace instead of bursting once a window is this full, as a fraction | absent |
@@ -177,9 +202,20 @@ const cache = fileCache<CachedResponse>("cache/ggg");
 
 ## Gotchas
 
-- **One service is one IP.** Limiter state is per-instance and per-process. Two services
-  in one process means twice the real request rate against a single budget, and GGG counts
-  the total.
+- **The search lists only know what has been listed.** `/data/items` and `/data/stats`
+  exist to fill the trade site's search form, so they hold what the site can currently be
+  asked to search for — which is what players have actually put up for sale. A unique
+  introduced this league, say Mageblood, is absent from `getItemData`, and its modifiers
+  are absent from `getStats`, until the first player lists one for sale. Both lists fill in
+  over the opening days of a league as the drops arrive and get traded. Treating either as
+  the game's catalogue breaks at exactly the moment a league starts, which is when it
+  matters most. For what the game contains regardless of the market, read `@poe/repoe`.
+- **One service is one budget, and GGG keeps that budget per IP.** Two services in one
+  process share one address and spend one budget twice as fast, neither aware of the
+  other. Two services on two machines are two addresses and two budgets. The exception
+  inside one process is an endpoint metered under its own policy: GGG counts search and
+  fetch separately, and a limiter holds one rule set at a time, so a service each is how
+  those two get paced correctly.
 - **Server rules overwrite the opening guess.** Any non-empty `x-rate-limit-ip` replaces
   the whole rule set. A missing or unparseable header parses to an empty list and is
   ignored, so the last known rules stay in force.
@@ -190,13 +226,16 @@ const cache = fileCache<CachedResponse>("cache/ggg");
   because the state header describes the previous response and the last slot in a window is
   the one most likely to be wrong.
 - **IP tier only.** Account and client rate-limit tiers are not read.
-- **One cache, and the digests expire by key rather than by age.** `/data/items`,
-  `/data/static` and `/data/stats` put the hour into the cache key, so an entry is only ever
-  read back inside the hour that wrote it. Old files are never deleted, they only stop being
-  asked for. Everything else keys on the request alone and never expires — which is why the
-  cache belongs on a laptop and not in production.
+- **One cache, and the data lists expire by key rather than by age.** `/data/items` and
+  `/data/stats` put the hour into the cache key, so an entry is only ever read back inside
+  the hour that wrote it. Old files are never deleted, they only stop being asked for.
+  Everything else keys on the request alone and never expires — which is why the cache
+  belongs on a laptop and not in production.
 - **`fetchAllListings` is sequential.** Every page shares the one limiter, so racing them
   makes the run no faster and only lengthens the queue.
+- **The forum is on the trade site's budget.** It publishes no rate-limit headers, but it is
+  the same host and the same address, and Cloudflare fronts the whole domain. A challenge
+  earned by `getNewsPage` lands on `searchListings` too.
 
 ## How to run
 
@@ -211,3 +250,11 @@ Type-check the workspace:
 ```bash
 yarn typecheck
 ```
+
+## Diagrams
+
+Mermaid `.mmd` files in `services/ggg/docs/`, rendered by any Mermaid viewer.
+
+| File | Shows |
+| --- | --- |
+| `call.mmd` | One `call` end to end: the cache lookup, the limiter slot, the request, the rate-limit headers folded back, and the retry or the throw. `onEvent` is drawn as an annotation on each phase rather than a party, because it runs inline on the caller's own stack. |

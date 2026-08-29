@@ -24,6 +24,16 @@ export const HOUR_SECONDS = 3600;
 export const CURRENCY_LAG_HOURS = 2;
 
 /**
+ * Sent as `user-agent` on every GGG request. Must name the application and a way to reach
+ * whoever runs it: GGG asks for a real contact so they can write to the author instead of
+ * blocking the traffic, and refuses to default it for that reason.
+ *
+ * Read here rather than by `@poe/ggg`, which touches no environment at all — a service is
+ * configured by whoever builds it, and that is this package.
+ */
+export const userAgent = () => requireEnv("POE_USER_AGENT");
+
+/**
  * The one league kept out of each response. Every league arrives in one payload and
  * there is no server-side filter, so this is applied on the way to S3.
  */

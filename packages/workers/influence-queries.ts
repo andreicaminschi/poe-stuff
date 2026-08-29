@@ -1,4 +1,4 @@
-import type { TradeStatEntry } from "@poe/ggg/types";
+import type { GGGStat } from "@poe/ggg/get-stats.types";
 import type { Influence, InfluenceMod } from "@poe/poe-wiki/types";
 import { statIndex } from "@util/core/stat-index";
 import type { Query } from "./queries.ts";
@@ -113,8 +113,8 @@ const negate = ({ min, max }: Bounds): Bounds => ({ min: -max, max: -min });
  */
 function resolveLine(
   line: string,
-  index: ReturnType<typeof statIndex<TradeStatEntry>>,
-): { stats: readonly TradeStatEntry[]; value?: Bounds; negated: boolean } {
+  index: ReturnType<typeof statIndex<GGGStat>>,
+): { stats: readonly GGGStat[]; value?: Bounds; negated: boolean } {
   const value = bounds(line);
 
   const direct = index.find(line);
@@ -216,7 +216,7 @@ const label = (mod: InfluenceMod) =>
  * under one is invisible to the others, so the search asks for any of them.
  */
 export function buildInfluenceQueries(
-  stats: readonly TradeStatEntry[],
+  stats: readonly GGGStat[],
   mods: readonly InfluenceMod[],
   league: string,
 ): InfluenceQueryReport {

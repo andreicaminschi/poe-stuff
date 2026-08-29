@@ -1,7 +1,9 @@
 import { Queue } from "bullmq";
-import { createLimiter } from "@poe/ggg/rate-limiter";
+import { createGGGService } from "@poe/ggg/service";
 import { closeDb } from "@poe/ledger/db";
+import { userAgent } from "./config.ts";
 import { createHandlers } from "./handlers.ts";
+import { logEvents } from "./log.ts";
 import {
   CURRENCY_HOUR_QUEUE,
   CURRENCY_QUEUE,
@@ -49,19 +51,45 @@ const currencyHourQueue = new Queue(CURRENCY_HOUR_QUEUE, {
   connection: queueConnection,
 });
 
+/**
+ * The cache is shared: it is a store keyed by the request, so two services reading the
+ * same one cannot answer each other's requests wrongly. Absent in production.
+ */
+const cache = cacheFromEnv();
+
+/**
+ * One service per queue, each holding its own limiter, because GGG meters search and
+ * fetch under separate policies and a limiter holds one set of rules at a time.
+ *
+ * These share this process's IP, which is the budget GGG actually counts against. Scaling
+ * out means another instance with another address running this same file, not more
+ * services in here.
+ */
+const serviceFor = (
+  rules: { max: number; windowMs: number }[],
+  queue: string,
+  smoothAbove?: number,
+) =>
+  createGGGService({
+    userAgent: userAgent(),
+    rules,
+    cache,
+    // Bound to the queue, not the job: a service is built once and outlives every job it
+    // serves. The `job-start` and `job-done` lines are what bracket these.
+    onEvent: logEvents({ queue }),
+    ...(smoothAbove === undefined ? {} : { smoothAbove }),
+  });
+
 const worker = createWorker({
   queues: order,
   handlers: createHandlers(pageQueue, currencyHourQueue),
-  // One per queue: search and fetch are metered under separate policies, so they are
-  // separate budgets. Each limiter learns its own rules from the first response it sees.
-  limiters: {
-    [SEARCH_QUEUE]: createLimiter(OPENING_RULES, { smoothAbove: SMOOTH_ABOVE }),
-    [PAGE_QUEUE]: createLimiter(OPENING_RULES, { smoothAbove: SMOOTH_ABOVE }),
-    // The sweep makes no request at all; its limiter exists because every queue has one.
-    [CURRENCY_QUEUE]: createLimiter(CDN_RULES),
-    [CURRENCY_HOUR_QUEUE]: createLimiter(CDN_RULES),
+  services: {
+    [SEARCH_QUEUE]: serviceFor(OPENING_RULES, SEARCH_QUEUE, SMOOTH_ABOVE),
+    [PAGE_QUEUE]: serviceFor(OPENING_RULES, PAGE_QUEUE, SMOOTH_ABOVE),
+    // The sweep makes no request at all; its service exists because every queue has one.
+    [CURRENCY_QUEUE]: serviceFor(CDN_RULES, CURRENCY_QUEUE),
+    [CURRENCY_HOUR_QUEUE]: serviceFor(CDN_RULES, CURRENCY_HOUR_QUEUE),
   },
-  cache: cacheFromEnv(),
   newConnection: redisClient,
 });
 

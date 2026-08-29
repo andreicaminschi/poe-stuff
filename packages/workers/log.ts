@@ -1,4 +1,5 @@
 import { createWriteStream, mkdirSync } from "node:fs";
+import { hostname } from "node:os";
 import { join } from "node:path";
 import type { CallEvent } from "@poe/ggg/types";
 import { optionalEnv } from "@util/core/env";
@@ -140,6 +141,16 @@ function describe(event: CallEvent): string {
   }
 }
 
+/**
+ * Which worker wrote the line. One limiter is one IP, and one worker process holds one
+ * limiter per queue — so on EC2, where the hostname is the instance's private DNS name,
+ * this names the budget every line below it was paced against. The pid separates two
+ * workers started on one box.
+ *
+ * Read once: neither the hostname nor the pid changes while the process runs.
+ */
+const worker = `${hostname()}/${process.pid}`;
+
 /** What every line carries, whichever shape it is written in. */
 type Line = Record<string, unknown> & { ts: string; type: string };
 
@@ -149,7 +160,10 @@ type Line = Record<string, unknown> & { ts: string; type: string };
  * record; the terminal gets the sentence.
  */
 function write(line: Line, detail?: string): void {
-  const json = JSON.stringify(line);
+  // Stamped here rather than in the labels each call site builds: which process wrote a
+  // line is not something a call site should have to remember. The terminal is left out
+  // of it — a laptop runs one worker, and the record is what gets collected.
+  const json = JSON.stringify({ worker, ...line });
 
   // Whatever the console is doing, the file keeps the machine-readable shape, so a run
   // can be read back long after its terminal is gone.

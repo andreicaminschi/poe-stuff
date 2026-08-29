@@ -2,8 +2,8 @@ import { randomUUID } from "node:crypto";
 import { Worker } from "bullmq";
 import type { Job } from "bullmq";
 import type { Redis } from "ioredis";
-import type { GggContext, RateLimiter, ResponseCache } from "@poe/ggg/types";
-import { log, logEvents } from "./log.ts";
+import type { GGGService } from "@poe/ggg/service";
+import { log } from "./log.ts";
 
 
 /**
@@ -17,7 +17,7 @@ const DRAIN_DELAY_SECONDS = 5;
 /** Renew well inside the lock, so one slow round trip does not lose the job. */
 const RENEW_EVERY = 2;
 
-export type JobHandler = (job: Job, context: GggContext) => Promise<void>;
+export type JobHandler = (job: Job, ggg: GGGService) => Promise<void>;
 
 export type WorkerConfig = {
   /**
@@ -29,13 +29,14 @@ export type WorkerConfig = {
   /** One per queue name. A queue with no handler is a config mistake, not a silent skip. */
   handlers: Readonly<Record<string, JobHandler>>;
   /**
-   * One limiter per queue, because GGG meters each endpoint under its own policy: the
-   * searches and the fetches draw on separate budgets against the same IP, and one
-   * limiter can only hold one set of rules at a time. Keyed like `handlers`.
+   * One service per queue, because GGG meters each endpoint under its own policy: the
+   * searches and the fetches draw on separate budgets, and a service holds one limiter,
+   * which holds one set of rules at a time. Keyed like `handlers`.
+   *
+   * Built by whoever starts the worker, so the user agent, the cache and the opening
+   * rules are all decided there rather than here.
    */
-  limiters: Readonly<Record<string, RateLimiter>>;
-  /** Present on a laptop, absent in production. Handed to every handler as it is. */
-  cache?: ResponseCache;
+  services: Readonly<Record<string, GGGService>>;
   /** A fresh client per call: each queue reader blocks on its own connection. */
   newConnection: () => Redis;
   lockDurationMs?: number;
@@ -80,8 +81,7 @@ export function createWorker(config: WorkerConfig): RunningWorker {
   const {
     queues,
     handlers,
-    limiters,
-    cache,
+    services,
     newConnection,
     lockDurationMs = LOCK_DURATION_MS,
     drainDelaySeconds = DRAIN_DELAY_SECONDS,
@@ -93,11 +93,11 @@ export function createWorker(config: WorkerConfig): RunningWorker {
   }
 
   const missing = queues.filter(
-    (queue) => handlers[queue] === undefined || limiters[queue] === undefined,
+    (queue) => handlers[queue] === undefined || services[queue] === undefined,
   );
   if (missing.length > 0) {
     throw new RangeError(
-      `a handler and a limiter are needed for: ${missing.join(", ")}`,
+      `a handler and a service are needed for: ${missing.join(", ")}`,
     );
   }
 
@@ -157,23 +157,33 @@ export function createWorker(config: WorkerConfig): RunningWorker {
     }
   }
 
+  /**
+   * The job id rides on these two lines and nowhere else. A service binds its `onEvent`
+   * once, at construction, where no job exists yet — so a request line carries the queue
+   * and not the job, and these are what bracket it. They are also the only place the log
+   * says how long a job took; the ledger has the number, but not until the row settles.
+   */
   async function work(job: Job, token: string): Promise<void> {
     const labels = { queue: job.queueName, job: job.id ?? "" };
+    const startedAt = Date.now();
     const stopRenewing = renewLock(job, token, lockDurationMs);
     const handler = handlers[job.queueName];
-    const limiter = limiters[job.queueName];
+    const ggg = services[job.queueName];
+
+    log(labels, { type: "job-start" });
 
     try {
-      if (handler === undefined || limiter === undefined) {
+      if (handler === undefined || ggg === undefined) {
         throw new RangeError(`nothing configured for queue ${job.queueName}`);
       }
 
-      await handler(job, { limiter, cache, onEvent: logEvents(labels) });
+      await handler(job, ggg);
       await settle(job, token);
     } catch (error) {
       await settle(job, token, asError(error));
     } finally {
       stopRenewing();
+      log(labels, { type: "job-done", ms: Date.now() - startedAt });
     }
   }
 
