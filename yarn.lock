@@ -1323,7 +1323,8 @@ __metadata:
   resolution: "@poe/filterv2@workspace:packages/filterv2"
   dependencies:
     "@poe/ggg": "workspace:^"
-    "@poe/poe-watch": "workspace:^"
+    "@poe/repoe": "workspace:^"
+    "@util/core": "workspace:^"
   languageName: unknown
   linkType: soft
 
@@ -1354,7 +1355,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@poe/poe-watch@workspace:^, @poe/poe-watch@workspace:services/poe-watch":
+"@poe/poe-watch@workspace:services/poe-watch":
   version: 0.0.0-use.local
   resolution: "@poe/poe-watch@workspace:services/poe-watch"
   languageName: unknown
@@ -1363,6 +1364,12 @@ __metadata:
 "@poe/poe-wiki@workspace:^, @poe/poe-wiki@workspace:packages/poe-wiki":
   version: 0.0.0-use.local
   resolution: "@poe/poe-wiki@workspace:packages/poe-wiki"
+  languageName: unknown
+  linkType: soft
+
+"@poe/repoe@workspace:^, @poe/repoe@workspace:services/repoe":
+  version: 0.0.0-use.local
+  resolution: "@poe/repoe@workspace:services/repoe"
   languageName: unknown
   linkType: soft
 
@@ -2087,7 +2094,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@util/core@workspace:packages/util":
+"@util/core@workspace:^, @util/core@workspace:packages/util":
   version: 0.0.0-use.local
   resolution: "@util/core@workspace:packages/util"
   languageName: unknown

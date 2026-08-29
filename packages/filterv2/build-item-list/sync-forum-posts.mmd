@@ -1,0 +1,66 @@
+---
+title: syncForumPosts — the newest Item Filter Information post
+---
+flowchart TB
+  IN["syncForumPosts — ggg, dir, model, force<br/>one stage of build-item-list.mmd"]
+  STORE["processedPostFiles(dir) — one file per thread, plus an index"]
+  READIX[("data/forum-posts/index.json<br/>lastSearchedAt plus every thread ever read")]
+  FRESH{"now minus lastSearchedAt under 24 hours,<br/>and no --force-search?"}
+  SKIP(["no request to GGG<br/>a post does not appear twice in an afternoon"])
+
+  IN --> STORE
+  STORE --> READIX
+  READIX --> FRESH
+  FRESH -- yes --> SKIP
+
+  subgraph search["findNewestThread — news pages 1 to 5, newest first"]
+    direction TB
+    NEWS["ggg.getNewsPage(page)<br/>paced by the same limiter as trade:<br/>same host, same IP budget, one Cloudflare"]
+    FIND{"a view-thread link titled<br/>Item Filter Information on this page?"}
+    NEXT{"another page, up to 5?"}
+    FIRST(["the first match is the newest thread there is —<br/>pages run newest first, and so do the links on one"])
+    NONE(["none found"])
+
+    NEWS --> FIND
+    FIND -- yes --> FIRST
+    FIND -- no --> NEXT
+    NEXT -- yes --> NEWS
+    NEXT -- no --> NONE
+  end
+
+  FRESH -- no --> NEWS
+
+  THREAD["ggg.getForumThread(threadId)"]
+  TEXT["firstPostLines — the first post as plain lines<br/>body ends at the first content-container, which is a reply<br/>scripts stripped, or the toggle-all source lands in the item list"]
+  SUM["sha256 over the extracted text<br/>a re-rendered page is not an edited post"]
+  KNOWN{"stored answer carries this same checksum?"}
+
+  FIRST --> THREAD
+  THREAD --> TEXT
+  TEXT --> SUM
+  SUM --> KNOWN
+  KNOWN -- "yes — same text, same answer" --> READBACK
+
+  subgraph process["processPost — only when the text is one nothing answered for"]
+    direction TB
+    ASK["askClaude — claude -p --model, prompt on stdin<br/>one call per run at most, and none at all<br/>while the post reads as it did before"]
+    JSONP["readJson — the first JSON object in the reply,<br/>whatever prose or fencing surrounds it"]
+    SHAPE["ProcessedPost — newItems, renamed, removed, newKeywords<br/>a section the post lacks becomes an empty array"]
+    WRITE[("data/forum-posts/THREADID.json<br/>the answer, and the checksum it was read from")]
+
+    ASK --> JSONP
+    JSONP --> SHAPE
+    SHAPE --> WRITE
+  end
+
+  KNOWN -- "no — new post, or GGG edited it in place" --> ASK
+
+  WRITEIX[("index.json rewritten — lastSearchedAt = now<br/>written on every search, found or not")]
+  READBACK["read that post back from the store"]
+  OUT[("ProcessedPost, or null when nothing is stored")]
+
+  WRITE --> WRITEIX
+  NONE --> WRITEIX
+  WRITEIX --> OUT
+  READBACK --> OUT
+  SKIP --> READBACK

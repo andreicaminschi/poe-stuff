@@ -1,0 +1,51 @@
+---
+title: collectItems — the two GGG endpoints, merged into one list
+---
+flowchart TB
+  IN["collectItems — ggg, hourId, league, baseItems<br/>one stage of build-item-list.mmd"]
+
+  subgraph fetch["read, one after another"]
+    direction TB
+    EXCH["ggg.fetchCurrencyHour(hourId, { league })<br/>the service trims the payload: GGG sends every league<br/>in one file and takes no query"]
+    ITEMS["ggg.getItemData → /data/items groups<br/>after the hour, never beside it:<br/>one service is one IP, and one IP is one budget"]
+    EXCH --> ITEMS
+  end
+
+  IN --> EXCH
+
+  subgraph trade["collectTradeItems — /data/items"]
+    direction TB
+    SKIP{"group is currency?"}
+    DROP(["skipped — the exchange owns currency<br/>and knows about one hours earlier"])
+    ROW["row per entry, keyed by baseType<br/>a unique folds its bases into one row"]
+    VARIANT["<b>a variant lands on the wrong row</b><br/>Reap of Butchery goes into Reap, and<br/>a blighted map into a numeric id — see notes.md"]
+
+    SKIP -- yes --> DROP
+    SKIP -- no --> ROW
+    ROW -.-> VARIANT
+  end
+
+  ITEMS --> SKIP
+
+  subgraph currency["addExchangeCurrency — the hour's market pairs"]
+    direction TB
+    PATHS["every metadata path traded this hour"]
+    NAMED{"RePoE names the path?"}
+    KEYNAME["row keyed by that name<br/>tradedOnExchange"]
+    KEYLEAF["row keyed by the path's last segment<br/>name null, absentInRepoe — RePoE is behind"]
+
+    PATHS --> NAMED
+    NAMED -- yes --> KEYNAME
+    NAMED -- no --> KEYLEAF
+  end
+
+  ROW --> PATHS
+  EXCH -- "markets" --> PATHS
+  REPOE[("baseItems — handed in<br/>the caller already downloaded it<br/>to detect a new league")] --> NAMED
+
+  OUT[("CollectedItems — items, plus how many<br/>paths RePoE could not name")]
+  KEYNAME --> OUT
+  KEYLEAF --> OUT
+
+  NEXT["applyFilterPost, then fillFromRepoe<br/>back in build-item-list.mmd"]
+  OUT --> NEXT

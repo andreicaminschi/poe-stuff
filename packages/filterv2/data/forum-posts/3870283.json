@@ -1,0 +1,183 @@
+{
+  "post": {
+    "threadId": 3870283,
+    "title": "Path of Exile: Keepers of the Flame Item Filter Information",
+    "url": "https://www.pathofexile.com/forum/view-thread/3870283"
+  },
+  "processedAt": "2026-08-29T15:46:49.928Z",
+  "newItems": [
+    {
+      "itemClass": "Stackable Currency",
+      "names": [
+        "Augmentation Implant",
+        "Regal Implant",
+        "Exalted Implant",
+        "Unstable Implant",
+        "Foulborn Orb of Augmentation",
+        "Foulborn Regal Orb",
+        "Foulborn Exalted Orb"
+      ]
+    },
+    {
+      "itemClass": "Skill Gems",
+      "names": [
+        "Wall of Force",
+        "Conflagration",
+        "Kinetic Rain",
+        "Kinetic Rain of Impact",
+        "Somatic Shell",
+        "Thunderstorm",
+        "Kinetic Fusillade"
+      ]
+    },
+    {
+      "itemClass": "Support Gems",
+      "names": [
+        "Windburst Support",
+        "Kinetic Instability",
+        "Living Lightning Support"
+      ]
+    },
+    {
+      "itemClass": "Map Fragments",
+      "names": [
+        "Hivebrain Gland",
+        "Traumatic Fragment",
+        "Reverent Fragment",
+        "Lonely Fragment"
+      ]
+    },
+    {
+      "itemClass": "Vault Keys",
+      "names": [
+        "Lonely Reliquary Key",
+        "Reverent Reliquary Key",
+        "Traumatic Reliquary Key"
+      ]
+    },
+    {
+      "itemClass": "Grafts",
+      "names": [
+        "Fleshgraft",
+        "Battering Uulgraft",
+        "Spiking Uulgraft",
+        "Impaling Uulgraft",
+        "Hardening Uulgraft",
+        "Molten Xophgraft",
+        "Erupting Xophgraft",
+        "Flamecaller Xophgraft",
+        "Stoking Xophgraft",
+        "Storming Eshgraft",
+        "Replicating Eshgraft",
+        "Draining Eshgraft",
+        "Jolting Eshgraft",
+        "Squalling Tulgraft",
+        "Freezing Tulgraft",
+        "Summoning Tulgraft",
+        "Aegis Tulgraft"
+      ]
+    },
+    {
+      "itemClass": "Wombgifts",
+      "names": [
+        "Provisioning Wombgift",
+        "Lavish Wombgift",
+        "Ancient Wombgift",
+        "Growing Wombgift",
+        "Mysterious Wombgift"
+      ]
+    },
+    {
+      "itemClass": "Rings",
+      "names": [
+        "Cryonic Ring",
+        "Enthalpic Ring",
+        "Synaptic Ring",
+        "Organic Ring",
+        "Fugitive Ring",
+        "Formless Ring"
+      ]
+    },
+    {
+      "itemClass": "Wands",
+      "names": [
+        "Somatic Wand",
+        "Blasting Wand",
+        "Kinetic Wand"
+      ]
+    },
+    {
+      "itemClass": "Divination Cards",
+      "names": [
+        "The Last Laugh",
+        "The Lake",
+        "One Last Score",
+        "Bound by Flame",
+        "Outfoxed"
+      ]
+    }
+  ],
+  "renamed": [
+    {
+      "from": "Captured Soul of Captain Tanner Lightfoot",
+      "to": "Captured Soul of Merveil, the Returned"
+    },
+    {
+      "from": "Captured Soul of Legius Garhall",
+      "to": "Captured Soul of Enticer of Rot"
+    },
+    {
+      "from": "Captured Soul of Armala, the Widow",
+      "to": "Captured Soul of Hybrid Widow"
+    },
+    {
+      "from": "Captured Soul of Woad, Mockery of Man",
+      "to": "Captured Soul of Fire and Fury"
+    },
+    {
+      "from": "Captured Soul of Fragment of Winter",
+      "to": "Captured Soul of The Winged Death"
+    },
+    {
+      "from": "Captured Soul of Khor, Sister of Shadows",
+      "to": "Captured Soul of Ormud, Fiend of the Flood"
+    },
+    {
+      "from": "Captured Soul of Sumter the Twisted",
+      "to": "Captured Soul of Mephod, the Earth Scorcher"
+    },
+    {
+      "from": "Captured Soul of Varhesh, Shimmering Aberration",
+      "to": "Captured Soul of Oriath's Vigil"
+    },
+    {
+      "from": "Captured Soul of Tahsin, Warmaker",
+      "to": "Captured Soul of Sumter the Twisted"
+    },
+    {
+      "from": "Captured Soul of Stalker of the Endless Dunes",
+      "to": "Captured Soul of Preethi, Eye-Pecker"
+    },
+    {
+      "from": "Captured Soul of Arachnoxia",
+      "to": "Captured Soul of Gorulis, Will-Thief"
+    },
+    {
+      "from": "Maven's Invitation: The Hidden",
+      "to": "Maven's Invitation: The Remembered"
+    },
+    {
+      "from": "Runegraft of Recompense",
+      "to": "Runegraft of Refraction"
+    }
+  ],
+  "removed": [
+    "Bestiary Orb",
+    "Carved Wand",
+    "Engraved Wand",
+    "Imbued Wand"
+  ],
+  "newKeywords": [
+    "Foulborn"
+  ]
+}

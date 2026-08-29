@@ -1,0 +1,299 @@
+{
+  "post": {
+    "threadId": 3986972,
+    "title": "Curse of the Allflame Item Filter Information",
+    "url": "https://www.pathofexile.com/forum/view-thread/3986972"
+  },
+  "processedAt": "2026-08-29T15:45:47.330Z",
+  "newItems": [
+    {
+      "itemClass": "Stackable Currency",
+      "names": [
+        "Scrying Orb",
+        "Karui Enshrouding Crystal",
+        "Imperial Enshrouding Crystal",
+        "Vaal Enshrouding Crystal",
+        "Templar Enshrouding Crystal",
+        "Maraketh Enshrouding Crystal",
+        "Merrick's Ducat",
+        "Cyaxan's Ducat",
+        "Dead Man's Sulphur",
+        "Message in a Bottle",
+        "The Changeling's Ducat",
+        "The Genteel's Ducat",
+        "Kishara's Ducat",
+        "Telesia's Ducat",
+        "Rotmother's Ducat",
+        "Brinehook's Ducat",
+        "Katakohi's Ducat",
+        "Tzamoto's Ducat"
+      ]
+    },
+    {
+      "itemClass": "Skill Gems",
+      "names": [
+        "Mana-Infused Staff",
+        "Pact of Beidat",
+        "Pact of Ghorr",
+        "Pact of K'Tash",
+        "Pact of Lycia",
+        "Holy Sweep of Hammerfalls",
+        "Reap of Butchery",
+        "Divine Blast of Radiance",
+        "Holy Hammers of Spirals"
+      ]
+    },
+    {
+      "itemClass": "Support Gems",
+      "names": [
+        "Coursing Current Support",
+        "Crystalfall Support"
+      ]
+    },
+    {
+      "itemClass": "Map Fragments",
+      "names": [
+        "Trarthan Scarab",
+        "Trarthan Scarab of Infamy",
+        "Trarthan Scarab of Renown",
+        "Trarthan Scarab of Surprising Alliances",
+        "Mercenary Warrant",
+        "Zorath's Eye of Malevolence",
+        "Zorath's Eye of Authority",
+        "Zorath's Eye of the Inevitable",
+        "Zorath's Eye of the Endless"
+      ]
+    },
+    {
+      "itemClass": "Amulets",
+      "names": [
+        "Pearlescent Amulet",
+        "Chieftain Talisman",
+        "Gargantuan Talisman",
+        "Goliath Talisman",
+        "Rhoa Talisman",
+        "Blood Viper Talisman",
+        "Chimeral Talisman",
+        "Squid Talisman",
+        "Sand Spitter Talisman",
+        "Shield Crab Talisman",
+        "Goatman Talisman",
+        "Devourer Talisman",
+        "Plagued Arachnid Talisman",
+        "Watcher Talisman",
+        "Savage Crab Talisman",
+        "Flame Hellion Talisman",
+        "Frost Hellion Talisman",
+        "Lynx Talisman",
+        "Ape Talisman",
+        "Wolf Alpha Talisman",
+        "Magma Hound Talisman",
+        "Pitbull Talisman",
+        "Ursa Talisman",
+        "Taurus Talisman",
+        "Retch Talisman",
+        "Cobra Talisman",
+        "Carrion Queen Talisman",
+        "Scrabbler Talisman",
+        "Black Widow Talisman",
+        "Scorpion Talisman",
+        "Tiger Talisman",
+        "Vulture Talisman",
+        "Rhex Talisman",
+        "Hybrid Arachnid Talisman",
+        "Octopus Talisman",
+        "Spider Crab Talisman",
+        "Great Maw Talisman",
+        "Croaker Talisman",
+        "Craicic Talisman",
+        "Fenumal Talisman",
+        "Saqawine Talisman",
+        "Farric Talisman"
+      ]
+    },
+    {
+      "itemClass": "One Hand Swords",
+      "names": [
+        "Ghostflame Blade"
+      ]
+    },
+    {
+      "itemClass": "Enshrouded Items",
+      "names": [
+        "Enshrouded Gloves",
+        "Enshrouded Boots",
+        "Enshrouded Helmet",
+        "Enshrouded Shield",
+        "Enshrouded Body Armour"
+      ]
+    },
+    {
+      "itemClass": "Chart",
+      "names": [
+        "Sandy Seabed Chart",
+        "Coral Forest Chart",
+        "Coral Reef Chart"
+      ]
+    },
+    {
+      "itemClass": "Divination Cards",
+      "names": [
+        "Pearls Before Swine",
+        "Energy Sword",
+        "Divine Shard"
+      ]
+    }
+  ],
+  "renamed": [
+    {
+      "from": "Dark Pact",
+      "to": "Dark Bargain"
+    },
+    {
+      "from": "Dark Pact of Trarthus",
+      "to": "Dark Bargain of Trarthus"
+    },
+    {
+      "from": "Minion Pact Support",
+      "to": "Communion Support"
+    },
+    {
+      "from": "Captured Soul of Puruna, the Challenger",
+      "to": "Captured Soul of Nassar, Lion of the Seas"
+    },
+    {
+      "from": "Captured Soul of Merveil, the Returned",
+      "to": "Captured Soul of Captain Tanner Lightfoot"
+    },
+    {
+      "from": "Captured Soul of Nassar, Lion of the Seas",
+      "to": "Captured Soul of Shock and Horror"
+    },
+    {
+      "from": "Captured Soul of Hybrid Widow",
+      "to": "Captured Soul of Maligaro the Mutilator"
+    },
+    {
+      "from": "Captured Soul of Maligaro the Mutilator",
+      "to": "Captured Soul of Armala, the Widow"
+    },
+    {
+      "from": "Captured Soul of Fire and Fury",
+      "to": "Captured Soul of Oak the Mighty"
+    },
+    {
+      "from": "Captured Soul of Lord of the Ashen Arrow",
+      "to": "Captured Soul of Forest of Flames"
+    },
+    {
+      "from": "Captured Soul of Fragment of Winter",
+      "to": "Captured Soul of Captain Clayborne, The Accursed"
+    },
+    {
+      "from": "Captured Soul of Glace",
+      "to": "Captured Soul of Fragment of Winter"
+    },
+    {
+      "from": "Captured Soul of Sebbert, Crescent's Point",
+      "to": "Captured Soul of Glace"
+    },
+    {
+      "from": "Captured Soul of The Blacksmith",
+      "to": "Captured Soul of Terror of the Infinite Drifts"
+    },
+    {
+      "from": "Captured Soul of Stalker of the Endless Dunes",
+      "to": "Captured Soul of The Blacksmith"
+    },
+    {
+      "from": "Captured Soul of Tunneltrap",
+      "to": "Captured Soul of Gorulis, Will-Thief"
+    },
+    {
+      "from": "Abyss Scarab of Edifice",
+      "to": "Abyss Scarab of Crystals"
+    },
+    {
+      "from": "Abyss Scarab of Profound Depth",
+      "to": "Abyss Scarab of the Consort"
+    },
+    {
+      "from": "Omen of Blanching",
+      "to": "Omen of Trichromatism"
+    },
+    {
+      "from": "Allflame Ember of K'tash",
+      "to": "Allflame Ember of K'Tash"
+    },
+    {
+      "from": "Enshrouded Astrolabe",
+      "to": "Deceptive Astrolabe"
+    }
+  ],
+  "removed": [
+    "Bonespire Talisman",
+    "Ashscale Talisman",
+    "Lone Antler Talisman",
+    "Deep One Talisman",
+    "Breakrib Talisman",
+    "Deadhand Talisman",
+    "Undying Flesh Talisman",
+    "Rot Head Talisman",
+    "Mandible Talisman",
+    "Chrysalis Talisman",
+    "Writhing Talisman",
+    "Hexclaw Talisman",
+    "Primal Skull Talisman",
+    "Wereclaw Talisman",
+    "Splitnewt Talisman",
+    "Clutching Talisman",
+    "Avian Twins Talisman",
+    "Fangjaw Talisman",
+    "Horned Talisman",
+    "Spinefuse Talisman",
+    "Three Rat Talisman",
+    "Monkey Twins Talisman",
+    "Longtooth Talisman",
+    "Rotfeather Talisman",
+    "Monkey Paw Talisman",
+    "Three Hands Talisman",
+    "Unrelenting Timeless Karui Emblem",
+    "Unrelenting Timeless Maraketh Emblem",
+    "Unrelenting Timeless Eternal Emblem",
+    "Unrelenting Timeless Templar Emblem",
+    "Unrelenting Timeless Vaal Emblem",
+    "Whispering Incubator",
+    "Fine Incubator",
+    "Singular Incubator",
+    "Cartographer's Incubator",
+    "Otherworldly Incubator",
+    "Abyssal Incubator",
+    "Fragmented Incubator",
+    "Skittering Incubator",
+    "Infused Incubator",
+    "Fossilised Incubator",
+    "Kalguuran Incubator",
+    "Diviner's Incubator",
+    "Primal Incubator",
+    "Enchanted Incubator",
+    "Geomancer's Incubator",
+    "Ornate Incubator",
+    "Time-Lost Incubator",
+    "Celestial Armoursmith's Incubator",
+    "Celestial Blacksmith's Incubator",
+    "Celestial Jeweller's Incubator",
+    "Eldritch Incubator",
+    "Obscured Incubator",
+    "Foreboding Incubator",
+    "Thaumaturge's Incubator",
+    "Mysterious Incubator",
+    "Gemcutter's Incubator",
+    "Feral Incubator",
+    "Blighted Incubator",
+    "Challenging Incubator",
+    "Maddening Incubator"
+  ],
+  "newKeywords": [
+    "Vestigial"
+  ]
+}

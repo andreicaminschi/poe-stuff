@@ -1,0 +1,49 @@
+---
+title: buildItemList — every item the game can show, named and flagged
+---
+flowchart TB
+  CLI["build-item-list-cli.ts<br/>league, hour two back, model, --force-search, --no-forum"]
+  GGG["createGGGService — one instance for the whole run<br/>one service is one IP, and GGG counts the forum against trade"]
+  REPOE["repoe.getBaseItems — base_items.json<br/>cached under cache/repoe, keyed by the hour"]
+  SYNC["<b>syncForumPosts</b> — the newest Item Filter Information post<br/>searched once a day, one thread read, one model call at most<br/><i>drawn in build-item-list/sync-forum-posts.mmd</i>"]
+
+  CLI --> GGG
+  CLI -- "Promise.all" --> REPOE
+  GGG -- "Promise.all" --> SYNC
+
+  POST[("post — a ProcessedPost, or null<br/>null when --no-forum, or when nothing was ever found")]
+  SYNC --> POST
+
+  DETECT["detectNewLeague — which of the post's names<br/>RePoE has never heard of"]
+  NEWFLAG{"any name missing?"}
+  ISNEW["newLeague = true<br/>RePoE is behind a launch"]
+  NOTNEW["newLeague = false"]
+
+  REPOE --> DETECT
+  POST --> DETECT
+  DETECT --> NEWFLAG
+  NEWFLAG -- yes --> ISNEW
+  NEWFLAG -- no --> NOTNEW
+
+  COLLECT["<b>collectItems</b> — /data/items for everything but currency,<br/>the Currency Exchange for currency, RePoE to name the paths<br/><i>drawn in build-item-list/collect-items.mmd</i>"]
+  APPLY["<b>applyFilterPost</b> — renames, removals, and the league's new items<br/>skipped when there is no post<br/><i>drawn in build-item-list/apply-filter-post.mmd</i>"]
+  FILL["fillFromRepoe — itemClass, releaseState, tags<br/><b>last, and it wins</b>: the game's own export outranks<br/>whatever the post or the trade site claimed"]
+
+  GGG --> COLLECT
+  REPOE --> COLLECT
+  ISNEW --> COLLECT
+  NOTNEW --> COLLECT
+
+  COLLECT --> APPLY
+  POST --> APPLY
+  APPLY --> FILL
+  REPOE --> FILL
+
+  OUT[("data/items.json<br/>items keyed by name — or by metadata leaf<br/>where nothing can name the row yet<br/>plus newLeague, repoeIncomplete, forumPost,<br/>namesMissingFromRepoe")]
+  FILL --> OUT
+  ISNEW --> OUT
+  NOTNEW --> OUT
+
+  click SYNC href "build-item-list/sync-forum-posts.mmd" "syncForumPosts in full"
+  click COLLECT href "build-item-list/collect-items.mmd" "collectItems in full"
+  click APPLY href "build-item-list/apply-filter-post.mmd" "applyFilterPost in full"

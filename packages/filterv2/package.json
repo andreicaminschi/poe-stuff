@@ -1,0 +1,16 @@
+{
+  "name": "@poe/filterv2",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./build-item-list": "./build-item-list.ts",
+    "./types": "./types.ts"
+  },
+  "dependencies": {
+    "@poe/ggg": "workspace:^",
+    "@poe/repoe": "workspace:^",
+    "@util/core": "workspace:^"
+  }
+}

@@ -1,0 +1,42 @@
+---
+title: applyFilterPost — what the newest forum post changes
+---
+flowchart TB
+  IN["applyFilterPost — items, post, missingNames<br/>one stage of build-item-list.mmd<br/>skipped entirely when there is no post"]
+
+  subgraph renames["renameItems — 'X renamed to Y'"]
+    direction TB
+    LOOK["look every move up in the list handed in<br/>never in the list being built"]
+    WHY["the post renames names into each other:<br/>Glace becomes Fragment of Winter, and<br/>Fragment of Winter becomes something else"]
+    MOVE["drop every old key, then write every new one<br/>renamedFrom keeps the old name on the row,<br/>so a filter written against it can be traced"]
+
+    LOOK --> WHY
+    WHY --> MOVE
+  end
+
+  IN --> LOOK
+
+  REM["drop the names the post lists as removed"]
+  MOVE --> REM
+
+  subgraph added["addNewItems — the league's own items"]
+    direction TB
+    GATE{"is the name one RePoE has never heard of?"}
+    IGNORE(["ignored — RePoE knows it,<br/>so it is not this league's news"])
+    NEW["row created or updated: isNew<br/>itemClass from the post's own heading,<br/>and only where nothing filled it already"]
+    ONLY["<b>the only place a new item is written down</b><br/>the trade site waits for a listing,<br/>RePoE waits for a patch"]
+
+    GATE -- no --> IGNORE
+    GATE -- yes --> NEW
+    NEW -.-> ONLY
+  end
+
+  REM --> GATE
+  MISS[("missingNames — from detectNewLeague")] --> GATE
+
+  OUT[("the list, as the post leaves it")]
+  NEW --> OUT
+  IGNORE --> OUT
+
+  LAST["fillFromRepoe runs after this<br/>and outranks anything the post said"]
+  OUT --> LAST
