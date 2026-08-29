@@ -136,9 +136,8 @@ const ggg = createGGGService({ userAgent: "poe-stuff/1.0 (contact: you@example.c
 
 let hourId = 486_000;
 for (let collected = 0; collected < 24; collected++) {
-  const digest = await ggg.fetchCurrencyHour(hourId);
-  const allflame = digest.markets.filter((market) => market.league === "Allflame");
-  console.log(`${hourId}: ${allflame.length} markets`);
+  const digest = await ggg.fetchCurrencyHour(hourId, { league: "Allflame" });
+  console.log(`${hourId}: ${digest.markets.length} markets`);
   hourId = digest.next_change_id;
 }
 ```

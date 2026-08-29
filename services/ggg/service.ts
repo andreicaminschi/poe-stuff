@@ -5,7 +5,8 @@ import {
   trimUrl,
 } from "./config.ts";
 import { fetchCurrencyHour } from "./fetch-currency-hour.ts";
-import { getForumThread } from "./get-forum-thread.ts";
+import type { FetchCurrencyHourOptions } from "./fetch-currency-hour.ts";
+import { forumThreadUrl, getForumThread } from "./get-forum-thread.ts";
 import { getNewsPage } from "./get-news-page.ts";
 import {
   fetchAllListings,
@@ -85,9 +86,15 @@ export type GGGService = {
     hashes: readonly string[],
     maxPages?: number,
   ): readonly (readonly string[])[];
-  fetchCurrencyHour(hourId: number): Promise<CurrencyExchange>;
+  /** One hour of the Currency Exchange. Pass `league` to be handed only that league. */
+  fetchCurrencyHour(
+    hourId: number,
+    options?: FetchCurrencyHourOptions,
+  ): Promise<CurrencyExchange>;
   /** One page of the news forum, as HTML. */
   getNewsPage(page: number): Promise<string>;
+  /** Where a thread lives. Nothing outside this package spells the URL out. */
+  forumThreadUrl(threadId: number): string;
   /** One forum thread, as HTML. */
   getForumThread(threadId: number): Promise<string>;
 };
@@ -127,8 +134,10 @@ export function createGGGService({
     fetchAllListings: (hashes, searchId, maxPages) =>
       fetchAllListings(hashes, searchId, context, maxPages),
     pageHashes,
-    fetchCurrencyHour: (hourId) => fetchCurrencyHour(hourId, context),
+    fetchCurrencyHour: (hourId, options) =>
+      fetchCurrencyHour(hourId, context, options),
     getNewsPage: (page) => getNewsPage(page, context),
     getForumThread: (threadId) => getForumThread(threadId, context),
+    forumThreadUrl: (threadId) => forumThreadUrl(threadId, context.forumUrl),
   };
 }
