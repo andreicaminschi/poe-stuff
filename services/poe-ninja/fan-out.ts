@@ -14,8 +14,13 @@
  *   items — a filter built on it would look perfectly well-formed and be missing every
  *   unique piece of armour in the game.
  *
- * The first failure wins and the rest of the run is abandoned. There is no partial
- * answer: half a market is not a market.
+ * The first failure wins and the caller gets it at once. There is no partial answer: half
+ * a market is not a market.
+ *
+ * **The other workers are not stopped.** Nothing here cancels them, so they keep taking
+ * names off the list and calling `job` until the names run out — after the caller has
+ * already been failed. Their answers go nowhere. The cost is a few more requests to a
+ * service that publishes no limits, which is why this is left alone.
  */
 const CONCURRENCY = 4;
 
