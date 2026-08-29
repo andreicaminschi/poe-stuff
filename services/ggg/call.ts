@@ -47,6 +47,12 @@ export type CallOptions = {
   retries?: number;
   init?: RequestInit;
   /**
+   * `text` for an endpoint that answers with a page rather than a document — the forum.
+   * It changes what is asked for as well as what is read, so a JSON endpoint is never
+   * sent an HTML `accept`.
+   */
+  responseType?: "json" | "text";
+  /**
    * Called as the request progresses. Runs inline and is never awaited, so it must
    * not throw: an exception here would fail a request that otherwise succeeded.
    * Absent by default, which is what production wants.
@@ -101,6 +107,7 @@ export async function call<T = unknown>(
     onEvent = noop,
     cache,
     cacheSalt,
+    responseType = "json",
   } = options;
   const method = init?.method ?? "GET";
   const key = cache && requestKey(url, method, init?.body, cacheSalt);
@@ -134,7 +141,7 @@ export async function call<T = unknown>(
       ...init,
       headers: {
         "user-agent": userAgent,
-        accept: "application/json",
+        accept: responseType === "text" ? "text/html" : "application/json",
         ...(init?.body === undefined
           ? {}
           : { "content-type": "application/json" }),
@@ -152,7 +159,9 @@ export async function call<T = unknown>(
     if (limiter) applyRateLimits(limiter, response, onEvent);
 
     if (response.ok) {
-      const body = (await response.json()) as T;
+      const body = (responseType === "text"
+        ? await response.text()
+        : await response.json()) as T;
 
       // Only a 2xx is worth keeping. A stored 429 would answer every later run with the
       // ban that had already expired.
