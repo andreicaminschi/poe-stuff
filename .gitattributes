@@ -1,0 +1,24 @@
+# Line endings are decided here, not by whoever cloned the repo.
+#
+# Without this, `core.autocrlf` decides per machine. On Windows it checks out CRLF while
+# git stores LF, which is self-consistent — but the same working directory opened from WSL
+# is read by a second git with a different setting, and that one compares CRLF on disk
+# against LF in the object store and reports every text file as modified. Nothing is
+# actually different; the two gits simply disagree about what the bytes should look like.
+#
+# LF everywhere ends the argument. It also matches what every editor here already writes.
+* text=auto eol=lf
+
+# The parser fixtures are copied out of the game and are compared byte for byte. Freezing
+# them means no filter ever touches them, on any platform — the trailing spaces the game
+# leaves behind survive, and so does whatever it does with line endings next patch.
+#
+# The parser reads both endings identically today, measured over all of them, so this is
+# about the fixtures staying what was actually copied rather than about a bug.
+data/sample-items/*.txt -text
+
+# Not text. Never convert, never diff as lines.
+*.png binary
+*.jpg binary
+*.gz binary
+*.bundle binary
