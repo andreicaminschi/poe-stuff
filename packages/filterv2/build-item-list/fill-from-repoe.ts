@@ -5,10 +5,9 @@ import type { Item, ItemsByKey } from "../types.ts";
 /**
  * What the game's own data knows about rows the other sources already created.
  *
- * **It runs last, and it wins.** The trade site and the forum each guess an item's class
- * from where they happened to mention it; RePoE is the game's own export. Running it after
- * the post is what makes that precedence structural instead of a `??` in one branch of
- * `addNewItems`.
+ * **It runs last, and it wins.** The trade site guesses an item's class from where it
+ * happened to mention it; RePoE is the game's own export. Running it after everything else
+ * is what makes that precedence structural instead of a `??` in one branch.
  *
  * It adds no rows. RePoE covers every base, unreleased and legacy ones included, and an
  * item nothing sells and nobody can drop is not something a filter needs a line for.

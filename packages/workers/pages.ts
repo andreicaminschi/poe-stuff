@@ -1,5 +1,5 @@
 import { DeleteObjectsCommand, PutObjectCommand } from "@aws-sdk/client-s3";
-import { requireEnv } from "@util/core/env";
+import { requireEnv } from "@util/env";
 import { LATEST_KEY, currencyObjectKey, pageObjectKey } from "./keys.ts";
 import { s3 } from "./s3-client.ts";
 

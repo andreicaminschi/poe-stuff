@@ -1,0 +1,11 @@
+Item Class: Stackable Currency
+Rarity: Currency
+Eldritch Chaos Orb
+--------
+Stack Size: 5/20
+--------
+If The Searing Exarch is dominant, reroll prefix modifiers
+If The Eater of Worlds is dominant, reroll suffix modifiers
+--------
+Right click this item then left click a rare item with The Searing Exarch or The Eater of Worlds dominance to apply it.
+Shift click to unstack.

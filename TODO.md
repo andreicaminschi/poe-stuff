@@ -2,17 +2,23 @@
 
 Deferred decisions. Nothing here is scheduled.
 
-- **The data lake is not designed yet.** Pages are dropped into S3 raw, one object per
-  page, by `packages/workers`. What reads them afterwards — consolidating pages, folding a
-  cohort into something an ETL wants — has not been thought about, and a cache does not
-  belong in it. Design that before moving any of the S3 code out of `workers`.
+- **Nothing reads `.s3` back.** The POC dropped pages in raw, one file per page, and no
+  second pass over them was ever written. What that pass produces is a **price book** — one
+  row per item, carrying provenance, so `apps/generator` gets a number plus a confidence
+  signal and a price checker can show its work. Design the row before writing the pass.
+- **The collector has no queue and no record of outstanding work.** Both were containers in
+  the POC — Redis and Postgres — and neither is configured any more. `apps/collector` cannot
+  be written until something replaces them. See
+  [apps/collector/README.md](apps/collector/README.md) for what carries over.
+- **No canonical item id.** Five sources name the same item five ways, and every join
+  downstream crosses them. This blocks the price book and `apps/poe-items` both.
 - **A job that can never succeed blocks its cohort forever.** Promotion needs every job
   done, and there is no way to mark one as acceptably missing. Replacing the query is the
   answer for now (`poe cohort replace`). If a cohort ever gets stuck on something that
   cannot be replaced, this needs a real answer — an allowed-failure budget, or a state
   that means "given up on, on purpose".
 
-- **A page object can hold `null` rows.** GGG returns `null` in `result` for an item
+- **A page file can hold `null` rows.** GGG returns `null` in `result` for an item
   delisted between the search and the fetch, and `writePage` stringifies it straight
   through — 73 of 768 lines in one 8-query cohort were the literal text `null`. Anything
   reading pages back has to skip them or every count is 10% off. Undecided whether the
@@ -20,10 +26,10 @@ Deferred decisions. Nothing here is scheduled.
 
 ## Filter
 
-The classifier these entries describe was removed with `packages/filter`. They are kept
-because each one is a decision about the game rather than about the code, and every one of
-them comes back the moment something classifies items again. The constants named below no
-longer exist anywhere.
+The classifier these entries describe was a POC and is deleted. They are kept because each
+one is a decision about the game rather than about the code, and every one of them comes
+back the moment `apps/generator` classifies items again. The constants named below no longer
+exist anywhere.
 
 - **The Originator implicit cannot be named, so both Originator buckets key on
   `HasImplicitMod True`.** The Originator's Memories is an implicit, and the grammar has
@@ -41,7 +47,7 @@ longer exist anywhere.
   border. That is the better shape and this classifier has no way to express it: `Bucket`
   has no concept of a layer that decorates another block.
 - **`HasExplicitMod` counts names in `@poe/filter-eval`, and the game counts modifiers.**
-  `matchCounted` in `packages/filter-eval/evaluate-filter.ts` counts how many of the
+  `matchCounted` in `lib/filter-eval/evaluate-filter.ts` counts how many of the
   *listed* names appear as a substring of any of the item's modifiers, so the count can
   never exceed the number of names on the line. The game counts matching *modifiers*, which
   the line does not bound. The eight-modifier trick,

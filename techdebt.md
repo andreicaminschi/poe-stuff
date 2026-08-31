@@ -16,30 +16,21 @@ Written down because the package was built without editing anything outside itse
 #### 1. `derollText` belongs beside `statKey`
 
 `mod-text.ts` takes the bracketed range off a roll — `+149(145-159)` becomes `+149` — so
-that `statKey` from `@util/core/stat-index` can key the line. Without it `statKey` reads the
+that `statKey` from `./stat-index.ts` can key the line. Without it `statKey` reads the
 game's notation as two numbers and produces `+## to maximum life`, which matches nothing:
 measured over the sample items, that is the difference between 10 matches and 38.
 
-The rule is about the same join `statKey` exists for, and it belongs in the same file. It
-lives here because this package may not edit `@util/core`. Moving it there deletes a
-function from `mod-text.ts` and costs nothing else — `statKey` is applied to both sides of
-the join, so stripping the range on both sides is a no-op for the callers it already has.
+The rule is about the same join `statKey` exists for, and it belongs in the same file.
 
-#### 2. `OPENING_RULES` in `item-cli.ts`
-
-The same four lines and the same comment as `packages/workers/influence-queries-cli.ts`.
-Both say the same thing: a process making one request paces against the opening rule and
-never sees a second.
-
-It is now weaker than repetition. `createGGGService` defaults `rules` to the same one
-request per second, so passing `OPENING_RULES` says nothing the default does not already
-do, and deleting the constant would change no behaviour. It is kept only because the
-comment above it explains why one rule is enough here, and that reasoning is worth reading
-at the call site.
+**The reason it was left is gone.** It lived apart because `statKey` was in `@util/core` and
+this package could not edit it; the restructure moved `stat-index.ts` into this package as a
+private file, so both halves of the join are now owned here. Doing it deletes a function
+from `mod-text.ts` and costs nothing else — `statKey` is applied to both sides of the join,
+so stripping the range on both sides is a no-op for the callers it already has.
 
 ### Not done
 
-#### 3. The basic copy format
+#### 2. The basic copy format
 
 The game copies the advanced description format, and that is what `parse-item.ts` reads.
 The trade site's own export still writes the older one: no `{ … }` headers, no tiers, no
@@ -55,7 +46,7 @@ Modifiers read from that format also stay ambiguous. Preferring a candidate by t
 header names is what takes the sample items from 33 ambiguous matches down to 2, and a
 suffix names the kind for only some of them.
 
-#### 4. Aggregate pseudo modifiers
+#### 3. Aggregate pseudo modifiers
 
 `match-mods.ts` derives alias pseudos only — the ones whose published text is the same text
 the item prints, which is the temple rooms, the logbook areas, the lake reflections and the
@@ -77,7 +68,7 @@ list, which is what keeps the result maintenance-free.
 It is not built. Alias pseudos were the part that could be had with no rules, and the ask
 was for pseudos only where they could be automated.
 
-#### 5. Conditions `toFilterItem` leaves absent
+#### 4. Conditions `toFilterItem` leaves absent
 
 Listed in that file's doc comment, and absent on purpose rather than defaulted, because the
 evaluator reads a filled-in wrong value as fact. `AreaLevel` is drop context the caller

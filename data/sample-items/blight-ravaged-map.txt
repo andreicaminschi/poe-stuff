@@ -1,0 +1,21 @@
+Item Class: Maps
+Rarity: Normal
+Blight-ravaged Map (Tier 16)
+--------
+Map Area: Strand
+--------
+Item Level: 83
+--------
+Monster Level: 85
+--------
+{ Implicit Modifier }
+Monster Level: 85 — Unscalable Value
+200% more Monster Life
+20% increased Monster Movement Speed
+Area is infested with Fungal Growths
+Map's Item Quantity Modifiers also affect Blight Chest count at 50% value
+Can be Anointed up to 9 times — Unscalable Value
+Natural inhabitants of this area have been removed — Unscalable Value
+--------
+Travel to a Map of this tier or lower by using this in a personal Map Device. Maps can only be used once. 
+--------

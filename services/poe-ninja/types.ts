@@ -35,7 +35,7 @@ export type CachedResponse = {
  *
  * Structurally identical to the ones `@poe/ggg` and `@poe/poe-watch` declare, on purpose
  * rather than by accident: one `fileCache<CachedResponse>(root)` from
- * `@util/core/file-cache` satisfies every service in the repo, and no service has to import
+ * `@util/cache/file-cache` satisfies every service in the repo, and no service has to import
  * another to say so.
  */
 export type ResponseCache = {

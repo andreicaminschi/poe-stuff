@@ -1,0 +1,31 @@
+Item Class: Belts
+Rarity: Unique
+Mageblood
+Heavy Belt
+--------
+Quality (Attribute Modifiers): +20% (augmented)
+--------
+Requirements:
+Level: 44
+--------
+Item Level: 75
+--------
+{ Implicit Modifier — Attribute  — 20% Increased }
++35(25-35) to Strength
+--------
+{ Unique Modifier — Attribute  — 20% Increased }
++40(30-50) to Dexterity
+{ Unique Modifier — Elemental, Fire, Resistance }
++22(15-25)% to Fire Resistance
+{ Unique Modifier — Elemental, Cold, Resistance }
++15(15-25)% to Cold Resistance
+{ Unique Modifier }
+Magic Utility Flasks cannot be Used
+{ Unique Modifier }
+Leftmost 4(2-4) Magic Utility Flasks constantly apply their Flask Effects to you
+{ Unique Modifier }
+Magic Utility Flask Effects cannot be removed
+--------
+Rivers of power course through your veins.
+--------
+Foil Unique (Cobalt)

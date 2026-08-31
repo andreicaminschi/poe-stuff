@@ -11,7 +11,6 @@ import type { GGGServiceOptions } from "./service.ts";
 
 const TRADE_API_URL = "https://api.example.test/trade";
 const CURRENCY_API_URL = "https://cdn.example.test/currency-exchange";
-const FORUM_URL = "https://www.example.test/forum";
 const USER_AGENT = "poe-stuff-test/1.0 (contact: nobody@example.test)";
 
 type FetchLike = (url: string, init?: RequestInit) => Promise<Response>;
@@ -22,8 +21,8 @@ let fetchMock = jest.fn<FetchLike>();
 let sentAt: number[] = [];
 
 /**
- * One body every endpoint here can read: a stats envelope, a currency digest, and a page
- * of text all at once. No rate-limit headers, so the opening rules stay in force.
+ * One body every endpoint here can read: a stats envelope and a currency digest at once.
+ * No rate-limit headers, so the opening rules stay in force.
  */
 const answer = () =>
   new Response(
@@ -36,7 +35,6 @@ const service = (options: Omit<GGGServiceOptions, "userAgent"> = {}) =>
     userAgent: USER_AGENT,
     tradeApiUrl: TRADE_API_URL,
     currencyApiUrl: CURRENCY_API_URL,
-    forumUrl: FORUM_URL,
     ...options,
   });
 
@@ -68,13 +66,16 @@ describe("createGGGService", () => {
     expect(sentAt).toEqual([0, 1_000]);
   });
 
-  it("paces the trade, currency and forum endpoints against one shared budget", async () => {
+  it("paces the trade API and the CDN against one shared budget", async () => {
     const ggg = service();
 
+    // Two different hosts, one limiter. The CDN publishes no limits of its own, but it
+    // is the same IP spending the same budget, so it queues behind the trade call
+    // instead of going out alongside it.
     const pending = Promise.all([
       ggg.getStats(),
       ggg.fetchCurrencyHour(480_000),
-      ggg.getNewsPage(1),
+      ggg.getItemData(),
     ]);
     await jest.advanceTimersByTimeAsync(5_000);
     await pending;
@@ -99,29 +100,25 @@ describe("createGGGService", () => {
   it("strips a trailing slash off each base, so no URL ends up with a double slash", async () => {
     const ggg = service({
       tradeApiUrl: `${TRADE_API_URL}/`,
-      forumUrl: `${FORUM_URL}/`,
+      currencyApiUrl: `${CURRENCY_API_URL}/`,
     });
 
-    await ggg.getStats();
+    const pending = Promise.all([ggg.getStats(), ggg.fetchCurrencyHour(480_000)]);
+    await jest.advanceTimersByTimeAsync(5_000);
+    await pending;
 
     expect(fetchMock.mock.calls[0]?.[0]).toBe(`${TRADE_API_URL}/data/stats`);
-    expect(ggg.forumThreadUrl(1)).toBe(`${FORUM_URL}/view-thread/1`);
+    expect(fetchMock.mock.calls[1]?.[0]).toBe(`${CURRENCY_API_URL}/480000`);
   });
 
   it("sends the user agent it was built with on every endpoint", async () => {
     const ggg = service();
 
-    const pending = Promise.all([ggg.getStats(), ggg.getNewsPage(1)]);
+    const pending = Promise.all([ggg.getStats(), ggg.fetchCurrencyHour(480_000)]);
     await jest.advanceTimersByTimeAsync(5_000);
     await pending;
 
     expect(headersSentOn(0)["user-agent"]).toBe(USER_AGENT);
     expect(headersSentOn(1)["user-agent"]).toBe(USER_AGENT);
-  });
-
-  it("builds a thread URL off the forum base rather than the trade base", () => {
-    expect(service().forumThreadUrl(3_600_123)).toBe(
-      `${FORUM_URL}/view-thread/3600123`,
-    );
   });
 });

@@ -6,7 +6,7 @@ import {
   beforeEach,
   afterEach,
 } from "@jest/globals";
-import { cacheKey } from "@util/core/cache-key";
+import { cacheKey } from "@util/cache/cache-key";
 import { call as callWithOptions } from "./call.ts";
 import type { CallOptions } from "./call.ts";
 import { GggHttpError } from "./errors.ts";

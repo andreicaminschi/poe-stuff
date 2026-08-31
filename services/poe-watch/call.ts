@@ -1,4 +1,4 @@
-import { cacheKey } from "@util/core/cache-key";
+import { cacheKey } from "@util/cache/cache-key";
 import { PoeWatchHttpError } from "./errors.ts";
 import type { PoeWatchContext } from "./types.ts";
 

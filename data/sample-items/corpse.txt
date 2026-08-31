@@ -1,0 +1,15 @@
+Item Class: Corpses
+Rarity: Currency
+Perfect Forest Warrior
+--------
+Corpse Level: 83
+Monster Category: Humanoid
+--------
+Item Level: 83
+--------
+Cyclones
+Uses Molten Fissure
+Culling Strike
+Nearby allies have Onslaught
+--------
+Right click this item to create this corpse.

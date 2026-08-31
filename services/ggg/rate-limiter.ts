@@ -1,4 +1,4 @@
-import { sleep } from "@util/core/sleep";
+import { sleep } from "@util/cache/sleep";
 import type {
   RateLimiter,
   RateLimiterRule,

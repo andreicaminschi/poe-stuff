@@ -107,8 +107,6 @@ export type GggContext = {
   tradeApiUrl: string;
   /** Base of the Currency Exchange endpoint on the CDN, without a trailing slash. */
   currencyApiUrl: string;
-  /** Base of the forum, without a trailing slash. Same host and budget as trade. */
-  forumUrl: string;
   /** Sent on every request. Names the application and a way to reach its author. */
   userAgent: string;
   /** Absent in production. Its presence is the only thing that turns caching on. */

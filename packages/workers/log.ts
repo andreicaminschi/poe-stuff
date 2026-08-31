@@ -2,7 +2,7 @@ import { createWriteStream, mkdirSync } from "node:fs";
 import { hostname } from "node:os";
 import { join } from "node:path";
 import type { CallEvent } from "@poe/ggg/types";
-import { optionalEnv } from "@util/core/env";
+import { optionalEnv } from "@util/env";
 
 /**
  * One JSON object per line on stdout. That is the shape CloudWatch splits into queryable

@@ -1,0 +1,20 @@
+Item Class: Jewels
+Rarity: Magic
+Vivid Cobalt Jewel of Athletics
+--------
+Intangibility: 5%
+--------
+Item Level: 80
+--------
+{ Corruption Implicit Modifier — Elemental, Cold, Ailment }
+22(25-20)% reduced Effect of Chill on you
+(Chill reduces Action Speed by up to 30%)
+--------
+{ Prefix Modifier "Vivid" (Tier: 1) — Life }
+6(5-7)% increased maximum Life
+{ Suffix Modifier "of Athletics" (Tier: 1) — Attribute }
++9(8-10) to Strength and Dexterity
+--------
+Place into an allocated Jewel Socket on the Passive Skill Tree. Right click to remove from the Socket.
+--------
+Corrupted

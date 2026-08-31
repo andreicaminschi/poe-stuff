@@ -1,4 +1,4 @@
-import { requireEnv } from "@util/core/env";
+import { requireEnv } from "@util/env";
 
 /** Fetch takes at most ten hashes per call. One page. */
 export const FETCH_CHUNK = 10;

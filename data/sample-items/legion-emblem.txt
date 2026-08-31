@@ -1,0 +1,14 @@
+Item Class: Map Fragments
+Rarity: Normal
+Timeless Eternal Emblem
+--------
+10% increased Experience Gain
+20% increased Reward progress from Monster Kills
+Monsters deal 10% increased Damage
+Monsters have 10% increased Toughness for each time they have been Revived
+Monsters have 10% increased Accuracy Rating for each time they have been Revived
+Monsters have 5% increased Area of Effect for each time they have been Revived
+--------
+The relentless brutality of the Eternals...
+--------
+Place two or more different Emblems in a Map Device to access the Domain of Timeless Conflict. Can only be used once. While viewing your Atlas, Right-click this item to pinpoint its location.

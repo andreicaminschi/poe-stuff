@@ -1,0 +1,36 @@
+Item Class: Shields
+Rarity: Rare
+Woe Mark
+Cold-attuned Buckler
+--------
+Chance to Block: 47% (augmented)
+Evasion Rating: 213
+--------
+Requirements:
+Level: 72
+Str: 159
+Dex: 159
+--------
+Sockets: W-W-W 
+--------
+Item Level: 85
+--------
+{ Implicit Modifier }
+Inflict Brittle on Enemies when you Block their Damage
+(Hits have +2% Critical Strike Chance against Brittle Enemies, for 4 seconds)
+--------
+{ Prefix Modifier "Unwavering" (Tier: 3) }
+69(64-69)% increased Chance to Block
+{ Prefix Modifier "Vigorous" (Tier: 1) — Life }
++149(145-159) to maximum Life
+{ Master Crafted Prefix Modifier "Upgraded" — Gem }
++2 to Level of Socketed Support Gems
+{ Suffix Modifier "of the Magma" (Tier: 2) — Elemental, Fire, Resistance }
++43(42-45)% to Fire Resistance
+{ Suffix Modifier "of Stoicism" (Tier: 4) — Elemental, Fire, Cold, Lightning, Ailment }
+16(16-20)% chance to Avoid Elemental Ailments
+(Elemental Ailments are Ignited, Scorched, Chilled, Frozen, Brittle, Shocked, and Sapped)
+{ Suffix Modifier "of Shaping" (Tier: 1) — Life }
+Recover 3(3-5)% of Life when you Block
+--------
+Shaper Item

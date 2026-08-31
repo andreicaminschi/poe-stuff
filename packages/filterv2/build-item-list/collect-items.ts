@@ -119,11 +119,11 @@ function addExchangeCurrency(
  * for currency. Both are read here rather than handed in.
  *
  * The two GGG calls run one after another: one service is one IP, and one IP is one
- * budget. `baseItems` is the exception that is still a parameter — the caller has already
- * downloaded it to decide whether a new league has launched.
+ * budget. `baseItems` is a parameter rather than a third call, because the caller has
+ * already downloaded it and it is needed here only to turn a metadata path into a name.
  *
- * RePoE is not read here beyond naming the currency paths. `fillFromRepoe` runs after the
- * forum post, so that the game's own data is the last word on any row.
+ * RePoE is not read here beyond that. `fillFromRepoe` runs afterwards, so that the game's
+ * own data is the last word on any row.
  */
 export async function collectItems({
   ggg,

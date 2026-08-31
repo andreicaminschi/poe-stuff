@@ -1,0 +1,10 @@
+Item Class: Stackable Currency
+Rarity: Currency
+Orb of Unravelling
+--------
+Stack Size: 1/10
+--------
+Consumes all Memory Strands on an item to attempt to upgrade the tier
+of explicit modifiers based on the number of Memory Strands consumed
+--------
+Right click this item then left click an equipment item with Memory Strands to apply it.

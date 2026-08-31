@@ -1,5 +1,5 @@
-import { cacheKey } from "@util/core/cache-key";
-import { sleep } from "@util/core/sleep";
+import { cacheKey } from "@util/cache/cache-key";
+import { sleep } from "@util/cache/sleep";
 import { PoeNinjaHttpError } from "./errors.ts";
 import type { PoeNinjaContext } from "./types.ts";
 

@@ -1,0 +1,8 @@
+Item Class: Stackable Currency
+Rarity: Currency
+Amber Oil
+--------
+Stack Size: 16/10
+--------
+Can be combined with other Oils at Cassia to Enchant Rings or Amulets, or to modify Blighted Maps.
+Shift click to unstack.

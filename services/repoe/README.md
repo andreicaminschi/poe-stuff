@@ -70,7 +70,7 @@ console.log(chaos.name, chaos.properties.stack_size);
 ### Keep the answer on disk
 
 ```ts
-import { fileCache } from "@util/core/file-cache";
+import { fileCache } from "@util/cache/file-cache";
 import { createRepoeService } from "@poe/repoe/service";
 import type { CachedResponse } from "@poe/repoe/types";
 

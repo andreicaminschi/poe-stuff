@@ -23,5 +23,9 @@
     "resolveJsonModule": true,
     "isolatedModules": true
   },
-  "include": ["packages/**/*.ts", "services/**/*.ts"]
+  // `packages/` is deprecated POC code and is deliberately absent: `@poe/workers` cannot
+  // compile at all now that `@poe/ledger` and `@poe/poe-wiki` are deleted, and a typecheck
+  // that is permanently red stops being a signal. Delete those two folders and this
+  // comment goes with them.
+  "include": ["apps/**/*.ts", "lib/**/*.ts", "services/**/*.ts"]
 }

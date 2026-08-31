@@ -1,0 +1,11 @@
+Item Class: Stackable Currency
+Rarity: Currency
+Crescent Splinter
+--------
+Stack Size: 3/10
+--------
+Precious and perilous,
+Tantalising and terrible.
+--------
+Combine 10 Crescent Splinters to create The Maven's Writ.
+Shift click to unstack.

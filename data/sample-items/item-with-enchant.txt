@@ -1,0 +1,31 @@
+Item Class: Amulets
+Rarity: Unique
+Rotmother's Mutiny
+Pearlescent Amulet
+--------
+Intangibility: 6% <-- ignore this for now
+--------
+Requirements:
+Level: 28
+--------
+Item Level: 83
+--------
+Allocates Discipline and Training (enchant)
+--------
+{ Implicit Modifier — Elemental, Resistance }
++10(8-10)% to all Elemental Resistances
+--------
+{ Unique Modifier — Elemental, Resistance }
++20(20-25)% to all Elemental Resistances
+{ Unique Modifier — Resistance }
++3(1-3)% to all maximum Resistances
+(Maximum Resistances cannot be raised above 90%)
+{ Unique Modifier }
+68(25-75)% increased Light Radius
+{ Unique Modifier — Elemental, Lightning, Chaos }
++1% to Chaos Resistance per 1% Lightning Resistance — Unscalable Value
+--------
+Betrayal bites cold as a southerly wind,
+Thunder heralds the coming storm,
+On her day of mutiny, the Rotmother sinned,
+A brother burned, a bond forsworn

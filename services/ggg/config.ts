@@ -19,14 +19,5 @@ export const DEFAULT_TRADE_API_URL = "https://www.pathofexile.com/api/trade";
 export const DEFAULT_CURRENCY_API_URL =
   "https://web.poecdn.com/api/currency-exchange";
 
-/**
- * Base of the forum, without a trailing slash.
- *
- * The forum publishes no rate-limit headers, but it is the same host and the same IP
- * budget as the trade API — and Cloudflare fronts the whole domain. A challenge earned
- * here lands on trade too, so it goes through the same limiter as everything else.
- */
-export const DEFAULT_FORUM_URL = "https://www.pathofexile.com/forum";
-
 /** Trailing slash stripped, so joins onto a base stay predictable. */
 export const trimUrl = (url: string): string => url.replace(/\/$/, "");

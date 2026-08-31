@@ -1,5 +1,16 @@
 # Notes
 
+> **The package is deprecated; these notes are not.** `@poe/filterv2` is a POC being
+> replaced by `apps/poe-items` — see [DEPRECATED.md](DEPRECATED.md). Every entry below is a
+> decision about the game rather than about the code, so all of them come back the moment
+> something builds an item list again. This is the file worth reading before writing that.
+>
+> **Entries marked "removed source" describe the forum post**, which this build no longer
+> reads — the endpoints it used are gone from `@poe/ggg`. They are kept rather than deleted
+> because the problems they describe are properties of the post, not of the code that read
+> it, and every one of them returns the day `apps/poe-items` answers where the post comes
+> from.
+
 Known gaps in the item list. Each one is something the build gets wrong, or a decision it
 has not made yet, written down where the next person looks rather than in a commit
 message. [README.md](README.md) says what the package does; this says where it lies.
@@ -41,9 +52,10 @@ but `collectTradeItems` keys a row on `baseType` alone. Three things follow:
 - **Two variants sharing one `type` collapse into one row.** Blighted and Blight-ravaged
   both write to `1215`, and the second one wins. Nothing records that the first existed.
 
-- **A transfigured gem is never seen under its own name.** `Reap of Butchery` goes into
-  the row for `Reap`, so when the forum post names it as new, nothing is there to match
-  and a second row appears with `"sources": ["forum"]` and no category.
+- **A transfigured gem is never seen under its own name.** `Reap of Butchery` goes into the
+  row for `Reap`. *(Removed source: when the forum post named it as new, nothing was there
+  to match and a second row appeared with `"sources": ["forum"]` and no category. The
+  collision is still there; only the second row is gone.)*
 
 None of these rows can be matched by a filter as they stand. A blighted map is selected by
 `BlightedMap True` against the underlying map base, and a transfigured gem by its own
@@ -68,14 +80,17 @@ path's last segment with `name: null` and `absentInRepoe: true`:
 ```
 
 That is the intended behaviour — a filter ignores it for free, because with no name there
-is nothing for `BaseType` to match. The gap is what happens if the forum post names the
-same item in the same run: the post creates a second row under the display name, and
-nothing joins the two. RePoE is the only thing that maps a path to a name, so while RePoE
-is behind there is nothing to join *with*. The leaf is not derivable from the name either
-— word order differs, so neither a squash nor a prefix match is safe.
+is nothing for `BaseType` to match.
 
-It has not happened in a real run yet. It will, on a launch day where a new currency
-trades before RePoE catches up and the post names it.
+*(Removed source.)* The gap was what happened if the forum post named the same item in the
+same run: the post created a second row under the display name, and nothing joined the two.
+RePoE is the only thing that maps a path to a name, so while RePoE is behind there is
+nothing to join *with*. The leaf is not derivable from the name either — word order
+differs, so neither a squash nor a prefix match is safe.
+
+It never happened in a real run. It would have, on a launch day where a new currency trades
+before RePoE catches up and the post names it — and it is waiting for whatever brings the
+post back.
 
 ## `market_pair` is asserted, not typed
 
@@ -119,12 +134,16 @@ The cost is that a debugging loop re-fetches both GGG endpoints on every run. If
 becomes annoying, hand `createGGGService` a cache in the same shape and the service's own
 hourly cache key does the rest.
 
-## The model's answer is cached by text, not by thread
+## The model's answer is cached by text, not by thread — removed source
 
 GGG edits an Item Filter Information post in place — same thread, new content. The stored
 answer carries `textChecksum`, a hash of the extracted post text, and a search compares it
 against what it just fetched. Same text, stored answer; different text, one model call.
 
 What this does not catch: a post whose text is unchanged but whose *meaning* the model
-read wrong the first time. Nothing re-reads a post to check the answer, and there is no
-way to invalidate one short of deleting its file from `data/forum-posts/`.
+read wrong the first time. Nothing re-reads a post to check the answer, and there is no way
+to invalidate one short of deleting its file from `data/forum-posts/`.
+
+The checksum-not-thread-id rule is the part worth keeping. GGG edits these posts in place,
+so any future reader that keys a stored answer by thread id alone will serve a stale one
+after the first edit.

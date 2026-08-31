@@ -1,5 +1,17 @@
 # The collection pipeline
 
+> **DEPRECATED — this describes the POC as it was built, not the repo as it is.**
+>
+> `@poe/workers` no longer compiles and is being replaced by `apps/collector`. Three things
+> below are gone from the repo entirely: **Redis** (the queue), **Postgres** (the record of
+> every job, in the deleted `@poe/ledger`), and **S3/MinIO** (the object store). There is no
+> `compose.yaml` any more, and object storage is now the local disk at `.s3`.
+>
+> It is kept because the *design* survives the change of backing store: the write order, the
+> content-derived keys, the sweep that subtracts, and the one-limiter-per-IP rule are all
+> still right. [`apps/collector/README.md`](../../../apps/collector/README.md) lists what
+> carries over; [`DEPRECATED.md`](../DEPRECATED.md) says what does not.
+
 A worker is one process that takes jobs off Redis queues and makes requests. Every worker
 runs the same code. What changes between them is the order of the queues they read.
 

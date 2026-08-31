@@ -1,4 +1,4 @@
-import { cacheKey } from "@util/core/cache-key";
+import { cacheKey } from "@util/cache/cache-key";
 
 /**
  * A job key is both the BullMQ job id and the primary key of its ledger row. Built from

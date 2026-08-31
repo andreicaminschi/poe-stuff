@@ -1,0 +1,13 @@
+Item Class: Stackable Currency
+Rarity: Currency
+The Changeling's Ducat
+--------
+Stack Size: 22/10
+--------
+Transforms into a random Ducat
+--------
+To appease Tsoatha, they tossed it to sea, but the storm grew ever madder.
+None returned to shore. Yet the vessel sails on, and its captain is merry.
+--------
+Can be used as part of Allflame Crafting aboard The Sovereign.
+Shift click to unstack.

@@ -1,0 +1,15 @@
+Item Class: Mana Flasks
+Rarity: Normal
+Superior Divine Mana Flask
+--------
+Quality: +29% (augmented)
+Recovers 1806 (augmented) Mana over 5 Seconds
+Consumes 8 of 42 Charges on use
+Currently has 0 Charges
+--------
+Requirements:
+Level: 60
+--------
+Item Level: 85
+--------
+Right click to drink. Can only hold charges while in belt. Refills as you kill monsters.

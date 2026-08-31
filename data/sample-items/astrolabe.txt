@@ -1,0 +1,9 @@
+Item Class: Stackable Currency
+Rarity: Currency
+Lightless Astrolabe
+--------
+Stack Size: 1/10
+--------
+Adds a Shaped Region containing Abysses to a quadrant of the Atlas
+--------
+Right click this item and then left click a Map on your Atlas to apply a Shaped Region.

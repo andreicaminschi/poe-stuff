@@ -43,7 +43,6 @@ const context = (cache?: ResponseCache): GggContext => ({
   },
   tradeApiUrl: TRADE_API_URL,
   currencyApiUrl: "https://cdn.example.test/currency-exchange",
-  forumUrl: "https://www.example.test/forum",
   userAgent: "poe-stuff-test/1.0 (contact: nobody@example.test)",
   ...(cache === undefined ? {} : { cache }),
 });

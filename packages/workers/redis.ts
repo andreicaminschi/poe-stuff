@@ -1,5 +1,5 @@
 import { Redis } from "ioredis";
-import { requireEnv } from "@util/core/env";
+import { requireEnv } from "@util/env";
 
 /**
  * A new client every call, not a shared one.

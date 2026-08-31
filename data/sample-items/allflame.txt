@@ -1,0 +1,13 @@
+Item Class: Map Fragments
+Rarity: Normal
+Allflame Ember of Resplendence
+--------
+Stack Size: 7/20
+Limit: 2
+--------
+Substitutes Monster Packs in Area
+Pack Monsters do not drop items
+Pack Monsters grant increased Item Rarity when slain, up to
+400%, decaying over time
+--------
+Can be used in a personal Map Device to substitute the varities of Monster Packs present in a Map.

@@ -1,0 +1,10 @@
+Item Class: Stackable Currency
+Rarity: Currency
+Karui Enshrouding Crystal
+--------
+Stack Size: 2/10
+--------
+Enshrouds Unique Gloves
+--------
+Right click this item and then left click a Unique item.
+Shift click to unstack.

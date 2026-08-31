@@ -12,7 +12,11 @@ export default {
   // "test" script in package.json.
   extensionsToTreatAsEsm: [".ts"],
 
-  roots: ["<rootDir>/packages", "<rootDir>/services"],
+  // `packages/` is deprecated POC code and is deliberately absent — same reason as in
+  // tsconfig.json. Nothing under it should be built or tested against. `apps` is listed
+  // even though nothing there has a test yet: leaving it out is how the first one gets
+  // written and silently never runs.
+  roots: ["<rootDir>/apps", "<rootDir>/lib", "<rootDir>/services"],
   testMatch: ["**/*.test.ts"],
 
   transform: {

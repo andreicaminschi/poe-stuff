@@ -29,7 +29,7 @@ services/ggg/
 ├── call.ts                          # the request: pace, send, fold headers back, retry or throw
 ├── rate-limiter.ts                  # createLimiter — FIFO queue, rolling windows, penalty deadline
 ├── parse-rate-limit-headers.ts      # wire format of the rate-limit headers; no limiter calls
-├── config.ts                        # the default trade, CDN and forum bases
+├── config.ts                        # the default trade and CDN bases
 ├── errors.ts                        # GggHttpError
 ├── types.ts                         # types more than one endpoint needs
 ├── get-item-data.ts                 # GET /data/items + its mappers
@@ -41,8 +41,6 @@ services/ggg/
 ├── fetch-listings.ts                # GET /fetch/:hashes, page chunking, request builder
 ├── fetch-listings.types.ts          # GGGListingsResponseData → GGGListingPage
 ├── fetch-currency-hour.ts           # GET /currency-exchange/:hour, on the CDN
-├── get-news-page.ts                 # GET /forum/view-forum/news/page/:page, as HTML
-├── get-forum-thread.ts              # GET /forum/view-thread/:id, as HTML, and the URL builder
 ├── *.test.ts                        # one beside each source file
 └── docs/                            # internal Mermaid diagrams
 ```
@@ -64,7 +62,7 @@ services/ggg/
 ### Service methods
 
 Everything `createGGGService` returns. The first two are the trade site's own reference
-lists; the next four are its search; the last four are the CDN and the forum.
+lists; the next four are its search; the last is the CDN.
 
 | Method | What it is for | What comes back |
 | --- | --- | --- |
@@ -75,9 +73,6 @@ lists; the next four are its search; the last four are the CDN and the forum.
 | `fetchAllListings(hashes, searchId, maxPages?)` | Every page a search's hashes are worth, one after another. | `GGGListingPage[]`, numbered from zero. Sequential — the pages share one limiter. |
 | `pageHashes(hashes, maxPages?)` | Cut a hash list into pages without asking GGG anything. | Arrays of at most ten hashes. **Makes no request.** |
 | `fetchCurrencyHour(hourId, options?)` | One hour of aggregate Currency Exchange history, off the CDN. This is where currency categories come from. | `CurrencyExchange`: `next_change_id` for walking the stream, and `markets`. Only `league` is asserted — every other field on a market, the category included, is passed through exactly as it arrived. Passing `league` trims the markets here rather than on the server. |
-| `getNewsPage(page)` | One page of the news forum. GGG publishes announcements as forum threads and nothing else. | The page as raw HTML. What to take out of it is the caller's problem. |
-| `getForumThread(threadId)` | One forum thread. | The thread as raw HTML. |
-| `forumThreadUrl(threadId)` | Where a thread lives, for storing beside whatever was read out of it. | The URL as a string. **Makes no request.** |
 
 ### Not exported
 
@@ -152,20 +147,6 @@ for (let collected = 0; collected < 24; collected++) {
 }
 ```
 
-### Read a news thread and keep its address
-
-```ts
-import { createGGGService } from "@poe/ggg/service";
-
-const ggg = createGGGService({ userAgent: "poe-stuff/1.0 (contact: you@example.com)" });
-
-const html = await ggg.getForumThread(3_600_123);
-// paced by the same limiter as every trade request — same host, same IP budget
-
-console.log(ggg.forumThreadUrl(3_600_123));
-// https://www.pathofexile.com/forum/view-thread/3600123
-```
-
 ## Options
 
 **This package reads no environment.** Nothing here touches `process.env`, there is no
@@ -177,7 +158,6 @@ own environment and hands the values over.
 | `userAgent` | `user-agent` sent on every request | **required** |
 | `tradeApiUrl` | Base of the trade API, trailing slash stripped | `https://www.pathofexile.com/api/trade` |
 | `currencyApiUrl` | Base of the Currency Exchange endpoint on the CDN. The realm is part of it — the default is PoE1 PC | `https://web.poecdn.com/api/currency-exchange` |
-| `forumUrl` | Base of the forum. Same host and same per-IP budget as the trade API | `https://www.pathofexile.com/forum` |
 | `cache` | A `ResponseCache` answering requests from previous ones. Its presence is the whole switch | absent — every request goes to GGG |
 | `rules` | Opening rate-limit rules, replaced by GGG's own headers on the first response | one request per second |
 | `smoothAbove` | Pace instead of bursting once a window is this full, as a fraction | absent |
@@ -194,7 +174,7 @@ traffic — and a default would send a contact that does not exist:
 A disk cache is three lines in the consumer:
 
 ```ts
-import { fileCache } from "@util/core/file-cache";
+import { fileCache } from "@util/cache/file-cache";
 import type { CachedResponse } from "@poe/ggg/types";
 
 const cache = fileCache<CachedResponse>("cache/ggg");
@@ -233,9 +213,10 @@ const cache = fileCache<CachedResponse>("cache/ggg");
   belongs on a laptop and not in production.
 - **`fetchAllListings` is sequential.** Every page shares the one limiter, so racing them
   makes the run no faster and only lengthens the queue.
-- **The forum is on the trade site's budget.** It publishes no rate-limit headers, but it is
-  the same host and the same address, and Cloudflare fronts the whole domain. A challenge
-  earned by `getNewsPage` lands on `searchListings` too.
+- **The CDN is on the trade site's budget.** `fetchCurrencyHour` goes to a different host
+  that publishes no rate-limit headers of its own, but it is the same address spending the
+  same budget, and Cloudflare fronts the whole domain — so it is paced by the same limiter
+  as everything else rather than being let through free.
 
 ## How to run
 

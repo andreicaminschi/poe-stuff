@@ -1,6 +1,6 @@
 import type { CachedResponse, ResponseCache } from "@poe/ggg/types";
-import { optionalEnv } from "@util/core/env";
-import { fileCache } from "@util/core/file-cache";
+import { optionalEnv } from "@util/env";
+import { fileCache } from "@util/cache/file-cache";
 
 /**
  * The cache a worker runs with. `CACHE_DIR` naming a folder is the whole switch — unset

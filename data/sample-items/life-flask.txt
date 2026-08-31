@@ -1,0 +1,14 @@
+Item Class: Life Flasks
+Rarity: Normal
+Hallowed Life Flask
+--------
+Recovers 1990 Life over 4 Seconds
+Consumes 10 of 30 Charges on use
+Currently has 0 Charges
+--------
+Requirements:
+Level: 42
+--------
+Item Level: 84
+--------
+Right click to drink. Can only hold charges while in belt. Refills as you kill monsters.

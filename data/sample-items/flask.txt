@@ -1,0 +1,23 @@
+Item Class: Utility Flasks
+Rarity: Magic
+Chemist's Sapphire Flask of the Narwhal
+--------
+Lasts 8 Seconds
+Consumes 14 (augmented) of 50 Charges on use
+Currently has 0 Charges
++5% to maximum Cold Resistance
+(Maximum Resistances cannot be raised above 90%)
++40% to Cold Resistance
+--------
+Requirements:
+Level: 65
+--------
+Item Level: 85
+--------
+{ Prefix Modifier "Chemist's" (Tier: 1) }
+28(28-26)% reduced Charges per use
+{ Suffix Modifier "of the Narwhal" (Tier: 3) }
+41(41-45)% chance to Avoid being Chilled during Effect
+44(41-45)% chance to Avoid being Frozen during Effect
+--------
+Right click to drink. Can only hold charges while in belt. Refills as you kill monsters.

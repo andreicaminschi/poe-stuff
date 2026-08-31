@@ -1,0 +1,13 @@
+Item Class: Stackable Currency
+Rarity: Currency
+Valdo's Puzzle Box
+--------
+Stack Size: 5/10
+--------
+Contains a Mysterious Map with a Foil Unique Reward
+--------
+I can find no method of destroying the dangerous contents within... 
+ perhaps, someday, you will find a way.
+--------
+Right click to open.
+Shift click to unstack.

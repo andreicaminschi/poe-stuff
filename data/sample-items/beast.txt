@@ -1,0 +1,25 @@
+Item Class: Stackable Currency
+Rarity: Rare
+Duskgnaw the Voracious
+Farric Frost Hellion Alpha
+--------
+Genus: Hellions
+Group: Felines
+Family: The Wilds
+--------
+Item Level: 83
+--------
+{ Monster Modifier (Tier: 1) }
+Constantly Revives Minions
+{ Monster Modifier (Tier: 1) }
+Extra Fire Damage and Exposure
+{ Monster Modifier — Life, Attack, Speed, Critical }
+Farric Presence
+{ Monster Modifier — Life }
+Spectral Swipe
+{ Monster Modifier — Life }
+Aspect of the Hellion
+{ Monster Modifier }
+20% chance not to be consumed when sacrificed at the Blood Altar
+--------
+Right-click to add this to your bestiary.

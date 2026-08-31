@@ -1,0 +1,12 @@
+Item Class: Map Fragments
+Rarity: Normal
+Sacrifice at Dusk
+--------
+Stack Size: 56/10
+--------
+Area contains a Vaal Side Area
+5% increased Quantity of Items found in Area
+--------
+The Vaal shall never fear the setting of our sun.
+--------
+Can be used in a personal Map Device to add modifiers to a Map.

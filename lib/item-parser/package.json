@@ -1,0 +1,22 @@
+{
+  "name": "@poe/item-parser",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./match-mods": "./match-mods.ts",
+    "./mod-text": "./mod-text.ts",
+    "./parse-header": "./parse-header.ts",
+    "./parse-item": "./parse-item.ts",
+    "./parse-mods": "./parse-mods.ts",
+    "./parse-properties": "./parse-properties.ts",
+    "./resolve-item": "./resolve-item.ts",
+    "./sections": "./sections.ts",
+    "./to-filter-item": "./to-filter-item.ts",
+    "./types": "./types.ts"
+  },
+  "dependencies": {
+    "@poe/filter-eval": "workspace:^"
+  }
+}

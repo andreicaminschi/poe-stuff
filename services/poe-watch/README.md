@@ -70,7 +70,7 @@ console.log(`${market.length} rows, ${bases.length} crafting bases`);
 ### Keep the answers on disk
 
 ```ts
-import { fileCache } from "@util/core/file-cache";
+import { fileCache } from "@util/cache/file-cache";
 import { createPoeWatchService } from "@poe/poe-watch/service";
 import type { CachedResponse } from "@poe/poe-watch/types";
 

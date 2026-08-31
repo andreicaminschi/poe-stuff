@@ -1,0 +1,9 @@
+Item Class: Stackable Currency
+Rarity: Currency
+Memory of Loneliness
+--------
+Stack Size: 1/10
+--------
+Adds a Memory Thread to the Atlas leading to the Incarnation of Neglect
+--------
+Right click this item and then left click a Map on your Atlas to apply a Memory Thread to that quadrant.

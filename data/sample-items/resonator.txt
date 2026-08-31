@@ -1,0 +1,13 @@
+Item Class: Delve Stackable Socketable Currency
+Rarity: Currency
+Powerful Chaotic Resonator
+--------
+Stack Size: 46/10
+Requires 3 (unmet) Socketed Fossils
+--------
+Sockets: D D D 
+--------
+Reforges a rare item with new random modifiers
+--------
+All sockets must be filled with Fossils before this item can be used.
+Shift click to unstack.

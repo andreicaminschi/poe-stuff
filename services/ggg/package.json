@@ -12,5 +12,8 @@
     "./search-listings.types": "./search-listings.types.ts",
     "./service": "./service.ts",
     "./types": "./types.ts"
+  },
+  "dependencies": {
+    "@util/cache": "workspace:^"
   }
 }

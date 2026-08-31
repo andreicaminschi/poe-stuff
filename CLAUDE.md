@@ -1,26 +1,37 @@
 # poe-stuff
 
-Yarn 4 workspace monorepo of TypeScript packages for polling GGG's Path of Exile trade
-API. No build step — Node runs the `.ts` files directly.
+Yarn 4 workspace monorepo of TypeScript packages for Path of Exile item filters. No build
+step — Node runs the `.ts` files directly.
 
 ## Purpose
 
-Everything here exists to make rate-limited requests to GGG without earning a ban:
-`@poe/ggg` paces requests behind a limiter the server's own headers keep updated, and
-`@poe/workers` wraps the two trade endpoints on top of it and runs the queue workers. It
-also sinks the Currency Exchange hourly digests, which come off the CDN under no budget
-at all.
+The product is a `.filter` file: given every item the game can show and what each one is
+worth, decide how loudly to draw it.
 
-The second half is the item filter. `@poe/filterv2` builds the roster — every item the
-game can show, named and flagged, merged out of the trade site, the Currency Exchange,
-RePoE and the league's forum post. `@poe/item-parser` reads one item's copied text back into a
-shape the filter language can be asked about, and `@poe/filter-eval` parses a `.filter`
-and decides which block takes an item. None of the three carries a price.
+Two halves feed that. The first makes rate-limited requests to GGG without earning a ban —
+`@poe/ggg` paces every request behind a limiter the server's own headers keep updated. The
+second reads the filter language: `@poe/item-parser` turns one item's copied text into a
+shape the language can be asked about, and `@poe/filter-eval` parses a `.filter` and decides
+which block takes an item.
 
-What is not in the repo today: no schema validation of response bodies. The only schedule
-is the currency sweep, and it is a BullMQ job scheduler in redis rather than a cron.
-`compose.yaml` runs the backing services; `@poe/workers` connects to redis, minio and the
-ledger postgres, the rest are unused so far.
+**Nothing generates a filter yet.** That is `apps/generator`, and it is the missing spine —
+until something comes out of it, every source collected here is a leaf and nothing proves
+the whole works.
+
+## Tiers
+
+Code is split by **where it runs**, not by what it is about. This is the rule for where new
+code goes:
+
+| Tier | Runs where | Rule |
+| --- | --- | --- |
+| `services/` | backend | One outside API, one object. Reads no environment. |
+| `lib/` | anywhere — node today, a desktop app later | Pure. Imported, never runs on its own. No `process.env`, no database client, no cloud SDK. |
+| `apps/` | backend | Has a `main()`. Owns its `.env`. Never imported by anything. |
+| `packages/` | — | **Deprecated only.** The graveyard. Emptied as each POC is replaced. |
+
+An app has a CLI and reads the environment; a lib has neither. If a new file needs
+`requireEnv`, it belongs in an app.
 
 ## Structure
 
@@ -29,27 +40,35 @@ services/ggg/          # @poe/ggg — the GGG trade API behind a rate limiter. H
 services/poe-watch/    # @poe/poe-watch — league price digests from api.poe.watch. Has a README.md
 services/poe-ninja/    # @poe/poe-ninja — one league's market off poe.ninja. Has a README.md
 services/repoe/        # @poe/repoe — the game's own item data, unpacked. Has a README.md
-packages/ledger/       # @poe/ledger — job, cohort and currency-hour tables on postgres
-packages/workers/      # @poe/workers — queue workers, job handlers, CLIs
-packages/util/         # @util/core — env, cache-key, file-cache, sleep
-packages/poe-wiki/     # @poe/poe-wiki — Cargo queries against poewiki.net
-packages/filterv2/     # @poe/filterv2 — every item the game can show, as one JSON file. Has a README.md
-packages/item-parser/  # @poe/item-parser — one item's copied text, parsed and matched
-packages/filter-eval/  # @poe/filter-eval — parse and run a .filter. Depends on nothing
+lib/filter-eval/       # @poe/filter-eval — parse and run a .filter. Depends on nothing. Has a README.md
+lib/item-parser/       # @poe/item-parser — one item's copied text, parsed and matched
+lib/cache/             # @util/cache — cache-key, file-cache, sleep
+lib/env/               # @util/env — requireEnv / optionalEnv. The only reader of process.env
+apps/item-inspect/     # @poe/item-inspect — paste an item, see how the parser read it
+apps/collector/        # README only. Replaces @poe/workers
+apps/poe-items/        # README only. Replaces @poe/filterv2
+apps/generator/        # README only. Never existed: items + prices -> a .filter
+packages/workers/      # DEPRECATED @poe/workers. Does not compile
+packages/filterv2/     # DEPRECATED @poe/filterv2
+.s3/                   # local stand-in for object storage. Gitignored, nothing writes it yet
+data/sample-items/     # copied item text, the parser's fixtures. Two suites read this folder
+data/                  # everything else here is scratch and gitignored
+docs/                  # item-filter-syntax.md — the .filter grammar as GGG documents it
+docs/plans/            # feature plans. Gitignored and never pushed
 research/              # design notes, archived. Not a spec of what is built
-trino/                 # Dockerfile + catalog for the trino service in compose.yaml
-compose.yaml           # redis, minio, ledger postgres, hive metastore + postgres, trino
-techdebt.md            # what the repo knowingly duplicates and does not do yet, per package
-tsconfig.json          # one config, type-checks every package
+queries.json           # hand-written trade searches. Belongs to the deprecated collector
+influence-queries.json # generated, 2 MB, tracked. Belongs to the deprecated collector
+techdebt.md            # what the repo knowingly duplicates and does not do yet
+tsconfig.json          # one config. Type-checks apps, lib and services — not packages
 jest.config.js         # plain .js: jest loads config before any transform exists
-eslint.config.ts       # flat config. No `lint` script in package.json
+eslint.config.ts       # flat config
 ```
 
 ## Services
 
 A service is one outside API behind one object. It exposes `create<Name>Service(options)`
-from `./service` and nothing else callable; endpoints live beside it as a `.ts` + `.types.ts`
-pair, and `call.ts`, `config.ts` and the mappers stay internal.
+from `./service` and nothing else callable; endpoints live beside it as a `.ts` +
+`.types.ts` pair, and `call.ts`, `config.ts` and the mappers stay internal.
 
 **A service reads no environment.** Base URL, user agent and cache are all arguments to the
 constructor, with defaults for everything except GGG's user agent — GGG asks that it name a
@@ -59,35 +78,90 @@ reachable contact, and a default would send one that does not exist. No service 
 | Service | Import as | Owns |
 | --- | --- | --- |
 | `@poe/ggg` | `@poe/ggg/service`, `/get-item-data.types`, `/get-stats.types`, `/search-listings.types`, `/fetch-listings.types`, `/errors`, `/types` | The GGG trade API: every endpoint bound to one rate limiter the server's own headers keep updated. Owns every GGG URL. See [services/ggg/README.md](services/ggg/README.md). |
-| `@poe/poe-watch` | `@poe/poe-watch/service`, `/get-compact-data.types`, `/get-corruption-data.types`, `/get-exchange-ratios.types`, `/errors`, `/types` | The PoeWatch price digests: one league's whole market per call, the corrupted-implicit outcomes per item, and the exchange book. A third party scraping trade listings, which is why a price from here is a listing rather than a sale. `/compact` needs `all=true` or it answers without a single crafting base. See [services/poe-watch/README.md](services/poe-watch/README.md). |
+| `@poe/poe-watch` | `@poe/poe-watch/service`, `/get-compact-data.types`, `/get-corruption-data.types`, `/get-exchange-ratios.types`, `/errors`, `/types` | The PoeWatch price digests: one league's whole market per call, the corrupted-implicit outcomes per item, and the exchange book. A third party scraping trade listings, which is why a price from here is a listing rather than a sale. `/compact` needs `all=true` or it answers without a single crafting base. **Nothing imports it yet.** See [services/poe-watch/README.md](services/poe-watch/README.md). |
 | `@poe/poe-ninja` | `@poe/poe-ninja/service`, `/get-leagues.types`, `/get-item-overview.types`, `/get-exchange-overview.types`, `/get-league-items.types`, `/get-exchange-ratios.types`, `/errors`, `/types` | poe.ninja's economy API, as a second opinion on the market PoeWatch scrapes. One league is 28 item calls plus 18 exchange calls — there is no whole-market endpoint. **Nothing imports it yet.** What a row *is* comes from the `type` that was asked for; `itemClass` is unusable and is read nowhere. See [services/poe-ninja/README.md](services/poe-ninja/README.md). |
-| `@poe/repoe` | `@poe/repoe/service`, `/get-base-items.types`, `/errors`, `/types` | RePoE's exports: the game's own data files, unpacked after each patch and served as static JSON off GitHub Pages. Carries no prices — this is what the game knows about an item, not what the market thinks of it. One endpoint, `base_items.json`: every base in the game, the whole export in one request with no query and no way to ask for less. **Nothing imports it yet.** `item_class` is GGG's internal name, not the `Class` a `.filter` matches on. See [services/repoe/README.md](services/repoe/README.md). |
+| `@poe/repoe` | `@poe/repoe/service`, `/get-base-items.types`, `/errors`, `/types` | RePoE's exports: the game's own data files, unpacked after each patch and served as static JSON off GitHub Pages. Carries no prices — this is what the game knows about an item, not what the market thinks of it. One endpoint, `base_items.json`: the whole export in one request, no query, no way to ask for less. **Nothing live imports it** — only the deprecated `@poe/filterv2` does. `item_class` is GGG's internal name, not the `Class` a `.filter` matches on. See [services/repoe/README.md](services/repoe/README.md). |
 
-## Packages
+## Libraries
 
-| Package | Import as | Owns |
+Pure and imported. Anything here has to keep running when it is loaded somewhere with no
+filesystem and no environment, because a desktop client is the plan.
+
+| Library | Import as | Owns |
 | --- | --- | --- |
-| `@util/core` | `@util/core/env`, `/cache-key`, `/file-cache`, `/sleep` | `requireEnv`/`optionalEnv` — the only place `process.env` is read. `cacheKey` for stable S3/Redis keys. `fileCache<T>` — JSON on disk, one file per key, backing both the GGG response cache and the PoeWatch digest cache. |
-| `@poe/ledger` | `@poe/ledger/db`, `/migrate`, `/cohorts`, `/jobs`, `/currency`, `/types` | The job ledger on postgres: cohort rows, job rows, the queries that decide completion, and one row per collected currency hour. |
-| `@poe/poe-wiki` | `@poe/poe-wiki/get-unique-items`, `/get-influence-mods`, `/get-corrupted-mods`, `/get-exceptional-gems`, `/get-transfigured-gems`, `/cargo`, `/wiki-text`, `/types` | The wiki's Cargo tables. `getUniqueItems` — every unique's name, base item, item class and drop-restriction flag. `getInfluenceMods` — every influence modifier by equipment slot, with spawn weight. `getCorruptedMods` — the corrupted-implicit pool a Vaal Orb draws from, weighted per item class. `getExceptionalGems` and `getTransfiguredGems` — which gems cap below level 20, and which were cut from a Divine Font. Not GGG, and the only source for any of it. |
-| `@poe/filterv2` | `@poe/filterv2/build-item-list`, `/types` | The roster: every item a `.filter` could name, written to one JSON file. Merges GGG's `/data/items`, the Currency Exchange, RePoE's `base_items.json` and the league's Item Filter Information forum post, and marks the rows where they disagree. **No prices** — this answers what exists, not what it is worth. Reads the forum post by shelling out to `claude -p`. See [packages/filterv2/README.md](packages/filterv2/README.md) and [notes.md](packages/filterv2/notes.md). |
-| `@poe/item-parser` | `@poe/item-parser/parse-item`, `/resolve-item`, `/to-filter-item`, `/match-mods`, `/mod-text`, `/parse-header`, `/parse-mods`, `/parse-properties`, `/sections`, `/types` | One item's copied text, read back. `parseItem` is pure and needs nothing; `resolveItem` looks each modifier up in GGG's published stat list to get the ids the trade site knows it by; `toFilterItem` turns the result into the shape `@poe/filter-eval` asks conditions about. Nothing about any modifier is written down — matching is against published text, so a modifier that ships next league matches the day it appears. Reads the stat list through `createGGGService`, so `item-cli.ts` needs `POE_USER_AGENT`. See [techdebt.md](techdebt.md). |
-| `@poe/filter-eval` | `@poe/filter-eval/parse-filter`, `/evaluate-filter`, `/filter-ast`, `/format-note` | The `.filter` grammar as code: a parser, an evaluator that decides which block takes an item, and the `#@` note a generated block carries its bucket in. Depends on no other package on purpose — it is the independent reader that checks what wrote a filter. |
-| `@poe/workers` | `@poe/workers/worker`, `/handlers`, `/queries`, `/queues`, `/keys`, `/pages`, `/file-cache` | The BullMQ worker loop and job handlers, S3 writes, and the `cohort-cli.ts`/`worker-cli.ts`/`currency-cli.ts` entry points. Calls GGG through `@poe/ggg` and owns no URLs of its own. |
+| `@poe/filter-eval` | `@poe/filter-eval/parse-filter`, `/evaluate-filter`, `/filter-ast`, `/format-note` | The `.filter` grammar as code: a parser, an evaluator that decides which block takes an item, and the `#@` note a generated block carries its bucket in. **Depends on nothing, on purpose** — it is the independent reader that checks whatever wrote a filter, and sharing a types file with the writer would end that. See [lib/filter-eval/README.md](lib/filter-eval/README.md). |
+| `@poe/item-parser` | `@poe/item-parser/parse-item`, `/resolve-item`, `/to-filter-item`, `/match-mods`, `/mod-text`, `/parse-header`, `/parse-mods`, `/parse-properties`, `/sections`, `/types` | One item's copied text, read back. `parseItem` is pure and needs nothing; `resolveItem` looks each modifier up in GGG's published stat list to get the ids the trade site knows it by; `toFilterItem` turns the result into the shape `@poe/filter-eval` asks conditions about. Nothing about any modifier is written down — matching is against published text, so a modifier that ships next league matches the day it appears. |
+| `@util/cache` | `@util/cache/cache-key`, `/file-cache`, `/sleep` | `cacheKey` for stable file and map keys. `fileCache<T>` — JSON on disk, one file per key, backing every service's response cache. `sleep` is a promise around `setTimeout`. |
+| `@util/env` | `@util/env` | `requireEnv` / `optionalEnv` — the only place `process.env` is read, so a missing variable fails with one message that names it. **The exception to the purity rule, and app-only**: no other library may import it. |
 
-Cross-package imports resolve through the `exports` map in that package's
-`package.json`. A new public entry point needs a line added there; anything absent is
-correctly unreachable. Inside a package, imports stay relative and keep `.ts`.
+### Nothing in `lib/` imports a service
+
+Not even for a type. `@poe/item-parser` needs GGG's published stat list, and declares the
+shape it needs itself — `PublishedStat` in [lib/item-parser/types.ts](lib/item-parser/types.ts).
+`createGGGService(…).getStats()` answers with exactly that shape, so a caller passes it
+straight in and no adapter exists anywhere.
+
+That is the rule and not an accident of this one case: a library is handed its input and
+never learns where the input came from. The moment a lib names a service in its
+`dependencies`, it stops being loadable anywhere the service is not.
+
+## Apps
+
+One is written. The other three hold a `README.md` naming what they will own, which POC
+they replace, and what has to be decided first.
+
+| App | Replaces | Owns |
+| --- | --- | --- |
+| [`apps/item-inspect`](apps/item-inspect/README.md) | — | **Written.** Paste an item copied out of the game, see how the parser read it. The one consumer of `@poe/item-parser` today, and where its CLI lives now that `lib/` is pure. |
+| [`apps/collector`](apps/collector/README.md) | `@poe/workers` | The worker loop, the job handlers, the record of outstanding work, the writes into `.s3`, and `queries.json`. |
+| [`apps/poe-items`](apps/poe-items/README.md) | `@poe/filterv2` | Every item the game can show, named and flagged, merged out of the trade site, the Currency Exchange, RePoE and the league's forum post. No prices. |
+| [`apps/generator`](apps/generator/README.md) | nothing — new | `(items, prices, config) -> a .filter file`. The spine. |
+
+## Deprecated
+
+`packages/` holds POC code being replaced. **Do not add to it and do not import it.** Each
+folder has a `DEPRECATED.md` saying what replaces it and what is worth carrying over.
+
+| Package | State |
+| --- | --- |
+| [`packages/workers`](packages/workers/DEPRECATED.md) | **Does not compile.** `@poe/ledger` and `@poe/poe-wiki` were deleted and it imports both. Kept for `docs/pipeline.md`, which is the collection design in full. |
+| [`packages/filterv2`](packages/filterv2/DEPRECATED.md) | Compiles. Its fourth source — the league's forum post — came out with the forum endpoints on `@poe/ggg`, so it merges three and no longer sees a league launch. Kept for `notes.md` — what the item-list build gets wrong and has not decided, which are decisions about the game rather than about the code. |
+
+Both are excluded from `tsconfig.json` and `jest.config.js`, so `yarn typecheck` stays a
+signal instead of being permanently red.
+
+## Storage
+
+**S3 is the local disk at `./.s3`.** No object-storage service to run, no credentials, no
+client library — everything is a file, which means a page can be opened in an editor while
+a run is going.
+
+```
+.s3/            what the collector writes: one file per page, per collected hour
+.s3/.cache/     cached responses, one file per request
+```
+
+All of it is gitignored, and all of it is re-fetchable. Whatever cannot be regenerated is
+what will need a backup, and it is not in here.
+
+**Nothing writes there yet.** This is the decided shape, not the current state: `.s3` is a
+rule for `apps/collector` to be built against, and that app does not exist. The only
+storage code in the tree is the deprecated `@poe/workers`, which still carries
+`@aws-sdk/client-s3` and writes to a real bucket named by `S3_URL` and `S3_BUCKET`. That is
+one of the reasons it is deprecated rather than kept, and the SDK leaves with it.
+
+AWS is the eventual target. Nothing in the live tree assumes it, and no third-party service
+is configured or documented until it is real.
 
 ## Layout inside a package
 
-**One folder level, never deeper.** A feature is `{feature}.ts` at the package root, and
-the functions it calls live in `{feature}/`. A nested `{feature}/{part}/{piece}.ts` buries
-the logic and makes the import path longer than the function it points at.
+**One folder level, never deeper.** A feature is `{feature}.ts` at the package root, and the
+functions it calls live in `{feature}/`. A nested `{feature}/{part}/{piece}.ts` buries the
+logic and makes the import path longer than the function it points at.
 
 ```
-packages/filterv2/build-roster.ts          the feature
-packages/filterv2/build-roster/*.ts        what it calls
+apps/poe-items/build-item-list.ts          the feature
+apps/poe-items/build-item-list/*.ts        what it calls
 ```
 
 **One function per file is a rule of thumb, not a law: split when a test against that
@@ -95,9 +169,10 @@ function would be meaningful.** A parser, a fetch, a decision — each earns its
 semantic wrapper over one `map`, `filter` or `Set` round-trip does not, and stays inline
 where it is used.
 
-A CLI is `{feature}-cli.ts` at the package root. Anything a CLI or another package imports
-needs a line in the `exports` map; a file under `{feature}/` is private by not being
-listed.
+A CLI is `{feature}-cli.ts` at the package root, and belongs to an app. Anything another
+package imports needs a line in the `exports` map of its `package.json`; a file under
+`{feature}/` is private by not being listed. Inside a package, imports stay relative and
+keep `.ts`.
 
 ## Toolchain rules
 
@@ -108,56 +183,51 @@ Node 26 strips types to run `.ts`; `tsc` only type-checks (`noEmit`). Enforced b
 - Relative imports keep the extension: `import { x } from "./bar.ts"`.
 - Type-only imports need `import type`.
 
-One root `tsconfig.json` (`include: ["packages/**/*.ts", "services/**/*.ts"]`) checks every package across
-boundaries. No project references, no per-package configs.
+One root `tsconfig.json` (`include: ["apps/**/*.ts", "lib/**/*.ts", "services/**/*.ts"]`)
+checks every live package across boundaries. No project references, no per-package configs.
 
 Jest transforms with `@swc/jest` and emits real ESM, so it needs
-`--experimental-vm-modules` — that flag lives in the `test` script, not in a runner
-config. Tests are `*.test.ts` beside their source.
+`--experimental-vm-modules` — that flag lives in the `test` script, not in a runner config.
+Tests are `*.test.ts` beside their source.
 
 `yarn typecheck` before considering a change done.
 
 ## Environment
 
-No `.env` file exists in the tree. Each package loads its own via
-`node --env-file=packages/<name>/.env <script>`; `requireEnv` throws at first use, not at
-import.
+No `.env` is committed — every one is gitignored and written by hand. Each app loads its
+own via `node --env-file=apps/<name>/.env <script>`; `requireEnv` throws at first use, not
+at import, so a code path that needs no variable runs without one.
 
-**Nothing under `services/` appears below.** A service takes its base URL, user agent and
-cache as constructor options, so the vars that used to configure GGG, PoeWatch and
-poe.ninja — `POE_TRADE_API_URL`, `POE_CURRENCY_API_URL`, `POE_WATCH_BASE_URL`,
-`POE_NINJA_BASE_URL`, `POE_WATCH_CACHE_DIR`, `POE_NINJA_CACHE_DIR`, `POE_NINJA_LEAGUE` —
-are read by nobody. A consumer that wants to keep configuring from the environment reads
-its own vars and passes the values to `create<Name>Service`.
+**Nothing under `services/` or `lib/` appears below.** A service takes its base URL, user
+agent and cache as constructor options, so a consumer that wants to configure from the
+environment reads its own vars and passes the values to `create<Name>Service`. No library
+reads the environment either — `@util/env` exists to be imported by apps.
 
 | Var | Holds | Read by |
 | --- | --- | --- |
-| `POE_USER_AGENT` | `user-agent` sent on every outbound request. Must name the app and a real contact address. The three services no longer read it — they take `userAgent` as an option, and GGG refuses to default it | [packages/poe-wiki/cargo.ts](packages/poe-wiki/cargo.ts), [packages/filterv2/build-item-list-cli.ts](packages/filterv2/build-item-list-cli.ts), [packages/item-parser/item-cli.ts](packages/item-parser/item-cli.ts) |
-| `POE_CURRENCY_LEAGUE` | The one league kept out of each hourly digest. Every league arrives in one payload and there is no server-side filter | [packages/workers/config.ts](packages/workers/config.ts) |
-| `POE_CURRENCY_FROM` | Oldest hour to collect: a unix timestamp or a date. Set by hand — GGG will not say how far its history goes, and this is what stops a sweep walking back to 1970 | [packages/workers/config.ts](packages/workers/config.ts) |
-| `POE_WIKI_BASE_URL` | Base of poewiki.net, trailing slash stripped. A MediaWiki, not GGG — no rate limits published and no GGG budget touched | [packages/poe-wiki/cargo.ts](packages/poe-wiki/cargo.ts) |
-| `POE_WIKI_CACHE_DIR` | Folder holding the cached unique-item export, one file per hour. Optional — unset means every call re-queries the wiki. An hour is a courtesy to somebody else's server, not a freshness policy: the list only moves on a league boundary | [packages/poe-wiki/get-unique-items.ts](packages/poe-wiki/get-unique-items.ts) |
-| `CACHE_DIR` | Folder a consumer builds a `ResponseCache` from and hands to `createGGGService`. Optional, local only — unset means every request goes to GGG, which is what production wants | [packages/workers/file-cache.ts](packages/workers/file-cache.ts) |
+| `POE_USER_AGENT` | `user-agent` sent on every outbound request. Must name the app and a real contact address. No service reads it — they take `userAgent` as an option, and GGG refuses to default it, because a default would send a contact that does not exist | [apps/item-inspect/item-cli.ts](apps/item-inspect/item-cli.ts), and the deprecated `@poe/filterv2` |
 
-`compose.yaml` reads its own set (`MINIO_ROOT_USER`, `REDIS_PORT`, `LEDGER_USER`,
-`LEDGER_PORT`, `TRINO_PORT`, …), all with defaults, from the shell or a root `.env` that
-does not exist yet.
+That is the whole live surface: **one variable.** Every other name still read anywhere in
+the tree belongs to `packages/workers`, which does not compile, and its `.env` names things
+whose packages were deleted. `apps/` will declare its own, and this table is where they get
+written down.
 
 ## Gotchas
 
 - **Workspace symlinks are load-bearing.** Node refuses to type-strip `.ts` under
-  `node_modules` (`ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`) and only gets away with
-  it here because yarn symlinks workspaces and Node realpaths them first. Never enable
+  `node_modules` (`ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`) and only gets away with it
+  here because yarn symlinks workspaces and Node realpaths them first. Never enable
   `install-links` or nohoist-style copying — it breaks every cross-package import at once.
-- **One limiter is one IP.** Limiter state is per-instance, per-process, nothing
-  persisted. Two limiters in one process means twice the real rate against a single
-  budget, and GGG counts the total.
-- **Podman on Windows only mounts `%USERPROFILE%`.** That is why redis takes its config
-  as flags and trino bakes catalogs into an image instead of bind-mounting from `F:\`.
+- **One limiter is one IP.** Limiter state is per-instance, per-process, nothing persisted.
+  Two limiters in one process means twice the real rate against a single budget, and GGG
+  counts the total. Two processes on two machines are two budgets and are fine.
+- **Declare what you import.** Several packages used to import `@util/core` without listing
+  it and resolved only through yarn hoisting. Combined with the symlink rule above, that is
+  a break waiting to happen — a new cross-package import needs a line in `dependencies`.
 
 ## How to run
 
-Type-check the workspace:
+Type-check every live package:
 
 ```bash
 yarn typecheck
@@ -169,59 +239,39 @@ Run the tests, or one package's:
 yarn test services/ggg
 ```
 
-Start the local stack:
+Paste a copied item and see how the parser read it:
 
 ```bash
-docker compose up -d
+node --env-file=apps/item-inspect/.env apps/item-inspect/item-cli.ts data/sample-items/rare-ring.txt
 ```
-
-Build the item list — merge GGG, RePoE and the league's forum post into one JSON file:
-
-```bash
-node --env-file=packages/filterv2/.env packages/filterv2/build-item-list-cli.ts
-```
-
-## Local stack
-
-Production is AWS. The containers exist to stand in for AWS services on a laptop, and
-they follow what AWS does — never the other way round. A local service is configured to
-match its AWS counterpart's version and behaviour; where the two disagree, AWS is right
-and the container is what gets changed. Nothing is designed around a container's
-convenience, and nothing depends on one being present in production.
-
-| Service | Port (localhost) | Stands in for | Why |
-| --- | --- | --- | --- |
-| redis | 6379 | Redis | Queue backend. `noeviction` — BullMQ jobs and locks are plain keys, so an eviction silently drops queue state |
-| minio | 9000, console 9001 | S3 | Object storage for artifacts and the page data lake |
-| ledger-db | 5432 | RDS/Aurora PostgreSQL | The job ledger: one row per search and per page. Cohort completion is a query against it, not a counter. Holds data nothing else can regenerate |
-| metastore-db | — | Glue Data Catalog | Postgres holding the metastore's own schema. Table definitions only, kept apart from `ledger-db` because its recovery story is "re-run the DDL" |
-| metastore | 9083 | Glue Data Catalog | Starburst's hive build: bundles the S3 jars, takes MinIO config as env |
-| trino | 8080 | Athena | Queries the artifacts through the `minio` catalog |
 
 ## Docs
 
 Every service has a `README.md`; `services/ggg` also has Mermaid `.mmd` diagrams in
-`services/ggg/docs/`.
-`packages/workers` has `docs/pipeline.md` with `pipeline.mmd` and `currency.mmd` beside
-it, but no README.
-`packages/filterv2` has a `README.md` and Mermaid `.mmd` diagrams beside the files they
-draw. It also has `notes.md`, the known gaps in the item list — what the build gets wrong
-and what it has not decided yet, written down where the next person looks rather than in a
-commit message.
+`services/ggg/docs/`. `lib/filter-eval` has a `README.md`.
+
+`lib/item-parser`, `lib/cache` and `lib/env` have none. Write one with the `/document`
+command.
+
+`apps/item-inspect` has a `README.md`.
+
+The other three folders under `apps/` have a `README.md` describing what does not exist yet. Each folder
+under `packages/` has a `DEPRECATED.md`.
+
+[docs/item-filter-syntax.md](docs/item-filter-syntax.md) is how filters work in PoE: the
+`.filter` grammar as GGG documents it — `Show`/`Hide`/`Minimal` blocks, `Continue`,
+`Import`, the operators, every condition and every action. Anything the generator emits has
+to be a line in there.
 
 **Tech debt goes in [techdebt.md](techdebt.md) at the root, never in a package.** One
 section per package, one heading per note: what the repo knowingly duplicates and what it
 knowingly does not do yet. A package does not get a `techdebt.md` of its own — a note is
-only read where somebody already looks, and that is one file at the root. Say what is
-wrong, why it was left, and what undoing it costs; take a note out once it is fixed.
+only read where somebody already looks, and that is one file at the root. Say what is wrong,
+why it was left, and what undoing it costs; take a note out once it is fixed.
 
-`packages/item-parser`, `packages/ledger` and `packages/poe-wiki` have no README. Write one
-with the `/document` command.
-
-[docs/item-filter-syntax.md](docs/item-filter-syntax.md) is how filters work in PoE: the
-`.filter` grammar as GGG documents it — `Show`/`Hide`/`Minimal` blocks, `Continue`,
-`Import`, the operators, every condition and every action. Anything the filter code emits
-has to be a line in there.
+`docs/plans/` holds a plan per feature, written before the work starts. **It is gitignored
+and is never pushed.** Write one there, keep it there, and do not reference it from a file
+that is committed — a link into `docs/plans/` is a broken link for everybody else.
 
 `research/` holds design notes written before the code — treat them as history, not as a
 description of what exists.

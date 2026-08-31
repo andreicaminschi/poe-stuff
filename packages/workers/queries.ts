@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
-import { cacheKey } from "@util/core/cache-key";
-import { requireEnv } from "@util/core/env";
+import { cacheKey } from "@util/cache/cache-key";
+import { requireEnv } from "@util/env";
 
 /** One entry of the query file. `body` is what goes to `POST /search/:league`. */
 export type Query = {

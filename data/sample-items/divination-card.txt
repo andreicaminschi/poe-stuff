@@ -1,0 +1,10 @@
+Item Class: Divination Cards
+Rarity: Divination Card
+Alluring Bounty
+--------
+Stack Size: 1/7
+--------
+10x Exalted Orb
+--------
+A treasure worth killing for 
+is a treasure worth dying for.

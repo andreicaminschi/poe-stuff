@@ -1,13 +1,10 @@
 import {
   DEFAULT_CURRENCY_API_URL,
-  DEFAULT_FORUM_URL,
   DEFAULT_TRADE_API_URL,
   trimUrl,
 } from "./config.ts";
 import { fetchCurrencyHour } from "./fetch-currency-hour.ts";
 import type { FetchCurrencyHourOptions } from "./fetch-currency-hour.ts";
-import { forumThreadUrl, getForumThread } from "./get-forum-thread.ts";
-import { getNewsPage } from "./get-news-page.ts";
 import {
   fetchAllListings,
   fetchListings,
@@ -51,12 +48,6 @@ export type GGGServiceOptions = {
    * default is PoE1 PC, `.../currency-exchange/poe2` is PoE2.
    */
   currencyApiUrl?: string;
-  /**
-   * Base of the forum. Not an API — GGG publishes announcements as forum threads and
-   * nothing else — but the same host and the same per-IP budget as the trade endpoints,
-   * so it is paced by the same limiter.
-   */
-  forumUrl?: string;
   rules?: RateLimiterRule[];
   /** Pace requests instead of bursting once a window is this full, as a fraction. */
   smoothAbove?: number;
@@ -88,12 +79,6 @@ export type GGGService = {
     hourId: number,
     options?: FetchCurrencyHourOptions,
   ): Promise<CurrencyExchange>;
-  /** One page of the news forum, as HTML. */
-  getNewsPage(page: number): Promise<string>;
-  /** Where a thread lives. Nothing outside this package spells the URL out. */
-  forumThreadUrl(threadId: number): string;
-  /** One forum thread, as HTML. */
-  getForumThread(threadId: number): Promise<string>;
 };
 
 /**
@@ -118,7 +103,6 @@ export function createGGGService({
   userAgent,
   tradeApiUrl = DEFAULT_TRADE_API_URL,
   currencyApiUrl = DEFAULT_CURRENCY_API_URL,
-  forumUrl = DEFAULT_FORUM_URL,
   rules = OPENING_RULES,
   smoothAbove,
   cache,
@@ -128,7 +112,6 @@ export function createGGGService({
     limiter: createLimiter(rules, { ...(smoothAbove === undefined ? {} : { smoothAbove }) }),
     tradeApiUrl: trimUrl(tradeApiUrl),
     currencyApiUrl: trimUrl(currencyApiUrl),
-    forumUrl: trimUrl(forumUrl),
     userAgent,
     ...(cache === undefined ? {} : { cache }),
     ...(onEvent === undefined ? {} : { onEvent }),
@@ -145,8 +128,5 @@ export function createGGGService({
     pageHashes,
     fetchCurrencyHour: (hourId, options) =>
       fetchCurrencyHour(hourId, context, options),
-    getNewsPage: (page) => getNewsPage(page, context),
-    getForumThread: (threadId) => getForumThread(threadId, context),
-    forumThreadUrl: (threadId) => forumThreadUrl(threadId, context.forumUrl),
   };
 }

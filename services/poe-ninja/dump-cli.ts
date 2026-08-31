@@ -1,5 +1,5 @@
 import { writeFile } from "node:fs/promises";
-import { fileCache } from "@util/core/file-cache";
+import { fileCache } from "@util/cache/file-cache";
 import { ITEM_TYPES } from "./get-item-overview.types.ts";
 import type { ItemType } from "./get-item-overview.types.ts";
 import type { NinjaExchangeItem } from "./get-exchange-ratios.types.ts";

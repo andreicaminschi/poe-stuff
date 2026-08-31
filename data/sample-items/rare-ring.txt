@@ -1,0 +1,22 @@
+Item Class: Rings
+Rarity: Rare
+Maelström Circle
+Amethyst Ring
+--------
+Requirements:
+Level: 35
+--------
+Item Level: 85
+--------
+{ Implicit Modifier — Chaos, Resistance }
++22(17-23)% to Chaos Resistance
+--------
+{ Prefix Modifier "Glimmering" (Tier: 10) — Defences, Energy Shield }
++4(4-8) to maximum Energy Shield
+{ Prefix Modifier "Sapphire" (Tier: 10) — Mana }
++30(30-34) to maximum Mana
+{ Suffix Modifier "of the Panther" (Tier: 5) — Attribute }
++30(28-32) to Dexterity
+{ Suffix Modifier "of Radiance" (Tier: 1) — Attack }
+17(16-20)% increased Global Accuracy Rating
+15% increased Light Radius

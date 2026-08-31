@@ -13,5 +13,8 @@
     "./get-exchange-ratios.types": "./get-exchange-ratios.types.ts",
     "./errors": "./errors.ts",
     "./types": "./types.ts"
+  },
+  "dependencies": {
+    "@util/cache": "workspace:^"
   }
 }

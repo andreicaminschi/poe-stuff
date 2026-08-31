@@ -11,7 +11,7 @@ export type CachedResponse = {
  * so it stays ignorant of files, buckets and clients.
  *
  * Structurally identical to the one `@poe/ggg` declares, on purpose rather than by
- * accident: one `fileCache<CachedResponse>(root)` from `@util/core/file-cache` satisfies
+ * accident: one `fileCache<CachedResponse>(root)` from `@util/cache/file-cache` satisfies
  * every service in the repo, and no service has to import another to say so.
  */
 export type ResponseCache = {

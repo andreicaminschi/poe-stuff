@@ -28,7 +28,6 @@ const context = (): GggContext => ({
   },
   tradeApiUrl: TRADE_API_URL,
   currencyApiUrl: CURRENCY_API_URL,
-  forumUrl: "https://www.example.test/forum",
   userAgent: "poe-stuff-test/1.0 (contact: nobody@example.test)",
 });
 

@@ -1,0 +1,39 @@
+Item Class: Map Fragments
+Rarity: Normal
+Mercenary Warrant
+--------
+Shavra, the Foul
+--------
+Build: Cruel Mistress
+Mercenary Level: 83
+--------
+Despair
+More Duration (Tier: 2)
+Increased Area of Effect (Tier: 2)
+--------
+Void Sphere
+Physical as Extra Chaos (Tier: 2)
+Gilded Sphere Frequency (Tier: 3)
+--------
+Forbidden Rite Totem
+Critical Damage (Tier: 2)
+Wither on Hit (Tier: 2)
+Greater Chaos Penetration (Tier: 3)
+Greater Critical Chance (Tier: 3)
+Faster Casting (Tier: 2)
+--------
+Soulrend of Reaping
+Critical Chance (Tier: 2)
+Critical Damage (Tier: 2)
+Greater Chaos Penetration (Tier: 3)
+Chain (Tier: 2)
+Greater Wither on Hit (Tier: 3)
+--------
+Frostblink
+Freeze Chance (Tier: 2)
+Increased Area of Effect (Tier: 2)
+--------
+Envy
+--------
+Right click this item to view Mercenary details.
+Can be used in a personal Map Device alongside a Map to have this previously fought Mercenary reappear in the area for a rematch.

@@ -1,5 +1,5 @@
 import { S3Client } from "@aws-sdk/client-s3";
-import { optionalEnv } from "@util/core/env";
+import { optionalEnv } from "@util/env";
 
 /**
  * One client for the process. `S3_URL` points at MinIO on a laptop and is absent on AWS;

@@ -1,0 +1,11 @@
+Item Class: Stackable Currency
+Rarity: Currency
+Jagged Fossil
+--------
+Stack Size: 15/20
+--------
+More Physical modifiers
+No Chaos modifiers
+--------
+Place in a Resonator to influence item crafting.
+Shift click to unstack.
