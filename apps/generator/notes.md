@@ -21,6 +21,21 @@ NeverSink does the same thing from the other side: he never names a beast anywhe
 filter, and catches all of them with one `Class == "Stackable Currency"` rule at the end of
 the currency section.
 
+Rarity does not separate them either. Tried, and it does not work:
+
+```
+Show
+    Class == "Stackable Currency"
+    Rarity Rare
+
+Show
+    Class == "Stackable Currency"
+    Rarity Unique
+```
+
+Left here so nobody tries it twice. A beast still has to be caught the way NeverSink catches
+it, by the class alone.
+
 Itemised monsters are the same story under a different category name. `Barb Serpent` is
 listed by the trade site, confirmed by the spectre table, and rejected by the client. The
 `monster` category is marked `filterable: false` too.

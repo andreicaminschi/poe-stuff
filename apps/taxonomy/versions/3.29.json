@@ -1,7 +1,7 @@
 {
   "Aboriginal Chieftain": {
     "name": "Aboriginal Chieftain",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -11,7 +11,7 @@
   },
   "Acid Slitherer": {
     "name": "Acid Slitherer",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -21,7 +21,7 @@
   },
   "Adolescent Rhex": {
     "name": "Adolescent Rhex",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -61,7 +61,7 @@
   },
   "Alpine Devil": {
     "name": "Alpine Devil",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -71,7 +71,7 @@
   },
   "Alpine Shaman": {
     "name": "Alpine Shaman",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -101,7 +101,7 @@
   },
   "Ancient Devourer": {
     "name": "Ancient Devourer",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -111,7 +111,7 @@
   },
   "Arakaali's Daughter": {
     "name": "Arakaali's Daughter",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -121,7 +121,7 @@
   },
   "Arctic Wolf": {
     "name": "Arctic Wolf",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -131,7 +131,7 @@
   },
   "Armour Cruncher": {
     "name": "Armour Cruncher",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -141,7 +141,7 @@
   },
   "Avalanche Rider": {
     "name": "Avalanche Rider",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -151,7 +151,7 @@
   },
   "Avian Retch": {
     "name": "Avian Retch",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -181,7 +181,7 @@
   },
   "Barrow Ape": {
     "name": "Barrow Ape",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -191,7 +191,7 @@
   },
   "Bearded Devil": {
     "name": "Bearded Devil",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -201,7 +201,7 @@
   },
   "Bearded Shaman": {
     "name": "Bearded Shaman",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -211,7 +211,7 @@
   },
   "Bearded Skycaller": {
     "name": "Bearded Skycaller",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -221,7 +221,7 @@
   },
   "Bestial Maw": {
     "name": "Bestial Maw",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -241,7 +241,7 @@
   },
   "Black Mórrigan": {
     "name": "Black Mórrigan",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -251,7 +251,7 @@
   },
   "Black Scorpion": {
     "name": "Black Scorpion",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -281,7 +281,7 @@
   },
   "Bleached Crawler": {
     "name": "Bleached Crawler",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -2839,7 +2839,7 @@
   },
   "Blood Ape": {
     "name": "Blood Ape",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -2849,7 +2849,7 @@
   },
   "Blood Chieftain": {
     "name": "Blood Chieftain",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -2889,7 +2889,7 @@
   },
   "Bone Cruncher": {
     "name": "Bone Cruncher",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -2899,7 +2899,7 @@
   },
   "Bone Rhoa": {
     "name": "Bone Rhoa",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -2919,7 +2919,7 @@
   },
   "Bramble Cobra": {
     "name": "Bramble Cobra",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -2929,7 +2929,7 @@
   },
   "Brine Vassal": {
     "name": "Brine Vassal",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -2959,7 +2959,7 @@
   },
   "Brooding Tarantula": {
     "name": "Brooding Tarantula",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -2979,7 +2979,7 @@
   },
   "Carnage Ape": {
     "name": "Carnage Ape",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -2989,7 +2989,7 @@
   },
   "Carnage Chieftain": {
     "name": "Carnage Chieftain",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -2999,7 +2999,7 @@
   },
   "Carrion Burrower": {
     "name": "Carrion Burrower",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3019,7 +3019,7 @@
   },
   "Carrion Queen": {
     "name": "Carrion Queen",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3029,7 +3029,7 @@
   },
   "Carrion Swarmer": {
     "name": "Carrion Swarmer",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3039,7 +3039,7 @@
   },
   "Cave Beast": {
     "name": "Cave Beast",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3059,7 +3059,7 @@
   },
   "Cave Skitterer": {
     "name": "Cave Skitterer",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3223,7 +3223,7 @@
   },
   "Chimeric Croaker": {
     "name": "Chimeric Croaker",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3233,7 +3233,7 @@
   },
   "Chrome-infused Chimeral": {
     "name": "Chrome-infused Chimeral",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3243,7 +3243,7 @@
   },
   "Chrome-infused Croaker": {
     "name": "Chrome-infused Croaker",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3253,7 +3253,7 @@
   },
   "Chrome-infused Goliath": {
     "name": "Chrome-infused Goliath",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3263,7 +3263,7 @@
   },
   "Chrome-touched Chimeral": {
     "name": "Chrome-touched Chimeral",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3273,7 +3273,7 @@
   },
   "Chrome-touched Croaker": {
     "name": "Chrome-touched Croaker",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3283,7 +3283,7 @@
   },
   "Chrome-touched Goliath": {
     "name": "Chrome-touched Goliath",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3303,7 +3303,7 @@
   },
   "Colossus Crusher": {
     "name": "Colossus Crusher",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3323,7 +3323,7 @@
   },
   "Corrupted Arach": {
     "name": "Corrupted Arach",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3333,7 +3333,7 @@
   },
   "Corrupted Beast": {
     "name": "Corrupted Beast",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3343,7 +3343,7 @@
   },
   "Corrupted Rhoa": {
     "name": "Corrupted Rhoa",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3363,7 +3363,7 @@
   },
   "Craiceann, First of the Deep": {
     "name": "Craiceann, First of the Deep",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3373,7 +3373,7 @@
   },
   "Craicic Croaker": {
     "name": "Craicic Croaker",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3383,7 +3383,7 @@
   },
   "Craicic Maw": {
     "name": "Craicic Maw",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3393,7 +3393,7 @@
   },
   "Craicic Sand Spitter": {
     "name": "Craicic Sand Spitter",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3403,7 +3403,7 @@
   },
   "Craicic Savage Crab": {
     "name": "Craicic Savage Crab",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3413,7 +3413,7 @@
   },
   "Craicic Shield Crab": {
     "name": "Craicic Shield Crab",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3423,7 +3423,7 @@
   },
   "Craicic Spider Crab": {
     "name": "Craicic Spider Crab",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3433,7 +3433,7 @@
   },
   "Craicic Squid": {
     "name": "Craicic Squid",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3443,7 +3443,7 @@
   },
   "Craicic Vassal": {
     "name": "Craicic Vassal",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3453,7 +3453,7 @@
   },
   "Craicic Watcher": {
     "name": "Craicic Watcher",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3493,7 +3493,7 @@
   },
   "Crustacean Sniper": {
     "name": "Crustacean Sniper",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3503,7 +3503,7 @@
   },
   "Crypt Ambusher": {
     "name": "Crypt Ambusher",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3523,7 +3523,7 @@
   },
   "Cursed Spawn": {
     "name": "Cursed Spawn",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3543,7 +3543,7 @@
   },
   "Devourer": {
     "name": "Devourer",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3563,7 +3563,7 @@
   },
   "Dirt Scrabbler": {
     "name": "Dirt Scrabbler",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3583,7 +3583,7 @@
   },
   "Dread Primate": {
     "name": "Dread Primate",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3603,7 +3603,7 @@
   },
   "Dune Hellion": {
     "name": "Dune Hellion",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3613,7 +3613,7 @@
   },
   "Dust Scrabbler": {
     "name": "Dust Scrabbler",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3633,7 +3633,7 @@
   },
   "Elder-Blessed Cobra": {
     "name": "Elder-Blessed Cobra",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3643,7 +3643,7 @@
   },
   "Elder-Blessed Goatman": {
     "name": "Elder-Blessed Goatman",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3653,7 +3653,7 @@
   },
   "Elder-Blessed Hellion": {
     "name": "Elder-Blessed Hellion",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3663,7 +3663,7 @@
   },
   "Elder-Blessed Retch": {
     "name": "Elder-Blessed Retch",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3673,7 +3673,7 @@
   },
   "Elder-Blessed Rhoa": {
     "name": "Elder-Blessed Rhoa",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3683,7 +3683,7 @@
   },
   "Enraptured Arachnid": {
     "name": "Enraptured Arachnid",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3693,7 +3693,7 @@
   },
   "Enraptured Beast": {
     "name": "Enraptured Beast",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3703,7 +3703,7 @@
   },
   "Enraptured Crab": {
     "name": "Enraptured Crab",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3713,7 +3713,7 @@
   },
   "Enslaved Hellion": {
     "name": "Enslaved Hellion",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3723,7 +3723,7 @@
   },
   "Escaped Rhex": {
     "name": "Escaped Rhex",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3743,7 +3743,7 @@
   },
   "Farric Ape": {
     "name": "Farric Ape",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3753,7 +3753,7 @@
   },
   "Farric Chieftain": {
     "name": "Farric Chieftain",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3763,7 +3763,7 @@
   },
   "Farric Flame Hellion Alpha": {
     "name": "Farric Flame Hellion Alpha",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3773,7 +3773,7 @@
   },
   "Farric Frost Hellion Alpha": {
     "name": "Farric Frost Hellion Alpha",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3783,7 +3783,7 @@
   },
   "Farric Gargantuan": {
     "name": "Farric Gargantuan",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3793,7 +3793,7 @@
   },
   "Farric Goatman": {
     "name": "Farric Goatman",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3803,7 +3803,7 @@
   },
   "Farric Goliath": {
     "name": "Farric Goliath",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3813,7 +3813,7 @@
   },
   "Farric Lynx Alpha": {
     "name": "Farric Lynx Alpha",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3823,7 +3823,7 @@
   },
   "Farric Magma Hound": {
     "name": "Farric Magma Hound",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3833,7 +3833,7 @@
   },
   "Farric Pit Hound": {
     "name": "Farric Pit Hound",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3843,7 +3843,7 @@
   },
   "Farric Taurus": {
     "name": "Farric Taurus",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3853,7 +3853,7 @@
   },
   "Farric Tiger Alpha": {
     "name": "Farric Tiger Alpha",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3863,7 +3863,7 @@
   },
   "Farric Ursa": {
     "name": "Farric Ursa",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3873,7 +3873,7 @@
   },
   "Farric Wolf Alpha": {
     "name": "Farric Wolf Alpha",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3883,7 +3883,7 @@
   },
   "Farrul, First of the Plains": {
     "name": "Farrul, First of the Plains",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3913,7 +3913,7 @@
   },
   "Fenumal Devourer": {
     "name": "Fenumal Devourer",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3923,7 +3923,7 @@
   },
   "Fenumal Hybrid Arachnid": {
     "name": "Fenumal Hybrid Arachnid",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3933,7 +3933,7 @@
   },
   "Fenumal Plagued Arachnid": {
     "name": "Fenumal Plagued Arachnid",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3943,7 +3943,7 @@
   },
   "Fenumal Queen": {
     "name": "Fenumal Queen",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3953,7 +3953,7 @@
   },
   "Fenumal Scorpion": {
     "name": "Fenumal Scorpion",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3963,7 +3963,7 @@
   },
   "Fenumal Scrabbler": {
     "name": "Fenumal Scrabbler",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3973,7 +3973,7 @@
   },
   "Fenumal Widow": {
     "name": "Fenumal Widow",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3983,7 +3983,7 @@
   },
   "Fenumus, First of the Night": {
     "name": "Fenumus, First of the Night",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -3993,7 +3993,7 @@
   },
   "Feral Chimeral": {
     "name": "Feral Chimeral",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -4003,7 +4003,7 @@
   },
   "Feral Fowl": {
     "name": "Feral Fowl",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -4013,7 +4013,7 @@
   },
   "Fetid Maw": {
     "name": "Fetid Maw",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -4023,7 +4023,7 @@
   },
   "Fighting Bull": {
     "name": "Fighting Bull",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -4033,7 +4033,7 @@
   },
   "Filth Maw": {
     "name": "Filth Maw",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -4043,7 +4043,7 @@
   },
   "Flame Hellion": {
     "name": "Flame Hellion",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -4063,7 +4063,7 @@
   },
   "Forest Beast": {
     "name": "Forest Beast",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -4073,7 +4073,7 @@
   },
   "Fossil Eater": {
     "name": "Fossil Eater",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -4083,7 +4083,7 @@
   },
   "Freezing Wolf": {
     "name": "Freezing Wolf",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -4093,7 +4093,7 @@
   },
   "Fury Hound": {
     "name": "Fury Hound",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -4123,7 +4123,7 @@
   },
   "Glade Mamba": {
     "name": "Glade Mamba",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -4133,7 +4133,7 @@
   },
   "Gluttonous Gull": {
     "name": "Gluttonous Gull",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -4143,7 +4143,7 @@
   },
   "Goatman": {
     "name": "Goatman",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -4153,7 +4153,7 @@
   },
   "Goatman Fire-raiser": {
     "name": "Goatman Fire-raiser",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -4163,7 +4163,7 @@
   },
   "Goatman Shaman": {
     "name": "Goatman Shaman",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -4173,7 +4173,7 @@
   },
   "Goatman Stomper": {
     "name": "Goatman Stomper",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -4183,7 +4183,7 @@
   },
   "Granite Eater": {
     "name": "Granite Eater",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -4193,7 +4193,7 @@
   },
   "Gravel Eater": {
     "name": "Gravel Eater",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -4203,7 +4203,7 @@
   },
   "Grazing Taurus": {
     "name": "Grazing Taurus",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -4223,7 +4223,7 @@
   },
   "Hairy Bonecruncher": {
     "name": "Hairy Bonecruncher",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -4243,7 +4243,7 @@
   },
   "Hill Devil": {
     "name": "Hill Devil",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -4263,7 +4263,7 @@
   },
   "Host Adder": {
     "name": "Host Adder",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -4273,7 +4273,7 @@
   },
   "Host Chieftain": {
     "name": "Host Chieftain",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -4283,7 +4283,7 @@
   },
   "Host Cobra": {
     "name": "Host Cobra",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -4293,7 +4293,7 @@
   },
   "Hybrid Arachnid": {
     "name": "Hybrid Arachnid",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -4353,7 +4353,7 @@
   },
   "Infested Ape": {
     "name": "Infested Ape",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -4363,7 +4363,7 @@
   },
   "Infested Crab": {
     "name": "Infested Crab",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -4373,7 +4373,7 @@
   },
   "Infested Crawler": {
     "name": "Infested Crawler",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -4393,7 +4393,7 @@
   },
   "Infested Maw": {
     "name": "Infested Maw",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -4403,7 +4403,7 @@
   },
   "Infested Rhoa": {
     "name": "Infested Rhoa",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -4413,7 +4413,7 @@
   },
   "Infested Serpent": {
     "name": "Infested Serpent",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -4423,7 +4423,7 @@
   },
   "Infested Skitterer": {
     "name": "Infested Skitterer",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -4443,7 +4443,7 @@
   },
   "Infested Tunnelfiend": {
     "name": "Infested Tunnelfiend",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -4463,7 +4463,7 @@
   },
   "Infested Vulture": {
     "name": "Infested Vulture",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -4473,7 +4473,7 @@
   },
   "Ink Spinner": {
     "name": "Ink Spinner",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -4533,7 +4533,7 @@
   },
   "Leaping Spider": {
     "name": "Leaping Spider",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -4553,7 +4553,7 @@
   },
   "Lowlands Hopper": {
     "name": "Lowlands Hopper",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -4593,7 +4593,7 @@
   },
   "Maternal Rhex": {
     "name": "Maternal Rhex",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -5219,7 +5219,7 @@
   },
   "Merveil's Attendant": {
     "name": "Merveil's Attendant",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -5229,7 +5229,7 @@
   },
   "Merveil's Blessed": {
     "name": "Merveil's Blessed",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -5239,7 +5239,7 @@
   },
   "Merveil's Chosen": {
     "name": "Merveil's Chosen",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -5259,7 +5259,7 @@
   },
   "Merveil's Favoured": {
     "name": "Merveil's Favoured",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -5269,7 +5269,7 @@
   },
   "Merveil's Retainer": {
     "name": "Merveil's Retainer",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -66513,7 +66513,7 @@
   },
   "Mindless Scavenger": {
     "name": "Mindless Scavenger",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -66543,7 +66543,7 @@
   },
   "Mountain Hellion": {
     "name": "Mountain Hellion",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -66553,7 +66553,7 @@
   },
   "Mountain Hellion Alpha": {
     "name": "Mountain Hellion Alpha",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -66563,7 +66563,7 @@
   },
   "Mountain Lynx": {
     "name": "Mountain Lynx",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -66573,7 +66573,7 @@
   },
   "Murk Runner": {
     "name": "Murk Runner",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -66733,7 +66733,7 @@
   },
   "Night Adder": {
     "name": "Night Adder",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -66753,7 +66753,7 @@
   },
   "Noxious Tarantula": {
     "name": "Noxious Tarantula",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -66763,7 +66763,7 @@
   },
   "Obsidian Eater": {
     "name": "Obsidian Eater",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -66793,7 +66793,7 @@
   },
   "Parasite": {
     "name": "Parasite",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -66813,7 +66813,7 @@
   },
   "Pitbull Demon": {
     "name": "Pitbull Demon",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -66823,7 +66823,7 @@
   },
   "Plagued Arachnid": {
     "name": "Plagued Arachnid",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -66833,7 +66833,7 @@
   },
   "Plated Parasite": {
     "name": "Plated Parasite",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -66843,7 +66843,7 @@
   },
   "Plumed Chimeral": {
     "name": "Plumed Chimeral",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -66853,7 +66853,7 @@
   },
   "Plummeting Ursa": {
     "name": "Plummeting Ursa",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -66873,7 +66873,7 @@
   },
   "Porcupine Goliath": {
     "name": "Porcupine Goliath",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -66883,7 +66883,7 @@
   },
   "Predatory Scorpion": {
     "name": "Predatory Scorpion",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -66893,7 +66893,7 @@
   },
   "Primal Beast": {
     "name": "Primal Beast",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -66903,7 +66903,7 @@
   },
   "Primal Crushclaw": {
     "name": "Primal Crushclaw",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -66913,7 +66913,7 @@
   },
   "Primal Cystcaller": {
     "name": "Primal Cystcaller",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -66923,7 +66923,7 @@
   },
   "Primal Rhex Matriarch": {
     "name": "Primal Rhex Matriarch",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -66933,7 +66933,7 @@
   },
   "Primitive Ape": {
     "name": "Primitive Ape",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -66943,7 +66943,7 @@
   },
   "Primordial Rhoa": {
     "name": "Primordial Rhoa",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -66953,7 +66953,7 @@
   },
   "Purge Hound": {
     "name": "Purge Hound",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -67063,7 +67063,7 @@
   },
   "Ravenous Parasite": {
     "name": "Ravenous Parasite",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -67073,7 +67073,7 @@
   },
   "Rhoa Mare": {
     "name": "Rhoa Mare",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -67123,7 +67123,7 @@
   },
   "Rooster Demon": {
     "name": "Rooster Demon",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -67133,7 +67133,7 @@
   },
   "Rooster Fiend": {
     "name": "Rooster Fiend",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -67143,7 +67143,7 @@
   },
   "Rotting Vulture": {
     "name": "Rotting Vulture",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -67153,7 +67153,7 @@
   },
   "Ruins Hellion": {
     "name": "Ruins Hellion",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -67163,7 +67163,7 @@
   },
   "Sand Leaper": {
     "name": "Sand Leaper",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -67173,7 +67173,7 @@
   },
   "Sand Scorpion": {
     "name": "Sand Scorpion",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -67183,7 +67183,7 @@
   },
   "Sand Serpent": {
     "name": "Sand Serpent",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -67203,7 +67203,7 @@
   },
   "Saqawal, First of the Sky": {
     "name": "Saqawal, First of the Sky",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -67213,7 +67213,7 @@
   },
   "Saqawine Blood Viper": {
     "name": "Saqawine Blood Viper",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -67223,7 +67223,7 @@
   },
   "Saqawine Chimeral": {
     "name": "Saqawine Chimeral",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -67233,7 +67233,7 @@
   },
   "Saqawine Cobra": {
     "name": "Saqawine Cobra",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -67243,7 +67243,7 @@
   },
   "Saqawine Retch": {
     "name": "Saqawine Retch",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -67253,7 +67253,7 @@
   },
   "Saqawine Rhex": {
     "name": "Saqawine Rhex",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -67263,7 +67263,7 @@
   },
   "Saqawine Rhoa": {
     "name": "Saqawine Rhoa",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -67273,7 +67273,7 @@
   },
   "Saqawine Vulture": {
     "name": "Saqawine Vulture",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -67283,7 +67283,7 @@
   },
   "Savage Crab": {
     "name": "Savage Crab",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -67293,7 +67293,7 @@
   },
   "Scalding Arachnid": {
     "name": "Scalding Arachnid",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -67303,7 +67303,7 @@
   },
   "Scavenging Vulture": {
     "name": "Scavenging Vulture",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -68233,7 +68233,7 @@
   },
   "Scum Crawler": {
     "name": "Scum Crawler",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -68243,7 +68243,7 @@
   },
   "Sewage Crawler": {
     "name": "Sewage Crawler",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -68263,7 +68263,7 @@
   },
   "Shackled Hellion": {
     "name": "Shackled Hellion",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -68273,7 +68273,7 @@
   },
   "Shaggy Monstrosity": {
     "name": "Shaggy Monstrosity",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -68323,7 +68323,7 @@
   },
   "Singing Siren": {
     "name": "Singing Siren",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -68343,7 +68343,7 @@
   },
   "Skeletal Beast": {
     "name": "Skeletal Beast",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -68363,7 +68363,7 @@
   },
   "Slimy Nemesis": {
     "name": "Slimy Nemesis",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -68373,7 +68373,7 @@
   },
   "Snow Wolf": {
     "name": "Snow Wolf",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -68383,7 +68383,7 @@
   },
   "Soulless Watcher": {
     "name": "Soulless Watcher",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -68393,7 +68393,7 @@
   },
   "Spindle Spider": {
     "name": "Spindle Spider",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -68403,7 +68403,7 @@
   },
   "Spine Serpent": {
     "name": "Spine Serpent",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -68443,7 +68443,7 @@
   },
   "Spitting Parasite": {
     "name": "Spitting Parasite",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -68473,7 +68473,7 @@
   },
   "Stygian Ape": {
     "name": "Stygian Ape",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -68493,7 +68493,7 @@
   },
   "Sulphuric Scorpion": {
     "name": "Sulphuric Scorpion",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -68503,7 +68503,7 @@
   },
   "Sulphurspawn": {
     "name": "Sulphurspawn",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -68513,7 +68513,7 @@
   },
   "Swarthy Mollusc": {
     "name": "Swarthy Mollusc",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -68523,7 +68523,7 @@
   },
   "Talon Archer": {
     "name": "Talon Archer",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -68553,7 +68553,7 @@
   },
   "Tercel Rhoa": {
     "name": "Tercel Rhoa",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -68703,7 +68703,7 @@
   },
   "Thicket Hulk": {
     "name": "Thicket Hulk",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -68743,7 +68743,7 @@
   },
   "Tunnelfiend": {
     "name": "Tunnelfiend",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -69193,7 +69193,7 @@
   },
   "Vaal Recluse": {
     "name": "Vaal Recluse",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -69303,7 +69303,7 @@
   },
   "Vaulting Croaker": {
     "name": "Vaulting Croaker",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -69313,7 +69313,7 @@
   },
   "Venomous Spawn": {
     "name": "Venomous Spawn",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -69333,7 +69333,7 @@
   },
   "Vicious Hound": {
     "name": "Vicious Hound",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -69343,7 +69343,7 @@
   },
   "Vicious Parasite": {
     "name": "Vicious Parasite",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -69353,7 +69353,7 @@
   },
   "Virulent Spider": {
     "name": "Virulent Spider",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -69363,7 +69363,7 @@
   },
   "Vivid Abberarach": {
     "name": "Vivid Abberarach",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -69373,7 +69373,7 @@
   },
   "Vivid Vulture": {
     "name": "Vivid Vulture",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -69383,7 +69383,7 @@
   },
   "Vivid Watcher": {
     "name": "Vivid Watcher",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -69393,7 +69393,7 @@
   },
   "War Hound": {
     "name": "War Hound",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -69403,7 +69403,7 @@
   },
   "Waste Lurcher": {
     "name": "Waste Lurcher",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -69413,7 +69413,7 @@
   },
   "Webbed Spider": {
     "name": "Webbed Spider",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -69423,7 +69423,7 @@
   },
   "Wild Brambleback": {
     "name": "Wild Brambleback",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -69433,7 +69433,7 @@
   },
   "Wild Bristle Matron": {
     "name": "Wild Bristle Matron",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -69443,7 +69443,7 @@
   },
   "Wild Chimeral": {
     "name": "Wild Chimeral",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -69453,7 +69453,7 @@
   },
   "Wild Hellion Alpha": {
     "name": "Wild Hellion Alpha",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -69463,7 +69463,7 @@
   },
   "Wild Rhex": {
     "name": "Wild Rhex",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
@@ -69473,7 +69473,7 @@
   },
   "Woods Ursa": {
     "name": "Woods Ursa",
-    "category": "beast",
+    "category": "excluded",
     "subcategory": null,
     "filterable": false,
     "original": {
