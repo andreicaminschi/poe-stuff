@@ -30,6 +30,7 @@ export const BRONZE_FILES = {
   gggItems: "ggg_items.json",
   currencyHour: "ggg_currency-hour.json",
   repoeBaseItems: "repoe_base-items.json",
+  taxonomy: "taxonomy_items.json",
 } as const;
 
 /**

@@ -17,8 +17,10 @@
 
 import { createGGGService } from "@poe/ggg/service";
 import { createRepoeService } from "@poe/repoe/service";
-import { requireEnv } from "@util/env";
+import { createTaxonomyService } from "@poe/taxonomy/service";
+import { optionalEnv, requireEnv } from "@util/env";
 import { createLocalLake, DEFAULT_ROOT } from "./lake.ts";
+import { lakeStore, urlStore } from "./taxonomy-store.ts";
 import { manifestKey } from "./lake/keys.ts";
 import { runPipeline } from "./pipeline.ts";
 import { dateFromHour, hourFromDate, parseHour, previousHour, runId } from "./run-id.ts";
@@ -67,17 +69,30 @@ async function main(): Promise<void> {
   const hourId = chooseHour(args);
   const id = runId(league, hourId);
   const userAgent = requireEnv("POE_USER_AGENT");
+  const lake = createLocalLake(flag(args, "root") ?? DEFAULT_ROOT);
+
+  /**
+   * Where the taxonomy is read from, and the one thing that differs between a laptop and a
+   * deployment. With `TAXONOMY_URL` set it is fetched over HTTPS, which is what a bucket
+   * looks like from outside; without it, it is read out of the same lake this run writes to.
+   */
+  const taxonomyUrl = optionalEnv("TAXONOMY_URL");
+  const taxonomyVersion = flag(args, "taxonomy-version");
 
   process.stdout.write(`run ${id} (${dateFromHour(hourId)} UTC)\n`);
 
   await runPipeline(
     {
-      lake: createLocalLake(flag(args, "root") ?? DEFAULT_ROOT),
+      lake,
       runId: id,
       league,
       hourId,
       ggg: createGGGService({ userAgent }),
       repoe: createRepoeService({ userAgent }),
+      taxonomy: createTaxonomyService({
+        store: taxonomyUrl === undefined ? lakeStore(lake) : urlStore(taxonomyUrl),
+      }),
+      ...(taxonomyVersion === undefined ? {} : { taxonomyVersion }),
     },
     { onEvent: report },
   );

@@ -1309,6 +1309,7 @@ __metadata:
   dependencies:
     "@poe/ggg": "workspace:^"
     "@poe/repoe": "workspace:^"
+    "@poe/taxonomy": "workspace:^"
     "@util/env": "workspace:^"
     zod: "npm:^4.5.4"
   languageName: unknown
@@ -1387,7 +1388,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@poe/taxonomy@workspace:services/taxonomy":
+"@poe/taxonomy@workspace:^, @poe/taxonomy@workspace:services/taxonomy":
   version: 0.0.0-use.local
   resolution: "@poe/taxonomy@workspace:services/taxonomy"
   languageName: unknown

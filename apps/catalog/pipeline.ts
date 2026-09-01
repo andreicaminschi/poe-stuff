@@ -1,6 +1,7 @@
 import { extractCurrencyHour } from "./extract-currency-hour.ts";
 import { extractGGGItems } from "./extract-ggg-items.ts";
 import { extractRepoeBaseItems } from "./extract-repoe-base-items.ts";
+import { extractTaxonomy } from "./extract-taxonomy.ts";
 import { readManifest, withStage, writeManifest } from "./pipeline/manifest.ts";
 import { validateBronze } from "./validate-bronze.ts";
 import type {
@@ -23,6 +24,7 @@ export const STEPS: readonly Step[] = [
   extractGGGItems,
   extractCurrencyHour,
   extractRepoeBaseItems,
+  extractTaxonomy,
   validateBronze,
 ];
 

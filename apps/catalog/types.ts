@@ -1,5 +1,6 @@
 import type { GGGService } from "@poe/ggg/service";
 import type { RepoeService } from "@poe/repoe/service";
+import type { TaxonomyService } from "@poe/taxonomy/service";
 
 /**
  * Somewhere a run's files live. Two implementations are planned and only one is written:
@@ -28,6 +29,12 @@ export type StepContext = {
   readonly hourId: number;
   readonly ggg: GGGService;
   readonly repoe: RepoeService;
+  readonly taxonomy: TaxonomyService;
+  /**
+   * Which taxonomy version to collect. Absent takes whichever one is promoted, which is
+   * what an ordinary run wants and what a run of an old hour has to be careful about.
+   */
+  readonly taxonomyVersion?: string;
 };
 
 /**

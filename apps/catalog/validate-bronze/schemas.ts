@@ -1,6 +1,7 @@
 import type { GGGItemGroup } from "@poe/ggg/get-item-data.types";
 import type { CurrencyExchange } from "@poe/ggg/types";
 import type { BaseItem } from "@poe/repoe/get-base-items.types";
+import type { Taxonomy } from "@poe/taxonomy/get-taxonomy.types";
 import { z } from "zod";
 import { BRONZE_FILES } from "../lake/keys.ts";
 
@@ -102,6 +103,25 @@ const repoeBaseItems = z
   ) satisfies z.ZodType<Record<string, ValidatedBaseItem>>;
 
 /**
+ * The taxonomy as it was published.
+ *
+ * **Never legitimately empty.** A table with no items classifies nothing, and every silver
+ * row would come out with no category rather than the run failing where the fault is.
+ */
+const taxonomy = z.looseObject({
+  version: z.string(),
+  items: z
+    .record(
+      z.string(),
+      z.looseObject({
+        category: z.string(),
+        subcategory: z.string().nullable(),
+      }),
+    )
+    .refine((items) => Object.keys(items).length > 0, "the taxonomy is empty"),
+}) satisfies z.ZodType<Taxonomy>;
+
+/**
  * Which schema reads which file. The validator walks this list, so covering a new bronze
  * source is one entry here.
  */
@@ -112,4 +132,5 @@ export const BRONZE_SCHEMAS: readonly {
   { file: BRONZE_FILES.gggItems, schema: gggItems },
   { file: BRONZE_FILES.currencyHour, schema: currencyHour },
   { file: BRONZE_FILES.repoeBaseItems, schema: repoeBaseItems },
+  { file: BRONZE_FILES.taxonomy, schema: taxonomy },
 ];

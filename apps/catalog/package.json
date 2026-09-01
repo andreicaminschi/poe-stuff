@@ -7,6 +7,7 @@
   "dependencies": {
     "@poe/ggg": "workspace:^",
     "@poe/repoe": "workspace:^",
+    "@poe/taxonomy": "workspace:^",
     "@util/env": "workspace:^",
     "zod": "^4.5.4"
   }
