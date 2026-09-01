@@ -1,40 +1,52 @@
-import type { BaseItem, BaseItems } from "@poe/repoe/get-base-items.types";
-import { blankItem, tagSource, withValue } from "../item.ts";
+import type { BaseItems } from "@poe/repoe/get-base-items.types";
+import { blankItem, tagSource } from "../item.ts";
 import type { Item } from "../item.ts";
 
 /**
- * The game's own data, applied last so that it is the last word on any row.
+ * A row per base item, keyed by its metadata id.
  *
- * Several metadata ids can share one name — legacy map art, a currency that was reissued —
- * and the first one wins. The rows they disagree on are the same item at different points
- * in the game's history, so the class, the tags and the release state come out the same
- * either way; what differs is the path, and every path is kept.
+ * **The id is the key, not the name.** Several bases share a display name — an incubator
+ * that stacks and one that does not, a resonator socketable two ways, the skill gem and the
+ * unique jewel both called `Wildfire` — and keying by name folded them into one row that
+ * belonged to neither. The metadata id is the only identity the game's data gives, so it is
+ * what a row is addressed by.
  *
- * A base RePoE knows that nothing else mentioned still gets a row. The catalog is one row
- * per item the game can show, not one row per item somebody listed for sale.
+ * This runs first and it is the only thing that invents a row from `base_items.json`. Every
+ * later source either fills a row that is already here or adds one under its own id.
  */
-export function fromRepoe(
-  items: ReadonlyMap<string, Item>,
-  baseItems: BaseItems,
-): ReadonlyMap<string, Item> {
-  const next = new Map(items);
+/**
+ * Bases belonging to Royale, the battle-royale mode the game no longer runs.
+ *
+ * **A string match on the id, and nothing better exists.** They are `release_state:
+ * "released"` like everything else, they inherit from the ordinary abstract base, and only
+ * eight of them carry `not_for_sale` — a tag 769 real items carry too, 414 of them maps.
+ *
+ * Every one of them duplicates the name of a base that does drop, so keeping them meant two
+ * `Leather Belt` rows and two of every unique that rolls on one. They are 165 of the 417
+ * duplicated names in the export, and no name is lost by dropping them.
+ */
+const ROYALE = /Royale/i;
 
-  for (const [path, base] of Object.entries(baseItems)) {
-    if (base.name.trim() === "") continue;
+export function fromRepoe(baseItems: BaseItems): ReadonlyMap<string, Item> {
+  const rows = new Map<string, Item>();
 
-    const seen = next.get(base.name) ?? blankItem(base.name);
+  for (const [id, base] of Object.entries(baseItems)) {
+    if (base.name.trim() === "" || ROYALE.test(id)) continue;
 
-    next.set(base.name, tagSource(filled(seen, base, path), "repoe"));
+    rows.set(
+      id,
+      tagSource(
+        {
+          ...blankItem(id, base.name),
+          metadataPaths: [id],
+          itemClass: base.item_class,
+          releaseState: base.release_state,
+          tags: [...base.tags],
+        },
+        "repoe",
+      ),
+    );
   }
 
-  return next;
+  return rows;
 }
-
-const filled = (item: Item, base: BaseItem, path: string): Item => ({
-  ...item,
-  name: item.name ?? base.name,
-  metadataPaths: withValue(item.metadataPaths, path),
-  itemClass: item.itemClass ?? base.item_class,
-  releaseState: item.releaseState ?? base.release_state,
-  tags: item.tags.length === 0 ? [...base.tags] : item.tags,
-});

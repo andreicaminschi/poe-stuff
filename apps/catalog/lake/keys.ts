@@ -30,6 +30,8 @@ export const BRONZE_FILES = {
   gggItems: "ggg_items.json",
   currencyHour: "ggg_currency-hour.json",
   repoeBaseItems: "repoe_base-items.json",
+  repoeGems: "repoe_gems.json",
+  repoeEssences: "repoe_essences.json",
   taxonomy: "taxonomy_items.json",
 } as const;
 
@@ -48,9 +50,18 @@ const stageKey = (runId: string, stage: Stage, file: string): string =>
 export const bronzeKey = (runId: string, file: string): string =>
   stageKey(runId, "bronze", file);
 
-/** `catalog/run=allflame_1788256800/silver/currency_essence.json`. */
+/** `catalog/run=allflame_1788256800/silver/currency.json`. */
 export const silverKey = (runId: string, file: string): string =>
   stageKey(runId, "silver", file);
+
+/**
+ * Everything one run's silver stage wrote.
+ *
+ * Silver is rebuilt from scratch on every run, so this is what gets cleared first: a file
+ * for a category that no longer exists would otherwise sit there looking current.
+ */
+export const silverPrefix = (runId: string): string =>
+  `${runPrefix(runId)}/silver`;
 
 /**
  * One manifest for the whole run, beside the stages rather than inside one.

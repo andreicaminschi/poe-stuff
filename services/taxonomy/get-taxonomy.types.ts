@@ -5,6 +5,8 @@
  * renames metadata ids between leagues, and a `.filter` matches on the display name anyway.
  */
 export type TaxonomyEntry = {
+  /** The display name. What a `.filter` matches, where the key is what a catalog joins on. */
+  readonly name: string;
   /** The broad group, as the trade site divides them: `weapon`, `currency`, `map`. */
   readonly category: string;
   /**
@@ -12,10 +14,21 @@ export type TaxonomyEntry = {
    * knows one, which is most of what is not currency.
    */
   readonly subcategory: string | null;
+  /**
+   * Whether a `.filter` can name this row. **Absent means yes** — only the exceptions are
+   * written down, so a reader treats a missing field as `true`.
+   */
+  readonly filterable?: boolean;
 };
 
 /**
- * One published version of the taxonomy: every item it classifies, keyed by display name.
+ * One published version of the taxonomy: every item it classifies, keyed by metadata id.
+ *
+ * **Keyed by id, not by name.** Two items can share a display name — a skill gem and a
+ * unique jewel both called `Wildfire` — and a name-keyed table gave them one classification
+ * between them. A unique's id is the base it rolls on with its name appended,
+ * `Metadata/Items/Belts/Belt3:Gluttony`, since the game's data gives a unique no id of its
+ * own. Rows nothing can identify keep their name as the key.
  *
  * A plain object rather than a list, so a lookup is a property access. There is no index to
  * build and nothing to scan.

@@ -7,8 +7,29 @@
  * the other, and the reader could no longer tell a format change from a compile error.
  */
 export type AuthoredEntry = {
+  /**
+   * The display name, kept beside the metadata id the row is keyed by.
+   *
+   * The key is what the catalog joins on and the name is what a `.filter` matches, and they
+   * are not one to one: a unique that rolls on two bases is two ids under one name, and two
+   * ids can share a name outright — `Wildfire` is a skill gem and a unique jewel.
+   */
+  readonly name: string;
   readonly category: string;
   readonly subcategory: string | null;
+  /**
+   * Whether a `.filter` can name this row at all.
+   *
+   * **Absent means yes.** Most rows can be named, so only the exceptions are written down
+   * and the field stays out of the way of the hand pass.
+   *
+   * The trade site listing a name is not evidence that a base type exists — the client
+   * answers `no basetypes found for "Alpine Shaman"` for a name `/data/items` lists and the
+   * spectre table confirms. Nothing in either file separates that from `Bearded Shaman`,
+   * which really does drop, so the client is the only authority and this is where its
+   * answer is written down.
+   */
+  readonly filterable?: boolean;
   /**
    * What the seed said, kept beside what a person decided.
    *

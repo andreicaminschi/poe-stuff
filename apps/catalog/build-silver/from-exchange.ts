@@ -1,47 +1,38 @@
 import type { CurrencyMarket } from "@poe/ggg/types";
-import type { BaseItems } from "@poe/repoe/get-base-items.types";
-import { blankItem, tagSource, withValue } from "../item.ts";
+import { blankItem, tagSource } from "../item.ts";
 import type { Item } from "../item.ts";
 
 /**
- * Every metadata path that traded this hour, folded into the rows.
+ * Marks every metadata id that traded this hour.
  *
- * A market names both of its sides by metadata id and never by name, so RePoE is the only
- * thing that can turn one into a row a filter could match. A path RePoE cannot name is not
- * a strange item — it is RePoE being behind a patch. The row is kept under its metadata
- * leaf with a null name, and `classifyItems` is what files it as unresolved.
+ * The exchange names both sides of a market by metadata id and never by name, so it speaks
+ * the same language the rows are keyed in and needs no lookup at all.
  *
- * The markets arrive already trimmed to one league by the extract step.
+ * A path nothing else knows is RePoE being behind a patch. The row is added under that id
+ * with no name, which is what sends it to `unresolved.json` — there is nothing to look up
+ * in the taxonomy and nothing a filter could match.
+ *
+ * `tradedOnExchange` marks both sides of a pair, so it means the id was named in a trade
+ * rather than that somebody sold one.
  */
 export function fromExchange(
-  items: ReadonlyMap<string, Item>,
+  rows: ReadonlyMap<string, Item>,
   markets: readonly CurrencyMarket[],
-  baseItems: BaseItems,
 ): ReadonlyMap<string, Item> {
-  const paths = new Set<string>();
+  const traded = new Set<string>();
   for (const market of markets) {
-    for (const path of market.market_pair) paths.add(path);
+    for (const id of market.market_pair) traded.add(id);
   }
 
-  const next = new Map(items);
+  const next = new Map(rows);
 
-  for (const path of [...paths].sort()) {
-    const base = baseItems[path];
-    const key = base?.name ?? path.split("/").pop() ?? path;
+  for (const id of [...traded].sort()) {
+    const seen = next.get(id) ?? {
+      ...blankItem(id, null),
+      metadataPaths: [id],
+    };
 
-    const seen = next.get(key) ?? blankItem(key, base?.name ?? null);
-
-    next.set(
-      key,
-      tagSource(
-        {
-          ...seen,
-          metadataPaths: withValue(seen.metadataPaths, path),
-          tradedOnExchange: true,
-        },
-        "exchange",
-      ),
-    );
+    next.set(id, tagSource({ ...seen, tradedOnExchange: true }, "exchange"));
   }
 
   return next;

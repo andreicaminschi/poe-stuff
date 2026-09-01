@@ -1,6 +1,8 @@
 import type { GGGItemGroup } from "@poe/ggg/get-item-data.types";
 import type { CurrencyExchange } from "@poe/ggg/types";
 import type { BaseItem } from "@poe/repoe/get-base-items.types";
+import type { Essence } from "@poe/repoe/get-essences.types";
+import type { Gem } from "@poe/repoe/get-gems.types";
 import type { Taxonomy } from "@poe/taxonomy/get-taxonomy.types";
 import { z } from "zod";
 import { BRONZE_FILES } from "../lake/keys.ts";
@@ -103,6 +105,27 @@ const repoeBaseItems = z
   ) satisfies z.ZodType<Record<string, ValidatedBaseItem>>;
 
 /**
+ * The two Path of Building tables, which share a shape: a metadata id to something with a
+ * name.
+ *
+ * **Only the name is asserted.** These files carry a gem's tags and an essence's mod per
+ * slot, and silver reads none of it — what it needs is that the game's own data names the
+ * row at all.
+ */
+const namedRecord = (what: string) =>
+  z
+    .record(z.string(), z.looseObject({ name: z.string() }))
+    .refine((rows) => Object.keys(rows).length > 0, `the ${what} export is empty`);
+
+const gems = namedRecord("gem") satisfies z.ZodType<
+  Record<string, Pick<Gem, "name">>
+>;
+
+const essences = namedRecord("essence") satisfies z.ZodType<
+  Record<string, Pick<Essence, "name">>
+>;
+
+/**
  * The taxonomy as it was published.
  *
  * **Never legitimately empty.** A table with no items classifies nothing, and every silver
@@ -114,8 +137,10 @@ const taxonomy = z.looseObject({
     .record(
       z.string(),
       z.looseObject({
+        name: z.string(),
         category: z.string(),
         subcategory: z.string().nullable(),
+        filterable: z.boolean().optional(),
       }),
     )
     .refine((items) => Object.keys(items).length > 0, "the taxonomy is empty"),
@@ -132,5 +157,7 @@ export const BRONZE_SCHEMAS: readonly {
   { file: BRONZE_FILES.gggItems, schema: gggItems },
   { file: BRONZE_FILES.currencyHour, schema: currencyHour },
   { file: BRONZE_FILES.repoeBaseItems, schema: repoeBaseItems },
+  { file: BRONZE_FILES.repoeGems, schema: gems },
+  { file: BRONZE_FILES.repoeEssences, schema: essences },
   { file: BRONZE_FILES.taxonomy, schema: taxonomy },
 ];

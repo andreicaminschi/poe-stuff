@@ -1,6 +1,6 @@
 import type { AuthoredEntry, TaxonomyTable } from "./types.ts";
 
-const FIELDS = ["category", "subcategory", "original"];
+const FIELDS = ["name", "category", "subcategory", "filterable", "original"];
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -31,12 +31,21 @@ function entryProblem(value: unknown): string | null {
     return `has unknown fields: ${extra.join(", ")}`;
   }
 
+  if (!isCategory(value.name)) {
+    return "name must be a non-empty string";
+  }
+
   if (!isCategory(value.category)) {
     return "category must be a non-empty string";
   }
 
   if (!isSubcategory(value.subcategory)) {
     return "subcategory must be a non-empty string or null";
+  }
+
+  // Absent is the ordinary case and means filterable. Only a written `false` says otherwise.
+  if (value.filterable !== undefined && typeof value.filterable !== "boolean") {
+    return "filterable must be a boolean when it is present";
   }
 
   const original = value.original;

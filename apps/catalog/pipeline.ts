@@ -2,6 +2,8 @@ import { buildSilver } from "./build-silver.ts";
 import { extractCurrencyHour } from "./extract-currency-hour.ts";
 import { extractGGGItems } from "./extract-ggg-items.ts";
 import { extractRepoeBaseItems } from "./extract-repoe-base-items.ts";
+import { extractRepoeEssences } from "./extract-repoe-essences.ts";
+import { extractRepoeGems } from "./extract-repoe-gems.ts";
 import { extractTaxonomy } from "./extract-taxonomy.ts";
 import { readManifest, withStage, writeManifest } from "./pipeline/manifest.ts";
 import { validateBronze } from "./validate-bronze.ts";
@@ -25,6 +27,8 @@ export const STEPS: readonly Step[] = [
   extractGGGItems,
   extractCurrencyHour,
   extractRepoeBaseItems,
+  extractRepoeGems,
+  extractRepoeEssences,
   extractTaxonomy,
   validateBronze,
   buildSilver,

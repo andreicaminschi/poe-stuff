@@ -13,6 +13,13 @@ export type Lake = {
   readJson<T>(key: string): Promise<T>;
   writeJson(key: string, value: unknown): Promise<void>;
   exists(key: string): Promise<boolean>;
+  /**
+   * Removes everything under a prefix, and answers quietly when there is nothing there.
+   *
+   * The only destructive call in the interface, and it exists for one job: a stage that is
+   * rebuilt from scratch has to leave nothing behind from the run before it.
+   */
+  clear(prefix: string): Promise<void>;
 };
 
 /**

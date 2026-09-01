@@ -1,5 +1,5 @@
 import { constants } from "node:fs";
-import { access, mkdir, readFile, writeFile } from "node:fs/promises";
+import { access, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import type { Lake } from "./types.ts";
 
@@ -28,6 +28,10 @@ export function createLocalLake(root: string = DEFAULT_ROOT): Lake {
       const path = pathOf(key);
       await mkdir(dirname(path), { recursive: true });
       await writeFile(path, `${JSON.stringify(value, undefined, 2)}\n`);
+    },
+
+    async clear(prefix: string): Promise<void> {
+      await rm(pathOf(prefix), { recursive: true, force: true });
     },
 
     async exists(key: string): Promise<boolean> {

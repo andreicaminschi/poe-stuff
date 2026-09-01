@@ -30,7 +30,8 @@ export function classifyItems(
       continue;
     }
 
-    const entry = taxonomy.items[item.name];
+    // Joined on the key, not the name. The key is the metadata id both sides agree on.
+    const entry = taxonomy.items[item.key];
 
     if (entry === undefined) {
       unresolved.push({ ...item, reason: "taxonomy" });
@@ -41,6 +42,8 @@ export function classifyItems(
       ...item,
       category: entry.category,
       subcategory: entry.subcategory,
+      // Absent in the table means filterable; only a written `false` says otherwise.
+      filterable: entry.filterable ?? true,
     });
   }
 
