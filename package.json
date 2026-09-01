@@ -11,6 +11,7 @@
     "services/*"
   ],
   "scripts": {
+    "catalog": "node --env-file=apps/catalog/.env apps/catalog/catalog-cli.ts",
     "typecheck": "tsc",
     "typecheck:watch": "tsc --watch",
     "lint": "eslint .",

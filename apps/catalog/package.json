@@ -1,0 +1,13 @@
+{
+  "name": "@poe/catalog",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@poe/ggg": "workspace:^",
+    "@poe/repoe": "workspace:^",
+    "@util/env": "workspace:^",
+    "zod": "^4.5.4"
+  }
+}
