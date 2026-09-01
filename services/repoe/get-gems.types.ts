@@ -4,12 +4,12 @@
  * **A tag it does not have is absent, never `false`.** Every value in here is `true`, so
  * `tags.support` reads as a boolean check and `Object.keys(tags)` is the list.
  *
- * A `Record` rather than a union of the tag names: PoB adds one whenever GGG does, and a
- * union here would reject the new file.
+ * A `Record` rather than a union of the tag names: GGG adds one every league and a union
+ * here would reject the new file.
  */
 export type GemTags = Record<string, true>;
 
-/** One gem variant, as Path of Building's table describes it. */
+/** One gem variant, as RePoE exports it. */
 export type Gem = {
   /**
    * Metadata id of the **base** gem this row is a variant of. Not unique — a transfigured

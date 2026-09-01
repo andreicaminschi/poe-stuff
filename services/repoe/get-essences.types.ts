@@ -12,7 +12,7 @@
  */
 export type EssenceMods = Record<string, string>;
 
-/** One essence, as Path of Building's table describes it. */
+/** One essence, as RePoE exports it. */
 export type Essence = {
   /** The name the client shows, e.g. `Muttering Essence of Anger`. Unique across the file. */
   name: string;
@@ -25,8 +25,8 @@ export type Essence = {
    */
   tier: number;
   /**
-   * Which essence this is, as an index into PoB's own family list: Hatred, Woe, Greed and
-   * the rest. A number, not a name — read `name` for anything a person will see.
+   * Which essence this is, as an index into the family list: Hatred, Woe, Greed and the
+   * rest. A number, not a name — read `name` for anything a person will see.
    */
   type: number;
   mods: EssenceMods;

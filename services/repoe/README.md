@@ -24,11 +24,10 @@ published, so there is no limiter; the cache is what makes a re-run affordable.
 | `getSpectres` | `/pob-data/poe1/Spectres.json` | Every raisable monster and its stats. |
 | `getEssences` | `/pob-data/poe1/Essence.json` | Every essence and the mod it forces per slot. |
 
-**The three under `/pob-data/` are not RePoE's own export.** They are Path of Building's
-tables, republished on the same GitHub Pages site off the same base URL. That makes them
-one step further from the game: RePoE unpacks what the client ships, PoB derives what its
-calculator needs. Where the two disagree, `base_items.json` is the one that came from the
-game.
+**The four are separate exports and share no vocabulary.** `base_items.json` keys on
+`item_class` and metadata ids; `Gems.json` keys on gem variant ids; `Essence.json` names
+equipment slots as `Body Armour` and `Thrusting One Handed Sword`. Nothing here reconciles
+one with another — that is the catalog's job, not the service's.
 
 The endpoint is a pair of files. The `.types.ts` file holds the wire shape RePoE publishes;
 the `.ts` file holds the function. Response bodies are asserted, not validated — a caller
@@ -199,11 +198,9 @@ publishes no requirement about it.
 
 - **The whole export in one request, with no way to ask for less.** There is no query and
   no partial fetch. Hand the service a cache or pay for the whole file every time.
-- **Three of the four endpoints are Path of Building's data, not RePoE's.** Everything
-  under `/pob-data/poe1/` is PoB's derived table, republished on the same site. Only
-  `base_items.json` is the game's own file. They disagree in vocabulary as well as in
-  content — PoB names slots `Body Armour` and gem ids `SkillGemAbsolutionAltX`, and nothing
-  here reconciles either with `base_items.json`.
+- **The four exports share no vocabulary.** A gem is a metadata id in `base_items.json` and
+  a variant id in `Gems.json`; an equipment slot is `item_class` in one file and a spelled
+  out `Thrusting One Handed Sword` in another. Nothing here reconciles them.
 - **`Gems.json` is keyed by the variant, not by the gem.** A transfigured gem is its own
   row, and `gameId` — the base gem it comes from — repeats across every one of its
   variants. Group by `gameId` for one entry per gem; the key is one entry per thing that
@@ -221,12 +218,12 @@ publishes no requirement about it.
   exception and are plain percentages.
 - **A spectre's `name` is not unique, and its defences are absent rather than zero.**
   Several metadata ids share one name, and a monster with no evasion has no `evasion` key
-  at all. `modList` is PoB's internal mod format, passed through untouched — numeric-string
-  keys, a recursive `value`, and nothing here that interprets it.
+  at all. `modList` is passed through untouched — numeric-string keys, a recursive `value`,
+  and nothing here that interprets it.
 - **An essence's `tier` is not the number on the end of its metadata id.**
   `CurrencyEssenceAnger1` is tier 2. The id counts within a family, starting wherever that
-  family's lowest tier happens to be. `type` is an index into PoB's family list, not a name
-  — read `name` for anything a person will see.
+  family's lowest tier happens to be. `type` is an index into the family list, not a name —
+  read `name` for anything a person will see.
 - **`item_class` is GGG's internal name, not the `Class` a `.filter` matches on.** The
   export mixes the two conventions in one field: `Body Armour` and `Active Skill Gem` have
   spaces, `StackableCurrency` and `AbyssJewel` do not. Nothing here maps them onto the

@@ -1,9 +1,9 @@
 /**
- * One modifier on a spectre, in Path of Building's own mod shape.
+ * One modifier on a spectre, as RePoE exports it.
  *
- * **This is PoB's internal format, passed through untouched.** Nothing in this package
- * interprets it, and the numeric-string keys — `"1"`, `"2"` — hold the conditions and
- * multipliers that gate the mod, which is why the index signature is here at all.
+ * **Passed through untouched.** Nothing in this package interprets it, and the
+ * numeric-string keys — `"1"`, `"2"` — hold the conditions and multipliers that gate the
+ * mod, which is why the index signature is here at all.
  *
  * The shape is recursive: a `LIST` mod's `value` is `{ mod }`, holding the modifier it
  * grants to the player, an ally or a minion.
@@ -13,16 +13,16 @@ export type SpectreMod = {
   name: string;
   /** How it applies: `BASE`, `INC`, `MORE`, `LIST`, `FLAG`, `OVERRIDE` or `MAX`. */
   type: string;
-  /** PoB's damage-type and skill-type bitfield. */
+  /** Damage-type and skill-type bitfield. */
   flags: number;
   keywordFlags: number;
   value: number | boolean | { mod: SpectreMod };
-  /** The numeric-string keys, each a condition or multiplier PoB reads. */
+  /** The numeric-string keys, each a condition or multiplier gating the mod. */
   [condition: string]: unknown;
 };
 
 /**
- * One spectre, as Path of Building's table describes it.
+ * One spectre, as RePoE exports it.
  *
  * **The stats are multipliers against the monster base table, not absolute numbers.**
  * `life: 4.4` is 4.4 times a monster of that level, not 4.4 life. The resistances are the
@@ -60,7 +60,7 @@ export type Spectre = {
   baseDamageIgnoresAttackSpeed?: true;
   /** `AltLife1` or `AltLife2`: which alternate life table the monster scales on. */
   lifeScaling?: string;
-  /** A damage correction PoB applies to a few rows. */
+  /** A damage correction applied to a few rows. */
   damageFixup?: number;
 };
 
