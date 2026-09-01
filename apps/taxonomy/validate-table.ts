@@ -1,0 +1,97 @@
+import type { AuthoredEntry, TaxonomyTable } from "./types.ts";
+
+const FIELDS = ["category", "subcategory", "original"];
+
+const isObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const isCategory = (value: unknown): boolean =>
+  typeof value === "string" && value.length > 0;
+
+const isSubcategory = (value: unknown): boolean =>
+  value === null || isCategory(value);
+
+const unknownFields = (value: Record<string, unknown>, known: readonly string[]) =>
+  Object.keys(value).filter((key) => !known.includes(key));
+
+/**
+ * Reads one row, and says what is wrong with it.
+ *
+ * Returns the reason rather than throwing, so the caller stays the one place that knows
+ * which key it was reading and can name it in the message.
+ */
+function entryProblem(value: unknown): string | null {
+  if (!isObject(value)) {
+    return "is not an object";
+  }
+
+  const extra = unknownFields(value, FIELDS);
+
+  if (extra.length > 0) {
+    return `has unknown fields: ${extra.join(", ")}`;
+  }
+
+  if (!isCategory(value.category)) {
+    return "category must be a non-empty string";
+  }
+
+  if (!isSubcategory(value.subcategory)) {
+    return "subcategory must be a non-empty string or null";
+  }
+
+  const original = value.original;
+
+  if (!isObject(original)) {
+    return "original is not an object";
+  }
+
+  const originalExtra = unknownFields(original, ["category", "subcategory"]);
+
+  if (originalExtra.length > 0) {
+    return `original has unknown fields: ${originalExtra.join(", ")}`;
+  }
+
+  if (!isCategory(original.category)) {
+    return "original.category must be a non-empty string";
+  }
+
+  if (!isSubcategory(original.subcategory)) {
+    return "original.subcategory must be a non-empty string or null";
+  }
+
+  return null;
+}
+
+/**
+ * Checks parsed JSON against `TaxonomyTable` and hands back the same value, typed.
+ *
+ * **The JSON file is the source of truth, so this is where its shape is enforced.** Nothing
+ * else can: `tsc` never reads a `.json` file, and the table is edited by hand and by `jq`,
+ * so a typo would otherwise reach the publisher and land in the lake — where a version is
+ * immutable and the mistake is permanent.
+ *
+ * It fails on the first bad row and names it. Listing every problem would read better in a
+ * report, but this runs for a CLI that is about to publish a version somebody has to go and
+ * fix by hand, and the first name is enough to start.
+ *
+ * `source` is the file the value came from and appears in the message, because the point is
+ * to say *which* version is wrong.
+ */
+export function validateTaxonomyTable(
+  value: unknown,
+  source: string,
+): TaxonomyTable {
+  if (!isObject(value)) {
+    throw new Error(`${source} is not an object`);
+  }
+
+  for (const [name, entry] of Object.entries(value)) {
+    const problem = entryProblem(entry);
+
+    if (problem !== null) {
+      throw new Error(`${source}: "${name}" ${problem}`);
+    }
+  }
+
+  return value as Readonly<Record<string, AuthoredEntry>>;
+}
