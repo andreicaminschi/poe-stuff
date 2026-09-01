@@ -54,8 +54,8 @@ two generated filters readable.
 
 ## What has to exist first
 
-- `apps/poe-items` — the item list, with a canonical id per item.
-- A price book, with provenance per row. The classifier needs a number and a confidence
-  signal; a thin market must not be able to set a loud block.
+- `apps/catalog` — the catalog. One row per item, carrying a canonical id, what the item
+  is, and what it is worth with provenance on the price. The classifier needs a number
+  **and** a confidence signal: a thin market must not be able to set a loud block.
 - [`docs/item-filter-syntax.md`](../../docs/item-filter-syntax.md) is the grammar. Anything
   emitted here has to be a line in there.

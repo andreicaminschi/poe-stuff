@@ -46,7 +46,7 @@ lib/cache/             # @util/cache — cache-key, file-cache, sleep
 lib/env/               # @util/env — requireEnv / optionalEnv. The only reader of process.env
 apps/item-inspect/     # @poe/item-inspect — paste an item, see how the parser read it
 apps/collector/        # README only. Replaces @poe/workers
-apps/poe-items/        # README only. Replaces @poe/filterv2
+apps/catalog/          # README only. Replaces @poe/filterv2
 apps/generator/        # README only. Never existed: items + prices -> a .filter
 packages/workers/      # DEPRECATED @poe/workers. Does not compile
 packages/filterv2/     # DEPRECATED @poe/filterv2
@@ -114,7 +114,7 @@ they replace, and what has to be decided first.
 | --- | --- | --- |
 | [`apps/item-inspect`](apps/item-inspect/README.md) | — | **Written.** Paste an item copied out of the game, see how the parser read it. The one consumer of `@poe/item-parser` today, and where its CLI lives now that `lib/` is pure. |
 | [`apps/collector`](apps/collector/README.md) | `@poe/workers` | The worker loop, the job handlers, the record of outstanding work, the writes into `.s3`, and `queries.json`. |
-| [`apps/poe-items`](apps/poe-items/README.md) | `@poe/filterv2` | Every item the game can show, named and flagged, merged out of the trade site, the Currency Exchange, RePoE and the league's forum post. No prices. |
+| [`apps/catalog`](apps/catalog/README.md) | `@poe/filterv2` | **The catalog**: one row per item the game can show, carrying everything the generator needs to decide a bucket — identity *and* value. Fans in across GGG's `/data/items`, the Currency Exchange, RePoE and poe.watch. The generator is its only consumer. |
 | [`apps/generator`](apps/generator/README.md) | nothing — new | `(items, prices, config) -> a .filter file`. The spine. |
 
 ## Deprecated
@@ -160,8 +160,8 @@ functions it calls live in `{feature}/`. A nested `{feature}/{part}/{piece}.ts` 
 logic and makes the import path longer than the function it points at.
 
 ```
-apps/poe-items/build-item-list.ts          the feature
-apps/poe-items/build-item-list/*.ts        what it calls
+apps/catalog/build-catalog.ts            the feature
+apps/catalog/build-catalog/*.ts          what it calls
 ```
 
 **One function per file is a rule of thumb, not a law: split when a test against that

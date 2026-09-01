@@ -2,7 +2,7 @@
 
 **This package is a POC. It will be removed. Do not add to it, and do not import it.**
 
-Replaced by [`apps/poe-items`](../../apps/poe-items), which is not written yet.
+Replaced by [`apps/catalog`](../../apps/catalog), which is not written yet.
 
 ## State
 
@@ -28,7 +28,7 @@ each, and the best reference for what a future reader has to produce.
 
 The merge order is the part worth copying exactly, and it is written down in
 [`README.md`](README.md), [`notes.md`](notes.md) and the `.mmd` diagrams beside the files
-they draw. [`apps/poe-items/README.md`](../../apps/poe-items/README.md) lists what carries
+they draw. [`apps/catalog/README.md`](../../apps/catalog/README.md) lists what carries
 over.
 
 `notes.md` is the more valuable of the two: it records what the build gets **wrong** and

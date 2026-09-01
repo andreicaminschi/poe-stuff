@@ -27,7 +27,7 @@ export type BuildOptions = {
  * **The league's Item Filter Information forum post used to be a fourth source**, and it
  * was the only one that could name an item before RePoE caught up with a launch. It was
  * removed with the forum endpoints on `@poe/ggg`, so nothing here detects a new league any
- * more and nothing applies this league's renames. `apps/poe-items` has to answer where
+ * more and nothing applies this league's renames. `apps/catalog` has to answer where
  * that comes from — see its README.
  */
 export async function buildItemList(options: BuildOptions): Promise<ItemsFile> {

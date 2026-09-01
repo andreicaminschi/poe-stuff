@@ -1,6 +1,6 @@
 # @poe/filterv2
 
-> **DEPRECATED.** A POC, replaced by `apps/poe-items`, removed as soon as that is written.
+> **DEPRECATED.** A POC, replaced by `apps/catalog`, removed as soon as that is written.
 > See [DEPRECATED.md](DEPRECATED.md). What follows describes what this package does today,
 > and is kept because the merge order in it is worth copying.
 
@@ -41,7 +41,7 @@ the Currency Exchange CDN only. Four things went with it:
 
 `data/forum-posts/` is still here — three leagues of extracted posts, one `claude -p` call
 each. Nothing reads them any more; they are kept as reference for whatever answers the
-forum question in `apps/poe-items`.
+forum question in `apps/catalog`.
 
 ## Structure
 

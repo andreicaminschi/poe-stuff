@@ -1,14 +1,14 @@
 # Notes
 
 > **The package is deprecated; these notes are not.** `@poe/filterv2` is a POC being
-> replaced by `apps/poe-items` — see [DEPRECATED.md](DEPRECATED.md). Every entry below is a
+> replaced by `apps/catalog` — see [DEPRECATED.md](DEPRECATED.md). Every entry below is a
 > decision about the game rather than about the code, so all of them come back the moment
 > something builds an item list again. This is the file worth reading before writing that.
 >
 > **Entries marked "removed source" describe the forum post**, which this build no longer
 > reads — the endpoints it used are gone from `@poe/ggg`. They are kept rather than deleted
 > because the problems they describe are properties of the post, not of the code that read
-> it, and every one of them returns the day `apps/poe-items` answers where the post comes
+> it, and every one of them returns the day `apps/catalog` answers where the post comes
 > from.
 
 Known gaps in the item list. Each one is something the build gets wrong, or a decision it

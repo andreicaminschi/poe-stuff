@@ -3,15 +3,17 @@
 Deferred decisions. Nothing here is scheduled.
 
 - **Nothing reads `.s3` back.** The POC dropped pages in raw, one file per page, and no
-  second pass over them was ever written. What that pass produces is a **price book** — one
-  row per item, carrying provenance, so `apps/generator` gets a number plus a confidence
-  signal and a price checker can show its work. Design the row before writing the pass.
+  second pass over them was ever written. Those pages are live trade listings, which is the
+  one price source the aggregators cannot give you — so the pass over them is an **input to
+  `apps/catalog`**, not a separate artifact. Undecided whether the catalog reads `.s3`
+  itself or something folds pages into a price row first.
 - **The collector has no queue and no record of outstanding work.** Both were containers in
   the POC — Redis and Postgres — and neither is configured any more. `apps/collector` cannot
   be written until something replaces them. See
   [apps/collector/README.md](apps/collector/README.md) for what carries over.
 - **No canonical item id.** Five sources name the same item five ways, and every join
-  downstream crosses them. This blocks the price book and `apps/poe-items` both.
+  downstream crosses them. `apps/catalog` is the join, so this blocks it outright — and
+  everything downstream of it.
 - **A job that can never succeed blocks its cohort forever.** Promotion needs every job
   done, and there is no way to mark one as acceptably missing. Replacing the query is the
   answer for now (`poe cohort replace`). If a cohort ever gets stuck on something that
