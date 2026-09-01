@@ -1,0 +1,823 @@
+[
+  {
+    "name": "Animate Guardian",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemAnimateArmour",
+      "Metadata/Items/Gems/SkillGemAnimateGuardian"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemAnimateArmour is a base item."
+  },
+  {
+    "name": "Arcanist Brand",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemArcanistBrand",
+      "Metadata/Items/Gems/SkillGemBrandSupport"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemArcanistBrand is a base item."
+  },
+  {
+    "name": "Arctic Armour",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemArcticArmour",
+      "Metadata/Items/Gems/SkillGemNewArcticArmour"
+    ],
+    "reason": "Skill rework, repoe still lists the id from before it. See https://www.poewiki.net/wiki/Arctic_Armour"
+  },
+  {
+    "name": "Ashbark Tincture",
+    "ids": [
+      "Metadata/Items/Tinctures/Tincture4",
+      "Metadata/Items/Tinctures/TinctureIgnite"
+    ],
+    "reason": "Tincture reword, repoe still lists the id from before it. See https://www.poewiki.net/wiki/Ashbark_Tincture"
+  },
+  {
+    "name": "Assassin's Mark",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemAssassinsMark",
+      "Metadata/Items/Gems/SkillGemCriticalWeakness"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemCriticalWeakness is a base item."
+  },
+  {
+    "name": "Autoexertion",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemAutoexertion",
+      "Metadata/Items/Gems/SkillGemCallToArms"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemCallToArms is a base item."
+  },
+  {
+    "name": "Avian Twins Talisman",
+    "ids": [
+      "Metadata/Items/Amulets/Talismans/Talisman2_6_1",
+      "Metadata/Items/Amulets/Talismans/Talisman2_6_2",
+      "Metadata/Items/Amulets/Talismans/Talisman2_6_3",
+      "Metadata/Items/Amulets/Talismans/Talisman2_6_4",
+      "Metadata/Items/Amulets/Talismans/Talisman2_6_5",
+      "Metadata/Items/Amulets/Talismans/Talisman2_6_6"
+    ],
+    "reason": "Has 6 different implicits, a base for each. See https://www.poewiki.net/wiki/Avian_Twins_Talisman"
+  },
+  {
+    "name": "Bane",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemBane",
+      "Metadata/Items/Gems/SkillGemDarkRitual"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemDarkRitual is a base item."
+  },
+  {
+    "name": "Black Maw Talisman",
+    "ids": [
+      "Metadata/Items/Amulets/Talismans/Talisman1_1",
+      "Metadata/Items/Amulets/Talismans/TalismanBlackMaw"
+    ],
+    "reason": "Talisman rework in 3.29, repoe still lists the id from before it. See https://www.poewiki.net/wiki/Black_Maw_Talisman"
+  },
+  {
+    "name": "Blade Flurry",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemBladeFlurry",
+      "Metadata/Items/Gems/SkillGemChargedAttack"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemChargedAttack is a base item."
+  },
+  {
+    "name": "Blood Sap Tincture",
+    "ids": [
+      "Metadata/Items/Tinctures/Tincture8",
+      "Metadata/Items/Tinctures/TinctureBleed"
+    ],
+    "reason": "Tincture reword, repoe still lists the id from before it. See https://www.poewiki.net/wiki/Blood_Sap_Tincture"
+  },
+  {
+    "name": "Blunt Arrow Quiver",
+    "ids": [
+      "Metadata/Items/Quivers/Quiver9",
+      "Metadata/Items/Quivers/QuiverNew6"
+    ],
+    "reason": "Quiver reword, repoe still lists legacy ingame. See https://www.poewiki.net/wiki/Blunt_Arrow_Quiver"
+  },
+  {
+    "name": "Bodyswap",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemBodyswap",
+      "Metadata/Items/Gems/SkillGemCorpseWarp"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemCorpseWarp is a base item."
+  },
+  {
+    "name": "Borealwood Tincture",
+    "ids": [
+      "Metadata/Items/Tinctures/Tincture5",
+      "Metadata/Items/Tinctures/TinctureFreeze"
+    ],
+    "reason": "Tincture reword, repoe still lists the id from before it. See https://www.poewiki.net/wiki/Borealwood_Tincture"
+  },
+  {
+    "name": "Brand Recall",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemBrandRecall",
+      "Metadata/Items/Gems/SkillGemRecallBrands"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemRecallBrands is a base item."
+  },
+  {
+    "name": "Broadhead Arrow Quiver",
+    "ids": [
+      "Metadata/Items/Quivers/Quiver11",
+      "Metadata/Items/Quivers/QuiverNew10"
+    ],
+    "reason": "Quiver reword, repoe still lists legacy ingame. See https://www.poewiki.net/wiki/Broadhead_Arrow_Quiver"
+  },
+  {
+    "name": "Caustic Arrow",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemCausticArrow",
+      "Metadata/Items/Gems/SkillGemPoisonArrow"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemPoisonArrow is a base item."
+  },
+  {
+    "name": "Convocation",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemConvocation",
+      "Metadata/Items/Gems/SkillGemConvocationNew"
+    ],
+    "reason": "Skill rework, repoe still lists the id from before it. See https://www.poewiki.net/wiki/Convocation"
+  },
+  {
+    "name": "Creeping Frost",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemArcticBreath",
+      "Metadata/Items/Gems/SkillGemCreepingFrost"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemArcticBreath is a base item."
+  },
+  {
+    "name": "Cremation",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemCorpseEruption",
+      "Metadata/Items/Gems/SkillGemCremation"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemCorpseEruption is a base item."
+  },
+  {
+    "name": "Crushing Fist",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemCrushingFist",
+      "Metadata/Items/Gems/SkillGemVengeance"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemVengeance is a base item."
+  },
+  {
+    "name": "Despair",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemDespair",
+      "Metadata/Items/Gems/SkillGemVulnerability"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemVulnerability is a base item."
+  },
+  {
+    "name": "Detonate Mines",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemDetonateMines",
+      "Metadata/Items/Gems/SkillGemGemDetonateMines"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemDetonateMines is a base item."
+  },
+  {
+    "name": "Divine Ire",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemDivineIre",
+      "Metadata/Items/Gems/SkillGemDivineTempest"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemDivineTempest is a base item."
+  },
+  {
+    "name": "Divine Vessel",
+    "ids": [
+      "Metadata/Items/MapFragments/CurrencyFragmentPantheonFlask",
+      "Metadata/Items/MapFragments/FragmentPantheonFlask"
+    ],
+    "reason": "Two ids for one item, repoe still lists the one from before. Identical in every exported field: same MapFragment class, same art, same drop level. See https://www.poewiki.net/wiki/Divine_Vessel"
+  },
+  {
+    "name": "Explosive Trap",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemExplosiveTrap",
+      "Metadata/Items/Gems/SkillGemShrapnelTrap"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemShrapnelTrap is a base item."
+  },
+  {
+    "name": "Fine Delirium Orb",
+    "ids": [
+      "Metadata/Items/Currency/CurrencyAfflictionOrbCurrency",
+      "Metadata/Items/Currency/CurrencyAfflictionOrbHarbinger",
+      "Metadata/Items/Currency/CurrencyAfflictionOrbProphecies"
+    ],
+    "reason": "One orb per reward type from when Harbinger and Prophecy were separate rewards. Neither is core any more, and the three ids are identical in every field repoe exports: same class, same art, same tags, same stack size, same description. Only the id suffix differs. See https://www.poewiki.net/wiki/Fine_Delirium_Orb"
+  },
+  {
+    "name": "Fire Arrow Quiver",
+    "ids": [
+      "Metadata/Items/Quivers/Quiver10",
+      "Metadata/Items/Quivers/QuiverNew2"
+    ],
+    "reason": "Quiver reword, repoe still lists legacy ingame. See https://www.poewiki.net/wiki/Fire_Arrow_Quiver"
+  },
+  {
+    "name": "Flame Surge",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemFlameSurge",
+      "Metadata/Items/Gems/SkillGemFlameWhip"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemFlameWhip is a base item."
+  },
+  {
+    "name": "Fragment of the Chimera",
+    "ids": [
+      "Metadata/Items/MapFragments/CurrencyShaperFragment3",
+      "Metadata/Items/MapFragments/ShaperFragment3"
+    ],
+    "reason": "Two ids from an atlas rework, repoe still lists the one from before it. Identical in every exported field: same class, same art, same drop level, same tags. See https://www.poewiki.net/wiki/Fragment_of_the_Chimera"
+  },
+  {
+    "name": "Fragment of the Hydra",
+    "ids": [
+      "Metadata/Items/MapFragments/CurrencyShaperFragment4",
+      "Metadata/Items/MapFragments/ShaperFragment4"
+    ],
+    "reason": "Two ids from an atlas rework, repoe still lists the one from before it. Identical in every exported field: same class, same art, same drop level, same tags. See https://www.poewiki.net/wiki/Fragment_of_the_Hydra"
+  },
+  {
+    "name": "Fragment of the Minotaur",
+    "ids": [
+      "Metadata/Items/MapFragments/CurrencyShaperFragment2",
+      "Metadata/Items/MapFragments/ShaperFragment2"
+    ],
+    "reason": "Two ids from an atlas rework, repoe still lists the one from before it. Identical in every exported field: same class, same art, same drop level, same tags. See https://www.poewiki.net/wiki/Fragment_of_the_Minotaur"
+  },
+  {
+    "name": "Fragment of the Phoenix",
+    "ids": [
+      "Metadata/Items/MapFragments/CurrencyShaperFragment1",
+      "Metadata/Items/MapFragments/ShaperFragment1"
+    ],
+    "reason": "Two ids from an atlas rework, repoe still lists the one from before it. Identical in every exported field: same class, same art, same drop level, same tags. See https://www.poewiki.net/wiki/Fragment_of_the_Phoenix"
+  },
+  {
+    "name": "Fulgurite Tincture",
+    "ids": [
+      "Metadata/Items/Tinctures/Tincture6",
+      "Metadata/Items/Tinctures/TinctureShock"
+    ],
+    "reason": "Tincture reword, repoe still lists the id from before it. See https://www.poewiki.net/wiki/Fulgurite_Tincture"
+  },
+  {
+    "name": "Galvanic Arrow",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemGalvanicArrow",
+      "Metadata/Items/Gems/SkillGemShrapnelShot"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemShrapnelShot is a base item."
+  },
+  {
+    "name": "Glacial Shield Swipe",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemGlacialShieldSwipe",
+      "Metadata/Items/Gems/SkillGemRiposte"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemRiposte is a base item."
+  },
+  {
+    "name": "Greatwolf Talisman",
+    "ids": [
+      "Metadata/Items/Amulets/Talismans/Talisman4",
+      "Metadata/Items/Amulets/Talismans/TalismanGreatwolf"
+    ],
+    "reason": "Talisman rework in 3.29, repoe still lists the id from before it. See https://www.poewiki.net/wiki/Greatwolf_Talisman"
+  },
+  {
+    "name": "Holy Flame Totem",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemFlameTotem",
+      "Metadata/Items/Gems/SkillGemHolyFlameTotem"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemFlameTotem is a base item."
+  },
+  {
+    "name": "Icicle Mine",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemFreezeMine",
+      "Metadata/Items/Gems/SkillGemIcicleMine"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemFreezeMine is a base item."
+  },
+  {
+    "name": "Infernal Cry",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemAbyssalCry",
+      "Metadata/Items/Gems/SkillGemInfernalCry"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemAbyssalCry is a base item."
+  },
+  {
+    "name": "Ironwood Tincture",
+    "ids": [
+      "Metadata/Items/Tinctures/Tincture3",
+      "Metadata/Items/Tinctures/TinctureStun"
+    ],
+    "reason": "Tincture reword, repoe still lists the id from before it. See https://www.poewiki.net/wiki/Ironwood_Tincture"
+  },
+  {
+    "name": "Lightning Spire Trap",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemLightningSpireTrap",
+      "Metadata/Items/Gems/SkillGemLightningTowerTrap"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemLightningTowerTrap is a base item."
+  },
+  {
+    "name": "Lightning Tendrils",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemLightningTendrils",
+      "Metadata/Items/Gems/SkillGemLightningTendrilsChannelled"
+    ],
+    "reason": "Skill rework, repoe still lists the id from before it. See https://www.poewiki.net/wiki/Lightning_Tendrils"
+  },
+  {
+    "name": "Malevolence",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemDamageOverTimeAura",
+      "Metadata/Items/Gems/SkillGemMalevolence"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemDamageOverTimeAura is a base item."
+  },
+  {
+    "name": "Monkey Paw Talisman",
+    "ids": [
+      "Metadata/Items/Amulets/Talismans/Talisman3_6_1",
+      "Metadata/Items/Amulets/Talismans/Talisman3_6_2",
+      "Metadata/Items/Amulets/Talismans/Talisman3_6_3"
+    ],
+    "reason": "Has 3 different implicits, a base for each. See https://www.poewiki.net/wiki/Monkey_Paw_Talisman"
+  },
+  {
+    "name": "Mortal Grief",
+    "ids": [
+      "Metadata/Items/MapFragments/CurrencyVaalFragment2_4",
+      "Metadata/Items/MapFragments/VaalFragment2_4"
+    ],
+    "reason": "Reworked in 3.28. Sacrifice and Mortal fragments no longer open a Vaal Side Area from the Map Device directly; they are used alongside a Map to add one, keeping their quantity bonus. Repoe still lists the id from before it. See https://www.poewiki.net/wiki/Mortal_Grief"
+  },
+  {
+    "name": "Mortal Hope",
+    "ids": [
+      "Metadata/Items/MapFragments/CurrencyVaalFragment2_2",
+      "Metadata/Items/MapFragments/VaalFragment2_2"
+    ],
+    "reason": "Reworked in 3.28. Sacrifice and Mortal fragments no longer open a Vaal Side Area from the Map Device directly; they are used alongside a Map to add one, keeping their quantity bonus. Repoe still lists the id from before it. See https://www.poewiki.net/wiki/Mortal_Hope"
+  },
+  {
+    "name": "Mortal Ignorance",
+    "ids": [
+      "Metadata/Items/MapFragments/CurrencyVaalFragment2_3",
+      "Metadata/Items/MapFragments/VaalFragment2_3"
+    ],
+    "reason": "Reworked in 3.28. Sacrifice and Mortal fragments no longer open a Vaal Side Area from the Map Device directly; they are used alongside a Map to add one, keeping their quantity bonus. Repoe still lists the id from before it. See https://www.poewiki.net/wiki/Mortal_Ignorance"
+  },
+  {
+    "name": "Mortal Rage",
+    "ids": [
+      "Metadata/Items/MapFragments/CurrencyVaalFragment2_1",
+      "Metadata/Items/MapFragments/VaalFragment2_1"
+    ],
+    "reason": "Reworked in 3.28. Sacrifice and Mortal fragments no longer open a Vaal Side Area from the Map Device directly; they are used alongside a Map to add one, keeping their quantity bonus. Repoe still lists the id from before it. See https://www.poewiki.net/wiki/Mortal_Rage"
+  },
+  {
+    "name": "Oakbranch Tincture",
+    "ids": [
+      "Metadata/Items/Tinctures/Tincture9",
+      "Metadata/Items/Tinctures/TinctureCullingStrike"
+    ],
+    "reason": "Tincture reword, repoe still lists the id from before it. See https://www.poewiki.net/wiki/Oakbranch_Tincture"
+  },
+  {
+    "name": "Offering to the Goddess",
+    "ids": [
+      "Metadata/Items/Labyrinth/OfferingToTheGoddess",
+      "Metadata/Items/MapFragments/CurrencyOfferingToTheGoddess"
+    ],
+    "reason": "Two ids for one item, filed under different folders and classes — LabyrinthMapItem under Labyrinth, MapFragment under MapFragments. Same art and same drop level. See https://www.poewiki.net/wiki/Offering_to_the_Goddess"
+  },
+  {
+    "name": "Penetrating Arrow Quiver",
+    "ids": [
+      "Metadata/Items/Quivers/Quiver12",
+      "Metadata/Items/Quivers/QuiverNew5"
+    ],
+    "reason": "Quiver reword, repoe still lists legacy ingame. See https://www.poewiki.net/wiki/Penetrating_Arrow_Quiver"
+  },
+  {
+    "name": "Phase Run",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemNewPhaseRun",
+      "Metadata/Items/Gems/SkillGemPhaseRun"
+    ],
+    "reason": "Skill rework, repoe still lists the id from before it. See https://www.poewiki.net/wiki/Phase_Run"
+  },
+  {
+    "name": "Poisonberry Tincture",
+    "ids": [
+      "Metadata/Items/Tinctures/Tincture7",
+      "Metadata/Items/Tinctures/TincturePoison"
+    ],
+    "reason": "Tincture reword, repoe still lists the id from before it. See https://www.poewiki.net/wiki/Poisonberry_Tincture"
+  },
+  {
+    "name": "Potent Chaotic Resonator",
+    "ids": [
+      "Metadata/Items/Delve/DelveSocketableCurrencyReroll2",
+      "Metadata/Items/Delve/DelveStackableSocketableCurrencyReroll2"
+    ],
+    "reason": "Two ids for one resonator, the used and unused forms: DelveSocketableCurrency has stack size 1, DelveStackableSocketableCurrency stacks to 10. See https://www.poewiki.net/wiki/Potent_Chaotic_Resonator"
+  },
+  {
+    "name": "Powerful Chaotic Resonator",
+    "ids": [
+      "Metadata/Items/Delve/DelveSocketableCurrencyReroll3",
+      "Metadata/Items/Delve/DelveStackableSocketableCurrencyReroll3"
+    ],
+    "reason": "Two ids for one resonator, the used and unused forms: DelveSocketableCurrency has stack size 1, DelveStackableSocketableCurrency stacks to 10. See https://www.poewiki.net/wiki/Powerful_Chaotic_Resonator"
+  },
+  {
+    "name": "Prime Chaotic Resonator",
+    "ids": [
+      "Metadata/Items/Delve/DelveSocketableCurrencyReroll4",
+      "Metadata/Items/Delve/DelveStackableSocketableCurrencyReroll4"
+    ],
+    "reason": "Two ids for one resonator, the used and unused forms: DelveSocketableCurrency has stack size 1, DelveStackableSocketableCurrency stacks to 10. See https://www.poewiki.net/wiki/Prime_Chaotic_Resonator"
+  },
+  {
+    "name": "Primitive Chaotic Resonator",
+    "ids": [
+      "Metadata/Items/Delve/DelveSocketableCurrencyReroll1",
+      "Metadata/Items/Delve/DelveStackableSocketableCurrencyReroll1"
+    ],
+    "reason": "Two ids for one resonator, the used and unused forms: DelveSocketableCurrency has stack size 1, DelveStackableSocketableCurrency stacks to 10. See https://www.poewiki.net/wiki/Primitive_Chaotic_Resonator"
+  },
+  {
+    "name": "Purifying Flame",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemPurifyingFlame",
+      "Metadata/Items/Gems/SkillGemSanctify"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemSanctify is a base item."
+  },
+  {
+    "name": "Purity of Elements",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemPurity",
+      "Metadata/Items/Gems/SkillGemPurityOfElements"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemPurity is a base item."
+  },
+  {
+    "name": "Purity of Fire",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemFireResistAura",
+      "Metadata/Items/Gems/SkillGemPurityOfFire"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemFireResistAura is a base item."
+  },
+  {
+    "name": "Purity of Ice",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemColdResistAura",
+      "Metadata/Items/Gems/SkillGemPurityOfIce"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemColdResistAura is a base item."
+  },
+  {
+    "name": "Purity of Lightning",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemLightningResistAura",
+      "Metadata/Items/Gems/SkillGemPurityOfLightning"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemLightningResistAura is a base item."
+  },
+  {
+    "name": "Pyroclast Mine",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemFireNovaMine",
+      "Metadata/Items/Gems/SkillGemPyroclastMine"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemFireNovaMine is a base item."
+  },
+  {
+    "name": "Quickstep",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemQuickstep",
+      "Metadata/Items/Gems/SkillGemQuickstepHardMode"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemQuickstep is a base item."
+  },
+  {
+    "name": "Reap",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemBloodreap",
+      "Metadata/Items/Gems/SkillGemReap"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemBloodreap is a base item."
+  },
+  {
+    "name": "Rolling Magma",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemMagmaOrb",
+      "Metadata/Items/Gems/SkillGemRollingMagma"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemMagmaOrb is a base item."
+  },
+  {
+    "name": "Rosethorn Tincture",
+    "ids": [
+      "Metadata/Items/Tinctures/Tincture2",
+      "Metadata/Items/Tinctures/TinctureCriticalStrike"
+    ],
+    "reason": "Tincture reword, repoe still lists the id from before it. See https://www.poewiki.net/wiki/Rosethorn_Tincture"
+  },
+  {
+    "name": "Sacrifice at Dawn",
+    "ids": [
+      "Metadata/Items/MapFragments/CurrencyVaalFragment1_2",
+      "Metadata/Items/MapFragments/VaalFragment1_2"
+    ],
+    "reason": "Reworked in 3.28. Sacrifice and Mortal fragments no longer open a Vaal Side Area from the Map Device directly; they are used alongside a Map to add one, keeping their quantity bonus. Repoe still lists the id from before it. See https://www.poewiki.net/wiki/Sacrifice_at_Dawn"
+  },
+  {
+    "name": "Sacrifice at Dusk",
+    "ids": [
+      "Metadata/Items/MapFragments/CurrencyVaalFragment1_4",
+      "Metadata/Items/MapFragments/VaalFragment1_4"
+    ],
+    "reason": "Reworked in 3.28. Sacrifice and Mortal fragments no longer open a Vaal Side Area from the Map Device directly; they are used alongside a Map to add one, keeping their quantity bonus. Repoe still lists the id from before it. See https://www.poewiki.net/wiki/Sacrifice_at_Dusk"
+  },
+  {
+    "name": "Sacrifice at Midnight",
+    "ids": [
+      "Metadata/Items/MapFragments/CurrencyVaalFragment1_1",
+      "Metadata/Items/MapFragments/VaalFragment1_1"
+    ],
+    "reason": "Reworked in 3.28. Sacrifice and Mortal fragments no longer open a Vaal Side Area from the Map Device directly; they are used alongside a Map to add one, keeping their quantity bonus. Repoe still lists the id from before it. See https://www.poewiki.net/wiki/Sacrifice_at_Midnight"
+  },
+  {
+    "name": "Sacrifice at Noon",
+    "ids": [
+      "Metadata/Items/MapFragments/CurrencyVaalFragment1_3",
+      "Metadata/Items/MapFragments/VaalFragment1_3"
+    ],
+    "reason": "Reworked in 3.28. Sacrifice and Mortal fragments no longer open a Vaal Side Area from the Map Device directly; they are used alongside a Map to add one, keeping their quantity bonus. Repoe still lists the id from before it. See https://www.poewiki.net/wiki/Sacrifice_at_Noon"
+  },
+  {
+    "name": "Scorching Ray",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemFireBeam",
+      "Metadata/Items/Gems/SkillGemScorchingRay"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemFireBeam is a base item."
+  },
+  {
+    "name": "Seismic Trap",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemPhysCascadeTrap",
+      "Metadata/Items/Gems/SkillGemSeismicTrap"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemPhysCascadeTrap is a base item."
+  },
+  {
+    "name": "Serrated Arrow Quiver",
+    "ids": [
+      "Metadata/Items/Quivers/Quiver6",
+      "Metadata/Items/Quivers/QuiverDescent",
+      "Metadata/Items/Quivers/QuiverNew1"
+    ],
+    "reason": "Quiver reword, repoe still lists legacy ingame. Also contains listing for Descent event. See https://www.poewiki.net/wiki/Serrated_Arrow_Quiver"
+  },
+  {
+    "name": "Shadowed Ring",
+    "ids": [
+      "Metadata/Items/Rings/RingK5a",
+      "Metadata/Items/Rings/RingK5b",
+      "Metadata/Items/Rings/RingK5c"
+    ],
+    "reason": "Has 3 different implicits, a base for each. See https://www.poewiki.net/wiki/Shadowed_Ring"
+  },
+  {
+    "name": "Sharktooth Arrow Quiver",
+    "ids": [
+      "Metadata/Items/Quivers/Quiver8",
+      "Metadata/Items/Quivers/QuiverNew3"
+    ],
+    "reason": "Quiver reword, repoe still lists legacy ingame. See https://www.poewiki.net/wiki/Sharktooth_Arrow_Quiver"
+  },
+  {
+    "name": "Siphoning Trap",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemIceSiphonTrap",
+      "Metadata/Items/Gems/SkillGemSiphoningTrap"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemIceSiphonTrap is a base item."
+  },
+  {
+    "name": "Snipe",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemChannelledSnipe",
+      "Metadata/Items/Gems/SkillGemSnipe"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemChannelledSnipe is a base item."
+  },
+  {
+    "name": "Sniper's Mark",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemProjectileWeakness",
+      "Metadata/Items/Gems/SkillGemSnipersMark"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemProjectileWeakness is a base item."
+  },
+  {
+    "name": "Spectral Shield Throw",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemSpectralShieldThrow",
+      "Metadata/Items/Gems/SkillGemThrownShieldProjectile"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemThrownShieldProjectile is a base item."
+  },
+  {
+    "name": "Spectral Throw",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemSpectralThrow",
+      "Metadata/Items/Gems/SkillGemThrownWeapon"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemThrownWeapon is a base item."
+  },
+  {
+    "name": "Spike-Point Arrow Quiver",
+    "ids": [
+      "Metadata/Items/Quivers/Quiver13",
+      "Metadata/Items/Quivers/QuiverNew8"
+    ],
+    "reason": "Quiver reword, repoe still lists legacy ingame. See https://www.poewiki.net/wiki/Spike-Point_Arrow_Quiver"
+  },
+  {
+    "name": "Steelskin",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemQuickGuard",
+      "Metadata/Items/Gems/SkillGemSteelskin"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemSteelskin is a base item."
+  },
+  {
+    "name": "Summon Holy Relic",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemSummonHolyRelic",
+      "Metadata/Items/Gems/SkillGemSummonRelic"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemSummonRelic is a base item."
+  },
+  {
+    "name": "Summon Stone Golem",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemSummonRockGolem",
+      "Metadata/Items/Gems/SkillGemSummonStoneGolem"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemSummonRockGolem is a base item."
+  },
+  {
+    "name": "Swordstorm",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemReckoning",
+      "Metadata/Items/Gems/SkillGemSwordstorm"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemReckoning is a base item."
+  },
+  {
+    "name": "Two-Point Arrow Quiver",
+    "ids": [
+      "Metadata/Items/Quivers/Quiver7",
+      "Metadata/Items/Quivers/QuiverNew7"
+    ],
+    "reason": "Quiver reword, repoe still lists legacy ingame. See https://www.poewiki.net/wiki/Two-Point_Arrow_Quiver"
+  },
+  {
+    "name": "Two-Stone Ring",
+    "ids": [
+      "Metadata/Items/Rings/Ring12",
+      "Metadata/Items/Rings/Ring13",
+      "Metadata/Items/Rings/Ring14"
+    ],
+    "reason": "Has 3 different implicits, a base for each. See https://www.poewiki.net/wiki/Two-Stone_Ring"
+  },
+  {
+    "name": "Two-Toned Boots",
+    "ids": [
+      "Metadata/Items/Armours/Boots/BootsAtlas1",
+      "Metadata/Items/Armours/Boots/BootsAtlas2",
+      "Metadata/Items/Armours/Boots/BootsAtlas3"
+    ],
+    "reason": "Has 3 different implicits, a base for each. See https://www.poewiki.net/wiki/Two-Toned_Boots"
+  },
+  {
+    "name": "Unearth",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemBoneLance",
+      "Metadata/Items/Gems/SkillGemUnearth"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemBoneLance is a base item."
+  },
+  {
+    "name": "Vaal Blade Flurry",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemVaalBladeFlurry",
+      "Metadata/Items/Gems/SkillGemVaalChargedAttack"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemVaalChargedAttack is a base item."
+  },
+  {
+    "name": "Vaal Impurity of Fire",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemVaalFireResistAura",
+      "Metadata/Items/Gems/SkillGemVaalImpurityOfFire"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemVaalFireResistAura is a base item."
+  },
+  {
+    "name": "Vaal Impurity of Ice",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemVaalColdResistAura",
+      "Metadata/Items/Gems/SkillGemVaalImpurityOfIce"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemVaalColdResistAura is a base item."
+  },
+  {
+    "name": "Vaal Impurity of Lightning",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemVaalImpurityOfLightning",
+      "Metadata/Items/Gems/SkillGemVaalLightningResistAura"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemVaalLightningResistAura is a base item."
+  },
+  {
+    "name": "Vaal Spectral Throw",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemVaalSpectralThrow",
+      "Metadata/Items/Gems/SkillGemVaalThrownWeapon"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemVaalThrownWeapon is a base item."
+  },
+  {
+    "name": "Vaal Temple Map",
+    "ids": [
+      "Metadata/Items/Maps/Map2Tier14_4",
+      "Metadata/Items/Maps/MapAtlasVaalTemple",
+      "Metadata/Items/Maps/MapKeyVaalTemple",
+      "Metadata/Items/Maps/MapTier14_1",
+      "Metadata/Items/Maps/MapWorldsVaalTemple"
+    ],
+    "reason": "One map per atlas era, none of them removed from repoe. MapTier14_1 is tagged old_map at drop level 79, Map2Tier14_4 is 81, and the three at 83 are the current era, of which MapKeyVaalTemple is the MapKey class. Nothing separates them ingame. See https://www.poewiki.net/wiki/Vaal_Temple_Map"
+  },
+  {
+    "name": "Voidborn Reliquary Key",
+    "ids": [
+      "Metadata/Items/MapFragments/TencentVoidbornVaultKey",
+      "Metadata/Items/MapFragments/VoidbornVaultKey"
+    ],
+    "reason": "A Tencent build carries its own id for the same key. Identical in every exported field: same VaultKey class, same art, same drop level, same tags. See https://www.poewiki.net/wiki/Voidborn_Reliquary_Key"
+  },
+  {
+    "name": "Vortex",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemFrostBoltNova",
+      "Metadata/Items/Gems/SkillGemVortex"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemFrostBoltNova is a base item."
+  },
+  {
+    "name": "Wave of Conviction",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemPurge",
+      "Metadata/Items/Gems/SkillGemWaveOfConviction"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemPurge is a base item."
+  },
+  {
+    "name": "Zealotry",
+    "ids": [
+      "Metadata/Items/Gems/SkillGemSpellDamageAura",
+      "Metadata/Items/Gems/SkillGemZealotry"
+    ],
+    "reason": "Repoe gem tables key by granted effect rather than by item, so one gem picks up a second id. Only SkillGemSpellDamageAura is a base item."
+  }
+]
