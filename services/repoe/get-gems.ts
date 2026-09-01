@@ -3,10 +3,11 @@ import type { Gems } from "./get-gems.types.ts";
 import type { RepoeContext } from "./types.ts";
 
 /**
- * Every gem variant in the game, from `GET /pob-data/poe1/Gems.json`.
+ * Every gem variant in the game, from `GET /pob-data/poe1/Gems.min.json`.
  *
  * **The whole file in one request, with no way to ask for less.** RePoE publishes a static
- * file per export; there is no query, no league and no partial fetch.
+ * file per export; there is no query, no league and no partial fetch. The `.min` variant is
+ * the same export with the whitespace taken out, and parses to exactly the same object.
  *
  * What comes back is the file itself — an object keyed by the variant's metadata id, no
  * envelope around it. Transfigured variants are their own rows and share a `gameId` with
@@ -14,7 +15,7 @@ import type { RepoeContext } from "./types.ts";
  */
 export async function getGems(context: RepoeContext): Promise<Gems> {
   return call<Gems>(
-    `${context.baseUrl}/pob-data/poe1/Gems.json`,
+    `${context.baseUrl}/pob-data/poe1/Gems.min.json`,
     currentHour(),
     context,
   );

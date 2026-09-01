@@ -20,9 +20,9 @@ published, so there is no limiter; the cache is what makes a re-run affordable.
 | Endpoint | File | Holds |
 | --- | --- | --- |
 | `getBaseItems` | `/base_items.json` | Every base item in the game. |
-| `getGems` | `/pob-data/poe1/Gems.json` | Every gem variant, transfigured ones included. |
+| `getGems` | `/pob-data/poe1/Gems.min.json` | Every gem variant, transfigured ones included. |
 | `getSpectres` | `/pob-data/poe1/Spectres.json` | Every raisable monster and its stats. |
-| `getEssences` | `/pob-data/poe1/Essence.json` | Every essence and the mod it forces per slot. |
+| `getEssences` | `/pob-data/poe1/Essence.min.json` | Every essence and the mod it forces per slot. |
 
 **The four are separate exports and share no vocabulary.** `base_items.json` keys on
 `item_class` and metadata ids; `Gems.json` keys on gem variant ids; `Essence.json` names
@@ -44,11 +44,11 @@ services/repoe/
 ├── types.ts                    # the context and the cache interface
 ├── get-base-items.ts           # GET /base_items.json
 ├── get-base-items.types.ts     # BaseItems, BaseItem, BaseItemProperties, and three helpers
-├── get-gems.ts                 # GET /pob-data/poe1/Gems.json
+├── get-gems.ts                 # GET /pob-data/poe1/Gems.min.json
 ├── get-gems.types.ts           # Gems, Gem, GemTags
 ├── get-spectres.ts             # GET /pob-data/poe1/Spectres.json
 ├── get-spectres.types.ts       # Spectres, Spectre, SpectreMod
-├── get-essences.ts             # GET /pob-data/poe1/Essence.json
+├── get-essences.ts             # GET /pob-data/poe1/Essence.min.json
 └── get-essences.types.ts       # Essences, Essence, EssenceMods
 ```
 
@@ -198,6 +198,12 @@ publishes no requirement about it.
 
 - **The whole export in one request, with no way to ask for less.** There is no query and
   no partial fetch. Hand the service a cache or pay for the whole file every time.
+- **Only two of the four take the `.min` variant, and the reason is per file.** `Gems` and
+  `Essence` take it: it is the same export with the whitespace gone and parses to an equal
+  object. `Spectres.min.json` is published empty — 200 with a zero-length body — so taking
+  it would answer nothing. `base_items.min.json` is less than half the size, but it gets
+  there by dropping every null-valued key, which contradicts what `BaseItemProperties`
+  promises. Check the content before switching either of those on.
 - **The four exports share no vocabulary.** A gem is a metadata id in `base_items.json` and
   a variant id in `Gems.json`; an equipment slot is `item_class` in one file and a spelled
   out `Thrusting One Handed Sword` in another. Nothing here reconciles them.

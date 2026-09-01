@@ -8,6 +8,10 @@ import type { RepoeContext } from "./types.ts";
  * **The whole file in one request, with no way to ask for less.** RePoE publishes a static
  * file per export; there is no query, no league and no partial fetch.
  *
+ * **Not the `.min` variant, unlike the gems and the essences.** `Spectres.min.json` is
+ * published empty — it answers 200 with a zero-length body, which parses to nothing. Switch
+ * to it once it has content.
+ *
  * What comes back is the file itself — an object keyed by monster metadata id, no envelope
  * around it. The stats in it are multipliers against the monster base table rather than
  * absolute numbers, so a row is worth nothing without that table.

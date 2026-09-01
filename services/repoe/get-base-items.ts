@@ -9,6 +9,11 @@ import type { RepoeContext } from "./types.ts";
  * static file per export; there is no query, no league and no partial fetch. Hand the
  * service a cache or pay for the whole thing on every call.
  *
+ * **Not the `.min` variant, unlike the gems and the essences.** `base_items.min.json` is
+ * less than half the size, but it gets there by dropping every null-valued key rather than
+ * only the whitespace. That contradicts the promise `BaseItemProperties` makes — every key
+ * present on every row — so taking it would mean making that whole type optional.
+ *
  * What comes back is the file itself — an object keyed by metadata id, no envelope around
  * it. It covers every base the client can show, including the unreleased and legacy ones,
  * which `release_state` is what separates.
