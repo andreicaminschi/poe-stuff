@@ -7,6 +7,9 @@
   "exports": {
     "./service": "./service.ts",
     "./get-base-items.types": "./get-base-items.types.ts",
+    "./get-gems.types": "./get-gems.types.ts",
+    "./get-spectres.types": "./get-spectres.types.ts",
+    "./get-essences.types": "./get-essences.types.ts",
     "./errors": "./errors.ts",
     "./types": "./types.ts"
   },
