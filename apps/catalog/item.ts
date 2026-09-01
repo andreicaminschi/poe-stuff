@@ -43,6 +43,14 @@ export type Item = {
   readonly subcategory: string | null;
   readonly baseTypes: readonly string[];
   readonly isUnique: boolean;
+  /**
+   * Whether the game files this as a quest item.
+   *
+   * `item_class: "QuestItem"` is the only thing that says so — `domain` reads `undefined`
+   * on all 282 of them. They share display names with real items freely: four of the six
+   * `Maven's Invitation: The Atlas` ids are quest items and two are not.
+   */
+  readonly isQuestItem: boolean;
   readonly releaseState: string | null;
   readonly tags: readonly string[];
   readonly sources: readonly ItemSource[];
@@ -72,19 +80,34 @@ export type Item = {
 const REMOVED = "RemovedItem";
 
 /**
+ * The taxonomy category meaning "keep the row, never draw it".
+ *
+ * Declared here rather than imported from the taxonomy app, the same way the key layout is:
+ * the two agree on a published format, not on a module. Rows land in `excluded.json` like
+ * any other category, so what was set aside stays readable.
+ */
+const EXCLUDED = "excluded";
+
+/**
  * Whether the generator can write a line for this row.
  *
- * Three questions at once: can a player get one — the trade site lists it, or it traded on
- * the exchange — has the game not taken it out, and can a filter name it. A row that fails
- * any of them is real enough to keep and useless to write a rule for.
+ * Five questions at once: can a player get one — the trade site lists it, or it traded on
+ * the exchange — has the game not taken it out, is it something the game lets a filter act
+ * on at all, was it set aside on purpose, and can a filter name it. A row that fails any of
+ * them is real enough to keep and useless to write a rule for.
  *
- * The removed check is here rather than in the taxonomy because the game's own data answers
- * it. The taxonomy is for what nothing else can settle, like a beast species the client
- * rejects while the one beside it drops.
+ * **A quest item is never one of them.** The game shows quest items whatever a filter says,
+ * so a rule for one does nothing.
+ *
+ * The removed and quest checks are here rather than in the taxonomy because the game's own
+ * data answers them. The taxonomy is for what nothing else can settle, like a beast species
+ * the client rejects while the one beside it drops.
  */
 export const isFilterable = (item: Item): boolean =>
   (item.tradable || item.tradedOnExchange) &&
   item.itemClass !== REMOVED &&
+  !item.isQuestItem &&
+  item.category !== EXCLUDED &&
   item.filterable;
 
 /**
@@ -111,6 +134,7 @@ export const blankItem = (key: string, name: string | null = key): Item => ({
   subcategory: null,
   baseTypes: [],
   isUnique: false,
+  isQuestItem: false,
   releaseState: null,
   tags: [],
   sources: [],

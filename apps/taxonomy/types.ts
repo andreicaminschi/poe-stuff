@@ -15,6 +15,14 @@ export type AuthoredEntry = {
    * ids can share a name outright — `Wildfire` is a skill gem and a unique jewel.
    */
   readonly name: string;
+  /**
+   * The broad group the row belongs to, and where its silver file gets its name.
+   *
+   * **`excluded` is reserved.** A row in it is one nobody wants in a generated filter —
+   * not because a filter could not name it, which is what `filterable` says, but because it
+   * should not be drawn at all. Everything in that category lands in `excluded.json` and
+   * never reaches a `.filterable.json`.
+   */
   readonly category: string;
   readonly subcategory: string | null;
   /**

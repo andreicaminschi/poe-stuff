@@ -19400,7 +19400,7 @@
   },
   "Metadata/Items/Currency/CurrencyAfflictionOrbGeneric": {
     "name": "Delirium Orb",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -19418,7 +19418,7 @@
   },
   "Metadata/Items/Currency/CurrencyAfflictionOrbHardMode": {
     "name": "Delirium Orb",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -19553,7 +19553,7 @@
   },
   "Metadata/Items/Currency/CurrencyAncestralSilverCoin": {
     "name": "Silver Coin",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21317,7 +21317,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationAbyss": {
     "name": "Abyssal Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21326,7 +21326,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationAbyssStackable": {
     "name": "Abyssal Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21335,7 +21335,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationArmour6Linked": {
     "name": "Geomancer's Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21344,7 +21344,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationArmour6LinkedStackable": {
     "name": "Geomancer's Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21353,7 +21353,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationArmourShaperElder": {
     "name": "Celestial Armoursmith's Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21362,7 +21362,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationArmourShaperElderStackable": {
     "name": "Celestial Armoursmith's Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21371,7 +21371,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationBestiary": {
     "name": "Feral Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21380,7 +21380,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationBestiaryStackable": {
     "name": "Feral Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21389,7 +21389,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationBlight": {
     "name": "Blighted Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21398,7 +21398,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationBlightStackable": {
     "name": "Blighted Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21407,7 +21407,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationBreach": {
     "name": "Obscured Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21416,7 +21416,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationBreachStackable": {
     "name": "Obscured Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21425,7 +21425,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationCurrency": {
     "name": "Fine Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21434,7 +21434,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationCurrencyMid": {
     "name": "Ornate Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21443,7 +21443,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationCurrencyMidStackable": {
     "name": "Ornate Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21452,7 +21452,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationCurrencyStackable": {
     "name": "Fine Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21461,7 +21461,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationDelirium": {
     "name": "Maddening Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21470,7 +21470,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationDeliriumStackable": {
     "name": "Maddening Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21479,7 +21479,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationDivination": {
     "name": "Diviner's Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21488,7 +21488,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationDivinationStackable": {
     "name": "Diviner's Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21497,7 +21497,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationEssence": {
     "name": "Whispering Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21506,7 +21506,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationEssenceHigh": {
     "name": "Infused Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21515,7 +21515,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationEssenceHighStackable": {
     "name": "Infused Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21524,7 +21524,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationEssenceStackable": {
     "name": "Whispering Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21533,7 +21533,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationFaridunHighStackable": {
     "name": "Sacred Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21542,7 +21542,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationFaridunLowStackable": {
     "name": "Honoured Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21551,7 +21551,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationFaridunMapStackable": {
     "name": "Miraged Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21560,7 +21560,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationFossils": {
     "name": "Fossilised Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21569,7 +21569,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationFossilsStackable": {
     "name": "Fossilised Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21578,7 +21578,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationFragments": {
     "name": "Fragmented Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21587,7 +21587,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationFragmentsStackable": {
     "name": "Fragmented Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21596,7 +21596,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationGem": {
     "name": "Thaumaturge's Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21605,7 +21605,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationGemLow": {
     "name": "Gemcutter's Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21614,7 +21614,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationGemLowStackable": {
     "name": "Gemcutter's Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21623,7 +21623,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationGemStackable": {
     "name": "Thaumaturge's Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21632,7 +21632,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationGeneric": {
     "name": "Mysterious Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21641,7 +21641,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationGenericStackable": {
     "name": "Mysterious Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21650,7 +21650,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationHarbingerShard": {
     "name": "Foreboding Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21659,7 +21659,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationHarbingerShardStackable": {
     "name": "Foreboding Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21668,7 +21668,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationLabyrinthHelm": {
     "name": "Enchanted Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21677,7 +21677,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationLabyrinthHelmStackable": {
     "name": "Enchanted Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21686,7 +21686,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationMapElder": {
     "name": "Eldritch Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21695,7 +21695,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationMapElderStackable": {
     "name": "Eldritch Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21704,7 +21704,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationMaps": {
     "name": "Cartographer's Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21713,7 +21713,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationMapsStackable": {
     "name": "Cartographer's Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21722,7 +21722,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationMetamorph": {
     "name": "Challenging Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21731,7 +21731,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationMetamorphStackable": {
     "name": "Challenging Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21740,7 +21740,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationPerandus": {
     "name": "Kalguuran Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21749,7 +21749,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationPerandusStackable": {
     "name": "Kalguuran Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21758,7 +21758,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationScarabs": {
     "name": "Skittering Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21767,7 +21767,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationScarabsStackable": {
     "name": "Skittering Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21776,7 +21776,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationTalismans": {
     "name": "Primal Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21785,7 +21785,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationTalismansStackable": {
     "name": "Primal Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21794,7 +21794,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationTrinketShaperElder": {
     "name": "Celestial Jeweller's Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21803,7 +21803,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationTrinketShaperElderStackable": {
     "name": "Celestial Jeweller's Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21812,7 +21812,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationUniqueLeague": {
     "name": "Time-Lost Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21821,7 +21821,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationUniqueLeagueStackable": {
     "name": "Time-Lost Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21830,7 +21830,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationUniqueMaps": {
     "name": "Otherworldly Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21839,7 +21839,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationUniqueMapsStackable": {
     "name": "Otherworldly Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21848,7 +21848,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationUniques": {
     "name": "Singular Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21857,7 +21857,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationUniquesStackable": {
     "name": "Singular Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21866,7 +21866,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationWeaponShaperElder": {
     "name": "Celestial Blacksmith's Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -21875,7 +21875,7 @@
   },
   "Metadata/Items/Currency/CurrencyIncubationWeaponShaperElderStackable": {
     "name": "Celestial Blacksmith's Incubator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -22676,7 +22676,7 @@
   },
   "Metadata/Items/Currency/CurrencySilverCoin": {
     "name": "Silver Coin",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -24296,7 +24296,7 @@
   },
   "Metadata/Items/Delve/DelveSocketableCurrencyUpgrade1": {
     "name": "Primitive Alchemical Resonator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -24305,7 +24305,7 @@
   },
   "Metadata/Items/Delve/DelveSocketableCurrencyUpgrade2": {
     "name": "Potent Alchemical Resonator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -24314,7 +24314,7 @@
   },
   "Metadata/Items/Delve/DelveSocketableCurrencyUpgrade3": {
     "name": "Powerful Alchemical Resonator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -24323,7 +24323,7 @@
   },
   "Metadata/Items/Delve/DelveSocketableCurrencyUpgrade4": {
     "name": "Prime Alchemical Resonator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -24368,7 +24368,7 @@
   },
   "Metadata/Items/Delve/DelveStackableSocketableCurrencyUpgrade1": {
     "name": "Primitive Alchemical Resonator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -24377,7 +24377,7 @@
   },
   "Metadata/Items/Delve/DelveStackableSocketableCurrencyUpgrade2": {
     "name": "Potent Alchemical Resonator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -24386,7 +24386,7 @@
   },
   "Metadata/Items/Delve/DelveStackableSocketableCurrencyUpgrade3": {
     "name": "Powerful Alchemical Resonator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -24395,7 +24395,7 @@
   },
   "Metadata/Items/Delve/DelveStackableSocketableCurrencyUpgrade4": {
     "name": "Prime Alchemical Resonator",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -43545,7 +43545,7 @@
   },
   "Metadata/Items/MapFragments/CurrencyBreachFragmentChaos": {
     "name": "Chayula's Breachstone",
-    "category": "map",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "map",
@@ -43554,7 +43554,7 @@
   },
   "Metadata/Items/MapFragments/CurrencyBreachFragmentChaos2": {
     "name": "Chayula's Charged Breachstone",
-    "category": "breachstone",
+    "category": "excluded",
     "subcategory": "breach",
     "original": {
       "category": "breachstone",
@@ -43563,7 +43563,7 @@
   },
   "Metadata/Items/MapFragments/CurrencyBreachFragmentChaos3": {
     "name": "Chayula's Enriched Breachstone",
-    "category": "breachstone",
+    "category": "excluded",
     "subcategory": "breach",
     "original": {
       "category": "breachstone",
@@ -43572,7 +43572,7 @@
   },
   "Metadata/Items/MapFragments/CurrencyBreachFragmentChaos4": {
     "name": "Chayula's Pure Breachstone",
-    "category": "breachstone",
+    "category": "excluded",
     "subcategory": "breach",
     "original": {
       "category": "breachstone",
@@ -43581,7 +43581,7 @@
   },
   "Metadata/Items/MapFragments/CurrencyBreachFragmentChaos5": {
     "name": "Chayula's Flawless Breachstone",
-    "category": "map",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "map",
@@ -43590,7 +43590,7 @@
   },
   "Metadata/Items/MapFragments/CurrencyBreachFragmentCold": {
     "name": "Tul's Breachstone",
-    "category": "map",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "map",
@@ -43599,7 +43599,7 @@
   },
   "Metadata/Items/MapFragments/CurrencyBreachFragmentCold2": {
     "name": "Tul's Charged Breachstone",
-    "category": "breachstone",
+    "category": "excluded",
     "subcategory": "breach",
     "original": {
       "category": "breachstone",
@@ -43608,7 +43608,7 @@
   },
   "Metadata/Items/MapFragments/CurrencyBreachFragmentCold3": {
     "name": "Tul's Enriched Breachstone",
-    "category": "breachstone",
+    "category": "excluded",
     "subcategory": "breach",
     "original": {
       "category": "breachstone",
@@ -43617,7 +43617,7 @@
   },
   "Metadata/Items/MapFragments/CurrencyBreachFragmentCold4": {
     "name": "Tul's Pure Breachstone",
-    "category": "breachstone",
+    "category": "excluded",
     "subcategory": "breach",
     "original": {
       "category": "breachstone",
@@ -43626,7 +43626,7 @@
   },
   "Metadata/Items/MapFragments/CurrencyBreachFragmentCold5": {
     "name": "Tul's Flawless Breachstone",
-    "category": "map",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "map",
@@ -43635,7 +43635,7 @@
   },
   "Metadata/Items/MapFragments/CurrencyBreachFragmentFire": {
     "name": "Xoph's Breachstone",
-    "category": "map",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "map",
@@ -43644,7 +43644,7 @@
   },
   "Metadata/Items/MapFragments/CurrencyBreachFragmentFire2": {
     "name": "Xoph's Charged Breachstone",
-    "category": "breachstone",
+    "category": "excluded",
     "subcategory": "breach",
     "original": {
       "category": "breachstone",
@@ -43653,7 +43653,7 @@
   },
   "Metadata/Items/MapFragments/CurrencyBreachFragmentFire3": {
     "name": "Xoph's Enriched Breachstone",
-    "category": "breachstone",
+    "category": "excluded",
     "subcategory": "breach",
     "original": {
       "category": "breachstone",
@@ -43662,7 +43662,7 @@
   },
   "Metadata/Items/MapFragments/CurrencyBreachFragmentFire4": {
     "name": "Xoph's Pure Breachstone",
-    "category": "breachstone",
+    "category": "excluded",
     "subcategory": "breach",
     "original": {
       "category": "breachstone",
@@ -43671,7 +43671,7 @@
   },
   "Metadata/Items/MapFragments/CurrencyBreachFragmentFire5": {
     "name": "Xoph's Flawless Breachstone",
-    "category": "map",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "map",
@@ -43680,7 +43680,7 @@
   },
   "Metadata/Items/MapFragments/CurrencyBreachFragmentLightning": {
     "name": "Esh's Breachstone",
-    "category": "map",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "map",
@@ -43689,7 +43689,7 @@
   },
   "Metadata/Items/MapFragments/CurrencyBreachFragmentLightning2": {
     "name": "Esh's Charged Breachstone",
-    "category": "breachstone",
+    "category": "excluded",
     "subcategory": "breach",
     "original": {
       "category": "breachstone",
@@ -43698,7 +43698,7 @@
   },
   "Metadata/Items/MapFragments/CurrencyBreachFragmentLightning3": {
     "name": "Esh's Enriched Breachstone",
-    "category": "breachstone",
+    "category": "excluded",
     "subcategory": "breach",
     "original": {
       "category": "breachstone",
@@ -43707,7 +43707,7 @@
   },
   "Metadata/Items/MapFragments/CurrencyBreachFragmentLightning4": {
     "name": "Esh's Pure Breachstone",
-    "category": "breachstone",
+    "category": "excluded",
     "subcategory": "breach",
     "original": {
       "category": "breachstone",
@@ -43716,7 +43716,7 @@
   },
   "Metadata/Items/MapFragments/CurrencyBreachFragmentLightning5": {
     "name": "Esh's Flawless Breachstone",
-    "category": "map",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "map",
@@ -43725,7 +43725,7 @@
   },
   "Metadata/Items/MapFragments/CurrencyBreachFragmentPhysical": {
     "name": "Uul-Netol's Breachstone",
-    "category": "map",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "map",
@@ -43734,7 +43734,7 @@
   },
   "Metadata/Items/MapFragments/CurrencyBreachFragmentPhysical2": {
     "name": "Uul-Netol's Charged Breachstone",
-    "category": "breachstone",
+    "category": "excluded",
     "subcategory": "breach",
     "original": {
       "category": "breachstone",
@@ -43743,7 +43743,7 @@
   },
   "Metadata/Items/MapFragments/CurrencyBreachFragmentPhysical3": {
     "name": "Uul-Netol's Enriched Breachstone",
-    "category": "breachstone",
+    "category": "excluded",
     "subcategory": "breach",
     "original": {
       "category": "breachstone",
@@ -43752,7 +43752,7 @@
   },
   "Metadata/Items/MapFragments/CurrencyBreachFragmentPhysical4": {
     "name": "Uul-Netol's Pure Breachstone",
-    "category": "breachstone",
+    "category": "excluded",
     "subcategory": "breach",
     "original": {
       "category": "breachstone",
@@ -43761,7 +43761,7 @@
   },
   "Metadata/Items/MapFragments/CurrencyBreachFragmentPhysical5": {
     "name": "Uul-Netol's Flawless Breachstone",
-    "category": "map",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "map",
@@ -44004,7 +44004,7 @@
   },
   "Metadata/Items/MapFragments/CurrencyProphecyFragment1": {
     "name": "Eber's Key",
-    "category": "map",
+    "category": "excluded",
     "subcategory": "maps",
     "original": {
       "category": "map",
@@ -44013,7 +44013,7 @@
   },
   "Metadata/Items/MapFragments/CurrencyProphecyFragment2": {
     "name": "Yriel's Key",
-    "category": "map",
+    "category": "excluded",
     "subcategory": "maps",
     "original": {
       "category": "map",
@@ -44022,7 +44022,7 @@
   },
   "Metadata/Items/MapFragments/CurrencyProphecyFragment3": {
     "name": "Inya's Key",
-    "category": "map",
+    "category": "excluded",
     "subcategory": "maps",
     "original": {
       "category": "map",
@@ -44031,7 +44031,7 @@
   },
   "Metadata/Items/MapFragments/CurrencyProphecyFragment4": {
     "name": "Volkuur's Key",
-    "category": "map",
+    "category": "excluded",
     "subcategory": "maps",
     "original": {
       "category": "map",
@@ -44382,7 +44382,7 @@
   },
   "Metadata/Items/MapFragments/Maven/MavenMapAtlas1": {
     "name": "Maven's Invitation: The Atlas",
-    "category": "map",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "map",
@@ -44391,7 +44391,7 @@
   },
   "Metadata/Items/MapFragments/Maven/MavenMapAtlas2": {
     "name": "Maven's Invitation: The Atlas",
-    "category": "map",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "map",
@@ -44400,7 +44400,7 @@
   },
   "Metadata/Items/MapFragments/Maven/MavenMapAtlas3": {
     "name": "Maven's Invitation: The Atlas",
-    "category": "map",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "map",
@@ -44409,7 +44409,7 @@
   },
   "Metadata/Items/MapFragments/Maven/MavenMapAtlas4": {
     "name": "Maven's Invitation: The Atlas",
-    "category": "map",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "map",
@@ -44418,7 +44418,7 @@
   },
   "Metadata/Items/MapFragments/Maven/MavenMapAtlas5": {
     "name": "Maven's Invitation: The Atlas",
-    "category": "map",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "map",
@@ -44427,7 +44427,7 @@
   },
   "Metadata/Items/MapFragments/Maven/MavenMapAtlas5New": {
     "name": "Maven's Invitation: The Atlas",
-    "category": "map",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "map",
@@ -45003,7 +45003,7 @@
   },
   "Metadata/Items/MapFragments/ProphecyFragment1": {
     "name": "Eber's Key",
-    "category": "map",
+    "category": "excluded",
     "subcategory": "maps",
     "original": {
       "category": "map",
@@ -45012,7 +45012,7 @@
   },
   "Metadata/Items/MapFragments/ProphecyFragment2": {
     "name": "Yriel's Key",
-    "category": "map",
+    "category": "excluded",
     "subcategory": "maps",
     "original": {
       "category": "map",
@@ -45021,7 +45021,7 @@
   },
   "Metadata/Items/MapFragments/ProphecyFragment3": {
     "name": "Inya's Key",
-    "category": "map",
+    "category": "excluded",
     "subcategory": "maps",
     "original": {
       "category": "map",
@@ -45030,7 +45030,7 @@
   },
   "Metadata/Items/MapFragments/ProphecyFragment4": {
     "name": "Volkuur's Key",
-    "category": "map",
+    "category": "excluded",
     "subcategory": "maps",
     "original": {
       "category": "map",
@@ -59043,7 +59043,7 @@
   },
   "Metadata/Items/UniqueFragments/FragmentUniqueBelt1_1": {
     "name": "Cloth Belt Piece",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -59070,7 +59070,7 @@
   },
   "Metadata/Items/UniqueFragments/FragmentUniqueBelt1_2": {
     "name": "Cloth Belt Piece",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -59097,7 +59097,7 @@
   },
   "Metadata/Items/UniqueFragments/FragmentUniqueHelmet1_1": {
     "name": "Callous Mask Piece",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -59133,7 +59133,7 @@
   },
   "Metadata/Items/UniqueFragments/FragmentUniqueHelmet1_2": {
     "name": "Callous Mask Piece",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -59169,7 +59169,7 @@
   },
   "Metadata/Items/UniqueFragments/FragmentUniqueHelmet1_3": {
     "name": "Callous Mask Piece",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -59385,7 +59385,7 @@
   },
   "Metadata/Items/UniqueFragments/FragmentUniqueQuiver1_1": {
     "name": "Blunt Arrow Quiver Piece",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -59421,7 +59421,7 @@
   },
   "Metadata/Items/UniqueFragments/FragmentUniqueQuiver1_2": {
     "name": "Blunt Arrow Quiver Piece",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -59457,7 +59457,7 @@
   },
   "Metadata/Items/UniqueFragments/FragmentUniqueQuiver1_3": {
     "name": "Blunt Arrow Quiver Piece",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -59493,7 +59493,7 @@
   },
   "Metadata/Items/UniqueFragments/FragmentUniqueShield1_1": {
     "name": "Archon Kite Shield Piece",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -59538,7 +59538,7 @@
   },
   "Metadata/Items/UniqueFragments/FragmentUniqueShield1_2": {
     "name": "Archon Kite Shield Piece",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -59583,7 +59583,7 @@
   },
   "Metadata/Items/UniqueFragments/FragmentUniqueShield1_3": {
     "name": "Archon Kite Shield Piece",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -59628,7 +59628,7 @@
   },
   "Metadata/Items/UniqueFragments/FragmentUniqueShield1_4": {
     "name": "Archon Kite Shield Piece",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -59673,7 +59673,7 @@
   },
   "Metadata/Items/UniqueFragments/FragmentUniqueStaff1_1": {
     "name": "Imperial Staff Piece",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -59709,7 +59709,7 @@
   },
   "Metadata/Items/UniqueFragments/FragmentUniqueStaff1_2": {
     "name": "Imperial Staff Piece",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -59745,7 +59745,7 @@
   },
   "Metadata/Items/UniqueFragments/FragmentUniqueStaff1_3": {
     "name": "Imperial Staff Piece",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -59781,7 +59781,7 @@
   },
   "Metadata/Items/UniqueFragments/FragmentUniqueSword1_1": {
     "name": "Legion Sword Piece",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -59817,7 +59817,7 @@
   },
   "Metadata/Items/UniqueFragments/FragmentUniqueSword1_2": {
     "name": "Legion Sword Piece",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -59853,7 +59853,7 @@
   },
   "Metadata/Items/UniqueFragments/FragmentUniqueSword1_3": {
     "name": "Legion Sword Piece",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",
@@ -62823,7 +62823,7 @@
   },
   "Metadata/Items/Weapons/OneHandWeapons/OneHandSwords/StormBladeOneHand": {
     "name": "Energy Blade",
-    "category": "skill-gem",
+    "category": "excluded",
     "subcategory": "active",
     "original": {
       "category": "gem",
@@ -66063,7 +66063,7 @@
   },
   "Metadata/Items/Weapons/TwoHandWeapons/TwoHandSwords/StormBladeTwoHand": {
     "name": "Energy Blade",
-    "category": "skill-gem",
+    "category": "excluded",
     "subcategory": "active",
     "original": {
       "category": "gem",

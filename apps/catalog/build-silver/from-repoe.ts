@@ -27,6 +27,9 @@ import type { Item } from "../item.ts";
  */
 const ROYALE = /Royale/i;
 
+/** The class the game gives a quest item. Nothing else marks one — `domain` says nothing. */
+const QUEST_ITEM = "QuestItem";
+
 export function fromRepoe(baseItems: BaseItems): ReadonlyMap<string, Item> {
   const rows = new Map<string, Item>();
 
@@ -40,6 +43,7 @@ export function fromRepoe(baseItems: BaseItems): ReadonlyMap<string, Item> {
           ...blankItem(id, base.name),
           metadataPaths: [id],
           itemClass: base.item_class,
+          isQuestItem: base.item_class === QUEST_ITEM,
           releaseState: base.release_state,
           tags: [...base.tags],
         },
