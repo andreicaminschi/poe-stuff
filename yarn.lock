@@ -1381,6 +1381,18 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@poe/taxonomy-app@workspace:apps/taxonomy":
+  version: 0.0.0-use.local
+  resolution: "@poe/taxonomy-app@workspace:apps/taxonomy"
+  languageName: unknown
+  linkType: soft
+
+"@poe/taxonomy@workspace:services/taxonomy":
+  version: 0.0.0-use.local
+  resolution: "@poe/taxonomy@workspace:services/taxonomy"
+  languageName: unknown
+  linkType: soft
+
 "@poe/workers@workspace:packages/workers":
   version: 0.0.0-use.local
   resolution: "@poe/workers@workspace:packages/workers"

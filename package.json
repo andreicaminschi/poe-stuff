@@ -12,6 +12,9 @@
   ],
   "scripts": {
     "catalog": "node --env-file=apps/catalog/.env apps/catalog/catalog-cli.ts",
+    "taxonomy": "node apps/taxonomy/taxonomy-cli.ts",
+    "taxonomy:publish": "node apps/taxonomy/taxonomy-cli.ts publish",
+    "taxonomy:promote": "node apps/taxonomy/taxonomy-cli.ts promote",
     "typecheck": "tsc",
     "typecheck:watch": "tsc --watch",
     "lint": "eslint .",

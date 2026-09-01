@@ -1,0 +1,13 @@
+{
+  "name": "@poe/taxonomy",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./errors": "./errors.ts",
+    "./get-taxonomy.types": "./get-taxonomy.types.ts",
+    "./service": "./service.ts",
+    "./types": "./types.ts"
+  }
+}
