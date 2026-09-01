@@ -38,8 +38,14 @@ const report = (event: PipelineEvent): void => {
     process.stdout.write(`${event.id}: running\n`);
     return;
   }
-  // A step that wrote nothing — the validator — reports a count and no destination.
-  const wrote = event.keys.length === 0 ? "" : ` -> ${event.keys.join(", ")}`;
+  // A step that wrote nothing — the validator — reports a count and no destination. A step
+  // that wrote a file per category names the count instead of sixty paths.
+  const [first] = event.keys;
+  const wrote =
+    first === undefined
+      ? ""
+      : ` -> ${event.keys.length > 1 ? `${event.keys.length} files under ${first.replace(/[^/]+$/, "")}` : first}`;
+
   process.stdout.write(`${event.id}: ${event.rows} rows${wrote}\n`);
 };
 

@@ -1,3 +1,4 @@
+import { buildSilver } from "./build-silver.ts";
 import { extractCurrencyHour } from "./extract-currency-hour.ts";
 import { extractGGGItems } from "./extract-ggg-items.ts";
 import { extractRepoeBaseItems } from "./extract-repoe-base-items.ts";
@@ -26,6 +27,7 @@ export const STEPS: readonly Step[] = [
   extractRepoeBaseItems,
   extractTaxonomy,
   validateBronze,
+  buildSilver,
 ];
 
 /**
