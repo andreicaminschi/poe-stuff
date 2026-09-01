@@ -115,14 +115,42 @@ export type GggContext = {
 };
 
 /**
- * One market: one currency pair, in one league, over one hour. Only `league` is read —
- * a market is written through exactly as it arrived, so nothing else is asserted here.
+ * What one side of a market did, keyed by the metadata id of that side. Both entries of
+ * the market's own `market_pair` are always present and nothing else ever is, so a lookup
+ * by either path is total.
  */
-export type CurrencyMarket = { readonly league: string };
+export type CurrencySide = Readonly<Record<string, number>>;
+
+/**
+ * One market: one pair of items, in one league, over one hour.
+ *
+ * **A market says nothing about what kind of item it trades.** There is no category here
+ * and no name — every item is a metadata id, and turning one into a name or a category is
+ * something only another source can do. Nor is it only currency: an hour carries divination
+ * cards, scarabs, fragments and more, and the metadata prefix is the only hint of which.
+ */
+export type CurrencyMarket = {
+  readonly league: string;
+  /** The two sides of `market_pair` joined by `|`, in that order. */
+  readonly market_id: string;
+  /** Metadata ids of the two items traded. Always exactly two. */
+  readonly market_pair: readonly [string, string];
+  /** How much of each side changed hands this hour. Zero on a market that only stood. */
+  readonly volume_traded: CurrencySide;
+  readonly lowest_stock: CurrencySide;
+  readonly highest_stock: CurrencySide;
+  /** The two ends of the rate offered, as the amount of each side in one trade. */
+  readonly lowest_ratio: CurrencySide;
+  readonly highest_ratio: CurrencySide;
+};
 
 /** Envelope returned by `GET /api/currency-exchange/:hour`. */
 export type CurrencyExchange = {
-  /** Unix hour of the next digest. Equal to the requested id at the end of the stream. */
+  /**
+   * Start of the next hour, in unix seconds. Equal to the requested id at the end of the
+   * stream — the hour now running is not published until it ends, and asking for it
+   * answers `404` with an empty `markets`, which `call` raises rather than returns.
+   */
   readonly next_change_id: number;
   readonly markets: readonly CurrencyMarket[];
 };

@@ -57,7 +57,7 @@ services/ggg/
 | `@poe/ggg/search-listings.types` | `GGGListingSearch`, `GGGSearchResponseData` | `hashes` holds at most 100 entries however large `matchCount` is. |
 | `@poe/ggg/fetch-listings.types` | `GGGListingPage`, `GGGListingsResponseData` | `listings` are GGG's rows untouched. |
 | `@poe/ggg/errors` | `GggHttpError` | Carries `url`, `status`, `retryable`. |
-| `@poe/ggg/types` | `RateLimiter`, `RateLimiterRule`, `RateLimitState`, `CallEvent`, `ResponseCache`, `CachedResponse`, `GggContext`, `CurrencyExchange`, `CurrencyMarket` | Types only. `CallEvent`, `ResponseCache` and `RateLimiterRule` are what `GGGServiceOptions` takes. |
+| `@poe/ggg/types` | `RateLimiter`, `RateLimiterRule`, `RateLimitState`, `CallEvent`, `ResponseCache`, `CachedResponse`, `GggContext`, `CurrencyExchange`, `CurrencyMarket`, `CurrencySide` | Types only. `CallEvent`, `ResponseCache` and `RateLimiterRule` are what `GGGServiceOptions` takes. |
 
 ### Service methods
 
@@ -72,7 +72,7 @@ lists; the next four are its search; the last is the CDN.
 | `fetchListings(hashes, searchId, page)` | Turn one page of hashes into listings. | `GGGListingPage`: the `searchId` and `page` echoed back, and `listings` exactly as GGG sent them. |
 | `fetchAllListings(hashes, searchId, maxPages?)` | Every page a search's hashes are worth, one after another. | `GGGListingPage[]`, numbered from zero. Sequential — the pages share one limiter. |
 | `pageHashes(hashes, maxPages?)` | Cut a hash list into pages without asking GGG anything. | Arrays of at most ten hashes. **Makes no request.** |
-| `fetchCurrencyHour(hourId, options?)` | One hour of aggregate Currency Exchange history, off the CDN. This is where currency categories come from. | `CurrencyExchange`: `next_change_id` for walking the stream, and `markets`. Only `league` is asserted — every other field on a market, the category included, is passed through exactly as it arrived. Passing `league` trims the markets here rather than on the server. |
+| `fetchCurrencyHour(hourId, options?)` | One hour of aggregate Currency Exchange history, off the CDN. `hourId` is unix seconds on the hour, and the hour now running is not published until it ends. | `CurrencyExchange`: `next_change_id` for walking the stream, and `markets`. A market names both sides by metadata id and carries no name and no category — it is not only currency either, since cards, scarabs and fragments trade here too. Passing `league` trims the markets here rather than on the server. |
 
 ### Not exported
 

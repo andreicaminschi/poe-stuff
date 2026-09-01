@@ -1,6 +1,10 @@
 import { describe, it, expect, jest, beforeEach } from "@jest/globals";
 import { fetchCurrencyHour } from "./fetch-currency-hour.ts";
-import type { CurrencyExchange, GggContext } from "./types.ts";
+import type {
+  CurrencyExchange,
+  CurrencyMarket,
+  GggContext,
+} from "./types.ts";
 
 const CURRENCY_API_URL = "https://cdn.example.test/currency-exchange";
 const TRADE_API_URL = "https://api.example.test/trade";
@@ -9,12 +13,23 @@ type FetchLike = (url: string, init?: RequestInit) => Promise<Response>;
 
 let fetchMock = jest.fn<FetchLike>();
 
+const market = (league: string, pair: readonly [string, string]): CurrencyMarket => ({
+  league,
+  market_id: pair.join("|"),
+  market_pair: pair,
+  volume_traded: { [pair[0]]: 1, [pair[1]]: 2 },
+  lowest_stock: { [pair[0]]: 3, [pair[1]]: 4 },
+  highest_stock: { [pair[0]]: 5, [pair[1]]: 6 },
+  lowest_ratio: { [pair[0]]: 1, [pair[1]]: 7 },
+  highest_ratio: { [pair[0]]: 1, [pair[1]]: 8 },
+});
+
 const digest: CurrencyExchange = {
-  next_change_id: 480_001,
+  next_change_id: 1_788_256_800,
   markets: [
-    { league: "Settlers" },
-    { league: "Hardcore Settlers" },
-    { league: "Settlers" },
+    market("Settlers", ["Metadata/Items/Currency/A", "Metadata/Items/Currency/B"]),
+    market("Hardcore Settlers", ["Metadata/Items/Currency/A", "Metadata/Items/Currency/C"]),
+    market("Settlers", ["Metadata/Items/Currency/B", "Metadata/Items/Currency/C"]),
   ],
 };
 
@@ -56,7 +71,7 @@ describe("fetchCurrencyHour", () => {
       league: "Settlers",
     });
 
-    expect(hour.markets).toEqual([{ league: "Settlers" }, { league: "Settlers" }]);
+    expect(hour.markets).toEqual([digest.markets[0], digest.markets[2]]);
   });
 
   it("answers with no markets when the named league traded nothing that hour", async () => {
@@ -72,6 +87,6 @@ describe("fetchCurrencyHour", () => {
       league: "Settlers",
     });
 
-    expect(hour.next_change_id).toBe(480_001);
+    expect(hour.next_change_id).toBe(1_788_256_800);
   });
 });
