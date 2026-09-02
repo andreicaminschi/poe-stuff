@@ -53,6 +53,22 @@ export const isAuthored = (item: Item): boolean =>
   item.sources.includes("authored");
 
 /**
+ * One unique, as PoeWatch lists it, on the base it rolls on.
+ *
+ * `name` is the listing's own — `Headhunter`, `Foulborn Headhunter (Culling)`,
+ * `Lightpoacher (2 Sockets)`, `Wurm's Molt (#% increased Pride Aura Effect)` — because the
+ * listing is the form and the form is what has a price. A corrupted entry is a corruption
+ * outcome on the listing before it, named by the implicit it rolled.
+ */
+export type UniqueListing = {
+  readonly name: string;
+  /** Chaos, a listing price. */
+  readonly meanPrice: number;
+  readonly isFoulborn: boolean;
+  readonly corrupted: boolean;
+};
+
+/**
  * One item the game can show, as every bronze file together describes it.
  *
  * Every field is `readonly`, and that is the whole design. A step builds a new row rather
@@ -116,6 +132,15 @@ export type Item = {
    * generator can use it. A row with variants prices each of them and not itself.
    */
   readonly meanPrice?: number;
+  /**
+   * Every unique PoeWatch lists on this base, each form of each one, priced.
+   *
+   * **A unique is not a row.** On the ground it is its base with a rarity, and a filter
+   * names the base; so the base carries its uniques, and the generator decides what a Leather
+   * Belt is worth drawing as from what could be on it. Absent on a base nothing unique rolls
+   * on, and on everything that is not a base.
+   */
+  readonly uniques?: readonly UniqueListing[];
 };
 
 /**

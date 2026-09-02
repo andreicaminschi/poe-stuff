@@ -2,6 +2,15 @@
 
 Deferred decisions. Nothing here is scheduled.
 
+- **A unique's forms are priced apart and drawn together.** A base row carries every
+  unique PoeWatch lists on it under `uniques`, one entry per listed form — `Lightpoacher
+  (2 Sockets)` and `Lightpoacher (1 Socket)` are two entries, 120c and 1c. A filter can tell
+  those two apart (`Sockets >= 2A`) and cannot tell a foulborn tag's label or a corruption
+  outcome apart at all. The first pass of the generator treats every form as a price and
+  nothing more. Undecided how a person says, per unique, which forms a filter can name and
+  with what condition — the manual variants keyed by `base:Name` in
+  `3.29.variants.manual.json` were the first attempt, and they land on no row now.
+
 - **Nothing reads `.s3` back.** The POC dropped pages in raw, one file per page, and no
   second pass over them was ever written. Those pages are live trade listings, which is the
   one price source the aggregators cannot give you — so the pass over them is an **input to

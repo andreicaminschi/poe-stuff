@@ -1,1 +1,55 @@
-{}
+{
+  "Metadata/Items/Armours/Helmets/HelmetStrInt7:Lightpoacher": [
+    {
+      "name": "two abyssal sockets",
+      "conditions": [{ "condition": "Sockets", "operator": ">=", "value": "2A" }],
+      "price": { "name": "Lightpoacher (2 Sockets)" }
+    },
+    {
+      "name": "one abyssal socket",
+      "conditions": [{ "condition": "Sockets", "operator": ">=", "value": "1A" }],
+      "price": { "name": "Lightpoacher (1 Socket)" }
+    }
+  ],
+  "Metadata/Items/Armours/Boots/BootsDexInt9:Bubonic Trail": [
+    {
+      "name": "two abyssal sockets",
+      "conditions": [{ "condition": "Sockets", "operator": ">=", "value": "2A" }],
+      "price": { "name": "Bubonic Trail (2 Sockets)" }
+    },
+    {
+      "name": "one abyssal socket",
+      "conditions": [{ "condition": "Sockets", "operator": ">=", "value": "1A" }],
+      "price": { "name": "Bubonic Trail (1 Socket)" }
+    }
+  ],
+  "Metadata/Items/Armours/BodyArmours/BodyDexInt17:Shroud of the Lightless": [
+    {
+      "name": "three abyssal sockets",
+      "conditions": [{ "condition": "Sockets", "operator": ">=", "value": "3A" }],
+      "price": { "name": "Shroud of the Lightless (3 Sockets)" }
+    },
+    {
+      "name": "two abyssal sockets",
+      "conditions": [{ "condition": "Sockets", "operator": ">=", "value": "2A" }],
+      "price": { "name": "Shroud of the Lightless (2 Sockets)" }
+    }
+  ],
+  "Metadata/Items/Armours/Boots/BootsStrInt4:Ralakesh's Impatience": [
+    {
+      "name": "endurance charges",
+      "conditions": [],
+      "price": { "name": "Ralakesh's Impatience (Endurance Charges)" }
+    },
+    {
+      "name": "power charges",
+      "conditions": [],
+      "price": { "name": "Ralakesh's Impatience (Power Charges)" }
+    },
+    {
+      "name": "frenzy charges",
+      "conditions": [],
+      "price": { "name": "Ralakesh's Impatience (Frenzy Charges)" }
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 import type { GGGItemGroup } from "@poe/ggg/get-item-data.types";
 import type { CurrencyExchange } from "@poe/ggg/types";
 import type { ItemData } from "@poe/poe-watch/get-compact-data.types";
+import type { ItemCorruptions } from "@poe/poe-watch/get-corruption-data.types";
 import type { ExchangeRatioItem } from "@poe/poe-watch/get-exchange-ratios.types";
 import type { BaseItems } from "@poe/repoe/get-base-items.types";
 import type { Essences } from "@poe/repoe/get-essences.types";
@@ -15,6 +16,7 @@ import { fromPoeWatch } from "./build-silver/from-poe-watch.ts";
 import { fromRepoe } from "./build-silver/from-repoe.ts";
 import { groupByCategory } from "./build-silver/group-by-category.ts";
 import { tagIds } from "./build-silver/tag-ids.ts";
+import { withUniques } from "./build-silver/with-uniques.ts";
 import { isAuthored, isFilterable, knownToRepoe } from "./item.ts";
 import type { Item } from "./item.ts";
 import { BRONZE_FILES, bronzeKey, silverKey, silverPrefix } from "./lake/keys.ts";
@@ -44,17 +46,27 @@ export const buildSilver: Step = {
   async run({ lake, runId }) {
     const read = <T>(file: string) => lake.readJson<T>(bronzeKey(runId, file));
 
-    const [groups, exchange, baseItems, gems, essences, taxonomy, listings, ratios] =
-      await Promise.all([
-        read<readonly GGGItemGroup[]>(BRONZE_FILES.gggItems),
-        read<CurrencyExchange>(BRONZE_FILES.currencyHour),
-        read<BaseItems>(BRONZE_FILES.repoeBaseItems),
-        read<Gems>(BRONZE_FILES.repoeGems),
-        read<Essences>(BRONZE_FILES.repoeEssences),
-        read<Taxonomy>(BRONZE_FILES.taxonomy),
-        read<readonly ItemData[]>(BRONZE_FILES.poeWatchCompact),
-        read<readonly ExchangeRatioItem[]>(BRONZE_FILES.poeWatchRatios),
-      ]);
+    const [
+      groups,
+      exchange,
+      baseItems,
+      gems,
+      essences,
+      taxonomy,
+      listings,
+      ratios,
+      corruptions,
+    ] = await Promise.all([
+      read<readonly GGGItemGroup[]>(BRONZE_FILES.gggItems),
+      read<CurrencyExchange>(BRONZE_FILES.currencyHour),
+      read<BaseItems>(BRONZE_FILES.repoeBaseItems),
+      read<Gems>(BRONZE_FILES.repoeGems),
+      read<Essences>(BRONZE_FILES.repoeEssences),
+      read<Taxonomy>(BRONZE_FILES.taxonomy),
+      read<readonly ItemData[]>(BRONZE_FILES.poeWatchCompact),
+      read<readonly ExchangeRatioItem[]>(BRONZE_FILES.poeWatchRatios),
+      read<readonly ItemCorruptions[]>(BRONZE_FILES.poeWatchCorruptions),
+    ]);
 
     /**
      * The game's own data builds the rows and gives each one its metadata id as a key; the
@@ -81,11 +93,13 @@ export const buildSilver: Step = {
     // Last, and after the taxonomy on purpose: an authored row carries its own category, so
     // it is never looked up and cannot be reported as one the table failed to place.
     // Priced last of all, because only a filterable row is priced and nothing before this
-    // point has finished deciding which rows those are.
-    const rows = fromPoeWatch(
-      applyAuthored(classified, taxonomy.authored),
+    // point has finished deciding which rows those are. Then every base gets the uniques
+    // that roll on it, each form priced — a unique is not a row, it is what a base can be.
+    const rows = withUniques(
+      fromPoeWatch(applyAuthored(classified, taxonomy.authored), listings, ratios),
+      groups,
       listings,
-      ratios,
+      corruptions,
     );
 
     const kept: Item[] = [];

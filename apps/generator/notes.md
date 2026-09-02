@@ -28,6 +28,19 @@ any of them mean.
 
 Not designed yet. Next thing to pick up.
 
+## A unique is a lever on its base, not a row
+
+On the ground a unique is its base with a rarity, and a filter names the base. So the
+catalog makes no row for a unique. Every base carries `uniques`: one entry per form PoeWatch
+lists on it — `Headhunter`, `Foulborn Headhunter (Culling)`, `Lightpoacher (2 Sockets)`,
+`Headhunter (#% increased Area of Effect)` — each with `meanPrice`, `isFoulborn` and
+`corrupted`. Sixty uniques roll on more than one base and appear under each.
+
+They are not conditions. The generator reads them to decide which bucket the base goes in —
+a Leather Belt is worth drawing as whatever could be on it — and the label in parentheses is
+a price and nothing a filter can ask for. Which forms a filter can tell apart, and how a
+person says so, is an open question in `TODO.md`.
+
 ## Beasts are not filterable
 
 A captured beast is a real item — `Item Class: Stackable Currency`, and the base type is the

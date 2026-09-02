@@ -27,7 +27,7 @@ apps/taxonomy/
 ├── versions/3.29.variants.seeded.json  # variants the seed wrote. Never edited by hand
 ├── versions.ts                    # loads and validates one version's six files
 ├── seed-taxonomy.ts               # every seed, run at once: the game's data -> the two .seeded.json
-├── seed-taxonomy/                 # one seed per class: gem-variants, cluster-jewels, foulborn
+├── seed-taxonomy/                 # one seed per class: gem-variants, cluster-jewels
 ├── validate-table.ts              # an item entry is well formed
 ├── validate-conditions.ts         # a condition list is well formed, and a category path
 ├── validate-authored.ts           # an authored row is well formed and keyed under authored/
@@ -141,6 +141,20 @@ so an item with variants resolves once per variant and not once for itself.
 They are keyed by the same metadata id the items file uses, or by an authored row's key.
 Every key must name a row in the version, and a list may not be empty.
 
+**The two are exclusive.** A row without variants carries a `meanPrice` of its own. A row
+with variants carries none, and each variant carries its own instead. A consumer reads one
+place or the other, never both, and a row with variants and no price is priced rather than
+missing. Empower Support is a level 1 at 320c and a level 4 corrupted at 4,500c, and no
+single number is the price of an Empower.
+
+**A unique is not a row, and has no variants here.** On the ground a unique is its base
+with a rarity, and a filter names the base; so the catalog hangs every unique PoeWatch lists
+off the base it rolls on, under `uniques`, one entry per listed form — `Lightpoacher (2
+Sockets)` at 140c and `(1 Socket)` at 1c are two entries on Great Crown. The items table
+still carries a unique's `base:Name` key under `unique-*`, and a variant keyed by one
+validates and lands on no row. How a person says which of a unique's forms a filter can
+name is an open question, in `TODO.md`.
+
 ### Seeded and manual
 
 Variants come from two files, and the version is their merge.
@@ -157,10 +171,10 @@ enchants — off `@poe/repoe`, and nothing else. **The taxonomy never touches Po
 a published vocabulary the catalog reads, not a service the taxonomy calls. A form nobody
 lists is written anyway and stays unpriced.
 
-Three seeds today, in `seed-taxonomy/`; a new class is a new file there and a line in
-`SEEDS`. Two seeds may write one key — a cluster jewel base carries the enchant forms and
-the foulborn form both — and their lists are joined; a variant name both wrote is a repeat
-and fails validation.
+Two seeds today, in `seed-taxonomy/`; a new class is a new file there and a line in
+`SEEDS`. Two seeds may write variants on one key, and their lists are joined; a variant name
+both wrote is a repeat and fails validation. A seed may also write authored rows, into
+`authored.seeded.json`; two seeds writing one row throws.
 
 - **Gems.** `1/0`, `1/20`, `L/20`, and the four a Vaal Orb makes of the max — `L/20`,
   `L+1/20`, `L/23`, `L+1/23`, corrupted. A Vaal gem cannot exist uncorrupted and gets the
@@ -170,13 +184,6 @@ and fails validation.
   `price: { name, passives, itemLevel }`. The buckets are PoeWatch's conventions, fixed in
   the seed: small `2, 3`, medium `4, 5, 6`, large `8, 9-11, 12`; item level `1, 50, 68, 75,
   84`.
-- **Foulborn.** One authored row per base a foulborn unique rolls on, under
-  `foulborn-unique`: the base's name, `Rarity Unique`, `Foulborn True`, priced off PoeWatch's
-  `Unidentified Foulborn <base>`. Which uniques go foulborn is RePoE's `ModFoulbornMap`;
-  which base each rolls on is the items table's own `base:Name` key. On the ground an
-  unidentified foulborn is its base and nothing more, so the row is one per base and not one
-  per unique, and it is a row rather than a variant because it is a thing of its own with a
-  category of its own.
 
 ```json
 "Metadata/.../SupportGemAwakenedAddedChaos": [
@@ -240,8 +247,8 @@ been looked at yet.
 `versions/<version>.authored.manual.json` holds the rows no arrangement of the sources
 produces, keyed `authored/<slug>` — a namespace no metadata id can collide with. The slug is
 usually of the name, and need not be. **This is the only place a hand-written row is
-authored.** `authored.seeded.json` beside it is the seed's — the foulborn rows today — and a
-manual key replaces a seeded row whole. The catalog builds the row from the entry and
+authored.** `authored.seeded.json` beside it is the seed's — empty today — and a manual key
+replaces a seeded row whole. The catalog builds the row from the entry and
 from whatever `replaces` names, and copies `conditions`, `price` and variants off it the way
 it does off a real row.
 

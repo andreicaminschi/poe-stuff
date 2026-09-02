@@ -1,9 +1,7 @@
 import type { ClusterJewels } from "@poe/repoe/get-cluster-jewels.types";
-import type { FoulbornMap } from "@poe/repoe/get-foulborn-map.types";
 import type { Gems } from "@poe/repoe/get-gems.types";
 import type { RepoeService } from "@poe/repoe/service";
 import { clusterJewelVariants } from "./seed-taxonomy/cluster-jewels.ts";
-import { foulbornRows } from "./seed-taxonomy/foulborn.ts";
 import { gemVariants } from "./seed-taxonomy/gem-variants.ts";
 import type {
   AuthoredRow,
@@ -18,7 +16,6 @@ export type SeedInputs = {
   readonly items: TaxonomyTable;
   readonly gems: Gems;
   readonly clusterJewels: ClusterJewels;
-  readonly foulborn: FoulbornMap;
 };
 
 /** What one seed wrote: variants on rows that exist, or rows that no source produces. */
@@ -43,10 +40,6 @@ export const SEEDS: readonly Seed[] = [
     id: "cluster-jewels",
     run: ({ clusterJewels }) => ({ variants: clusterJewelVariants(clusterJewels) }),
   },
-  {
-    id: "foulborn",
-    run: ({ items, foulborn }) => ({ authored: foulbornRows(items, foulborn) }),
-  },
 ];
 
 export type SeedCount = { readonly variants: number; readonly authored: number };
@@ -62,7 +55,7 @@ export type Seeded = {
  * The whole seeded tables, every seed at once.
  *
  * **Reads RePoE and nothing else.** A seed says what an item *is* — a gem's max level, a
- * jewel's enchants, which uniques go foulborn — and that is the game's data. What a listing
+ * jewel's enchants — and that is the game's data. What a listing
  * costs is the catalog's business, and the taxonomy never touches PoeWatch. The `price`
  * selectors written here are in PoeWatch's field names the way conditions are in GGG's: a
  * vocabulary the catalog reads.
@@ -77,12 +70,11 @@ export async function seedTaxonomy(
   items: TaxonomyTable,
   repoe: RepoeService,
 ): Promise<Seeded> {
-  const [gems, clusterJewels, foulborn] = await Promise.all([
+  const [gems, clusterJewels] = await Promise.all([
     repoe.getGems(),
     repoe.getClusterJewels(),
-    repoe.getFoulbornMap(),
   ]);
-  const inputs: SeedInputs = { items, gems, clusterJewels, foulborn };
+  const inputs: SeedInputs = { items, gems, clusterJewels };
 
   const variants: Record<string, readonly AuthoredVariant[]> = {};
   const authored: Record<string, AuthoredRow> = {};
