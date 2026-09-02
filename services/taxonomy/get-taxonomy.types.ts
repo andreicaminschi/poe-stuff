@@ -1,4 +1,45 @@
 /**
+ * One `.filter` condition, structured rather than written out as a line.
+ *
+ * `value` is a literal and `from` reads a field off the catalog row instead — exactly one of
+ * the two. **`value: null` removes** a condition an earlier level added, which is how
+ * `map/blighted` drops the `BaseType` its category authored.
+ *
+ * `operator` defaults to `==`. It is here before anything needs it because `MapTier >= 11`
+ * and `GemLevel >= 20` are coming, and a notation keyed on `==` alone could never grow them.
+ */
+export type Condition = {
+  readonly condition: string;
+  readonly operator?: string;
+  readonly value?: string | number | boolean | readonly string[] | null;
+  readonly from?: string;
+};
+
+/**
+ * One variant of an item: a narrower condition set, priced on its own.
+ *
+ * A level 6 Awakened Added Chaos and a level 1 are one base type, two prices and two blocks.
+ * The variant is what a price attaches to, so an item with variants resolves once per
+ * variant and not once for itself.
+ */
+export type TaxonomyVariant = {
+  readonly name: string;
+  readonly conditions: readonly Condition[];
+};
+
+/**
+ * What the taxonomy says about one category or subcategory, keyed by its path.
+ *
+ * The tree is flattened into the key: `map` and `map/blighted` sit side by side, and the
+ * path is the only thing that makes one the parent of the other. A category record does two
+ * jobs — it is the default for its own rows and the parent of its children — and five
+ * categories today have both.
+ */
+export type TaxonomyCategory = {
+  readonly conditions: readonly Condition[];
+};
+
+/**
  * What the taxonomy says about one item.
  *
  * Keyed by the display name everywhere, because that is the one name that survives: GGG
@@ -26,6 +67,10 @@ export type TaxonomyEntry = {
    */
   readonly tradable?: boolean;
   readonly tradedOnExchange?: boolean;
+  /** Conditions for this row alone, applied over its category's and subcategory's. */
+  readonly conditions?: readonly Condition[];
+  /** One priced variant per entry. Absent means the row resolves once, as itself. */
+  readonly variants?: readonly TaxonomyVariant[];
 };
 
 /**
@@ -43,6 +88,8 @@ export type TaxonomyEntry = {
 export type Taxonomy = {
   readonly version: string;
   readonly items: Readonly<Record<string, TaxonomyEntry>>;
+  /** Keyed by path — `map`, then `map/blighted`. The flattened tree. */
+  readonly categories: Readonly<Record<string, TaxonomyCategory>>;
 };
 
 /** What `latest.json` holds: the version that is current, and nothing else. */

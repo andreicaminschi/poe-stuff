@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
-import type { TaxonomyTable } from "./types.ts";
+import type { Version } from "./types.ts";
+import { validateCategoryTable } from "./validate-conditions.ts";
 import { validateTaxonomyTable } from "./validate-table.ts";
 
 /**
@@ -11,7 +12,10 @@ import { validateTaxonomyTable } from "./validate-table.ts";
  */
 export const VERSIONS: readonly string[] = ["3.29"];
 
-const loaded = new Map<string, TaxonomyTable>();
+const loaded = new Map<string, Version>();
+
+const readJson = (file: string): unknown =>
+  JSON.parse(readFileSync(new URL(file, import.meta.url), "utf8"));
 
 /**
  * One version's table, read from `versions/<version>.json` and validated.
@@ -29,9 +33,13 @@ const loaded = new Map<string, TaxonomyTable>();
  * said, so a row the two disagree on is a decision somebody made on purpose, and a row they
  * agree on is one nobody has ruled on yet.
  *
+ * **Two files, one version.** The items are thousands of rows and the categories are dozens,
+ * and merging them would mean scrolling past every item to reach the conditions. They are
+ * published as one object; they are edited as two files.
+ *
  * The result is kept, so a version is read and validated once per process.
  */
-export function versionTable(version: string): TaxonomyTable {
+export function versionTable(version: string): Version {
   const already = loaded.get(version);
 
   if (already !== undefined) {
@@ -44,11 +52,13 @@ export function versionTable(version: string): TaxonomyTable {
     );
   }
 
-  const file = `versions/${version}.json`;
-  const table = validateTaxonomyTable(
-    JSON.parse(readFileSync(new URL(file, import.meta.url), "utf8")),
-    file,
-  );
+  const itemsFile = `versions/${version}.json`;
+  const categoriesFile = `versions/${version}.categories.json`;
+
+  const table: Version = {
+    items: validateTaxonomyTable(readJson(itemsFile), itemsFile),
+    categories: validateCategoryTable(readJson(categoriesFile), categoriesFile),
+  };
 
   loaded.set(version, table);
 

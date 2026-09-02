@@ -1,0 +1,535 @@
+{
+  "allflame-ember": {
+    "conditions": [
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "from": "name"
+      }
+    ]
+  },
+  "artifact": {
+    "conditions": [
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "from": "name"
+      }
+    ]
+  },
+  "astrolabe": {
+    "conditions": [
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "from": "name"
+      }
+    ]
+  },
+  "base-type": {
+    "conditions": [
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "from": "name"
+      }
+    ]
+  },
+  "base-type/amulet": {
+    "conditions": []
+  },
+  "base-type/belt": {
+    "conditions": []
+  },
+  "base-type/body-armour": {
+    "conditions": []
+  },
+  "base-type/boots": {
+    "conditions": []
+  },
+  "base-type/bow": {
+    "conditions": []
+  },
+  "base-type/claw": {
+    "conditions": []
+  },
+  "base-type/dagger": {
+    "conditions": []
+  },
+  "base-type/fishing-rod": {
+    "conditions": []
+  },
+  "base-type/gloves": {
+    "conditions": []
+  },
+  "base-type/helmet": {
+    "conditions": []
+  },
+  "base-type/jewel": {
+    "conditions": []
+  },
+  "base-type/one-handed-axe": {
+    "conditions": []
+  },
+  "base-type/one-handed-mace": {
+    "conditions": []
+  },
+  "base-type/one-handed-sword": {
+    "conditions": []
+  },
+  "base-type/quiver": {
+    "conditions": []
+  },
+  "base-type/ring": {
+    "conditions": []
+  },
+  "base-type/shield": {
+    "conditions": []
+  },
+  "base-type/staff": {
+    "conditions": []
+  },
+  "base-type/tincture": {
+    "conditions": []
+  },
+  "base-type/two-handed-axe": {
+    "conditions": []
+  },
+  "base-type/two-handed-mace": {
+    "conditions": []
+  },
+  "base-type/two-handed-sword": {
+    "conditions": []
+  },
+  "base-type/wand": {
+    "conditions": []
+  },
+  "chart": {
+    "conditions": [
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "from": "name"
+      }
+    ]
+  },
+  "chart/deepwater": {
+    "conditions": []
+  },
+  "corpse": {
+    "conditions": [
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "from": "name"
+      }
+    ]
+  },
+  "currency": {
+    "conditions": [
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "from": "name"
+      }
+    ]
+  },
+  "currency/amulet": {
+    "conditions": []
+  },
+  "currency/catalysts": {
+    "conditions": []
+  },
+  "currency/jewel": {
+    "conditions": []
+  },
+  "currency/keepers": {
+    "conditions": []
+  },
+  "currency/maps": {
+    "conditions": []
+  },
+  "delirium-orb": {
+    "conditions": [
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "from": "name"
+      }
+    ]
+  },
+  "divination-card": {
+    "conditions": [
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "from": "name"
+      }
+    ]
+  },
+  "ducat": {
+    "conditions": [
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "from": "name"
+      }
+    ]
+  },
+  "enshrouded": {
+    "conditions": [
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "from": "name"
+      }
+    ]
+  },
+  "enshrouded/effects-wrappingpaper": {
+    "conditions": []
+  },
+  "enshrouding-crystal": {
+    "conditions": [
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "from": "name"
+      }
+    ]
+  },
+  "essence": {
+    "conditions": [
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "from": "name"
+      }
+    ]
+  },
+  "flask": {
+    "conditions": [
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "from": "name"
+      }
+    ]
+  },
+  "flask/hybrid-flask": {
+    "conditions": []
+  },
+  "flask/life-flask": {
+    "conditions": []
+  },
+  "flask/mana-flask": {
+    "conditions": []
+  },
+  "flask/utility-flask": {
+    "conditions": []
+  },
+  "fossil": {
+    "conditions": [
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "from": "name"
+      }
+    ]
+  },
+  "fragment": {
+    "conditions": [
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "from": "name"
+      }
+    ]
+  },
+  "heistequipment": {
+    "conditions": [
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "from": "name"
+      }
+    ]
+  },
+  "heistequipment/heist": {
+    "conditions": []
+  },
+  "heistmission": {
+    "conditions": [
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "from": "name"
+      }
+    ]
+  },
+  "heistmission/heist": {
+    "conditions": []
+  },
+  "idol": {
+    "conditions": [
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "from": "name"
+      }
+    ]
+  },
+  "idol/relics": {
+    "conditions": []
+  },
+  "invitation": {
+    "conditions": [
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "from": "name"
+      }
+    ]
+  },
+  "leaguestone": {
+    "conditions": [
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "from": "name"
+      }
+    ]
+  },
+  "leaguestone/classic": {
+    "conditions": []
+  },
+  "logbook": {
+    "conditions": [
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "from": "name"
+      }
+    ]
+  },
+  "logbook/maps": {
+    "conditions": []
+  },
+  "map": {
+    "conditions": [
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "from": "name"
+      }
+    ]
+  },
+  "map/blight-ravaged": {
+    "conditions": [
+      {
+        "condition": "Class",
+        "operator": "==",
+        "value": [
+          "Maps"
+        ]
+      },
+      {
+        "condition": "BlightedMap",
+        "value": true
+      },
+      {
+        "condition": "BlightRavagedMap",
+        "value": true
+      },
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "value": null
+      }
+    ]
+  },
+  "map/blighted": {
+    "conditions": [
+      {
+        "condition": "Class",
+        "operator": "==",
+        "value": [
+          "Maps"
+        ]
+      },
+      {
+        "condition": "BlightedMap",
+        "value": true
+      },
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "value": null
+      }
+    ]
+  },
+  "map/maps": {
+    "conditions": []
+  },
+  "map/nightmare": {
+    "conditions": []
+  },
+  "map/vaal-temple": {
+    "conditions": []
+  },
+  "oil": {
+    "conditions": [
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "from": "name"
+      }
+    ]
+  },
+  "omen": {
+    "conditions": [
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "from": "name"
+      }
+    ]
+  },
+  "resonator": {
+    "conditions": [
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "from": "name"
+      }
+    ]
+  },
+  "runegraft": {
+    "conditions": [
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "from": "name"
+      }
+    ]
+  },
+  "scarab": {
+    "conditions": [
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "from": "name"
+      }
+    ]
+  },
+  "scrying-orb": {
+    "conditions": [
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "from": "name"
+      }
+    ]
+  },
+  "skill-gem": {
+    "conditions": [
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "from": "name"
+      }
+    ]
+  },
+  "skill-gem/active": {
+    "conditions": []
+  },
+  "skill-gem/awakened": {
+    "conditions": []
+  },
+  "skill-gem/exceptional": {
+    "conditions": []
+  },
+  "skill-gem/support": {
+    "conditions": []
+  },
+  "skill-gem/transfigured": {
+    "conditions": [
+      {
+        "condition": "Class",
+        "operator": "==",
+        "value": [
+          "Skill Gems",
+          "Support Gems"
+        ]
+      },
+      {
+        "condition": "TransfiguredGem",
+        "value": true
+      },
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "value": null
+      }
+    ]
+  },
+  "skill-gem/vaal": {
+    "conditions": []
+  },
+  "tattoo": {
+    "conditions": [
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "from": "name"
+      }
+    ]
+  },
+  "unique-relic": {
+    "conditions": [
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "from": "name"
+      }
+    ]
+  },
+  "valdo-map": {
+    "conditions": [
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "from": "name"
+      }
+    ]
+  },
+  "valdo-map/valdo": {
+    "conditions": []
+  },
+  "vial": {
+    "conditions": [
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "from": "name"
+      }
+    ]
+  },
+  "warrant": {
+    "conditions": [
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "from": "name"
+      }
+    ]
+  },
+  "wombgift": {
+    "conditions": [
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "from": "name"
+      }
+    ]
+  }
+}

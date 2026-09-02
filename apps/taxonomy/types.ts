@@ -1,4 +1,57 @@
 /**
+ * One `.filter` condition, structured rather than written out as a line.
+ *
+ * Exactly one of `value` and `from`: `value` is a literal, `from` names a field on the
+ * catalog row to read instead. **`value: null` removes** a condition an earlier level
+ * authored, which is how a subcategory that draws a flag drops its category's `BaseType`.
+ *
+ * `operator` defaults to `==`, and exists before anything needs it — `MapTier >= 11` and
+ * `GemLevel >= 20` are coming, and a notation keyed on `==` alone could never grow them.
+ *
+ * **A record that authors `BaseType` does not author `Class`.** `BaseType ==` is an exact
+ * match, no filterable name in the catalog needs a class to disambiguate, and a record
+ * carrying both is the mistake this rule exists to make visible.
+ */
+export type Condition = {
+  readonly condition: string;
+  readonly operator?: string;
+  readonly value?: string | number | boolean | readonly string[] | null;
+  readonly from?: string;
+};
+
+/**
+ * One priced variant of an item: a narrower condition set that is drawn on its own.
+ *
+ * A level 6 Awakened Added Chaos and a level 1 are one base type, two prices and two blocks.
+ * An item with variants resolves once per variant and not once for itself, so an item that
+ * still needs a plain form writes a variant with no conditions.
+ */
+export type AuthoredVariant = {
+  readonly name: string;
+  readonly conditions: readonly Condition[];
+};
+
+/**
+ * What one category or subcategory authors, keyed by its path in `categories`.
+ *
+ * The tree is flattened into the key — `map` and `map/blighted` sit side by side — and a
+ * category record does two jobs at once: it is the default for its own rows and the parent
+ * of its children. Five categories today have both.
+ */
+export type AuthoredCategory = {
+  readonly conditions: readonly Condition[];
+};
+
+/** One version's category tree, flattened, keyed by path. */
+export type CategoryTable = Readonly<Record<string, AuthoredCategory>>;
+
+/** Both halves of one version, as they are published. */
+export type Version = {
+  readonly items: TaxonomyTable;
+  readonly categories: CategoryTable;
+};
+
+/**
  * One item's classification, as it is authored.
  *
  * This app declares its own shape rather than importing the reader's. `@poe/taxonomy` is
@@ -52,6 +105,10 @@ export type AuthoredEntry = {
    */
   readonly tradable?: boolean;
   readonly tradedOnExchange?: boolean;
+  /** Conditions for this row alone, laid over its category's and its subcategory's. */
+  readonly conditions?: readonly Condition[];
+  /** Priced variants. Absent means the row is one block, drawn as itself. */
+  readonly variants?: readonly AuthoredVariant[];
   /**
    * What the seed said, kept beside what a person decided.
    *

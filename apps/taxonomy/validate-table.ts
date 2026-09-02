@@ -1,4 +1,5 @@
 import type { AuthoredEntry, TaxonomyTable } from "./types.ts";
+import { conditionsProblem } from "./validate-conditions.ts";
 
 const FIELDS = [
   "name",
@@ -7,6 +8,8 @@ const FIELDS = [
   "filterable",
   "tradable",
   "tradedOnExchange",
+  "conditions",
+  "variants",
   "original",
 ];
 
@@ -58,6 +61,44 @@ function entryProblem(value: unknown): string | null {
   for (const flag of OPTIONAL_FLAGS) {
     if (value[flag] !== undefined && typeof value[flag] !== "boolean") {
       return `${flag} must be a boolean when it is present`;
+    }
+  }
+
+  if (value.conditions !== undefined) {
+    const problem = conditionsProblem(value.conditions);
+
+    if (problem !== null) return problem;
+  }
+
+  if (value.variants !== undefined) {
+    if (!Array.isArray(value.variants)) return "variants is not a list";
+
+    const names = new Set<string>();
+
+    for (const variant of value.variants) {
+      if (!isObject(variant)) return "a variant is not an object";
+
+      const extra = unknownFields(variant, ["name", "conditions"]);
+
+      if (extra.length > 0) {
+        return `a variant has unknown fields: ${extra.join(", ")}`;
+      }
+
+      if (!isCategory(variant.name)) {
+        return "a variant name must be a non-empty string";
+      }
+
+      const name = variant.name as string;
+
+      if (names.has(name)) {
+        return `variant "${name}" is authored twice`;
+      }
+
+      names.add(name);
+
+      const problem = conditionsProblem(variant.conditions);
+
+      if (problem !== null) return `variant "${name}" ${problem}`;
     }
   }
 

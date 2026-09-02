@@ -1,5 +1,5 @@
 import { versionKey } from "./lake.ts";
-import type { Lake, TaxonomyTable } from "./types.ts";
+import type { Lake, Version } from "./types.ts";
 
 /**
  * Writes one version, once.
@@ -17,7 +17,7 @@ import type { Lake, TaxonomyTable } from "./types.ts";
 export async function publishTaxonomy(
   lake: Lake,
   version: string,
-  items: TaxonomyTable,
+  table: Version,
   force = false,
 ): Promise<string> {
   const key = versionKey(version);
@@ -28,7 +28,11 @@ export async function publishTaxonomy(
     );
   }
 
-  await lake.writeJson(key, { version, items });
+  await lake.writeJson(key, {
+    version,
+    items: table.items,
+    categories: table.categories,
+  });
 
   return key;
 }
