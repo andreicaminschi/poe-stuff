@@ -16,6 +16,7 @@
     "taxonomy:publish": "node apps/taxonomy/taxonomy-cli.ts publish",
     "taxonomy:republish": "node apps/taxonomy/taxonomy-cli.ts republish",
     "taxonomy:promote": "node apps/taxonomy/taxonomy-cli.ts promote",
+    "taxonomy:seed": "node apps/taxonomy/seed-taxonomy-cli.ts",
     "typecheck": "tsc",
     "typecheck:watch": "tsc --watch",
     "lint": "eslint .",

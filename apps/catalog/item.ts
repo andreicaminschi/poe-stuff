@@ -1,13 +1,20 @@
 import type {
   Condition,
+  PriceSelector,
   TaxonomyVariant,
 } from "@poe/taxonomy/get-taxonomy.types";
+
+/** A taxonomy variant, with the Chaos mean of the listing its selector picked. */
+export type PricedVariant = TaxonomyVariant & {
+  readonly meanPrice?: number;
+};
 
 /**
  * Which bronze file put something on a row.
  *
- * `authored` is the odd one and reads as the exception it is: no bronze file produced the
- * row, somebody wrote it by hand in `build-silver/authored-items.json`.
+ * `authored` is the odd one and reads as the exception it is: no source produced the row,
+ * somebody wrote it by hand in the taxonomy's `<version>.authored.json`, and it reached
+ * bronze inside the published taxonomy.
  */
 export type ItemSource =
   | "items"
@@ -98,8 +105,17 @@ export type Item = {
    * reading of the tables into an artifact that outlives them.
    */
   readonly conditions?: readonly Condition[];
-  /** The row's priced variants, copied the same way. */
-  readonly variants?: readonly TaxonomyVariant[];
+  /** The row's priced variants, copied the same way, each with its own mean. */
+  readonly variants?: readonly PricedVariant[];
+  /** Which PoeWatch listing prices the row, copied from the taxonomy. */
+  readonly price?: PriceSelector;
+  /**
+   * PoeWatch's mean for the row, in Chaos. A listing price, not a sale price.
+   *
+   * Only a filterable row without variants carries one, so the field being there means the
+   * generator can use it. A row with variants prices each of them and not itself.
+   */
+  readonly meanPrice?: number;
 };
 
 /**

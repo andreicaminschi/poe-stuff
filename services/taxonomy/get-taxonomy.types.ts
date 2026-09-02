@@ -16,6 +16,24 @@ export type Condition = {
 };
 
 /**
+ * Which of PoeWatch's listings for a name is the one to price. Its keys are PoeWatch's own
+ * field names, and a listing matches when every written key is equal on it. Absent means
+ * the most-listed row for the name. `name` is the listing's own name where it differs from
+ * the row's display name; a variant without one inherits its row's.
+ */
+export type PriceSelector = {
+  readonly name?: string;
+  readonly passives?: string;
+  readonly gemLevel?: number;
+  readonly gemQuality?: number;
+  readonly gemIsCorrupted?: boolean;
+  readonly linkCount?: number;
+  readonly itemLevel?: number;
+  readonly mapTier?: number;
+  readonly tier?: number;
+};
+
+/**
  * One variant of an item: a narrower condition set, priced on its own.
  *
  * A level 6 Awakened Added Chaos and a level 1 are one base type, two prices and two blocks.
@@ -25,6 +43,8 @@ export type Condition = {
 export type TaxonomyVariant = {
   readonly name: string;
   readonly conditions: readonly Condition[];
+  /** Which listing prices this variant. Absent means the most-listed row for the name. */
+  readonly price?: PriceSelector;
 };
 
 /**
@@ -71,6 +91,26 @@ export type TaxonomyEntry = {
   readonly conditions?: readonly Condition[];
   /** One priced variant per entry. Absent means the row resolves once, as itself. */
   readonly variants?: readonly TaxonomyVariant[];
+  /** Which listing prices the row itself. Read only on a row without variants. */
+  readonly price?: PriceSelector;
+};
+
+/**
+ * A row somebody wrote by hand, because no source produces it. Keyed `authored/<slug>`.
+ *
+ * `replaces` names the item keys it stands in for. The catalog builds the row from those and
+ * this entry, so what is here is the decision — name, category, conditions, price — and not
+ * the facts the sources already hold about the rows it replaces.
+ */
+export type TaxonomyAuthored = {
+  readonly name: string;
+  readonly category: string;
+  readonly subcategory: string | null;
+  readonly replaces?: readonly string[];
+  readonly reason: string;
+  readonly conditions?: readonly Condition[];
+  readonly variants?: readonly TaxonomyVariant[];
+  readonly price?: PriceSelector;
 };
 
 /**
@@ -90,6 +130,8 @@ export type Taxonomy = {
   readonly items: Readonly<Record<string, TaxonomyEntry>>;
   /** Keyed by path — `map`, then `map/blighted`. The flattened tree. */
   readonly categories: Readonly<Record<string, TaxonomyCategory>>;
+  /** The hand-written rows, keyed `authored/<slug>`. Usually a handful. */
+  readonly authored: Readonly<Record<string, TaxonomyAuthored>>;
 };
 
 /** What `latest.json` holds: the version that is current, and nothing else. */

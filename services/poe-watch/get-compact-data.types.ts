@@ -121,6 +121,12 @@ export type BaseTypeItem = ItemCommon & {
   readonly category: "bases";
   /** Number of linked sockets, 0 for non-linkable items. Absent on bases that cannot link. */
   readonly linkCount?: number;
+  /**
+   * How many passives a cluster jewel allocates, as PoeWatch buckets it. A string, because
+   * one bucket is a range: small `2`, `3`; medium `4`, `5`, `6`; large `8`, `9-11`, `12`.
+   * Only cluster jewels carry it, and their enchant is in the `name`.
+   */
+  readonly passives?: string;
 };
 
 /** Skill and support gems. The only category carrying the gem fields. */

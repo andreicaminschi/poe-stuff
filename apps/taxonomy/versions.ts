@@ -1,7 +1,9 @@
 import { readFileSync } from "node:fs";
 import type { Version } from "./types.ts";
 import { validateCategoryTable } from "./validate-conditions.ts";
+import { validateAuthoredTable } from "./validate-authored.ts";
 import { validateTaxonomyTable } from "./validate-table.ts";
+import { validateVariantTable } from "./validate-variants.ts";
 
 /**
  * Every version this app can publish.
@@ -33,9 +35,12 @@ const readJson = (file: string): unknown =>
  * said, so a row the two disagree on is a decision somebody made on purpose, and a row they
  * agree on is one nobody has ruled on yet.
  *
- * **Two files, one version.** The items are thousands of rows and the categories are dozens,
- * and merging them would mean scrolling past every item to reach the conditions. They are
- * published as one object; they are edited as two files.
+ * **Five files, one version.** The items are thousands of rows, the categories are dozens,
+ * the authored rows are the handful no source produces, and the variants are two files: the
+ * ones the seed wrote and the ones a person did. Merging them would mean scrolling past every
+ * item to reach any of the others. They are published as one object; they are edited as
+ * five files — four of them by hand, and `variants.seeded.json` by `yarn taxonomy:seed`
+ * alone.
  *
  * The result is kept, so a version is read and validated once per process.
  */
@@ -54,10 +59,25 @@ export function versionTable(version: string): Version {
 
   const itemsFile = `versions/${version}.json`;
   const categoriesFile = `versions/${version}.categories.json`;
+  const authoredFile = `versions/${version}.authored.json`;
+  const seededFile = `versions/${version}.variants.seeded.json`;
+  const manualFile = `versions/${version}.variants.manual.json`;
+
+  // Rows first: the variants are checked against them, so every key names a real one.
+  const items = validateTaxonomyTable(readJson(itemsFile), itemsFile);
+  const authored = validateAuthoredTable(readJson(authoredFile), authoredFile);
+  const known = new Set([...Object.keys(items), ...Object.keys(authored)]);
+
+  // Each file validated on its own, so a message names the one that is wrong. Then seeded
+  // under manual: a manual key replaces the seeded list whole, not variant by variant.
+  const seeded = validateVariantTable(readJson(seededFile), known, seededFile);
+  const manual = validateVariantTable(readJson(manualFile), known, manualFile);
 
   const table: Version = {
-    items: validateTaxonomyTable(readJson(itemsFile), itemsFile),
+    items,
     categories: validateCategoryTable(readJson(categoriesFile), categoriesFile),
+    authored,
+    variants: { ...seeded, ...manual },
   };
 
   loaded.set(version, table);

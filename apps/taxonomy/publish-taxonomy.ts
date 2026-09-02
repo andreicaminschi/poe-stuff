@@ -28,10 +28,23 @@ export async function publishTaxonomy(
     );
   }
 
+  // The variants are authored in their own file and published on the row, so the reader
+  // sees one shape per row and never learns there were two files. Both tables of rows get
+  // the same treatment.
+  const fold = <T extends object>(rows: Readonly<Record<string, T>>) =>
+    Object.fromEntries(
+      Object.entries(rows).map(([id, row]) => {
+        const variants = table.variants[id];
+
+        return [id, variants === undefined ? row : { ...row, variants }];
+      }),
+    );
+
   await lake.writeJson(key, {
     version,
-    items: table.items,
+    items: fold(table.items),
     categories: table.categories,
+    authored: fold(table.authored),
   });
 
   return key;

@@ -9,12 +9,25 @@ const FIELDS = [
   "tradable",
   "tradedOnExchange",
   "conditions",
-  "variants",
+  "price",
   "original",
 ];
 
 /** The fields that are absent unless a person overrode them, and are booleans when present. */
 const OPTIONAL_FLAGS = ["filterable", "tradable", "tradedOnExchange"] as const;
+
+/** What a price selector may write, and what each key must be. PoeWatch's own field names. */
+const PRICE_KEYS: Readonly<Record<string, "number" | "boolean" | "string">> = {
+  name: "string",
+  passives: "string",
+  gemLevel: "number",
+  gemQuality: "number",
+  gemIsCorrupted: "boolean",
+  linkCount: "number",
+  itemLevel: "number",
+  mapTier: "number",
+  tier: "number",
+};
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -27,6 +40,31 @@ const isSubcategory = (value: unknown): boolean =>
 
 const unknownFields = (value: Record<string, unknown>, known: readonly string[]) =>
   Object.keys(value).filter((key) => !known.includes(key));
+
+/**
+ * Reads one price selector, and says what is wrong with it.
+ *
+ * An empty selector is refused. It would mean the same as absent, and a written field that
+ * says nothing is a row somebody stopped editing halfway through.
+ *
+ * Exported for the variants file, where the same selector sits on a variant.
+ */
+export function priceProblem(value: unknown): string | null {
+  if (!isObject(value)) return "price is not an object";
+
+  const keys = Object.keys(value);
+
+  if (keys.length === 0) return "price selects nothing";
+
+  for (const key of keys) {
+    const expected = PRICE_KEYS[key];
+
+    if (expected === undefined) return `price has unknown field: ${key}`;
+    if (typeof value[key] !== expected) return `price.${key} must be a ${expected}`;
+  }
+
+  return null;
+}
 
 /**
  * Reads one row, and says what is wrong with it.
@@ -70,36 +108,10 @@ function entryProblem(value: unknown): string | null {
     if (problem !== null) return problem;
   }
 
-  if (value.variants !== undefined) {
-    if (!Array.isArray(value.variants)) return "variants is not a list";
+  if (value.price !== undefined) {
+    const problem = priceProblem(value.price);
 
-    const names = new Set<string>();
-
-    for (const variant of value.variants) {
-      if (!isObject(variant)) return "a variant is not an object";
-
-      const extra = unknownFields(variant, ["name", "conditions"]);
-
-      if (extra.length > 0) {
-        return `a variant has unknown fields: ${extra.join(", ")}`;
-      }
-
-      if (!isCategory(variant.name)) {
-        return "a variant name must be a non-empty string";
-      }
-
-      const name = variant.name as string;
-
-      if (names.has(name)) {
-        return `variant "${name}" is authored twice`;
-      }
-
-      names.add(name);
-
-      const problem = conditionsProblem(variant.conditions);
-
-      if (problem !== null) return `variant "${name}" ${problem}`;
-    }
+    if (problem !== null) return problem;
   }
 
   const original = value.original;

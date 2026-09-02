@@ -1,6 +1,8 @@
 import { DEFAULT_BASE_URL, DEFAULT_USER_AGENT, trimUrl } from "./config.ts";
 import { getBaseItems } from "./get-base-items.ts";
 import type { BaseItems } from "./get-base-items.types.ts";
+import { getClusterJewels } from "./get-cluster-jewels.ts";
+import type { ClusterJewels } from "./get-cluster-jewels.types.ts";
 import { getEssences } from "./get-essences.ts";
 import type { Essences } from "./get-essences.types.ts";
 import { getGems } from "./get-gems.ts";
@@ -26,6 +28,7 @@ export type RepoeService = {
   getGems(): Promise<Gems>;
   getSpectres(): Promise<Spectres>;
   getEssences(): Promise<Essences>;
+  getClusterJewels(): Promise<ClusterJewels>;
 };
 
 /**
@@ -52,5 +55,6 @@ export function createRepoeService({
     getGems: () => getGems(context),
     getSpectres: () => getSpectres(context),
     getEssences: () => getEssences(context),
+    getClusterJewels: () => getClusterJewels(context),
   };
 }

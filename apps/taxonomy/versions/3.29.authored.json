@@ -1,5 +1,5 @@
-[
-  {
+{
+  "authored/vaal-aspect": {
     "name": "Vaal Aspect",
     "category": "currency",
     "subcategory": "maps",
@@ -11,10 +11,10 @@
     ],
     "reason": "Four ids, one display name, and the only thing separating them is the art file. A filter can write BaseType == \"Vaal Aspect\" and nothing finer, so four rows offering a choice the filter cannot make is four ways to get the same block. One row says what can actually be written."
   },
-  {
+  "authored/transfigured-gem": {
     "name": "Transfigured Gem",
     "category": "skill-gem",
     "subcategory": "transfigured",
     "reason": "The 249 transfigured gems are each marked filterable: false, because the client rejects Absolution of Inspiring as a base type. A filter still draws all of them, with TransfiguredGem True — the block exists, the names do not. This row is that block. It replaces nothing: the 249 stay where they are so a price can attach to each gem by name."
   }
-]
+}

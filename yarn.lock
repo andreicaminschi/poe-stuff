@@ -1394,6 +1394,8 @@ __metadata:
 "@poe/taxonomy-app@workspace:apps/taxonomy":
   version: 0.0.0-use.local
   resolution: "@poe/taxonomy-app@workspace:apps/taxonomy"
+  dependencies:
+    "@poe/repoe": "workspace:^"
   languageName: unknown
   linkType: soft
 

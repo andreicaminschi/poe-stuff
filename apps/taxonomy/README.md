@@ -21,19 +21,29 @@ we happen to write ourselves.
 apps/taxonomy/
 ├── versions/3.29.json             # items: one entry per metadata id
 ├── versions/3.29.categories.json  # categories: the flattened tree, one entry per path
-├── versions.ts                    # loads and validates one version's two files
+├── versions/3.29.authored.json    # authored: rows no source produces, keyed authored/<slug>. Never seeded
+├── versions/3.29.variants.manual.json  # variants a person wrote, keyed like the row they belong to
+├── versions/3.29.variants.seeded.json  # variants the seed wrote. Never edited by hand
+├── versions.ts                    # loads and validates one version's five files
+├── seed-taxonomy.ts               # every seed, run at once: the game's data -> variants.seeded.json
+├── seed-taxonomy/                 # one seed per class: gem-variants, cluster-jewels
 ├── validate-table.ts              # an item entry is well formed
 ├── validate-conditions.ts         # a condition list is well formed, and a category path
+├── validate-authored.ts           # an authored row is well formed and keyed under authored/
+├── validate-variants.ts           # a variant list is well formed and names a real row
 ├── publish-taxonomy.ts            # write a version into the lake, once
 ├── promote-taxonomy.ts            # point latest at a version
 ├── lake.ts                        # this app's lake, not the catalog's
 ├── types.ts                       # AuthoredEntry, AuthoredCategory, Condition, Version
-└── taxonomy-cli.ts                # publish | republish | promote
+├── taxonomy-cli.ts                # publish | republish | promote
+└── seed-taxonomy-cli.ts           # seed
 ```
 
-**A version is two files and one published object.** The items are thousands of rows and the
-categories are dozens; keeping them apart means reaching the conditions without scrolling
-past every item. `publish` writes `{ version, items, categories }` as one file.
+**A version is five files and one published object.** The items are thousands of rows, the
+categories are dozens, the authored rows are a handful, and the variants are two files — the
+seeded and the manual; keeping them apart means reaching any of the small ones without
+scrolling past every item. `publish` writes `{ version, items, categories, authored }` as one
+file, with each row's variants — the merge of the two files — folded onto its entry.
 
 ## Categories
 
@@ -127,19 +137,72 @@ all.
 An item can carry several priced variants. **A price attaches to a variant, not to an item**,
 so an item with variants resolves once per variant and not once for itself.
 
+They are keyed by the same metadata id the items file uses, or by an authored row's key.
+Every key must name a row in the version, and a list may not be empty.
+
+### Seeded and manual
+
+Variants come from two files, and the version is their merge.
+`versions/<version>.variants.seeded.json` is written by `yarn taxonomy:seed` — every seed at
+once, the whole file, every time — and is never edited by hand.
+`versions/<version>.variants.manual.json` is a person's, and **a manual key replaces the
+seeded list whole**: write a gem's variants there and the seeded ones for that gem are gone,
+not patched. Authored rows are never seeded.
+
+A seed reads what the game says an item can be — a gem's `naturalMaxLevel`, a cluster jewel's
+enchants — off `@poe/repoe`, and nothing else. **The taxonomy never touches PoeWatch.** The
+`price` selectors a seed writes are in PoeWatch's field names the way conditions are in GGG's:
+a published vocabulary the catalog reads, not a service the taxonomy calls. A form nobody
+lists is written anyway and stays unpriced.
+
+Two seeds today, in `seed-taxonomy/`; a new class is a new file there and a line in `SEEDS`.
+
+- **Gems.** `1/0`, `1/20`, `L/20`, and the four a Vaal Orb makes of the max — `L/20`,
+  `L+1/20`, `L/23`, `L+1/23`, corrupted. A Vaal gem cannot exist uncorrupted and gets the
+  corrupted five alone. `L` is RePoE's `naturalMaxLevel`.
+- **Cluster jewels.** Every enchant × passive bucket × item level bucket, as variants on the
+  three real rows — an enchant is a form of the jewel the way a level is a form of a gem.
+  `price: { name, passives, itemLevel }`. The buckets are PoeWatch's conventions, fixed in
+  the seed: small `2, 3`, medium `4, 5, 6`, large `8, 9-11, 12`; item level `1, 50, 68, 75,
+  84`.
+
 ```json
-"Metadata/.../SupportGemAwakenedAddedChaos": {
-  "name": "Awakened Added Chaos Damage Support",
-  "variants": [
-    { "name": "plain",   "conditions": [] },
-    { "name": "level 5", "conditions": [ { "condition": "GemLevel", "operator": ">=", "value": 5 } ] },
-    { "name": "level 6", "conditions": [ { "condition": "GemLevel", "operator": ">=", "value": 6 } ] }
-  ]
-}
+"Metadata/.../SupportGemAwakenedAddedChaos": [
+  { "name": "plain",   "conditions": [] },
+  { "name": "level 5", "conditions": [ { "condition": "GemLevel", "operator": ">=", "value": 5 } ] },
+  { "name": "level 6", "conditions": [ { "condition": "GemLevel", "operator": ">=", "value": 6 } ] }
+]
 ```
 
 An item that still needs a plain form writes a variant with no conditions, as above. Nothing
 is implied — a variant list with only narrow members means a level 1 gem gets no block.
+
+`publish` folds each list onto its item as `variants`, so the published entry looks the way
+it always did and the catalog reads nothing new.
+
+### Which listing prices a variant
+
+PoeWatch lists one name many times: a gem per level and quality, an armour per link count, a
+map per tier. A variant says which of those listings is its price with a `price` selector,
+written in PoeWatch's own field names. A listing matches when every written key is equal on
+it; among the matches, the most-listed one is read.
+
+```json
+{ "name": "level 6",
+  "conditions": [ { "condition": "GemLevel", "operator": ">=", "value": 6 } ],
+  "price": { "gemLevel": 6, "gemQuality": 20, "gemIsCorrupted": false } }
+```
+
+The keys are `gemLevel`, `gemQuality`, `gemIsCorrupted`, `linkCount`, `itemLevel`, `mapTier`,
+`tier`, `passives`, and `name` — the listing's own name, for a row PoeWatch lists under
+something other than its display name; a variant without one inherits its row's. **Absent
+means the most-listed row for the name**, which is what every row without variants gets. An item without variants may carry `price` itself, for a base that
+should not price at whatever form is listed most. A selector that matches nothing — a gem
+key on a base — leaves the row unpriced, and is not an error.
+
+**The fact is authored twice on purpose.** `GemLevel >= 6` is what a filter asks of an item
+on the ground; `gemLevel: 6` is which listing to read a price off. The catalog copies
+conditions and never reads them, and the selector keeps it that way.
 
 ## Item overrides
 
@@ -160,6 +223,30 @@ nobody wants it drawn. Everything in it lands in `excluded.json` and never reach
 decision somebody made; a row where they agree has either been checked and left alone or not
 been looked at yet.
 
+## Authored rows
+
+`versions/<version>.authored.json` holds the rows no arrangement of the sources produces,
+keyed `authored/<slug>` — a namespace no metadata id can collide with. The slug is usually
+of the name, and need not be. **This is the only place a hand-written row is authored, and
+it is never seeded.** The catalog builds the row from the entry and
+from whatever `replaces` names, and copies `conditions`, `price` and variants off it the way
+it does off a real row.
+
+```json
+"authored/vaal-aspect": {
+  "name": "Vaal Aspect",
+  "category": "currency",
+  "subcategory": "maps",
+  "replaces": [ "Metadata/Items/UniqueFragments/FragmentUniqueMap26_1", "..." ],
+  "reason": "Four ids, one display name, and a filter can write BaseType == \"Vaal Aspect\" and nothing finer."
+}
+```
+
+`replaces` names the item keys the row stands in for, and may be left out: with it, several
+rows a filter cannot tell apart collapse into the one it can write; without it, the row is one
+no source has at all. `reason` is required — a hand-written row with no reason records that
+somebody decided, not what they decided.
+
 ## What the validator refuses
 
 Both tables are checked before anything is published, because `tsc` never reads a `.json`
@@ -170,7 +257,11 @@ and a published version is immutable.
 - `from` naming anything but `name` or `baseTypes`.
 - The same `condition` + `operator` twice in one list — the second would win silently.
 - `Class` and `BaseType` authored in the same list.
-- Two variants under one name.
+- Two variants under one name, an empty variant list, or a variants key that is neither an
+  item nor an authored row in the version.
+- An authored row keyed by anything but `authored/` and a slug, with no `reason`, or with
+  an empty `replaces`.
+- A `price` selector with an unknown key, a wrong value type, or no keys at all.
 - A category key that is not `category` or `category/subcategory`, slugged.
 
 It fails on the first bad row and names it. The rest fail at resolution, where the row that
@@ -190,14 +281,21 @@ None. Everything this app touches is a file under the lake.
 - **Republishing does not reach a collected run.** Bronze is the record of what the sources
   said at that hour, and `yarn catalog` on an existing run replays silver without
   re-collecting. Delete the run, or collect a new hour.
-- **`versions.ts` lists the versions.** A new league is two new files under `versions/` and a
-  line in `VERSIONS`.
+- **`versions.ts` lists the versions.** A new league is five new files under `versions/`
+  and a line in `VERSIONS` — `variants.seeded.json` starts as `{}` and the seed fills it.
 - **The key layout is a shared format, not shared code.** This app builds
   `taxonomy/<version>.json` from its own `lake.ts` and `@poe/taxonomy` builds the same
   string from its own `config.ts`. Changing one without the other breaks at runtime with
   nothing failing at compile time.
 
 ## How to run
+
+Seed the variants for the version you are editing. Every seed runs, and
+`variants.seeded.json` is rewritten whole:
+
+```bash
+yarn taxonomy:seed
+```
 
 Publish the version you are editing, over the one already in the lake:
 

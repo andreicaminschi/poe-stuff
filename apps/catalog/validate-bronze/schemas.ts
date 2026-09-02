@@ -6,6 +6,10 @@ import type {
   ItemCorruptions,
 } from "@poe/poe-watch/get-corruption-data.types";
 import type { BaseItem } from "@poe/repoe/get-base-items.types";
+import type {
+  ClusterJewel,
+  ClusterJewelPassive,
+} from "@poe/repoe/get-cluster-jewels.types";
 import type { Essence } from "@poe/repoe/get-essences.types";
 import type { Gem } from "@poe/repoe/get-gems.types";
 import type { Taxonomy } from "@poe/taxonomy/get-taxonomy.types";
@@ -182,6 +186,32 @@ const essences = namedRecord("essence") satisfies z.ZodType<
   Record<string, Pick<Essence, "name">>
 >;
 
+/**
+ * What the cluster jewel export is read for: the passive's name against its mod text.
+ *
+ * **Never legitimately empty, and never fewer than the three sizes.** The file is three rows
+ * by construction, and a passive with no `stat_text` is one nothing could ever match a
+ * listing against.
+ */
+type ValidatedClusterJewel = Pick<ClusterJewel, "name"> & {
+  readonly passive_skills: readonly Pick<ClusterJewelPassive, "name" | "stat_text">[];
+};
+
+const repoeClusterJewels = z
+  .record(
+    z.string(),
+    z.looseObject({
+      name: z.string(),
+      passive_skills: z.array(
+        z.looseObject({ name: z.string(), stat_text: z.array(z.string()).min(1) }),
+      ),
+    }),
+  )
+  .refine(
+    (sizes) => Object.keys(sizes).length === 3,
+    "the cluster jewel export does not hold exactly three sizes",
+  ) satisfies z.ZodType<Record<string, ValidatedClusterJewel>>;
+
 /** One structured `.filter` condition. `value: null` is a removal and is legitimate here. */
 const condition = z.looseObject({
   condition: z.string(),
@@ -192,6 +222,11 @@ const condition = z.looseObject({
   from: z.string().optional(),
 });
 
+/** Priced variants, folded onto a row at publish. The same shape on an item and an authored row. */
+const variants = z
+  .array(z.looseObject({ name: z.string(), conditions: z.array(condition) }))
+  .optional();
+
 /**
  * The taxonomy as it was published.
  *
@@ -199,7 +234,8 @@ const condition = z.looseObject({
  * row would come out with no category rather than the run failing where the fault is.
  *
  * `categories` may be empty, and is until the conditions are authored. A category in use
- * with no record fails at resolution, where the row that needed it can be named.
+ * with no record fails at resolution, where the row that needed it can be named. `authored`
+ * may be empty too: a version with nothing hand-written is an ordinary version.
  */
 const taxonomy = z.looseObject({
   version: z.string(),
@@ -212,17 +248,25 @@ const taxonomy = z.looseObject({
         subcategory: z.string().nullable(),
         filterable: z.boolean().optional(),
         conditions: z.array(condition).optional(),
-        variants: z
-          .array(
-            z.looseObject({ name: z.string(), conditions: z.array(condition) }),
-          )
-          .optional(),
+        variants,
       }),
     )
     .refine((items) => Object.keys(items).length > 0, "the taxonomy is empty"),
   categories: z.record(
     z.string(),
     z.looseObject({ conditions: z.array(condition) }),
+  ),
+  authored: z.record(
+    z.string(),
+    z.looseObject({
+      name: z.string(),
+      category: z.string(),
+      subcategory: z.string().nullable(),
+      replaces: z.array(z.string()).optional(),
+      reason: z.string(),
+      conditions: z.array(condition).optional(),
+      variants,
+    }),
   ),
 }) satisfies z.ZodType<Taxonomy>;
 
@@ -241,5 +285,6 @@ export const BRONZE_SCHEMAS: readonly {
   { file: BRONZE_FILES.repoeBaseItems, schema: repoeBaseItems },
   { file: BRONZE_FILES.repoeGems, schema: gems },
   { file: BRONZE_FILES.repoeEssences, schema: essences },
+  { file: BRONZE_FILES.repoeClusterJewels, schema: repoeClusterJewels },
   { file: BRONZE_FILES.taxonomy, schema: taxonomy },
 ];

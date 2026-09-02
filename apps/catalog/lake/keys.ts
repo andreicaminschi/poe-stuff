@@ -34,6 +34,7 @@ export const BRONZE_FILES = {
   repoeBaseItems: "repoe_base-items.json",
   repoeGems: "repoe_gems.json",
   repoeEssences: "repoe_essences.json",
+  repoeClusterJewels: "repoe_cluster-jewels.json",
   taxonomy: "taxonomy_items.json",
 } as const;
 

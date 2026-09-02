@@ -1,36 +1,6 @@
-import { readFileSync } from "node:fs";
+import type { TaxonomyAuthored } from "@poe/taxonomy/get-taxonomy.types";
 import { blankItem } from "../item.ts";
 import type { Item, ItemSource } from "../item.ts";
-import { slug } from "../lake/keys.ts";
-
-/**
- * A row somebody wrote by hand, because no arrangement of the sources produces it.
- *
- * `replaces` names the rows it stands in for and may be left out. With it, several rows a
- * filter cannot tell apart collapse into the one row it can write. Without it, the entry is
- * a row no source has at all — a flag the game matches on rather than a base type.
- *
- * `reason` is the point of the file. A hand-written row with no reason records that
- * somebody decided, not what they decided.
- */
-export type AuthoredItem = {
-  readonly name: string;
-  readonly category: string;
-  readonly subcategory: string | null;
-  readonly replaces?: readonly string[];
-  readonly reason: string;
-};
-
-/**
- * The hand-written rows, read rather than compiled in so they can be edited with `jq`.
- */
-export const authoredItems = (): readonly AuthoredItem[] =>
-  JSON.parse(
-    readFileSync(new URL("authored-items.json", import.meta.url), "utf8"),
-  ) as AuthoredItem[];
-
-/** `authored/vaal-aspect`. Its own namespace, so it can never collide with a metadata id. */
-export const authoredKey = (name: string): string => `authored/${slug(name)}`;
 
 const union = (
   values: readonly (readonly string[])[],
@@ -55,13 +25,20 @@ function agreed(values: readonly (string | null)[]): string | null {
  * lists the name, and for the rows worth authoring it does — the site lists 145 blighted map
  * labels while RePoE files the concept as an untradable trade proxy. Reading the flag off
  * the proxy would answer a question about the proxy, not about the item.
+ *
+ * Conditions, variants and the price selector are copied off the entry the way
+ * `classifyItems` copies them off a real row's, and resolved just as little.
  */
-function fromReplaced(entry: AuthoredItem, replaced: readonly Item[]): Item {
+function fromReplaced(
+  key: string,
+  entry: TaxonomyAuthored,
+  replaced: readonly Item[],
+): Item {
   const sources = new Set<ItemSource>(replaced.flatMap((item) => item.sources));
   sources.add("authored");
 
   return {
-    ...blankItem(authoredKey(entry.name), entry.name),
+    ...blankItem(key, entry.name),
     category: entry.category,
     subcategory: entry.subcategory,
     metadataPaths: union(replaced.map((item) => item.metadataPaths)),
@@ -73,11 +50,18 @@ function fromReplaced(entry: AuthoredItem, replaced: readonly Item[]): Item {
     isUnique: replaced.length > 0 && replaced.every((item) => item.isUnique),
     tradable: true,
     tradedOnExchange: replaced.some((item) => item.tradedOnExchange),
+    ...(entry.conditions === undefined ? {} : { conditions: entry.conditions }),
+    ...(entry.variants === undefined ? {} : { variants: entry.variants }),
+    ...(entry.price === undefined ? {} : { price: entry.price }),
   };
 }
 
 /**
  * Swaps every row an entry replaces for the one row it authors.
+ *
+ * The entries are the taxonomy's `authored` table, read off bronze like the rest of it: the
+ * taxonomy is the one place a hand-written row is authored, and this only builds what it
+ * says. The key is the entry's, so a variant authored against it lands on the row.
  *
  * Runs after the taxonomy, and the entry carries its own category, so an authored row is
  * never looked up and can never land in `unresolved.json`. It still has to pass
@@ -90,14 +74,15 @@ function fromReplaced(entry: AuthoredItem, replaced: readonly Item[]): Item {
  */
 export function applyAuthored(
   items: readonly Item[],
-  authored: readonly AuthoredItem[],
+  authored: Readonly<Record<string, TaxonomyAuthored>>,
 ): readonly Item[] {
   const byKey = new Map(items.map((item) => [item.key, item]));
+  const entries = Object.entries(authored);
 
-  const rows = authored.map((entry) => {
+  const rows = entries.map(([key, entry]) => {
     const keys = entry.replaces ?? [];
 
-    const missing = keys.filter((key) => !byKey.has(key));
+    const missing = keys.filter((replaced) => !byKey.has(replaced));
     if (missing.length > 0) {
       throw new Error(
         `Authored item ${entry.name} replaces ${missing.length} key(s) this run does not have: ${missing.join(", ")}`,
@@ -105,12 +90,13 @@ export function applyAuthored(
     }
 
     return fromReplaced(
+      key,
       entry,
-      keys.flatMap((key) => byKey.get(key) ?? []),
+      keys.flatMap((replaced) => byKey.get(replaced) ?? []),
     );
   });
 
-  const replaced = new Set(authored.flatMap((entry) => entry.replaces ?? []));
+  const replaced = new Set(entries.flatMap(([, entry]) => entry.replaces ?? []));
 
   return [...items.filter((item) => !replaced.has(item.key)), ...rows];
 }

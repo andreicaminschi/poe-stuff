@@ -52,6 +52,7 @@ export function classifyItems(
       // Copied, not composed. The generator lays the category and subcategory over these.
       ...(entry.conditions === undefined ? {} : { conditions: entry.conditions }),
       ...(entry.variants === undefined ? {} : { variants: entry.variants }),
+      ...(entry.price === undefined ? {} : { price: entry.price }),
     });
   }
 

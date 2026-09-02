@@ -1,14 +1,16 @@
 import type { GGGItemGroup } from "@poe/ggg/get-item-data.types";
 import type { CurrencyExchange } from "@poe/ggg/types";
+import type { ItemData } from "@poe/poe-watch/get-compact-data.types";
 import type { BaseItems } from "@poe/repoe/get-base-items.types";
 import type { Essences } from "@poe/repoe/get-essences.types";
 import type { Gems } from "@poe/repoe/get-gems.types";
 import type { Taxonomy } from "@poe/taxonomy/get-taxonomy.types";
-import { applyAuthored, authoredItems } from "./build-silver/apply-authored.ts";
+import { applyAuthored } from "./build-silver/apply-authored.ts";
 import { classifyItems } from "./build-silver/classify-items.ts";
 import { fromExchange } from "./build-silver/from-exchange.ts";
 import { fromGems } from "./build-silver/from-gems.ts";
 import { fromGGGItems } from "./build-silver/from-ggg-items.ts";
+import { fromPoeWatch } from "./build-silver/from-poe-watch.ts";
 import { fromRepoe } from "./build-silver/from-repoe.ts";
 import { groupByCategory } from "./build-silver/group-by-category.ts";
 import { tagIds } from "./build-silver/tag-ids.ts";
@@ -41,7 +43,7 @@ export const buildSilver: Step = {
   async run({ lake, runId }) {
     const read = <T>(file: string) => lake.readJson<T>(bronzeKey(runId, file));
 
-    const [groups, exchange, baseItems, gems, essences, taxonomy] =
+    const [groups, exchange, baseItems, gems, essences, taxonomy, listings] =
       await Promise.all([
         read<readonly GGGItemGroup[]>(BRONZE_FILES.gggItems),
         read<CurrencyExchange>(BRONZE_FILES.currencyHour),
@@ -49,6 +51,7 @@ export const buildSilver: Step = {
         read<Gems>(BRONZE_FILES.repoeGems),
         read<Essences>(BRONZE_FILES.repoeEssences),
         read<Taxonomy>(BRONZE_FILES.taxonomy),
+        read<readonly ItemData[]>(BRONZE_FILES.poeWatchCompact),
       ]);
 
     /**
@@ -75,8 +78,12 @@ export const buildSilver: Step = {
 
     // Last, and after the taxonomy on purpose: an authored row carries its own category, so
     // it is never looked up and cannot be reported as one the table failed to place.
-    const authored = authoredItems();
-    const rows = applyAuthored(classified, authored);
+    // Priced last of all, because only a filterable row is priced and nothing before this
+    // point has finished deciding which rows those are.
+    const rows = fromPoeWatch(
+      applyAuthored(classified, taxonomy.authored),
+      listings,
+    );
 
     const kept: Item[] = [];
     const skipped: Item[] = [];

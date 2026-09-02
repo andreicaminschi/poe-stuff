@@ -20,6 +20,34 @@ export type Condition = {
 };
 
 /**
+ * Which of PoeWatch's rows for a name is the one to price.
+ *
+ * PoeWatch lists one name many times — a gem per level and quality, an armour per link
+ * count, a map per tier — and the keys here are its own field names, so the catalog can
+ * compare without translating. A row matches when every written key is equal on it.
+ * Absent means the most-listed row for the name.
+ *
+ * **The fact is authored twice on purpose.** `GemLevel >= 6` is what a `.filter` asks of an
+ * item on the ground; `gemLevel: 6` is which listing to read a price off. The catalog copies
+ * conditions and never reads them, and this keeps it that way.
+ *
+ * `name` is the listing's own name, for a row whose display name is not what PoeWatch lists
+ * it under — a cluster jewel is listed as `Large Cluster Jewel (12% increased Cold Damage)`.
+ * A variant without one inherits its row's.
+ */
+export type PriceSelector = {
+  readonly name?: string;
+  readonly passives?: string;
+  readonly gemLevel?: number;
+  readonly gemQuality?: number;
+  readonly gemIsCorrupted?: boolean;
+  readonly linkCount?: number;
+  readonly itemLevel?: number;
+  readonly mapTier?: number;
+  readonly tier?: number;
+};
+
+/**
  * One priced variant of an item: a narrower condition set that is drawn on its own.
  *
  * A level 6 Awakened Added Chaos and a level 1 are one base type, two prices and two blocks.
@@ -29,7 +57,44 @@ export type Condition = {
 export type AuthoredVariant = {
   readonly name: string;
   readonly conditions: readonly Condition[];
+  /** Which listing prices this variant. Absent means the most-listed row for the name. */
+  readonly price?: PriceSelector;
 };
+
+/**
+ * Every variant one version authors, keyed by the same metadata id the items are.
+ *
+ * A third file rather than a field on the entry, so the items table stays what each thing
+ * is and this stays how each thing is priced and drawn. Every key must name an item in the
+ * version. The two are merged at publish time, and nothing downstream learns they were apart.
+ */
+export type VariantTable = Readonly<Record<string, readonly AuthoredVariant[]>>;
+
+/**
+ * A row somebody wrote by hand, because no arrangement of the sources produces it.
+ *
+ * Keyed `authored/<slug of name>`: a namespace no metadata id can collide with, which is
+ * what lets the variants file key both tables at once. `replaces` names the item keys it
+ * stands in for and may be left out — with it, several rows a filter cannot tell apart
+ * collapse into the one it can write; without it, the row is one no source has at all.
+ *
+ * `reason` is the point of the entry. A hand-written row with no reason records that
+ * somebody decided, not what they decided.
+ *
+ * Authored here rather than in the catalog so that one file says what the hand-written rows
+ * are, and the same `conditions`, `price` and variants reach them as reach a real row.
+ */
+export type AuthoredRow = {
+  readonly name: string;
+  readonly category: string;
+  readonly subcategory: string | null;
+  readonly replaces?: readonly string[];
+  readonly reason: string;
+  readonly conditions?: readonly Condition[];
+  readonly price?: PriceSelector;
+};
+
+export type AuthoredTable = Readonly<Record<string, AuthoredRow>>;
 
 /**
  * What one category or subcategory authors, keyed by its path in `categories`.
@@ -45,10 +110,12 @@ export type AuthoredCategory = {
 /** One version's category tree, flattened, keyed by path. */
 export type CategoryTable = Readonly<Record<string, AuthoredCategory>>;
 
-/** Both halves of one version, as they are published. */
+/** The four files of one version, read and validated. */
 export type Version = {
   readonly items: TaxonomyTable;
   readonly categories: CategoryTable;
+  readonly authored: AuthoredTable;
+  readonly variants: VariantTable;
 };
 
 /**
@@ -107,8 +174,12 @@ export type AuthoredEntry = {
   readonly tradedOnExchange?: boolean;
   /** Conditions for this row alone, laid over its category's and its subcategory's. */
   readonly conditions?: readonly Condition[];
-  /** Priced variants. Absent means the row is one block, drawn as itself. */
-  readonly variants?: readonly AuthoredVariant[];
+  /**
+   * Which listing prices the row itself. Read only on a row without variants — with them,
+   * a price attaches to each variant and the row has none of its own. Variants are not
+   * authored here: they live in `<version>.variants.json`, keyed by the same id.
+   */
+  readonly price?: PriceSelector;
   /**
    * What the seed said, kept beside what a person decided.
    *

@@ -5,6 +5,7 @@ import { extractGGGItems } from "./extract-ggg-items.ts";
 import { extractPoeWatchCompact } from "./extract-poe-watch-compact.ts";
 import { extractPoeWatchCorruptions } from "./extract-poe-watch-corruptions.ts";
 import { extractRepoeBaseItems } from "./extract-repoe-base-items.ts";
+import { extractRepoeClusterJewels } from "./extract-repoe-cluster-jewels.ts";
 import { extractRepoeEssences } from "./extract-repoe-essences.ts";
 import { extractRepoeGems } from "./extract-repoe-gems.ts";
 import { extractTaxonomy } from "./extract-taxonomy.ts";
@@ -34,6 +35,7 @@ export const STEPS: readonly Step[] = [
   extractRepoeBaseItems,
   extractRepoeGems,
   extractRepoeEssences,
+  extractRepoeClusterJewels,
   extractTaxonomy,
   validateBronze,
   buildSilver,
