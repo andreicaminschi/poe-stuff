@@ -63,6 +63,25 @@ export const silverKey = (runId: string, file: string): string =>
 export const silverPrefix = (runId: string): string =>
   `${runPrefix(runId)}/silver`;
 
+/** `catalog/run=allflame_1788256800/gold/catalog.json`. */
+export const goldKey = (runId: string, file: string): string =>
+  stageKey(runId, "gold", file);
+
+/** Rebuilt from scratch every run, the same way silver is, and cleared the same way. */
+export const goldPrefix = (runId: string): string => `${runPrefix(runId)}/gold`;
+
+/**
+ * What gold writes. Two files, and the split is the point.
+ *
+ * `catalog.json` is every filterable row with the conditions the taxonomy authored for it.
+ * `catalog.categories.json` is the flattened category tree those conditions hang off,
+ * copied. The generator needs both to resolve a row, and neither is resolved here.
+ */
+export const GOLD_FILES = {
+  catalog: "catalog.json",
+  categories: "catalog.categories.json",
+} as const;
+
 /**
  * One manifest for the whole run, beside the stages rather than inside one.
  *

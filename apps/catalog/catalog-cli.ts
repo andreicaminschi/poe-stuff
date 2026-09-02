@@ -5,11 +5,18 @@
  * node --env-file=apps/catalog/.env apps/catalog/catalog-cli.ts --league=Allflame
  * node --env-file=apps/catalog/.env apps/catalog/catalog-cli.ts --league=Allflame --date=2026-08-31-14
  * node --env-file=apps/catalog/.env apps/catalog/catalog-cli.ts --league=Allflame --hour=1788253200
+ * node --env-file=apps/catalog/.env apps/catalog/catalog-cli.ts --league=Allflame --force
  * ```
  *
  * **There is no replay flag.** A run whose bronze is already collected reuses it and
- * rebuilds silver; a run whose bronze is missing collects it first. The same command does
- * both, which is what keeps a replay from needing to be remembered as a different one.
+ * rebuilds silver and gold; a run whose bronze is missing collects it first. The same
+ * command does both, which is what keeps a replay from needing to be remembered as a
+ * different one.
+ *
+ * `--force` is the other direction: collect bronze again for a run that already has it.
+ * That overwrites the record of what the sources said at that hour, and the reason to want
+ * it is the taxonomy — a table republished after a run was collected reaches it no other
+ * way.
  *
  * No cache is handed to either service. Bronze is the cache, and a second run of the same
  * hour reads the files rather than the APIs.
@@ -100,7 +107,7 @@ async function main(): Promise<void> {
       }),
       ...(taxonomyVersion === undefined ? {} : { taxonomyVersion }),
     },
-    { onEvent: report },
+    { onEvent: report, force: args.includes("--force") },
   );
 
   process.stdout.write(`manifest ${manifestKey(id)}\n`);

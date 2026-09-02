@@ -1,3 +1,4 @@
+import { buildGold } from "./build-gold.ts";
 import { buildSilver } from "./build-silver.ts";
 import { extractCurrencyHour } from "./extract-currency-hour.ts";
 import { extractGGGItems } from "./extract-ggg-items.ts";
@@ -32,22 +33,35 @@ export const STEPS: readonly Step[] = [
   extractTaxonomy,
   validateBronze,
   buildSilver,
+  buildGold,
 ];
 
 /**
  * The stages, and whether a finished one can be left alone.
  *
  * Bronze is what a rerun skips: the hour it collected is gone and re-fetching it would give
- * a different answer, so a run that has it keeps it. Silver is derived and is always rebuilt
- * — that is the whole of what "replay" means here, and why there is no flag for it.
+ * a different answer, so a run that has it keeps it. Silver and gold are derived and are
+ * always rebuilt — that is the whole of what "replay" means here, and why there is no flag
+ * for it. `force` is the flag for the other direction, collecting bronze again.
  */
 const STAGES: readonly { readonly stage: Stage; readonly reusable: boolean }[] = [
   { stage: "bronze", reusable: true },
   { stage: "silver", reusable: false },
+  { stage: "gold", reusable: false },
 ];
 
 export type RunOptions = {
   onEvent?: (event: PipelineEvent) => void;
+  /**
+   * Collect a stage the run already has.
+   *
+   * **This overwrites the record of what the sources said at that hour.** Bronze is skipped
+   * on a replay precisely because re-fetching gives a different answer, so forcing it makes
+   * the run's own history say something it did not say at the time. It is here because the
+   * taxonomy is one of those sources and is ours: a table republished after a run was
+   * collected reaches it no other way.
+   */
+  force?: boolean;
 };
 
 const noop = () => {};
@@ -93,7 +107,7 @@ async function runStage(
  */
 export async function runPipeline(
   context: StepContext,
-  { onEvent = noop }: RunOptions = {},
+  { onEvent = noop, force = false }: RunOptions = {},
 ): Promise<Manifest> {
   const { lake, runId, league, hourId } = context;
 
@@ -107,7 +121,7 @@ export async function runPipeline(
   for (const { stage, reusable } of STAGES) {
     if (!STEPS.some((step) => step.stage === stage)) continue;
 
-    if (reusable && manifest.stages[stage] !== undefined) {
+    if (reusable && !force && manifest.stages[stage] !== undefined) {
       onEvent({ type: "stage-skipped", stage, reason: "already collected" });
       continue;
     }

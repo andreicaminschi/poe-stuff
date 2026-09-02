@@ -65,7 +65,7 @@ export type Step = {
   run(context: StepContext): Promise<StepResult>;
 };
 
-export type Stage = "bronze" | "silver";
+export type Stage = "bronze" | "silver" | "gold";
 
 /**
  * What the pipeline is doing, as it happens. Runs inline and is never awaited, so it must
