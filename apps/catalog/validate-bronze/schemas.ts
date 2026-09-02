@@ -125,11 +125,24 @@ const essences = namedRecord("essence") satisfies z.ZodType<
   Record<string, Pick<Essence, "name">>
 >;
 
+/** One structured `.filter` condition. `value: null` is a removal and is legitimate here. */
+const condition = z.looseObject({
+  condition: z.string(),
+  operator: z.string().optional(),
+  value: z
+    .union([z.string(), z.number(), z.boolean(), z.array(z.string()), z.null()])
+    .optional(),
+  from: z.string().optional(),
+});
+
 /**
  * The taxonomy as it was published.
  *
  * **Never legitimately empty.** A table with no items classifies nothing, and every silver
  * row would come out with no category rather than the run failing where the fault is.
+ *
+ * `categories` may be empty, and is until the conditions are authored. A category in use
+ * with no record fails at resolution, where the row that needed it can be named.
  */
 const taxonomy = z.looseObject({
   version: z.string(),
@@ -141,9 +154,19 @@ const taxonomy = z.looseObject({
         category: z.string(),
         subcategory: z.string().nullable(),
         filterable: z.boolean().optional(),
+        conditions: z.array(condition).optional(),
+        variants: z
+          .array(
+            z.looseObject({ name: z.string(), conditions: z.array(condition) }),
+          )
+          .optional(),
       }),
     )
     .refine((items) => Object.keys(items).length > 0, "the taxonomy is empty"),
+  categories: z.record(
+    z.string(),
+    z.looseObject({ conditions: z.array(condition) }),
+  ),
 }) satisfies z.ZodType<Taxonomy>;
 
 /**

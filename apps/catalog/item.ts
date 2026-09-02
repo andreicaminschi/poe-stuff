@@ -1,3 +1,5 @@
+import type { Condition } from "@poe/taxonomy/get-taxonomy.types";
+
 /**
  * Which bronze file put something on a row.
  *
@@ -39,6 +41,19 @@ export const knownToRepoe = (item: Item): boolean =>
  */
 export const isAuthored = (item: Item): boolean =>
   item.sources.includes("authored");
+
+/**
+ * One block a row is worth: the conditions a `.filter` writes for it, and the variant they
+ * came from.
+ *
+ * `variant` is null on a row the taxonomy gives no variants, which is most of them. Where it
+ * is set, the row is several blocks — a level 6 Awakened Added Chaos and a level 1 are one
+ * base type, two prices and two rules — and the price attaches here rather than to the row.
+ */
+export type ItemRule = {
+  readonly variant: string | null;
+  readonly conditions: readonly Condition[];
+};
 
 /**
  * One item the game can show, as every bronze file together describes it.
