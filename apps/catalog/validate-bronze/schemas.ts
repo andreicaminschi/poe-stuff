@@ -1,5 +1,10 @@
 import type { GGGItemGroup } from "@poe/ggg/get-item-data.types";
 import type { CurrencyExchange } from "@poe/ggg/types";
+import type { ItemData } from "@poe/poe-watch/get-compact-data.types";
+import type {
+  CorruptionOutcome,
+  ItemCorruptions,
+} from "@poe/poe-watch/get-corruption-data.types";
 import type { BaseItem } from "@poe/repoe/get-base-items.types";
 import type { Essence } from "@poe/repoe/get-essences.types";
 import type { Gem } from "@poe/repoe/get-gems.types";
@@ -72,6 +77,58 @@ const currencyHour = z.looseObject({
     }),
   ),
 }) satisfies z.ZodType<CurrencyExchange>;
+
+/**
+ * What identifies one PoeWatch row. Nothing reads these files yet, so what is asserted is
+ * the join: the id the corruptions refer back to, and the name and category that say which
+ * item it is.
+ *
+ * `category` is a plain string rather than the thirty-one names the service type lists. A
+ * category PoeWatch adds next league is a row nothing here reads, and failing bronze over
+ * one would lose the other thirty-three thousand.
+ */
+type ValidatedCompactItem = Pick<ItemData, "id" | "name"> & {
+  readonly category: string;
+};
+
+/**
+ * The whole league's market.
+ *
+ * **Never legitimately empty.** No items means the league name reached PoeWatch as
+ * something it does not price, not that nobody is trading.
+ */
+const poeWatchCompact = z
+  .array(
+    z.looseObject({
+      id: z.number(),
+      name: z.string(),
+      category: z.string(),
+    }),
+  )
+  .min(1, "the compact dump has no items") satisfies z.ZodType<
+  readonly ValidatedCompactItem[]
+>;
+
+/** One item's outcomes, down to the implicit and what it sold for. */
+type ValidatedCorruptions = Pick<ItemCorruptions, "item_id"> & {
+  readonly corruptions: readonly Pick<CorruptionOutcome, "name" | "mean">[];
+};
+
+/**
+ * Every priced corruption outcome.
+ *
+ * **This one may be empty.** Only four categories roll implicits worth pricing, and a
+ * league young enough to have no listings for them has nothing to report rather than
+ * something wrong.
+ */
+const poeWatchCorruptions = z.array(
+  z.looseObject({
+    item_id: z.number(),
+    corruptions: z.array(
+      z.looseObject({ name: z.string(), mean: z.number() }),
+    ),
+  }),
+) satisfies z.ZodType<readonly ValidatedCorruptions[]>;
 
 /**
  * What silver reads off a base item: the name it is keyed by, the class and release state
@@ -179,6 +236,8 @@ export const BRONZE_SCHEMAS: readonly {
 }[] = [
   { file: BRONZE_FILES.gggItems, schema: gggItems },
   { file: BRONZE_FILES.currencyHour, schema: currencyHour },
+  { file: BRONZE_FILES.poeWatchCompact, schema: poeWatchCompact },
+  { file: BRONZE_FILES.poeWatchCorruptions, schema: poeWatchCorruptions },
   { file: BRONZE_FILES.repoeBaseItems, schema: repoeBaseItems },
   { file: BRONZE_FILES.repoeGems, schema: gems },
   { file: BRONZE_FILES.repoeEssences, schema: essences },

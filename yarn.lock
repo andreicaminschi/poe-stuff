@@ -1308,6 +1308,7 @@ __metadata:
   resolution: "@poe/catalog@workspace:apps/catalog"
   dependencies:
     "@poe/ggg": "workspace:^"
+    "@poe/poe-watch": "workspace:^"
     "@poe/repoe": "workspace:^"
     "@poe/taxonomy": "workspace:^"
     "@util/env": "workspace:^"
@@ -1374,7 +1375,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@poe/poe-watch@workspace:services/poe-watch":
+"@poe/poe-watch@workspace:^, @poe/poe-watch@workspace:services/poe-watch":
   version: 0.0.0-use.local
   resolution: "@poe/poe-watch@workspace:services/poe-watch"
   dependencies:

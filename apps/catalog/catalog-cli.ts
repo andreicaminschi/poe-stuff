@@ -23,6 +23,7 @@
  */
 
 import { createGGGService } from "@poe/ggg/service";
+import { createPoeWatchService } from "@poe/poe-watch/service";
 import { createRepoeService } from "@poe/repoe/service";
 import { createTaxonomyService } from "@poe/taxonomy/service";
 import { optionalEnv, requireEnv } from "@util/env";
@@ -101,6 +102,7 @@ async function main(): Promise<void> {
       league,
       hourId,
       ggg: createGGGService({ userAgent }),
+      poeWatch: createPoeWatchService({ userAgent }),
       repoe: createRepoeService({ userAgent }),
       taxonomy: createTaxonomyService({
         store: taxonomyUrl === undefined ? lakeStore(lake) : urlStore(taxonomyUrl),

@@ -2,6 +2,8 @@ import { buildGold } from "./build-gold.ts";
 import { buildSilver } from "./build-silver.ts";
 import { extractCurrencyHour } from "./extract-currency-hour.ts";
 import { extractGGGItems } from "./extract-ggg-items.ts";
+import { extractPoeWatchCompact } from "./extract-poe-watch-compact.ts";
+import { extractPoeWatchCorruptions } from "./extract-poe-watch-corruptions.ts";
 import { extractRepoeBaseItems } from "./extract-repoe-base-items.ts";
 import { extractRepoeEssences } from "./extract-repoe-essences.ts";
 import { extractRepoeGems } from "./extract-repoe-gems.ts";
@@ -27,6 +29,8 @@ import type {
 export const STEPS: readonly Step[] = [
   extractGGGItems,
   extractCurrencyHour,
+  extractPoeWatchCompact,
+  extractPoeWatchCorruptions,
   extractRepoeBaseItems,
   extractRepoeGems,
   extractRepoeEssences,

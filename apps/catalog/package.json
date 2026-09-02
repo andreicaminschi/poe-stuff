@@ -6,6 +6,7 @@
   "type": "module",
   "dependencies": {
     "@poe/ggg": "workspace:^",
+    "@poe/poe-watch": "workspace:^",
     "@poe/repoe": "workspace:^",
     "@poe/taxonomy": "workspace:^",
     "@util/env": "workspace:^",
