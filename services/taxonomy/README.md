@@ -4,9 +4,13 @@ One published version of the item taxonomy, read back by version.
 
 ## Purpose
 
-The taxonomy says what category and subcategory an item belongs to, keyed by the display
-name the game shows. `apps/taxonomy` writes the versions; this package reads one back and
-resolves `latest` to whichever version was promoted.
+The taxonomy says what category and subcategory an item belongs to, keyed by the metadata id
+the game's own data gives it. `apps/taxonomy` writes the versions; this package reads one
+back and resolves `latest` to whichever version was promoted.
+
+An entry can also override three things the sources get wrong: `filterable` says a `.filter`
+cannot name the row, `tradable` and `tradedOnExchange` say whether it can be obtained at all.
+All three are absent on almost every row, and absent means take the sources' answer.
 
 It stops at the bytes. The service is handed a store — an object with a single `read(key)` —
 and never learns whether that key is a file, an object in a bucket or a URL. It also does no
@@ -30,7 +34,7 @@ services/taxonomy/
 | Import | Exports | Contract |
 | --- | --- | --- |
 | `@poe/taxonomy/service` | `createTaxonomyService`, `TaxonomyService` | Takes a store and an optional prefix. `getTaxonomy(version?)` answers with one version, or the promoted one when no version is named. |
-| `@poe/taxonomy/get-taxonomy.types` | `Taxonomy`, `TaxonomyEntry`, `TaxonomyPointer` | Types only. `Taxonomy.items` is keyed by display name, so a lookup is a property access. |
+| `@poe/taxonomy/get-taxonomy.types` | `Taxonomy`, `TaxonomyEntry`, `TaxonomyPointer` | Types only. `Taxonomy.items` is keyed by metadata id, so a lookup is a property access. |
 | `@poe/taxonomy/types` | `TaxonomyStore`, `TaxonomyServiceOptions` | Types only. `TaxonomyStore` is what a caller implements. |
 | `@poe/taxonomy/errors` | `TaxonomyNotFoundError` | Carries the `key` that was missing. |
 
@@ -48,7 +52,11 @@ import { createTaxonomyService } from "@poe/taxonomy/service";
 const taxonomy = await createTaxonomyService({ store }).getTaxonomy();
 
 console.log(taxonomy.version); // "3.29"
-console.log(taxonomy.items["Bound Fossil"]); // { category: "currency", subcategory: "delve" }
+
+// Keyed by metadata id. Two items can share a display name, so a name-keyed table gave the
+// skill gem `Wildfire` and the unique jewel `Wildfire` one classification between them.
+console.log(taxonomy.items["Metadata/Items/Currency/CurrencyDelveCraftingMinionsAuras"]);
+// { name: "Bound Fossil", category: "fossil", subcategory: null }
 ```
 
 ### Pin a run to one version

@@ -3,6 +3,31 @@
 Things the generator has to honour, found while building the catalog. Short entries, one
 per thing learned.
 
+## A league start must not touch the generator
+
+The generator is code and the catalog is data, and a new league only ever changes the data.
+Nothing about `3.30` may require an edit here.
+
+That rules out the generator knowing what any category is. It cannot carry the fact that a
+blighted map is `BlightedMap True`, that a transfigured gem is `TransfiguredGem True`, or
+that a unique is matched by base plus `Rarity Unique` — every one of those is a fact about
+the game, and the game is what changes.
+
+So the catalog owes the generator the conditions, not just the names — the `.filter`
+condition lines themselves, as data:
+
+```
+blighted-map    ->  Class == "Maps", BlightedMap True
+skill-gem       ->  Class == "Skill Gems" "Support Gems", TransfiguredGem True
+unique-armour   ->  Rarity Unique, BaseType == "<the base it rolls on>"
+```
+
+A category carries the lines every entry in it matches on. An entry carries its own when the
+name will not do. The generator reads them and renders blocks, and knows nothing about what
+any of them mean.
+
+Not designed yet. Next thing to pick up.
+
 ## Beasts are not filterable
 
 A captured beast is a real item — `Item Class: Stackable Currency`, and the base type is the
