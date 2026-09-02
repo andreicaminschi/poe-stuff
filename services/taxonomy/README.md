@@ -12,6 +12,12 @@ An entry can also override three things the sources get wrong: `filterable` says
 cannot name the row, `tradable` and `tradedOnExchange` say whether it can be obtained at all.
 All three are absent on almost every row, and absent means take the sources' answer.
 
+A version carries a second table, `categories`, keyed by path — `map` beside `map/blighted`,
+the tree flattened into the key. Each record holds the `.filter` conditions every row under
+it matches on, and an item can override them or split into priced variants. The language and
+how the levels compose are documented where they are authored, in
+[apps/taxonomy/README.md](../../apps/taxonomy/README.md).
+
 It stops at the bytes. The service is handed a store — an object with a single `read(key)` —
 and never learns whether that key is a file, an object in a bucket or a URL. It also does no
 validation: what comes back is returned as `Taxonomy` on the writer's word.
@@ -34,7 +40,7 @@ services/taxonomy/
 | Import | Exports | Contract |
 | --- | --- | --- |
 | `@poe/taxonomy/service` | `createTaxonomyService`, `TaxonomyService` | Takes a store and an optional prefix. `getTaxonomy(version?)` answers with one version, or the promoted one when no version is named. |
-| `@poe/taxonomy/get-taxonomy.types` | `Taxonomy`, `TaxonomyEntry`, `TaxonomyPointer` | Types only. `Taxonomy.items` is keyed by metadata id, so a lookup is a property access. |
+| `@poe/taxonomy/get-taxonomy.types` | `Taxonomy`, `TaxonomyEntry`, `TaxonomyCategory`, `TaxonomyVariant`, `Condition`, `TaxonomyPointer` | Types only. `Taxonomy.items` is keyed by metadata id and `Taxonomy.categories` by category path, so either lookup is a property access. |
 | `@poe/taxonomy/types` | `TaxonomyStore`, `TaxonomyServiceOptions` | Types only. `TaxonomyStore` is what a caller implements. |
 | `@poe/taxonomy/errors` | `TaxonomyNotFoundError` | Carries the `key` that was missing. |
 

@@ -48,7 +48,7 @@ lib/env/               # @util/env — requireEnv / optionalEnv. The only reader
 apps/item-inspect/     # @poe/item-inspect — paste an item, see how the parser read it
 apps/collector/        # README only. Replaces @poe/workers
 apps/catalog/          # the bronze/silver pipeline. Replaces @poe/filterv2
-apps/taxonomy/         # the hand-maintained classification table, published a version at a time
+apps/taxonomy/         # the hand-maintained classification table and the filter conditions. Has a README.md
 apps/generator/        # notes.md only. Never existed: items + prices -> a .filter
 packages/workers/      # DEPRECATED @poe/workers. Does not compile
 packages/filterv2/     # DEPRECATED @poe/filterv2
@@ -118,7 +118,7 @@ own, which POC they replace, and what has to be decided first.
 | [`apps/item-inspect`](apps/item-inspect/README.md) | — | **Written.** Paste an item copied out of the game, see how the parser read it. The one consumer of `@poe/item-parser` today, and where its CLI lives now that `lib/` is pure. |
 | [`apps/collector`](apps/collector/README.md) | `@poe/workers` | The worker loop, the job handlers, the record of outstanding work, the writes into `.s3`, and `queries.json`. |
 | [`apps/catalog`](apps/catalog/README.md) | `@poe/filterv2` | **Written.** The bronze/silver pipeline: collect every source for one league-hour, merge them into one row per item, classify against the taxonomy and write a file per category. Also `find-duplicates-cli.ts`, which reports the display names more than one metadata id carries. |
-| `apps/taxonomy` | — | **Written.** The hand-maintained classification table, one JSON file per version under `versions/`. Publishes a version into the lake and promotes one to `latest`. Nothing imports it — the catalog reads what it published through `@poe/taxonomy`. |
+| [`apps/taxonomy`](apps/taxonomy/README.md) | — | **Written.** The hand-maintained tables, two JSON files per version under `versions/`: what each item is, and the `.filter` conditions every category, subcategory and item matches on. Publishes a version into the lake and promotes one to `latest`. Nothing imports it — the catalog reads what it published through `@poe/taxonomy`. |
 | [`apps/generator`](apps/generator/README.md) | nothing — new | `(items, prices, config) -> a .filter file`. The spine. `notes.md` holds what the catalog has learned that it will have to honour. |
 
 ## Deprecated
@@ -274,10 +274,11 @@ Every service has a `README.md`; `services/ggg` also has Mermaid `.mmd` diagrams
 `lib/item-parser`, `lib/cache` and `lib/env` have none. Write one with the `/document`
 command.
 
-`apps/item-inspect` has a `README.md`. `apps/catalog` and `apps/taxonomy` are written and
-have none — the pipeline's shape is in the step files' doc comments, and the taxonomy's is
-in `types.ts`. `apps/generator` has `notes.md` instead: what the catalog has learned that
-the generator will have to honour, one entry per thing.
+`apps/item-inspect` and `apps/taxonomy` have a `README.md`. The taxonomy's is where the
+condition language lives: the shape of a condition, how the four levels compose, and what
+the validator refuses. `apps/catalog` has none — the pipeline's shape is in the step files'
+doc comments. `apps/generator` has `notes.md` instead: what the catalog has learned that the
+generator will have to honour, one entry per thing.
 
 `apps/collector` has a `README.md` describing what does not exist yet. Each folder
 under `packages/` has a `DEPRECATED.md`.
