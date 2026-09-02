@@ -108,8 +108,6 @@ export type TaxonomyAuthored = {
   readonly subcategory: string | null;
   readonly replaces?: readonly string[];
   readonly reason: string;
-  /** Whether the row is a unique. Absent means ask the rows it replaces. */
-  readonly isUnique?: boolean;
   readonly conditions?: readonly Condition[];
   readonly variants?: readonly TaxonomyVariant[];
   readonly price?: PriceSelector;

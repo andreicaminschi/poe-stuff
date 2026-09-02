@@ -139,7 +139,7 @@ export function withUniques(
   }
 
   return rows.map((item) => {
-    if (item.name === null || item.isUnique) return item;
+    if (item.name === null) return item;
 
     const uniques = perBase.get(item.name);
     if (uniques === undefined) return item;

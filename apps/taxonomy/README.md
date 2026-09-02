@@ -265,8 +265,7 @@ it does off a real row.
 `replaces` names the item keys the row stands in for, and may be left out: with it, several
 rows a filter cannot tell apart collapse into the one it can write; without it, the row is one
 no source has at all. `reason` is required — a hand-written row with no reason records that
-somebody decided, not what they decided. `isUnique` may be written where nothing is replaced
-and the row is a unique anyway; absent, the replaced rows answer.
+somebody decided, not what they decided.
 
 ## What the validator refuses
 

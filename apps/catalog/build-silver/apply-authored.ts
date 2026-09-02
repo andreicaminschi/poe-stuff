@@ -47,10 +47,6 @@ function fromReplaced(
     baseTypes: union(replaced.map((item) => item.baseTypes)),
     tags: union(replaced.map((item) => item.tags)),
     sources: [...sources],
-    // The entry may say so itself, for a row that replaces nothing and is a unique anyway.
-    isUnique:
-      entry.isUnique ??
-      (replaced.length > 0 && replaced.every((item) => item.isUnique)),
     tradable: true,
     tradedOnExchange: replaced.some((item) => item.tradedOnExchange),
     ...(entry.conditions === undefined ? {} : { conditions: entry.conditions }),

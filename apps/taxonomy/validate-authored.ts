@@ -8,7 +8,6 @@ const FIELDS = [
   "subcategory",
   "replaces",
   "reason",
-  "isUnique",
   "conditions",
   "price",
 ];
@@ -63,10 +62,6 @@ function rowProblem(key: string, value: unknown): string | null {
   }
 
   if (!isText(value.reason)) return "reason must be a non-empty string";
-
-  if (value.isUnique !== undefined && typeof value.isUnique !== "boolean") {
-    return "isUnique must be a boolean when it is present";
-  }
 
   if (value.replaces !== undefined) {
     if (!Array.isArray(value.replaces) || !value.replaces.every(isText)) {

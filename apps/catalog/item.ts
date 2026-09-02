@@ -86,7 +86,6 @@ export type Item = {
   readonly category: string | null;
   readonly subcategory: string | null;
   readonly baseTypes: readonly string[];
-  readonly isUnique: boolean;
   /**
    * Whether the game files this as a quest item.
    *
@@ -220,7 +219,6 @@ export const blankItem = (key: string, name: string | null = key): Item => ({
   category: null,
   subcategory: null,
   baseTypes: [],
-  isUnique: false,
   isQuestItem: false,
   releaseState: null,
   tags: [],
