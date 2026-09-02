@@ -16,7 +16,8 @@ which block takes an item.
 
 **Nothing generates a filter yet.** That is `apps/generator`, and it is the missing spine —
 until something comes out of it, every source collected here is a leaf and nothing proves
-the whole works.
+the whole works. It has its first file: the resolver that turns the conditions the taxonomy
+authored into the ones a block writes. What it still has no source for is the money.
 
 ## Tiers
 
@@ -47,9 +48,9 @@ lib/cache/             # @util/cache — cache-key, file-cache, sleep
 lib/env/               # @util/env — requireEnv / optionalEnv. The only reader of process.env
 apps/item-inspect/     # @poe/item-inspect — paste an item, see how the parser read it
 apps/collector/        # README only. Replaces @poe/workers
-apps/catalog/          # the bronze/silver pipeline. Replaces @poe/filterv2
+apps/catalog/          # the bronze/silver/gold pipeline. Replaces @poe/filterv2
 apps/taxonomy/         # the hand-maintained classification table and the filter conditions. Has a README.md
-apps/generator/        # notes.md only. Never existed: items + prices -> a .filter
+apps/generator/        # the condition resolver, and notes. Never existed: items + prices -> a .filter
 packages/workers/      # DEPRECATED @poe/workers. Does not compile
 packages/filterv2/     # DEPRECATED @poe/filterv2
 .s3/                   # local stand-in for object storage. Gitignored, nothing writes it yet
@@ -110,16 +111,16 @@ never learns where the input came from. The moment a lib names a service in its
 
 ## Apps
 
-Three are written. `apps/collector` and `apps/generator` hold notes naming what they will
-own, which POC they replace, and what has to be decided first.
+Three are written and `apps/generator` has started. `apps/collector` holds a `README.md`
+naming what it will own, which POC it replaces, and what has to be decided first.
 
 | App | Replaces | Owns |
 | --- | --- | --- |
 | [`apps/item-inspect`](apps/item-inspect/README.md) | — | **Written.** Paste an item copied out of the game, see how the parser read it. The one consumer of `@poe/item-parser` today, and where its CLI lives now that `lib/` is pure. |
 | [`apps/collector`](apps/collector/README.md) | `@poe/workers` | The worker loop, the job handlers, the record of outstanding work, the writes into `.s3`, and `queries.json`. |
-| [`apps/catalog`](apps/catalog/README.md) | `@poe/filterv2` | **Written.** The bronze/silver pipeline: collect every source for one league-hour, merge them into one row per item, classify against the taxonomy and write a file per category. Also `find-duplicates-cli.ts`, which reports the display names more than one metadata id carries. |
+| [`apps/catalog`](apps/catalog/README.md) | `@poe/filterv2` | **Written.** The bronze/silver/gold pipeline: collect every source for one league-hour, merge them into one row per item, classify against the taxonomy and write a file per category, then gather the drawable rows into `catalog.json` and `catalog.categories.json`. It carries the conditions the taxonomy authored and resolves none of them. Also `find-duplicates-cli.ts`, which reports the display names more than one metadata id carries. |
 | [`apps/taxonomy`](apps/taxonomy/README.md) | — | **Written.** The hand-maintained tables, two JSON files per version under `versions/`: what each item is, and the `.filter` conditions every category, subcategory and item matches on. Publishes a version into the lake and promotes one to `latest`. Nothing imports it — the catalog reads what it published through `@poe/taxonomy`. |
-| [`apps/generator`](apps/generator/README.md) | nothing — new | `(items, prices, config) -> a .filter file`. The spine. `notes.md` holds what the catalog has learned that it will have to honour. |
+| [`apps/generator`](apps/generator/README.md) | nothing — new | `(items, prices, config) -> a .filter file`. The spine. **One file so far**: `resolve-conditions.ts`, which composes a row's `.filter` conditions out of the four levels the taxonomy authored — category, subcategory, item, variant. It declares the row shape it reads rather than importing the catalog's, so `catalog.json` is the contract between them. `notes.md` holds what the catalog has learned that this app will have to honour. |
 
 ## Deprecated
 
@@ -256,10 +257,16 @@ Publish the taxonomy version you are editing, over the one already in the lake:
 yarn taxonomy:republish
 ```
 
-Collect and build one league-hour, then report the names more than one id carries:
+Collect and build one league-hour, then report the names more than one id carries. A run
+that already has bronze reuses it and rebuilds silver and gold; `--force` collects bronze
+again, which is how a republished taxonomy reaches a run that was already collected:
 
 ```bash
 yarn catalog --league=Allflame --hour=1788292800
+```
+
+```bash
+yarn catalog --league=Allflame --hour=1788292800 --force
 ```
 
 ```bash
@@ -274,11 +281,11 @@ Every service has a `README.md`; `services/ggg` also has Mermaid `.mmd` diagrams
 `lib/item-parser`, `lib/cache` and `lib/env` have none. Write one with the `/document`
 command.
 
-`apps/item-inspect` and `apps/taxonomy` have a `README.md`. The taxonomy's is where the
-condition language lives: the shape of a condition, how the four levels compose, and what
-the validator refuses. `apps/catalog` has none — the pipeline's shape is in the step files'
-doc comments. `apps/generator` has `notes.md` instead: what the catalog has learned that the
-generator will have to honour, one entry per thing.
+`apps/item-inspect`, `apps/taxonomy` and `apps/generator` have a `README.md`. The taxonomy's
+is where the condition language lives: the shape of a condition, how the four levels compose,
+and what the validator refuses. `apps/catalog` has none — the pipeline's shape is in the step
+files' doc comments. `apps/generator` also has `notes.md`: what the catalog has learned that
+the generator will have to honour, one entry per thing.
 
 `apps/collector` has a `README.md` describing what does not exist yet. Each folder
 under `packages/` has a `DEPRECATED.md`.

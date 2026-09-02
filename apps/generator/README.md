@@ -1,9 +1,18 @@
 # generator
 
-**Not written yet, and never has been.** This folder holds the intent, not the code.
+**One file written, and it is not the spine yet.** This folder still holds mostly intent.
 
 This is the spine. Until something comes out of here, every source the repo collects is a
 leaf and nothing proves the whole thing works.
+
+| File | State |
+| --- | --- |
+| `resolve-conditions.ts` | **Written.** Composes the `.filter` conditions for one catalog row — category, subcategory, item, variant — and answers with one rule per variant. |
+| `notes.md` | What the catalog has learned that this app has to honour. One entry per thing. |
+
+`resolveConditions` declares the row shape it reads, `CatalogRow`, rather than importing the
+catalog's. An app is never imported by another, so `catalog.json` is the contract between the
+two and it is a published format rather than a shared module.
 
 ## What it will own
 
@@ -21,6 +30,12 @@ Four stages, and the third is the one that is easy to get wrong:
    `Class`, predicates over `ItemLevel`, `Rarity`, `Quality`, `Sockets`. A group that cannot
    be written as conditions is not a group, which is how the grammar pushes back on the
    classifier.
+
+   **The conditions are not invented here.** The taxonomy authors them, per category, per
+   subcategory and per item, and `resolve-conditions.ts` lays the levels over each other for
+   one row. That is what keeps a league start from reaching this app: a new mechanic is a
+   record in the taxonomy, not a branch in the grouper. Two rows in one bucket resolving to
+   different conditions is fine — they are two blocks sharing one look.
 3. **Order.** First match wins, so a specific block must precede the general one that would
    swallow it. **Derive this from selector specificity — never author it.** A hand-ordered
    block list means every new rule can silently shadow an older one, and the failure is
@@ -54,8 +69,13 @@ two generated filters readable.
 
 ## What has to exist first
 
-- `apps/catalog` — the catalog. One row per item, carrying a canonical id, what the item
-  is, and what it is worth with provenance on the price. The classifier needs a number
-  **and** a confidence signal: a thin market must not be able to set a loud block.
+- `apps/catalog` — **half of it exists.** Its gold stage writes `catalog.json`, every
+  filterable row with the conditions the taxonomy authored for it, and
+  `catalog.categories.json`, the flattened category tree those hang off. Both are what
+  `resolveConditions` takes.
+
+  What is missing is the money. A row says what an item is and not what it is worth, and the
+  classifier needs a number **and** a confidence signal — a thin market must not be able to
+  set a loud block. Prices arrive from poe.watch and are not collected yet.
 - [`docs/item-filter-syntax.md`](../../docs/item-filter-syntax.md) is the grammar. Anything
   emitted here has to be a line in there.
