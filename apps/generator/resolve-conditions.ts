@@ -1,14 +1,37 @@
 import type {
   Condition,
   TaxonomyCategory,
-  TaxonomyEntry,
+  TaxonomyVariant,
 } from "@poe/taxonomy/get-taxonomy.types";
-import type { Item, ItemRule } from "../item.ts";
+
+/**
+ * What this needs off a catalog row, declared here rather than imported.
+ *
+ * An app is never imported by another, so the generator names the shape it reads and the
+ * catalog answers with a row that fits. `catalog.json` is the contract between them, and it
+ * is a published format rather than a shared module — the same arrangement `@poe/item-parser`
+ * has with GGG's stat list.
+ */
+export type CatalogRow = {
+  readonly key: string;
+  readonly name: string | null;
+  readonly baseTypes: readonly string[];
+  readonly category: string | null;
+  readonly subcategory: string | null;
+  readonly conditions?: readonly Condition[];
+  readonly variants?: readonly TaxonomyVariant[];
+};
+
+/** One block a row is worth: the conditions to write, and the variant they came from. */
+export type ItemRule = {
+  readonly variant: string | null;
+  readonly conditions: readonly Condition[];
+};
 
 export type Categories = Readonly<Record<string, TaxonomyCategory>>;
 
 /** What `from` may name, and what each one reads off the row. */
-const FIELDS: Readonly<Record<string, (item: Item) => readonly string[]>> = {
+const FIELDS: Readonly<Record<string, (item: CatalogRow) => readonly string[]>> = {
   name: (item) => (item.name === null ? [] : [item.name]),
   baseTypes: (item) => item.baseTypes,
 };
@@ -51,7 +74,7 @@ function compose(levels: readonly (readonly Condition[])[]): readonly Condition[
 }
 
 /** Every level above the item: the category, then the subcategory when there is one. */
-function categoryPaths(item: Item): readonly string[] {
+function categoryPaths(item: CatalogRow): readonly string[] {
   if (item.category === null) return [];
 
   return item.subcategory === null
@@ -65,7 +88,7 @@ function categoryPaths(item: Item): readonly string[] {
  * A condition with no `from` is a literal and passes through untouched — `BlightedMap true`
  * and `EnchantmentPassiveNode ["Feast of Flesh"]` name nothing about the row and never will.
  */
-function fill(condition: Condition, item: Item): Condition {
+function fill(condition: Condition, item: CatalogRow): Condition {
   if (condition.from === undefined) return condition;
 
   const read = FIELDS[condition.from];
@@ -108,7 +131,7 @@ function fill(condition: Condition, item: Item): Condition {
  */
 function finish(
   conditions: readonly Condition[],
-  item: Item,
+  item: CatalogRow,
   variant: string | null,
 ): ItemRule {
   const filled = conditions.map((condition) => fill(condition, item));
@@ -135,8 +158,7 @@ function finish(
  * cannot classify and deserves the same answer.
  */
 export function resolveConditions(
-  item: Item,
-  entry: TaxonomyEntry,
+  item: CatalogRow,
   categories: Categories,
 ): readonly ItemRule[] {
   const levels: (readonly Condition[])[] = [];
@@ -153,10 +175,10 @@ export function resolveConditions(
     levels.push(record.conditions);
   }
 
-  levels.push(entry.conditions ?? []);
+  levels.push(item.conditions ?? []);
 
   const base = compose(levels);
-  const variants = entry.variants ?? [];
+  const variants = item.variants ?? [];
 
   if (variants.length === 0) return [finish(base, item, null)];
 

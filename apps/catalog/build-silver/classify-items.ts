@@ -49,6 +49,9 @@ export function classifyItems(
       // which RePoE marks untradable while the trade site lists 145 names against it.
       tradable: entry.tradable ?? item.tradable,
       tradedOnExchange: entry.tradedOnExchange ?? item.tradedOnExchange,
+      // Copied, not composed. The generator lays the category and subcategory over these.
+      ...(entry.conditions === undefined ? {} : { conditions: entry.conditions }),
+      ...(entry.variants === undefined ? {} : { variants: entry.variants }),
     });
   }
 

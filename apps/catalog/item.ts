@@ -1,4 +1,7 @@
-import type { Condition } from "@poe/taxonomy/get-taxonomy.types";
+import type {
+  Condition,
+  TaxonomyVariant,
+} from "@poe/taxonomy/get-taxonomy.types";
 
 /**
  * Which bronze file put something on a row.
@@ -41,19 +44,6 @@ export const knownToRepoe = (item: Item): boolean =>
  */
 export const isAuthored = (item: Item): boolean =>
   item.sources.includes("authored");
-
-/**
- * One block a row is worth: the conditions a `.filter` writes for it, and the variant they
- * came from.
- *
- * `variant` is null on a row the taxonomy gives no variants, which is most of them. Where it
- * is set, the row is several blocks — a level 6 Awakened Added Chaos and a level 1 are one
- * base type, two prices and two rules — and the price attaches here rather than to the row.
- */
-export type ItemRule = {
-  readonly variant: string | null;
-  readonly conditions: readonly Condition[];
-};
 
 /**
  * One item the game can show, as every bronze file together describes it.
@@ -100,6 +90,16 @@ export type Item = {
    * table says otherwise.
    */
   readonly filterable: boolean;
+  /**
+   * The conditions the taxonomy authored for this row alone, **copied and not resolved**.
+   *
+   * The catalog carries what was authored and composes nothing. Laying the category over the
+   * subcategory over the row is the generator's job, and doing it here would bake one
+   * reading of the tables into an artifact that outlives them.
+   */
+  readonly conditions?: readonly Condition[];
+  /** The row's priced variants, copied the same way. */
+  readonly variants?: readonly TaxonomyVariant[];
 };
 
 /**
