@@ -136,12 +136,25 @@ const REMOVED = "RemovedItem";
 const EXCLUDED = "excluded";
 
 /**
+ * The taxonomy category whose rows have to trade on the Currency Exchange to count.
+ *
+ * The trade site lists every currency name it has ever had — sextants, scouting reports,
+ * seals — and lists it long after the game stopped dropping it. The exchange only has what
+ * somebody traded this hour, and for a currency that is the better witness.
+ */
+const CURRENCY = "currency";
+
+/**
  * Whether the generator can write a line for this row.
  *
  * Five questions at once: can a player get one — the trade site lists it, or it traded on
  * the exchange — has the game not taken it out, is it something the game lets a filter act
  * on at all, was it set aside on purpose, and can a filter name it. A row that fails any of
  * them is real enough to keep and useless to write a rule for.
+ *
+ * **A currency has to have traded on the exchange.** For every other category the trade
+ * site's list is evidence enough; for currency it is a list of every name that ever was,
+ * and the exchange is what separates a Chaos Orb from an Awakened Sextant.
  *
  * **A quest item is never one of them.** The game shows quest items whatever a filter says,
  * so a rule for one does nothing.
@@ -151,7 +164,9 @@ const EXCLUDED = "excluded";
  * the client rejects while the one beside it drops.
  */
 export const isFilterable = (item: Item): boolean =>
-  (item.tradable || item.tradedOnExchange) &&
+  (item.category === CURRENCY
+    ? item.tradedOnExchange
+    : item.tradable || item.tradedOnExchange) &&
   item.itemClass !== REMOVED &&
   !item.isQuestItem &&
   item.category !== EXCLUDED &&

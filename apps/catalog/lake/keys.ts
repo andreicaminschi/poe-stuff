@@ -31,6 +31,7 @@ export const BRONZE_FILES = {
   currencyHour: "ggg_currency-hour.json",
   poeWatchCompact: "poe-watch_compact.json",
   poeWatchCorruptions: "poe-watch_corruptions.json",
+  poeWatchRatios: "poe-watch_exchange-ratios.json",
   repoeBaseItems: "repoe_base-items.json",
   repoeGems: "repoe_gems.json",
   repoeEssences: "repoe_essences.json",

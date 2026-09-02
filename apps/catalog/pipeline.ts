@@ -4,6 +4,7 @@ import { extractCurrencyHour } from "./extract-currency-hour.ts";
 import { extractGGGItems } from "./extract-ggg-items.ts";
 import { extractPoeWatchCompact } from "./extract-poe-watch-compact.ts";
 import { extractPoeWatchCorruptions } from "./extract-poe-watch-corruptions.ts";
+import { extractPoeWatchRatios } from "./extract-poe-watch-ratios.ts";
 import { extractRepoeBaseItems } from "./extract-repoe-base-items.ts";
 import { extractRepoeClusterJewels } from "./extract-repoe-cluster-jewels.ts";
 import { extractRepoeEssences } from "./extract-repoe-essences.ts";
@@ -32,6 +33,7 @@ export const STEPS: readonly Step[] = [
   extractCurrencyHour,
   extractPoeWatchCompact,
   extractPoeWatchCorruptions,
+  extractPoeWatchRatios,
   extractRepoeBaseItems,
   extractRepoeGems,
   extractRepoeEssences,

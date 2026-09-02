@@ -33,7 +33,7 @@ services/poe-watch/
 ├── get-corruption-data.ts           # GET /corruptions
 ├── get-corruption-data.types.ts     # ItemCorruptions, CorruptionOutcome
 ├── get-exchange-ratios.ts           # GET /exchange/ratios
-└── get-exchange-ratios.types.ts     # ExchangeRatioItem, ExchangeRatioSide, Game
+└── get-exchange-ratios.types.ts     # ExchangeRatioItem, ExchangeRatioPrice, ExchangeRatioSide, Game
 ```
 
 ## Public API
@@ -43,7 +43,7 @@ services/poe-watch/
 | `@poe/poe-watch/service` | `createPoeWatchService`, `PoeWatchService`, `PoeWatchServiceOptions` | Three endpoints bound to one base URL, user agent and cache. Every option has a default. |
 | `@poe/poe-watch/get-compact-data.types` | `ItemData`, `ItemCategory`, `ItemCommon`, `ExchangePair`, `PerfectPrice`, `CompactResponse`, and the 31 per-category rows | `ItemData` is a union discriminated on `category`; narrow before reaching a category's own fields. |
 | `@poe/poe-watch/get-corruption-data.types` | `ItemCorruptions`, `CorruptionOutcome` | `item_id` joins to `ItemData.id`, though the two endpoints are separate snapshots and a few ids never resolve. |
-| `@poe/poe-watch/get-exchange-ratios.types` | `ExchangeRatioItem`, `ExchangeRatioSide`, `ExchangeRatioHistoryPoint`, `ExchangeRatiosResponse`, `Game` | A side that never traded comes back as zeroes rather than absent. |
+| `@poe/poe-watch/get-exchange-ratios.types` | `ExchangeRatioItem`, `ExchangeRatioPrice`, `ExchangeRatioSide`, `ExchangeRatioHistoryPoint`, `ExchangeRatiosResponse`, `Game` | `price.chaos` is the number to read: a volume-weighted mean of trades over a few hours, restated in Chaos. A side that never traded comes back as zeroes rather than absent. |
 | `@poe/poe-watch/errors` | `PoeWatchHttpError` | Carries `url`, `status`. |
 | `@poe/poe-watch/types` | `PoeWatchContext`, `ResponseCache`, `CachedResponse` | Types only. `ResponseCache` is what `PoeWatchServiceOptions.cache` takes. |
 

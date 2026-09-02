@@ -1,6 +1,7 @@
 import type { GGGItemGroup } from "@poe/ggg/get-item-data.types";
 import type { CurrencyExchange } from "@poe/ggg/types";
 import type { ItemData } from "@poe/poe-watch/get-compact-data.types";
+import type { ExchangeRatioItem } from "@poe/poe-watch/get-exchange-ratios.types";
 import type { BaseItems } from "@poe/repoe/get-base-items.types";
 import type { Essences } from "@poe/repoe/get-essences.types";
 import type { Gems } from "@poe/repoe/get-gems.types";
@@ -43,7 +44,7 @@ export const buildSilver: Step = {
   async run({ lake, runId }) {
     const read = <T>(file: string) => lake.readJson<T>(bronzeKey(runId, file));
 
-    const [groups, exchange, baseItems, gems, essences, taxonomy, listings] =
+    const [groups, exchange, baseItems, gems, essences, taxonomy, listings, ratios] =
       await Promise.all([
         read<readonly GGGItemGroup[]>(BRONZE_FILES.gggItems),
         read<CurrencyExchange>(BRONZE_FILES.currencyHour),
@@ -52,6 +53,7 @@ export const buildSilver: Step = {
         read<Essences>(BRONZE_FILES.repoeEssences),
         read<Taxonomy>(BRONZE_FILES.taxonomy),
         read<readonly ItemData[]>(BRONZE_FILES.poeWatchCompact),
+        read<readonly ExchangeRatioItem[]>(BRONZE_FILES.poeWatchRatios),
       ]);
 
     /**
@@ -83,6 +85,7 @@ export const buildSilver: Step = {
     const rows = fromPoeWatch(
       applyAuthored(classified, taxonomy.authored),
       listings,
+      ratios,
     );
 
     const kept: Item[] = [];
@@ -100,13 +103,27 @@ export const buildSilver: Step = {
      * **`.filterable.json` is a subset of `.json`, not a fourth pile.** Every row in it is
      * also in the category file; it is there so the rows a filter rule can be written for
      * are one file rather than a filter over one.
+     *
+     * **`.unpriced.json` is a subset of `.filterable.json`, the same way.** A row a filter
+     * can name and PoeWatch does not price — a name the game no longer drops, most of the
+     * time — is what a hand pass over the taxonomy goes looking for, so it is one file rather
+     * than a search. A row with variants is not here: its variants carry the prices, and
+     * one of them going unpriced is a form nobody lists, not a row nobody knows.
      */
+    const filterable = kept.filter(isFilterable);
+    const unpriced = filterable.filter(
+      (item) => item.meanPrice === undefined && item.variants === undefined,
+    );
+
     const files = [
       ...[...groupByCategory(kept)].map(
         ([category, rows]) => [`${category}.json`, rows] as const,
       ),
-      ...[...groupByCategory(kept.filter(isFilterable))].map(
+      ...[...groupByCategory(filterable)].map(
         ([category, rows]) => [`${category}.filterable.json`, rows] as const,
+      ),
+      ...[...groupByCategory(unpriced)].map(
+        ([category, rows]) => [`${category}.unpriced.json`, rows] as const,
       ),
       ...[...groupByCategory(skipped)].map(
         ([category, rows]) => [`${category}.skipped.json`, rows] as const,

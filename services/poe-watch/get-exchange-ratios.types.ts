@@ -44,7 +44,38 @@ export type ExchangeRatioSide = {
 };
 
 /**
- * One item's exchange ratios, both sides of it.
+ * The one price PoeWatch settles on for the item, from whichever side it trusts more.
+ *
+ * `chaos` is the number to read: a volume-weighted mean over `window`, restated in Chaos
+ * whichever side it came from. `source` names that side, and `window.volume` is how many
+ * trades stand behind it — tens of thousands for a Divine Orb over four hours.
+ */
+export type ExchangeRatioPrice = {
+  /** The price in Chaos Orbs. */
+  readonly chaos: number;
+  /** The same price in Divine Orbs. */
+  readonly divine: number;
+  /** How the price was computed, e.g. `volumeWeightedMean`. */
+  readonly method: string;
+  /** Which side it was computed from: `chaos` or `divine`. */
+  readonly source: string;
+  /** The Currency Exchange pair the source side is. */
+  readonly sourcePairID: number;
+  readonly lowConfidence: boolean;
+  /** Unix timestamp in seconds. */
+  readonly lastTradeAt: number;
+  /** The span the mean covers, and the trades inside it. */
+  readonly window: {
+    readonly hours: number;
+    readonly start: number;
+    readonly end: number;
+    readonly volume: number;
+  };
+  readonly volume7D: number;
+};
+
+/**
+ * One item's exchange ratios, both sides of it, and the price PoeWatch settles on.
  *
  * `id` joins to `ItemData.id` in `get-compact-data.types.ts`. `category` is the same
  * vocabulary as `ItemCategory` there but arrives as a plain string here — the endpoint
@@ -56,6 +87,13 @@ export type ExchangeRatioItem = {
   /** URL to the item's icon on the Path of Exile CDN. */
   readonly icon: string;
   readonly category: string;
+  /**
+   * The canonical price. Read this before either side.
+   *
+   * Absent on a row with no trade inside the window — two of 1,035 in a sample, each with a
+   * side that last traded days ago. A row without one has no price worth reading.
+   */
+  readonly price?: ExchangeRatioPrice;
   /** The item's market against Chaos Orbs. */
   readonly chaos: ExchangeRatioSide;
   /** The item's market against Divine Orbs. */

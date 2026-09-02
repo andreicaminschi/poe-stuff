@@ -5,6 +5,10 @@ import type {
   CorruptionOutcome,
   ItemCorruptions,
 } from "@poe/poe-watch/get-corruption-data.types";
+import type {
+  ExchangeRatioItem,
+  ExchangeRatioPrice,
+} from "@poe/poe-watch/get-exchange-ratios.types";
 import type { BaseItem } from "@poe/repoe/get-base-items.types";
 import type {
   ClusterJewel,
@@ -111,6 +115,32 @@ const poeWatchCompact = z
   )
   .min(1, "the compact dump has no items") satisfies z.ZodType<
   readonly ValidatedCompactItem[]
+>;
+
+/**
+ * What silver reads off an exchange row: the name it joins on, and the canonical price.
+ * `price` is absent on a row with no trade in the window, and such a row prices nothing.
+ */
+type ValidatedRatio = Pick<ExchangeRatioItem, "name" | "category"> & {
+  readonly price?: Pick<ExchangeRatioPrice, "chaos">;
+};
+
+/**
+ * The Currency Exchange, aggregated.
+ *
+ * **Never legitimately empty.** A league with a market has an exchange, and no rows means
+ * the league name reached PoeWatch as something it does not trade.
+ */
+const poeWatchRatios = z
+  .array(
+    z.looseObject({
+      name: z.string(),
+      category: z.string(),
+      price: z.looseObject({ chaos: z.number() }).optional(),
+    }),
+  )
+  .min(1, "the exchange has no items") satisfies z.ZodType<
+  readonly ValidatedRatio[]
 >;
 
 /** One item's outcomes, down to the implicit and what it sold for. */
@@ -282,6 +312,7 @@ export const BRONZE_SCHEMAS: readonly {
   { file: BRONZE_FILES.currencyHour, schema: currencyHour },
   { file: BRONZE_FILES.poeWatchCompact, schema: poeWatchCompact },
   { file: BRONZE_FILES.poeWatchCorruptions, schema: poeWatchCorruptions },
+  { file: BRONZE_FILES.poeWatchRatios, schema: poeWatchRatios },
   { file: BRONZE_FILES.repoeBaseItems, schema: repoeBaseItems },
   { file: BRONZE_FILES.repoeGems, schema: gems },
   { file: BRONZE_FILES.repoeEssences, schema: essences },
