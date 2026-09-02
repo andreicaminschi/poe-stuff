@@ -6,9 +6,10 @@
  * yarn taxonomy:seed --version=3.30
  * ```
  *
- * Runs every seed and writes `versions/<version>.variants.seeded.json` whole — the file is
- * what the seeds say, every time. A person's variants live in `.variants.manual.json` and
- * are not touched. Seeding does not publish; `republish` does, and reads both.
+ * Runs every seed and writes `versions/<version>.variants.seeded.json` and
+ * `versions/<version>.authored.seeded.json` whole — the files are what the seeds say, every
+ * time. A person's variants and rows live in the `.manual.json` pair and are not touched.
+ * Seeding does not publish; `republish` does, and reads all four.
  *
  * Reads RePoE and nothing else, with its default user agent: RePoE accepts it, and only GGG
  * demands a named contact. Needs no environment.
@@ -41,18 +42,23 @@ async function main(): Promise<void> {
     flag(args, "version") ?? (await promotedVersion(flag(args, "root") ?? DEFAULT_ROOT));
 
   const { items } = versionTable(version);
-  const { variants, counts } = await seedTaxonomy(items, createRepoeService());
+  const { variants, authored, counts } = await seedTaxonomy(items, createRepoeService());
 
-  const file = `versions/${version}.variants.seeded.json`;
-  writeFileSync(
-    new URL(file, import.meta.url),
-    `${JSON.stringify(variants, null, 2)}\n`,
-  );
+  const files = [
+    [`versions/${version}.variants.seeded.json`, variants],
+    [`versions/${version}.authored.seeded.json`, authored],
+  ] as const;
+
+  for (const [file, table] of files) {
+    writeFileSync(new URL(file, import.meta.url), `${JSON.stringify(table, null, 2)}\n`);
+  }
 
   for (const [seed, count] of Object.entries(counts)) {
-    process.stdout.write(`${seed}: ${count} rows\n`);
+    process.stdout.write(
+      `${seed}: ${count.variants} rows of variants, ${count.authored} authored rows\n`,
+    );
   }
-  process.stdout.write(`wrote ${file}\n`);
+  for (const [file] of files) process.stdout.write(`wrote ${file}\n`);
 }
 
 main().catch((error: unknown) => {

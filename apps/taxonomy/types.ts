@@ -90,6 +90,12 @@ export type AuthoredRow = {
   readonly subcategory: string | null;
   readonly replaces?: readonly string[];
   readonly reason: string;
+  /**
+   * Whether the row is a unique. **Absent means ask the rows it replaces** — all of them
+   * unique, or not — which is the ordinary case. Written where nothing is replaced and the
+   * row is one anyway: an unidentified foulborn is a unique before anyone knows which.
+   */
+  readonly isUnique?: boolean;
   readonly conditions?: readonly Condition[];
   readonly price?: PriceSelector;
 };

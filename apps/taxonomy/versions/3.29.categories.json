@@ -236,6 +236,24 @@
       }
     ]
   },
+  "foulborn-unique": {
+    "conditions": [
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "from": "name"
+      },
+      {
+        "condition": "Rarity",
+        "operator": "==",
+        "value": "Unique"
+      },
+      {
+        "condition": "Foulborn",
+        "value": true
+      }
+    ]
+  },
   "fragment": {
     "conditions": [
       {

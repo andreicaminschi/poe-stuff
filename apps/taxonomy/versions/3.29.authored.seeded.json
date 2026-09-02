@@ -1,0 +1,1982 @@
+{
+  "authored/foulborn-ezomyte-burgonet": {
+    "name": "Ezomyte Burgonet",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Ezomyte Burgonet"
+    }
+  },
+  "authored/foulborn-champion-kite-shield": {
+    "name": "Champion Kite Shield",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Champion Kite Shield"
+    }
+  },
+  "authored/foulborn-timeworn-claw": {
+    "name": "Timeworn Claw",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Timeworn Claw"
+    }
+  },
+  "authored/foulborn-soldier-boots": {
+    "name": "Soldier Boots",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Soldier Boots"
+    }
+  },
+  "authored/foulborn-sinner-tricorne": {
+    "name": "Sinner Tricorne",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Sinner Tricorne"
+    }
+  },
+  "authored/foulborn-crusader-chainmail": {
+    "name": "Crusader Chainmail",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Crusader Chainmail"
+    }
+  },
+  "authored/foulborn-spiraled-wand": {
+    "name": "Spiraled Wand",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Spiraled Wand"
+    }
+  },
+  "authored/foulborn-moonstone-ring": {
+    "name": "Moonstone Ring",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Moonstone Ring"
+    }
+  },
+  "authored/foulborn-viridian-jewel": {
+    "name": "Viridian Jewel",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Viridian Jewel"
+    }
+  },
+  "authored/foulborn-omen-wand": {
+    "name": "Omen Wand",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Omen Wand"
+    }
+  },
+  "authored/foulborn-opal-wand": {
+    "name": "Opal Wand",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Opal Wand"
+    }
+  },
+  "authored/foulborn-iron-circlet": {
+    "name": "Iron Circlet",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Iron Circlet"
+    }
+  },
+  "authored/foulborn-silk-gloves": {
+    "name": "Silk Gloves",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Silk Gloves"
+    }
+  },
+  "authored/foulborn-goat-s-horn": {
+    "name": "Goat's Horn",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Goat's Horn"
+    }
+  },
+  "authored/foulborn-carved-wand": {
+    "name": "Carved Wand",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Carved Wand"
+    }
+  },
+  "authored/foulborn-quartz-wand": {
+    "name": "Quartz Wand",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Quartz Wand"
+    }
+  },
+  "authored/foulborn-buckskin-tunic": {
+    "name": "Buckskin Tunic",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Buckskin Tunic"
+    }
+  },
+  "authored/foulborn-topaz-ring": {
+    "name": "Topaz Ring",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Topaz Ring"
+    }
+  },
+  "authored/foulborn-onyx-amulet": {
+    "name": "Onyx Amulet",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Onyx Amulet"
+    }
+  },
+  "authored/foulborn-steelscale-gauntlets": {
+    "name": "Steelscale Gauntlets",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Steelscale Gauntlets"
+    }
+  },
+  "authored/foulborn-chain-belt": {
+    "name": "Chain Belt",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Chain Belt"
+    }
+  },
+  "authored/foulborn-crystal-belt": {
+    "name": "Crystal Belt",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Crystal Belt"
+    }
+  },
+  "authored/foulborn-turquoise-amulet": {
+    "name": "Turquoise Amulet",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Turquoise Amulet"
+    }
+  },
+  "authored/foulborn-full-wyrmscale": {
+    "name": "Full Wyrmscale",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Full Wyrmscale"
+    }
+  },
+  "authored/foulborn-heavy-belt": {
+    "name": "Heavy Belt",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Heavy Belt"
+    }
+  },
+  "authored/foulborn-two-stone-ring": {
+    "name": "Two-Stone Ring",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Two-Stone Ring"
+    }
+  },
+  "authored/foulborn-cutthroat-s-garb": {
+    "name": "Cutthroat's Garb",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Cutthroat's Garb"
+    }
+  },
+  "authored/foulborn-varnished-coat": {
+    "name": "Varnished Coat",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Varnished Coat"
+    }
+  },
+  "authored/foulborn-triumphant-lamellar": {
+    "name": "Triumphant Lamellar",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Triumphant Lamellar"
+    }
+  },
+  "authored/foulborn-assassin-bow": {
+    "name": "Assassin Bow",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Assassin Bow"
+    }
+  },
+  "authored/foulborn-lapis-amulet": {
+    "name": "Lapis Amulet",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Lapis Amulet"
+    }
+  },
+  "authored/foulborn-lacquered-garb": {
+    "name": "Lacquered Garb",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Lacquered Garb"
+    }
+  },
+  "authored/foulborn-scholar-s-robe": {
+    "name": "Scholar's Robe",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Scholar's Robe"
+    }
+  },
+  "authored/foulborn-jewelled-foil": {
+    "name": "Jewelled Foil",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Jewelled Foil"
+    }
+  },
+  "authored/foulborn-assassin-s-garb": {
+    "name": "Assassin's Garb",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Assassin's Garb"
+    }
+  },
+  "authored/foulborn-regicide-mask": {
+    "name": "Regicide Mask",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Regicide Mask"
+    }
+  },
+  "authored/foulborn-thresher-claw": {
+    "name": "Thresher Claw",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Thresher Claw"
+    }
+  },
+  "authored/foulborn-dragonscale-boots": {
+    "name": "Dragonscale Boots",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Dragonscale Boots"
+    }
+  },
+  "authored/foulborn-amethyst-ring": {
+    "name": "Amethyst Ring",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Amethyst Ring"
+    }
+  },
+  "authored/foulborn-karui-sceptre": {
+    "name": "Karui Sceptre",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Karui Sceptre"
+    }
+  },
+  "authored/foulborn-death-bow": {
+    "name": "Death Bow",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Death Bow"
+    }
+  },
+  "authored/foulborn-astral-plate": {
+    "name": "Astral Plate",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Astral Plate"
+    }
+  },
+  "authored/foulborn-paua-amulet": {
+    "name": "Paua Amulet",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Paua Amulet"
+    }
+  },
+  "authored/foulborn-gilded-sallet": {
+    "name": "Gilded Sallet",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Gilded Sallet"
+    }
+  },
+  "authored/foulborn-nightmare-bascinet": {
+    "name": "Nightmare Bascinet",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Nightmare Bascinet"
+    }
+  },
+  "authored/foulborn-sage-s-robe": {
+    "name": "Sage's Robe",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Sage's Robe"
+    }
+  },
+  "authored/foulborn-paua-ring": {
+    "name": "Paua Ring",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Paua Ring"
+    }
+  },
+  "authored/foulborn-lunaris-circlet": {
+    "name": "Lunaris Circlet",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Lunaris Circlet"
+    }
+  },
+  "authored/foulborn-royal-bow": {
+    "name": "Royal Bow",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Royal Bow"
+    }
+  },
+  "authored/foulborn-lion-sword": {
+    "name": "Lion Sword",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Lion Sword"
+    }
+  },
+  "authored/foulborn-vaal-sceptre": {
+    "name": "Vaal Sceptre",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Vaal Sceptre"
+    }
+  },
+  "authored/foulborn-vaal-gauntlets": {
+    "name": "Vaal Gauntlets",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Vaal Gauntlets"
+    }
+  },
+  "authored/foulborn-sapphire-ring": {
+    "name": "Sapphire Ring",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Sapphire Ring"
+    }
+  },
+  "authored/foulborn-eternal-sword": {
+    "name": "Eternal Sword",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Eternal Sword"
+    }
+  },
+  "authored/foulborn-penetrating-arrow-quiver": {
+    "name": "Penetrating Arrow Quiver",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Penetrating Arrow Quiver"
+    }
+  },
+  "authored/foulborn-etched-greatsword": {
+    "name": "Etched Greatsword",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Etched Greatsword"
+    }
+  },
+  "authored/foulborn-steel-kite-shield": {
+    "name": "Steel Kite Shield",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Steel Kite Shield"
+    }
+  },
+  "authored/foulborn-thorium-spirit-shield": {
+    "name": "Thorium Spirit Shield",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Thorium Spirit Shield"
+    }
+  },
+  "authored/foulborn-vaal-spirit-shield": {
+    "name": "Vaal Spirit Shield",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Vaal Spirit Shield"
+    }
+  },
+  "authored/foulborn-strapped-mitts": {
+    "name": "Strapped Mitts",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Strapped Mitts"
+    }
+  },
+  "authored/foulborn-crimson-jewel": {
+    "name": "Crimson Jewel",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Crimson Jewel"
+    }
+  },
+  "authored/foulborn-ironscale-gauntlets": {
+    "name": "Ironscale Gauntlets",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Ironscale Gauntlets"
+    }
+  },
+  "authored/foulborn-necromancer-silks": {
+    "name": "Necromancer Silks",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Necromancer Silks"
+    }
+  },
+  "authored/foulborn-exquisite-blade": {
+    "name": "Exquisite Blade",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Exquisite Blade"
+    }
+  },
+  "authored/foulborn-ornate-mace": {
+    "name": "Ornate Mace",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Ornate Mace"
+    }
+  },
+  "authored/foulborn-leather-hood": {
+    "name": "Leather Hood",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Leather Hood"
+    }
+  },
+  "authored/foulborn-legion-boots": {
+    "name": "Legion Boots",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Legion Boots"
+    }
+  },
+  "authored/foulborn-great-crown": {
+    "name": "Great Crown",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Great Crown"
+    }
+  },
+  "authored/foulborn-silken-vest": {
+    "name": "Silken Vest",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Silken Vest"
+    }
+  },
+  "authored/foulborn-diamond-ring": {
+    "name": "Diamond Ring",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Diamond Ring"
+    }
+  },
+  "authored/foulborn-leather-cap": {
+    "name": "Leather Cap",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Leather Cap"
+    }
+  },
+  "authored/foulborn-nubuck-boots": {
+    "name": "Nubuck Boots",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Nubuck Boots"
+    }
+  },
+  "authored/foulborn-corrugated-buckler": {
+    "name": "Corrugated Buckler",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Corrugated Buckler"
+    }
+  },
+  "authored/foulborn-golden-plate": {
+    "name": "Golden Plate",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Golden Plate"
+    }
+  },
+  "authored/foulborn-wyrmscale-doublet": {
+    "name": "Wyrmscale Doublet",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Wyrmscale Doublet"
+    }
+  },
+  "authored/foulborn-imperial-claw": {
+    "name": "Imperial Claw",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Imperial Claw"
+    }
+  },
+  "authored/foulborn-blinder": {
+    "name": "Blinder",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Blinder"
+    }
+  },
+  "authored/foulborn-leather-belt": {
+    "name": "Leather Belt",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Leather Belt"
+    }
+  },
+  "authored/foulborn-zodiac-leather": {
+    "name": "Zodiac Leather",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Zodiac Leather"
+    }
+  },
+  "authored/foulborn-saintly-chainmail": {
+    "name": "Saintly Chainmail",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Saintly Chainmail"
+    }
+  },
+  "authored/foulborn-occultist-s-vestment": {
+    "name": "Occultist's Vestment",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Occultist's Vestment"
+    }
+  },
+  "authored/foulborn-widowsilk-robe": {
+    "name": "Widowsilk Robe",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Widowsilk Robe"
+    }
+  },
+  "authored/foulborn-sadist-garb": {
+    "name": "Sadist Garb",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Sadist Garb"
+    }
+  },
+  "authored/foulborn-crusader-plate": {
+    "name": "Crusader Plate",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Crusader Plate"
+    }
+  },
+  "authored/foulborn-steelhead": {
+    "name": "Steelhead",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Steelhead"
+    }
+  },
+  "authored/foulborn-samite-gloves": {
+    "name": "Samite Gloves",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Samite Gloves"
+    }
+  },
+  "authored/foulborn-karui-chopper": {
+    "name": "Karui Chopper",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Karui Chopper"
+    }
+  },
+  "authored/foulborn-titan-greaves": {
+    "name": "Titan Greaves",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Titan Greaves"
+    }
+  },
+  "authored/foulborn-coral-ring": {
+    "name": "Coral Ring",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Coral Ring"
+    }
+  },
+  "authored/foulborn-titan-gauntlets": {
+    "name": "Titan Gauntlets",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Titan Gauntlets"
+    }
+  },
+  "authored/foulborn-ironwood-buckler": {
+    "name": "Ironwood Buckler",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Ironwood Buckler"
+    }
+  },
+  "authored/foulborn-exquisite-leather": {
+    "name": "Exquisite Leather",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Exquisite Leather"
+    }
+  },
+  "authored/foulborn-zealot-helmet": {
+    "name": "Zealot Helmet",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Zealot Helmet"
+    }
+  },
+  "authored/foulborn-ivory-spirit-shield": {
+    "name": "Ivory Spirit Shield",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Ivory Spirit Shield"
+    }
+  },
+  "authored/foulborn-ancient-spirit-shield": {
+    "name": "Ancient Spirit Shield",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Ancient Spirit Shield"
+    }
+  },
+  "authored/foulborn-terror-maul": {
+    "name": "Terror Maul",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Terror Maul"
+    }
+  },
+  "authored/foulborn-iron-ring": {
+    "name": "Iron Ring",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Iron Ring"
+    }
+  },
+  "authored/foulborn-desert-brigandine": {
+    "name": "Desert Brigandine",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Desert Brigandine"
+    }
+  },
+  "authored/foulborn-bronzescale-boots": {
+    "name": "Bronzescale Boots",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Bronzescale Boots"
+    }
+  },
+  "authored/foulborn-pinnacle-tower-shield": {
+    "name": "Pinnacle Tower Shield",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Pinnacle Tower Shield"
+    }
+  },
+  "authored/foulborn-prismatic-ring": {
+    "name": "Prismatic Ring",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Prismatic Ring"
+    }
+  },
+  "authored/foulborn-iron-mask": {
+    "name": "Iron Mask",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Iron Mask"
+    }
+  },
+  "authored/foulborn-harmonic-spirit-shield": {
+    "name": "Harmonic Spirit Shield",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Harmonic Spirit Shield"
+    }
+  },
+  "authored/foulborn-deerskin-gloves": {
+    "name": "Deerskin Gloves",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Deerskin Gloves"
+    }
+  },
+  "authored/foulborn-ornate-quiver": {
+    "name": "Ornate Quiver",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Ornate Quiver"
+    }
+  },
+  "authored/foulborn-tarnished-spirit-shield": {
+    "name": "Tarnished Spirit Shield",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Tarnished Spirit Shield"
+    }
+  },
+  "authored/foulborn-steel-gauntlets": {
+    "name": "Steel Gauntlets",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Steel Gauntlets"
+    }
+  },
+  "authored/foulborn-engraved-wand": {
+    "name": "Engraved Wand",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Engraved Wand"
+    }
+  },
+  "authored/foulborn-calling-wand": {
+    "name": "Calling Wand",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Calling Wand"
+    }
+  },
+  "authored/foulborn-harlequin-mask": {
+    "name": "Harlequin Mask",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Harlequin Mask"
+    }
+  },
+  "authored/foulborn-gavel": {
+    "name": "Gavel",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Gavel"
+    }
+  },
+  "authored/foulborn-ruby-ring": {
+    "name": "Ruby Ring",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Ruby Ring"
+    }
+  },
+  "authored/foulborn-void-sceptre": {
+    "name": "Void Sceptre",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Void Sceptre"
+    }
+  },
+  "authored/foulborn-tomahawk": {
+    "name": "Tomahawk",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Tomahawk"
+    }
+  },
+  "authored/foulborn-abyssal-axe": {
+    "name": "Abyssal Axe",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Abyssal Axe"
+    }
+  },
+  "authored/foulborn-legion-gloves": {
+    "name": "Legion Gloves",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Legion Gloves"
+    }
+  },
+  "authored/foulborn-ranger-bow": {
+    "name": "Ranger Bow",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Ranger Bow"
+    }
+  },
+  "authored/foulborn-imbued-wand": {
+    "name": "Imbued Wand",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Imbued Wand"
+    }
+  },
+  "authored/foulborn-tornado-wand": {
+    "name": "Tornado Wand",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Tornado Wand"
+    }
+  },
+  "authored/foulborn-kinetic-wand": {
+    "name": "Kinetic Wand",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Kinetic Wand"
+    }
+  },
+  "authored/foulborn-archon-kite-shield": {
+    "name": "Archon Kite Shield",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Archon Kite Shield"
+    }
+  },
+  "authored/foulborn-destiny-leather": {
+    "name": "Destiny Leather",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Destiny Leather"
+    }
+  },
+  "authored/foulborn-short-bow": {
+    "name": "Short Bow",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Short Bow"
+    }
+  },
+  "authored/foulborn-titanium-spirit-shield": {
+    "name": "Titanium Spirit Shield",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Titanium Spirit Shield"
+    }
+  },
+  "authored/foulborn-midnight-blade": {
+    "name": "Midnight Blade",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Midnight Blade"
+    }
+  },
+  "authored/foulborn-broadhead-arrow-quiver": {
+    "name": "Broadhead Arrow Quiver",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Broadhead Arrow Quiver"
+    }
+  },
+  "authored/foulborn-blunt-arrow-quiver": {
+    "name": "Blunt Arrow Quiver",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Blunt Arrow Quiver"
+    }
+  },
+  "authored/foulborn-vaal-blade": {
+    "name": "Vaal Blade",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Vaal Blade"
+    }
+  },
+  "authored/foulborn-fishing-rod": {
+    "name": "Fishing Rod",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Fishing Rod"
+    }
+  },
+  "authored/foulborn-crusader-gloves": {
+    "name": "Crusader Gloves",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Crusader Gloves"
+    }
+  },
+  "authored/foulborn-two-point-arrow-quiver": {
+    "name": "Two-Point Arrow Quiver",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Two-Point Arrow Quiver"
+    }
+  },
+  "authored/foulborn-royal-axe": {
+    "name": "Royal Axe",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Royal Axe"
+    }
+  },
+  "authored/foulborn-mind-cage": {
+    "name": "Mind Cage",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Mind Cage"
+    }
+  },
+  "authored/foulborn-mosaic-kite-shield": {
+    "name": "Mosaic Kite Shield",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Mosaic Kite Shield"
+    }
+  },
+  "authored/foulborn-terror-claw": {
+    "name": "Terror Claw",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Terror Claw"
+    }
+  },
+  "authored/foulborn-wool-gloves": {
+    "name": "Wool Gloves",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Wool Gloves"
+    }
+  },
+  "authored/foulborn-branded-kite-shield": {
+    "name": "Branded Kite Shield",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Branded Kite Shield"
+    }
+  },
+  "authored/foulborn-rawhide-boots": {
+    "name": "Rawhide Boots",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Rawhide Boots"
+    }
+  },
+  "authored/foulborn-cutlass": {
+    "name": "Cutlass",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Cutlass"
+    }
+  },
+  "authored/foulborn-chain-gloves": {
+    "name": "Chain Gloves",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Chain Gloves"
+    }
+  },
+  "authored/foulborn-clasped-mitts": {
+    "name": "Clasped Mitts",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Clasped Mitts"
+    }
+  },
+  "authored/foulborn-platinum-sceptre": {
+    "name": "Platinum Sceptre",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Platinum Sceptre"
+    }
+  },
+  "authored/foulborn-serpentine-staff": {
+    "name": "Serpentine Staff",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Serpentine Staff"
+    }
+  },
+  "authored/foulborn-simple-robe": {
+    "name": "Simple Robe",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Simple Robe"
+    }
+  },
+  "authored/foulborn-sorcerer-boots": {
+    "name": "Sorcerer Boots",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Sorcerer Boots"
+    }
+  },
+  "authored/foulborn-assassin-s-mitts": {
+    "name": "Assassin's Mitts",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Assassin's Mitts"
+    }
+  },
+  "authored/foulborn-copper-plate": {
+    "name": "Copper Plate",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Copper Plate"
+    }
+  },
+  "authored/foulborn-spidersilk-robe": {
+    "name": "Spidersilk Robe",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Spidersilk Robe"
+    }
+  },
+  "authored/foulborn-spike-point-arrow-quiver": {
+    "name": "Spike-Point Arrow Quiver",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Spike-Point Arrow Quiver"
+    }
+  },
+  "authored/foulborn-cloth-belt": {
+    "name": "Cloth Belt",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Cloth Belt"
+    }
+  },
+  "authored/foulborn-silken-hood": {
+    "name": "Silken Hood",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Silken Hood"
+    }
+  },
+  "authored/foulborn-ezomyte-tower-shield": {
+    "name": "Ezomyte Tower Shield",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Ezomyte Tower Shield"
+    }
+  },
+  "authored/foulborn-agate-amulet": {
+    "name": "Agate Amulet",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Agate Amulet"
+    }
+  },
+  "authored/foulborn-maraketh-bow": {
+    "name": "Maraketh Bow",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Maraketh Bow"
+    }
+  },
+  "authored/foulborn-close-helmet": {
+    "name": "Close Helmet",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Close Helmet"
+    }
+  },
+  "authored/foulborn-cobalt-jewel": {
+    "name": "Cobalt Jewel",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Cobalt Jewel"
+    }
+  },
+  "authored/foulborn-gladiator-plate": {
+    "name": "Gladiator Plate",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Gladiator Plate"
+    }
+  },
+  "authored/foulborn-destroyer-regalia": {
+    "name": "Destroyer Regalia",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Destroyer Regalia"
+    }
+  },
+  "authored/foulborn-fiend-dagger": {
+    "name": "Fiend Dagger",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Fiend Dagger"
+    }
+  },
+  "authored/foulborn-reaver-sword": {
+    "name": "Reaver Sword",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Reaver Sword"
+    }
+  },
+  "authored/foulborn-coronal-maul": {
+    "name": "Coronal Maul",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Coronal Maul"
+    }
+  },
+  "authored/foulborn-carnal-mitts": {
+    "name": "Carnal Mitts",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Carnal Mitts"
+    }
+  },
+  "authored/foulborn-royal-burgonet": {
+    "name": "Royal Burgonet",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Royal Burgonet"
+    }
+  },
+  "authored/foulborn-siege-helmet": {
+    "name": "Siege Helmet",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Siege Helmet"
+    }
+  },
+  "authored/foulborn-devout-chainmail": {
+    "name": "Devout Chainmail",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Devout Chainmail"
+    }
+  },
+  "authored/foulborn-raven-mask": {
+    "name": "Raven Mask",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Raven Mask"
+    }
+  },
+  "authored/foulborn-jade-amulet": {
+    "name": "Jade Amulet",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Jade Amulet"
+    }
+  },
+  "authored/foulborn-jasper-chopper": {
+    "name": "Jasper Chopper",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Jasper Chopper"
+    }
+  },
+  "authored/foulborn-goliath-greaves": {
+    "name": "Goliath Greaves",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Goliath Greaves"
+    }
+  },
+  "authored/foulborn-studded-belt": {
+    "name": "Studded Belt",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Studded Belt"
+    }
+  },
+  "authored/foulborn-elegant-round-shield": {
+    "name": "Elegant Round Shield",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Elegant Round Shield"
+    }
+  },
+  "authored/foulborn-somatic-wand": {
+    "name": "Somatic Wand",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Somatic Wand"
+    }
+  },
+  "authored/foulborn-lathi": {
+    "name": "Lathi",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Lathi"
+    }
+  },
+  "authored/foulborn-long-staff": {
+    "name": "Long Staff",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Long Staff"
+    }
+  },
+  "authored/foulborn-coronal-leather": {
+    "name": "Coronal Leather",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Coronal Leather"
+    }
+  },
+  "authored/foulborn-golden-mask": {
+    "name": "Golden Mask",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Golden Mask"
+    }
+  },
+  "authored/foulborn-vile-staff": {
+    "name": "Vile Staff",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Vile Staff"
+    }
+  },
+  "authored/foulborn-war-buckler": {
+    "name": "War Buckler",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn War Buckler"
+    }
+  },
+  "authored/foulborn-murder-mitts": {
+    "name": "Murder Mitts",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Murder Mitts"
+    }
+  },
+  "authored/foulborn-military-staff": {
+    "name": "Military Staff",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Military Staff"
+    }
+  },
+  "authored/foulborn-majestic-plate": {
+    "name": "Majestic Plate",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Majestic Plate"
+    }
+  },
+  "authored/foulborn-vaal-axe": {
+    "name": "Vaal Axe",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Vaal Axe"
+    }
+  },
+  "authored/foulborn-labrys": {
+    "name": "Labrys",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Labrys"
+    }
+  },
+  "authored/foulborn-bronzescale-gauntlets": {
+    "name": "Bronzescale Gauntlets",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Bronzescale Gauntlets"
+    }
+  },
+  "authored/foulborn-great-helmet": {
+    "name": "Great Helmet",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Great Helmet"
+    }
+  },
+  "authored/foulborn-gold-ring": {
+    "name": "Gold Ring",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Gold Ring"
+    }
+  },
+  "authored/foulborn-goathide-boots": {
+    "name": "Goathide Boots",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Goathide Boots"
+    }
+  },
+  "authored/foulborn-prophecy-wand": {
+    "name": "Prophecy Wand",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Prophecy Wand"
+    }
+  },
+  "authored/foulborn-conjurer-gloves": {
+    "name": "Conjurer Gloves",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Conjurer Gloves"
+    }
+  },
+  "authored/foulborn-holy-chainmail": {
+    "name": "Holy Chainmail",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Holy Chainmail"
+    }
+  },
+  "authored/foulborn-praetor-crown": {
+    "name": "Praetor Crown",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Praetor Crown"
+    }
+  },
+  "authored/foulborn-plate-vest": {
+    "name": "Plate Vest",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Plate Vest"
+    }
+  },
+  "authored/foulborn-reinforced-greaves": {
+    "name": "Reinforced Greaves",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Reinforced Greaves"
+    }
+  },
+  "authored/foulborn-wyrmscale-gauntlets": {
+    "name": "Wyrmscale Gauntlets",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Wyrmscale Gauntlets"
+    }
+  },
+  "authored/foulborn-amber-amulet": {
+    "name": "Amber Amulet",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Amber Amulet"
+    }
+  },
+  "authored/foulborn-citadel-bow": {
+    "name": "Citadel Bow",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Citadel Bow"
+    }
+  },
+  "authored/foulborn-bone-bow": {
+    "name": "Bone Bow",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Bone Bow"
+    }
+  },
+  "authored/foulborn-hubris-circlet": {
+    "name": "Hubris Circlet",
+    "category": "foulborn-unique",
+    "subcategory": null,
+    "isUnique": true,
+    "reason": "A foulborn unique drops unidentified, and unidentified it is its base and the tag. No source has a row for that: the trade list names the unique, the game's data names the base. This row is the base with the tag, priced off PoeWatch's unidentified listing.",
+    "price": {
+      "name": "Unidentified Foulborn Hubris Circlet"
+    }
+  }
+}

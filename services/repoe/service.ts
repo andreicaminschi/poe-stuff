@@ -5,6 +5,8 @@ import { getClusterJewels } from "./get-cluster-jewels.ts";
 import type { ClusterJewels } from "./get-cluster-jewels.types.ts";
 import { getEssences } from "./get-essences.ts";
 import type { Essences } from "./get-essences.types.ts";
+import { getFoulbornMap } from "./get-foulborn-map.ts";
+import type { FoulbornMap } from "./get-foulborn-map.types.ts";
 import { getGems } from "./get-gems.ts";
 import type { Gems } from "./get-gems.types.ts";
 import { getSpectres } from "./get-spectres.ts";
@@ -29,6 +31,7 @@ export type RepoeService = {
   getSpectres(): Promise<Spectres>;
   getEssences(): Promise<Essences>;
   getClusterJewels(): Promise<ClusterJewels>;
+  getFoulbornMap(): Promise<FoulbornMap>;
 };
 
 /**
@@ -56,5 +59,6 @@ export function createRepoeService({
     getSpectres: () => getSpectres(context),
     getEssences: () => getEssences(context),
     getClusterJewels: () => getClusterJewels(context),
+    getFoulbornMap: () => getFoulbornMap(context),
   };
 }

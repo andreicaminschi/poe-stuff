@@ -11,6 +11,7 @@
     "./get-spectres.types": "./get-spectres.types.ts",
     "./get-essences.types": "./get-essences.types.ts",
     "./get-cluster-jewels.types": "./get-cluster-jewels.types.ts",
+    "./get-foulborn-map.types": "./get-foulborn-map.types.ts",
     "./errors": "./errors.ts",
     "./types": "./types.ts"
   },

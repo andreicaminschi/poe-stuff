@@ -31,6 +31,11 @@ function byName(rows: ReadonlyMap<string, Item>): ReadonlyMap<string, string[]> 
  * `Metadata/Items/Belts/Belt3:Gluttony`. A unique that rolls on several bases is several
  * rows, because that is several ids.
  *
+ * **That row inherits what the game knows about its base.** Class, tags, release state, the
+ * metadata path, and the sources that said so all come off the base row — the game names
+ * the base, and that is what vouches for the unique. Without it a unique's only source is
+ * the trade site, and the kept/skipped split files every one of them as a search label.
+ *
  * A name the game's data does not have gets a name-keyed row. Blighted maps, the trade
  * site's `Chart (Abyssal Plain)` labels and the beast species all arrive that way, and all
  * of them are skipped.
@@ -53,10 +58,24 @@ export function fromGGGItems(
         // The base it rolls on is named, not identified, so its id is looked up the same
         // way everything else here is. A base nobody can name leaves the name as the key.
         const bases = index.get(entry.baseType) ?? [];
-        const keys = bases.length === 0 ? [name] : bases.map((id) => `${id}:${name}`);
+        const targets =
+          bases.length === 0
+            ? [{ key: name, base: undefined }]
+            : bases.map((id) => ({ key: `${id}:${name}`, base: rows.get(id) }));
 
-        for (const key of keys) {
-          const seen = next.get(key) ?? blankItem(key, name);
+        for (const { key, base } of targets) {
+          const seen =
+            next.get(key) ??
+            (base === undefined
+              ? blankItem(key, name)
+              : {
+                  ...blankItem(key, name),
+                  metadataPaths: base.metadataPaths,
+                  itemClass: base.itemClass,
+                  releaseState: base.releaseState,
+                  tags: base.tags,
+                  sources: base.sources,
+                });
 
           next.set(
             key,

@@ -19292,7 +19292,7 @@
   },
   "Metadata/Items/Currency/CurrencyAddModToRareShard": {
     "name": "Exalted Shard",
-    "category": "currency",
+    "category": "excluded",
     "subcategory": null,
     "original": {
       "category": "currency",

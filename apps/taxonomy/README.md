@@ -21,12 +21,13 @@ we happen to write ourselves.
 apps/taxonomy/
 ├── versions/3.29.json             # items: one entry per metadata id
 ├── versions/3.29.categories.json  # categories: the flattened tree, one entry per path
-├── versions/3.29.authored.json    # authored: rows no source produces, keyed authored/<slug>. Never seeded
+├── versions/3.29.authored.manual.json  # rows no source produces, keyed authored/<slug>, a person's
+├── versions/3.29.authored.seeded.json  # the same, the seed's. Never edited by hand
 ├── versions/3.29.variants.manual.json  # variants a person wrote, keyed like the row they belong to
 ├── versions/3.29.variants.seeded.json  # variants the seed wrote. Never edited by hand
-├── versions.ts                    # loads and validates one version's five files
-├── seed-taxonomy.ts               # every seed, run at once: the game's data -> variants.seeded.json
-├── seed-taxonomy/                 # one seed per class: gem-variants, cluster-jewels
+├── versions.ts                    # loads and validates one version's six files
+├── seed-taxonomy.ts               # every seed, run at once: the game's data -> the two .seeded.json
+├── seed-taxonomy/                 # one seed per class: gem-variants, cluster-jewels, foulborn
 ├── validate-table.ts              # an item entry is well formed
 ├── validate-conditions.ts         # a condition list is well formed, and a category path
 ├── validate-authored.ts           # an authored row is well formed and keyed under authored/
@@ -39,11 +40,11 @@ apps/taxonomy/
 └── seed-taxonomy-cli.ts           # seed
 ```
 
-**A version is five files and one published object.** The items are thousands of rows, the
-categories are dozens, the authored rows are a handful, and the variants are two files — the
+**A version is six files and one published object.** The items are thousands of rows, the
+categories are dozens, and the authored rows and the variants are two files each — the
 seeded and the manual; keeping them apart means reaching any of the small ones without
 scrolling past every item. `publish` writes `{ version, items, categories, authored }` as one
-file, with each row's variants — the merge of the two files — folded onto its entry.
+file, each pair merged, with each row's variants folded onto its entry.
 
 ## Categories
 
@@ -147,7 +148,8 @@ Variants come from two files, and the version is their merge.
 once, the whole file, every time — and is never edited by hand.
 `versions/<version>.variants.manual.json` is a person's, and **a manual key replaces the
 seeded list whole**: write a gem's variants there and the seeded ones for that gem are gone,
-not patched. Authored rows are never seeded.
+not patched. Authored rows are the same pair, `authored.seeded.json` and
+`authored.manual.json`, merged the same way.
 
 A seed reads what the game says an item can be — a gem's `naturalMaxLevel`, a cluster jewel's
 enchants — off `@poe/repoe`, and nothing else. **The taxonomy never touches PoeWatch.** The
@@ -155,7 +157,10 @@ enchants — off `@poe/repoe`, and nothing else. **The taxonomy never touches Po
 a published vocabulary the catalog reads, not a service the taxonomy calls. A form nobody
 lists is written anyway and stays unpriced.
 
-Two seeds today, in `seed-taxonomy/`; a new class is a new file there and a line in `SEEDS`.
+Three seeds today, in `seed-taxonomy/`; a new class is a new file there and a line in
+`SEEDS`. Two seeds may write one key — a cluster jewel base carries the enchant forms and
+the foulborn form both — and their lists are joined; a variant name both wrote is a repeat
+and fails validation.
 
 - **Gems.** `1/0`, `1/20`, `L/20`, and the four a Vaal Orb makes of the max — `L/20`,
   `L+1/20`, `L/23`, `L+1/23`, corrupted. A Vaal gem cannot exist uncorrupted and gets the
@@ -165,6 +170,13 @@ Two seeds today, in `seed-taxonomy/`; a new class is a new file there and a line
   `price: { name, passives, itemLevel }`. The buckets are PoeWatch's conventions, fixed in
   the seed: small `2, 3`, medium `4, 5, 6`, large `8, 9-11, 12`; item level `1, 50, 68, 75,
   84`.
+- **Foulborn.** One authored row per base a foulborn unique rolls on, under
+  `foulborn-unique`: the base's name, `Rarity Unique`, `Foulborn True`, priced off PoeWatch's
+  `Unidentified Foulborn <base>`. Which uniques go foulborn is RePoE's `ModFoulbornMap`;
+  which base each rolls on is the items table's own `base:Name` key. On the ground an
+  unidentified foulborn is its base and nothing more, so the row is one per base and not one
+  per unique, and it is a row rather than a variant because it is a thing of its own with a
+  category of its own.
 
 ```json
 "Metadata/.../SupportGemAwakenedAddedChaos": [
@@ -225,10 +237,11 @@ been looked at yet.
 
 ## Authored rows
 
-`versions/<version>.authored.json` holds the rows no arrangement of the sources produces,
-keyed `authored/<slug>` — a namespace no metadata id can collide with. The slug is usually
-of the name, and need not be. **This is the only place a hand-written row is authored, and
-it is never seeded.** The catalog builds the row from the entry and
+`versions/<version>.authored.manual.json` holds the rows no arrangement of the sources
+produces, keyed `authored/<slug>` — a namespace no metadata id can collide with. The slug is
+usually of the name, and need not be. **This is the only place a hand-written row is
+authored.** `authored.seeded.json` beside it is the seed's — the foulborn rows today — and a
+manual key replaces a seeded row whole. The catalog builds the row from the entry and
 from whatever `replaces` names, and copies `conditions`, `price` and variants off it the way
 it does off a real row.
 
@@ -245,7 +258,8 @@ it does off a real row.
 `replaces` names the item keys the row stands in for, and may be left out: with it, several
 rows a filter cannot tell apart collapse into the one it can write; without it, the row is one
 no source has at all. `reason` is required — a hand-written row with no reason records that
-somebody decided, not what they decided.
+somebody decided, not what they decided. `isUnique` may be written where nothing is replaced
+and the row is a unique anyway; absent, the replaced rows answer.
 
 ## What the validator refuses
 
@@ -281,8 +295,8 @@ None. Everything this app touches is a file under the lake.
 - **Republishing does not reach a collected run.** Bronze is the record of what the sources
   said at that hour, and `yarn catalog` on an existing run replays silver without
   re-collecting. Delete the run, or collect a new hour.
-- **`versions.ts` lists the versions.** A new league is five new files under `versions/`
-  and a line in `VERSIONS` — `variants.seeded.json` starts as `{}` and the seed fills it.
+- **`versions.ts` lists the versions.** A new league is six new files under `versions/`
+  and a line in `VERSIONS` — the two `.seeded.json` start as `{}` and the seed fills them.
 - **The key layout is a shared format, not shared code.** This app builds
   `taxonomy/<version>.json` from its own `lake.ts` and `@poe/taxonomy` builds the same
   string from its own `config.ts`. Changing one without the other breaks at runtime with
@@ -290,8 +304,8 @@ None. Everything this app touches is a file under the lake.
 
 ## How to run
 
-Seed the variants for the version you are editing. Every seed runs, and
-`variants.seeded.json` is rewritten whole:
+Seed the version you are editing. Every seed runs, and the two `.seeded.json` files are
+rewritten whole:
 
 ```bash
 yarn taxonomy:seed
