@@ -1,6 +1,17 @@
 import type { AuthoredEntry, TaxonomyTable } from "./types.ts";
 
-const FIELDS = ["name", "category", "subcategory", "filterable", "original"];
+const FIELDS = [
+  "name",
+  "category",
+  "subcategory",
+  "filterable",
+  "tradable",
+  "tradedOnExchange",
+  "original",
+];
+
+/** The fields that are absent unless a person overrode them, and are booleans when present. */
+const OPTIONAL_FLAGS = ["filterable", "tradable", "tradedOnExchange"] as const;
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -43,9 +54,11 @@ function entryProblem(value: unknown): string | null {
     return "subcategory must be a non-empty string or null";
   }
 
-  // Absent is the ordinary case and means filterable. Only a written `false` says otherwise.
-  if (value.filterable !== undefined && typeof value.filterable !== "boolean") {
-    return "filterable must be a boolean when it is present";
+  // Absent is the ordinary case for all three. Only a written value says otherwise.
+  for (const flag of OPTIONAL_FLAGS) {
+    if (value[flag] !== undefined && typeof value[flag] !== "boolean") {
+      return `${flag} must be a boolean when it is present`;
+    }
   }
 
   const original = value.original;

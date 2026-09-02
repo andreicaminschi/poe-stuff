@@ -58386,8 +58386,9 @@
   },
   "Metadata/Items/TradeProxy/BlightedMap": {
     "name": "Blighted Map",
-    "category": "instancelocalitem",
-    "subcategory": "effects-wrappingpaper",
+    "category": "map",
+    "subcategory": "blighted",
+    "tradable": true,
     "original": {
       "category": "instancelocalitem",
       "subcategory": "effects-wrappingpaper"
@@ -58827,8 +58828,9 @@
   },
   "Metadata/Items/TradeProxy/UberBlightedMap": {
     "name": "Blight-ravaged Map",
-    "category": "instancelocalitem",
-    "subcategory": "effects-wrappingpaper",
+    "category": "map",
+    "subcategory": "blight-ravaged",
+    "tradable": true,
     "original": {
       "category": "instancelocalitem",
       "subcategory": "effects-wrappingpaper"

@@ -44,6 +44,11 @@ export function classifyItems(
       subcategory: entry.subcategory,
       // Absent in the table means filterable; only a written `false` says otherwise.
       filterable: entry.filterable ?? true,
+      // These two the sources already answered, so absent keeps their answer. A written one
+      // is a person saying the sources are wrong about this row — the blighted map proxy,
+      // which RePoE marks untradable while the trade site lists 145 names against it.
+      tradable: entry.tradable ?? item.tradable,
+      tradedOnExchange: entry.tradedOnExchange ?? item.tradedOnExchange,
     });
   }
 

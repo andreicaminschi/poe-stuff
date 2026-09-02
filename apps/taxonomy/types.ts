@@ -39,6 +39,20 @@ export type AuthoredEntry = {
    */
   readonly filterable?: boolean;
   /**
+   * Whether the trade site lists this name, said by hand where the sources get it wrong.
+   *
+   * **Absent means take the sources' answer.** These two are the only fields here that
+   * override a fact rather than add one, so writing either is a claim that the game's data
+   * and the trade site are both answering a different question than the one asked.
+   *
+   * `Metadata/Items/TradeProxy/BlightedMap` is why they exist. RePoE has the row and marks
+   * it untradable because the proxy itself is not an item, while the trade site lists 145
+   * blighted map names against it. The item drops, a filter draws it with `BlightedMap
+   * True`, and nothing in either source says so.
+   */
+  readonly tradable?: boolean;
+  readonly tradedOnExchange?: boolean;
+  /**
    * What the seed said, kept beside what a person decided.
    *
    * **Never edited.** The pair is what makes a hand pass reviewable: a row where the two

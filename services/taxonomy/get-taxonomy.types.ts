@@ -19,6 +19,13 @@ export type TaxonomyEntry = {
    * written down, so a reader treats a missing field as `true`.
    */
   readonly filterable?: boolean;
+  /**
+   * Overrides for what the sources say about obtaining the item. **Absent means take the
+   * sources' answer**, which is the ordinary case — only the rows they get wrong are
+   * written down.
+   */
+  readonly tradable?: boolean;
+  readonly tradedOnExchange?: boolean;
 };
 
 /**
