@@ -4,6 +4,7 @@ import type { BaseItems } from "@poe/repoe/get-base-items.types";
 import type { Essences } from "@poe/repoe/get-essences.types";
 import type { Gems } from "@poe/repoe/get-gems.types";
 import type { Taxonomy } from "@poe/taxonomy/get-taxonomy.types";
+import { applyAuthored, authoredItems } from "./build-silver/apply-authored.ts";
 import { classifyItems } from "./build-silver/classify-items.ts";
 import { fromExchange } from "./build-silver/from-exchange.ts";
 import { fromGems } from "./build-silver/from-gems.ts";
@@ -11,7 +12,7 @@ import { fromGGGItems } from "./build-silver/from-ggg-items.ts";
 import { fromRepoe } from "./build-silver/from-repoe.ts";
 import { groupByCategory } from "./build-silver/group-by-category.ts";
 import { tagIds } from "./build-silver/tag-ids.ts";
-import { isFilterable, knownToRepoe } from "./item.ts";
+import { isAuthored, isFilterable, knownToRepoe } from "./item.ts";
 import type { Item } from "./item.ts";
 import { BRONZE_FILES, bronzeKey, silverKey, silverPrefix } from "./lake/keys.ts";
 import type { Step } from "./types.ts";
@@ -72,10 +73,15 @@ export const buildSilver: Step = {
       taxonomy,
     );
 
+    // Last, and after the taxonomy on purpose: an authored row carries its own category, so
+    // it is never looked up and cannot be reported as one the table failed to place.
+    const authored = authoredItems();
+    const rows = applyAuthored(classified, authored);
+
     const kept: Item[] = [];
     const skipped: Item[] = [];
-    for (const item of classified) {
-      (knownToRepoe(item) ? kept : skipped).push(item);
+    for (const item of rows) {
+      (knownToRepoe(item) || isAuthored(item) ? kept : skipped).push(item);
     }
 
     /**

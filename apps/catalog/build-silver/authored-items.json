@@ -1,0 +1,14 @@
+[
+  {
+    "name": "Vaal Aspect",
+    "category": "currency",
+    "subcategory": "maps",
+    "replaces": [
+      "Metadata/Items/UniqueFragments/FragmentUniqueMap26_1",
+      "Metadata/Items/UniqueFragments/FragmentUniqueMap26_2",
+      "Metadata/Items/UniqueFragments/FragmentUniqueMap26_3",
+      "Metadata/Items/UniqueFragments/FragmentUniqueMap26_4"
+    ],
+    "reason": "Four ids, one display name, and the only thing separating them is the art file. A filter can write BaseType == \"Vaal Aspect\" and nothing finer, so four rows offering a choice the filter cannot make is four ways to get the same block. One row says what can actually be written."
+  }
+]

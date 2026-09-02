@@ -1,10 +1,16 @@
-/** Which bronze file put something on a row. */
+/**
+ * Which bronze file put something on a row.
+ *
+ * `authored` is the odd one and reads as the exception it is: no bronze file produced the
+ * row, somebody wrote it by hand in `build-silver/authored-items.json`.
+ */
 export type ItemSource =
   | "items"
   | "exchange"
   | "repoe"
   | "repoe-gems"
-  | "repoe-essences";
+  | "repoe-essences"
+  | "authored";
 
 /**
  * The sources that mean the game's own data knows this row.
@@ -23,6 +29,16 @@ const REPOE_SOURCES: readonly ItemSource[] = [
 
 export const knownToRepoe = (item: Item): boolean =>
   item.sources.some((source) => REPOE_SOURCES.includes(source));
+
+/**
+ * Whether a person wrote this row rather than a source producing it.
+ *
+ * It is asked alongside `knownToRepoe`, and answering yes to either is what keeps a row out
+ * of `skipped.json`. RePoE naming a row is the game vouching for it; somebody authoring one
+ * is a person vouching for it, with the reason written down beside the entry.
+ */
+export const isAuthored = (item: Item): boolean =>
+  item.sources.includes("authored");
 
 /**
  * One item the game can show, as every bronze file together describes it.
