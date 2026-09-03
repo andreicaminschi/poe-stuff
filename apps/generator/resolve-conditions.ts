@@ -4,13 +4,34 @@ import type {
   TaxonomyVariant,
 } from "@poe/taxonomy/get-taxonomy.types";
 
+/** One form of a unique as the catalog prices it: a listing, or a corruption outcome of one. */
+export type UniqueListing = {
+  readonly name: string;
+  /** Chaos, a listing price. */
+  readonly meanPrice: number;
+  readonly corrupted: boolean;
+};
+
 /**
- * What this needs off a catalog row, declared here rather than imported.
+ * The uniques on a base that one block draws, filed under the category path whose
+ * conditions tell them apart on the ground. Resolved like a row's, through `categories`.
+ */
+export type UniqueGroup = {
+  readonly category: string;
+  readonly subcategory: string | null;
+  readonly listings: readonly UniqueListing[];
+};
+
+/**
+ * What the generator needs off a catalog row, declared here rather than imported.
  *
  * An app is never imported by another, so the generator names the shape it reads and the
  * catalog answers with a row that fits. `catalog.json` is the contract between them, and it
  * is a published format rather than a shared module — the same arrangement `@poe/item-parser`
  * has with GGG's stat list.
+ *
+ * A price is on the row or on each variant, never both. A base carries its uniques and is
+ * not one of them.
  */
 export type CatalogRow = {
   readonly key: string;
@@ -19,7 +40,10 @@ export type CatalogRow = {
   readonly category: string | null;
   readonly subcategory: string | null;
   readonly conditions?: readonly Condition[];
-  readonly variants?: readonly TaxonomyVariant[];
+  readonly variants?: readonly (TaxonomyVariant & { readonly meanPrice?: number })[];
+  /** Chaos, a listing price. Only on a row without variants. */
+  readonly meanPrice?: number;
+  readonly uniques?: readonly UniqueGroup[];
 };
 
 /** One block a row is worth: the conditions to write, and the variant they came from. */
@@ -115,10 +139,13 @@ function fill(condition: Condition, item: CatalogRow): Condition {
     );
   }
 
+  // `from` stays on the filled condition. It is the one condition that names the row, and
+  // the grouping step merges rows that agree on everything else by widening exactly it.
   return {
     condition: condition.condition,
     operator: condition.operator ?? DEFAULT_OPERATOR,
     value: values,
+    from: condition.from,
   };
 }
 

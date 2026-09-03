@@ -1,12 +1,15 @@
 # generator
 
-**One file written, and it is not the spine yet.** This folder still holds mostly intent.
-
-This is the spine. Until something comes out of here, every source the repo collects is a
-leaf and nothing proves the whole thing works.
+**A proof of concept.** `yarn generate` reads a config and a gold catalog and writes a
+`.filter`. This is the spine: until something came out of here, every source the repo
+collects was a leaf and nothing proved the whole thing works.
 
 | File | State |
 | --- | --- |
+| `generate-cli.ts` | **Written.** `main()`: reads the config and the gold folder, generates, parses the text back with `@poe/filter-eval`, writes the file, prints what was skipped. |
+| `generate-filter.ts` | **Written.** `(rows, categories, config) -> text`. Classify, merge, order, render — in that order and nothing else. |
+| `generate-filter/` | The four steps and the config reader, one file each. |
+| `generate.config.json` | The default config: the gold folder, the output path, the tiers with their Chaos floors and action lines, the corruption note floor. |
 | `resolve-conditions.ts` | **Written.** Composes the `.filter` conditions for one catalog row — category, subcategory, item, variant — and answers with one rule per variant. |
 | `notes.md` | What the catalog has learned that this app has to honour. One entry per thing. |
 
@@ -14,33 +17,45 @@ leaf and nothing proves the whole thing works.
 catalog's. An app is never imported by another, so `catalog.json` is the contract between the
 two and it is a published format rather than a shared module.
 
-## What it will own
+## What the proof of concept does
 
 ```
-(items, prices, config) -> a .filter file
+(catalog.json, catalog.categories.json, generate.config.json) -> a .filter file
 ```
 
-Four stages, and the third is the one that is easy to get wrong:
+- **Tiers.** The config lists tiers, each with a Chaos floor and the action lines that style
+  it. A price takes the highest tier whose floor it reaches; under every floor, the row gets
+  no block and the game draws it.
+- **Rows.** A row without variants is one block priced on its `meanPrice`; a row with
+  variants is one block per priced variant. An unpriced rule is skipped and counted.
+- **Uniques.** A base's `uniques` come grouped by category path, and each group is a block
+  resolved through the same categories table as a row — `unique` and `unique/foulborn` are
+  two disjoint blocks. The block takes the tier of the dearest uncorrupted form. When the
+  cheapest sits lower the verb is `check` and the note names both: `floor "Ngamahu's Flame"
+  2c ceiling "Headhunter" 3000c`. A corruption outcome at or over `uniques.corruptionMin` is
+  named too, `corruption "Headhunter (+1 curse)" 9000c`, and the verb is `gamble` when that
+  is all there is to say.
+- **Grouping.** Blocks alike in everything but the row they name merge into one, with the
+  names sorted on one line. The row-naming condition is the one the taxonomy wrote with
+  `from`, which `resolveConditions` keeps on the filled condition for exactly this.
+- **Ordering.** Derived, never authored: more conditions first, then the louder tier, then
+  the text. A block with more conditions matches fewer items, so every narrower block lands
+  ahead of the wider one it sits inside — a base's unique blocks before the base's own.
+- **Check.** The text goes through `parseFilter` before it is written. A block the game would
+  reject fails here, naming the line.
 
-1. **Classify.** Every item gets a decision — how loud, and why — from its item-list row,
-   its price and the config. Keep the numbers the decision was made from; they are the only
-   way to answer "why is this red" later, and that question comes up in three places.
-2. **Group.** One block per item is unreadable. Items sharing a decision collapse into one
-   block, and the group has to be expressible as filter conditions — a `BaseType` list, a
-   `Class`, predicates over `ItemLevel`, `Rarity`, `Quality`, `Sockets`. A group that cannot
-   be written as conditions is not a group, which is how the grammar pushes back on the
-   classifier.
+**Nothing here knows a game fact.** The conditions come off the catalog and the look comes
+off the config. A new league is a taxonomy record and a catalog run, and this app stays as
+it is.
 
-   **The conditions are not invented here.** The taxonomy authors them, per category, per
-   subcategory and per item, and `resolve-conditions.ts` lays the levels over each other for
-   one row. That is what keeps a league start from reaching this app: a new mechanic is a
-   record in the taxonomy, not a branch in the grouper. Two rows in one bucket resolving to
-   different conditions is fine — they are two blocks sharing one look.
-3. **Order.** First match wins, so a specific block must precede the general one that would
-   swallow it. **Derive this from selector specificity — never author it.** A hand-ordered
-   block list means every new rule can silently shadow an older one, and the failure is
-   invisible: no error, no warning, just an item that stopped showing.
-4. **Emit.** Text. It should be boring; if emitting is complicated, the grouping is leaking.
+## What it does not do yet
+
+- The total check: run every catalog row through the parsed filter and assert the block that
+  takes it is the block that was meant to. `@poe/filter-eval` can do it; the rows are not
+  turned into `FilterItem`s yet.
+- A confidence signal. PoeWatch's `lowConfidence` and `daily` stop at the service types, so
+  a thin market can set a loud block.
+- `Hide`. Every block is `Show`; a price under every tier's floor is left to the game.
 
 ## The rule that makes the rest possible
 
@@ -55,27 +70,14 @@ The config has to stay small enough for a person to read. A knob per bucket cann
 presented in a UI or patched reliably from a sentence; a knob per decision a player can
 hold an opinion about can be both.
 
-## The check this can do that most filter generators cannot
+## How to run
 
-`@poe/filter-eval` shares no code with this app on purpose. So after emitting: run **every**
-item in the list through the parsed filter and assert the block that takes it is the block
-that was meant to.
+The config names the gold folder and the output; `--catalog=` and `--output=` override them.
+No environment.
 
-That is a total check, not a sample. It catches shadowing, condition bugs and grammar
-mistakes in one pass, and it fails the build rather than the league start. For it to work,
-each block needs a stable id in its `#@` note, derived from the group's selector rather than
-from its position — which is also how a UI addresses a block, and what makes a diff between
-two generated filters readable.
+```bash
+yarn generate --config=apps/generator/generate.config.json
+```
 
-## What has to exist first
-
-- `apps/catalog` — **half of it exists.** Its gold stage writes `catalog.json`, every
-  filterable row with the conditions the taxonomy authored for it, and
-  `catalog.categories.json`, the flattened category tree those hang off. Both are what
-  `resolveConditions` takes.
-
-  What is missing is the money. A row says what an item is and not what it is worth, and the
-  classifier needs a number **and** a confidence signal — a thin market must not be able to
-  set a loud block. Prices arrive from poe.watch and are not collected yet.
-- [`docs/item-filter-syntax.md`](../../docs/item-filter-syntax.md) is the grammar. Anything
-  emitted here has to be a line in there.
+[`docs/item-filter-syntax.md`](../../docs/item-filter-syntax.md) is the grammar. Anything
+emitted here has to be a line in there.

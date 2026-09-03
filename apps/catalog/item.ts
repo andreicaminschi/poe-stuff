@@ -64,8 +64,20 @@ export type UniqueListing = {
   readonly name: string;
   /** Chaos, a listing price. */
   readonly meanPrice: number;
-  readonly isFoulborn: boolean;
   readonly corrupted: boolean;
+};
+
+/**
+ * The uniques on a base that one block draws: every listing filed under one category path.
+ *
+ * The path is the whole point. A foulborn unique and a plain one are told apart on the
+ * ground by a condition, and which condition is the taxonomy's to author under this path —
+ * the generator resolves it the way it resolves a row's, and learns nothing about foulborn.
+ */
+export type UniqueGroup = {
+  readonly category: string;
+  readonly subcategory: string | null;
+  readonly listings: readonly UniqueListing[];
 };
 
 /**
@@ -132,14 +144,15 @@ export type Item = {
    */
   readonly meanPrice?: number;
   /**
-   * Every unique PoeWatch lists on this base, each form of each one, priced.
+   * Every unique PoeWatch lists on this base, each form of each one, priced, grouped by the
+   * category path that says how a filter tells the group apart.
    *
    * **A unique is not a row.** On the ground it is its base with a rarity, and a filter
    * names the base; so the base carries its uniques, and the generator decides what a Leather
    * Belt is worth drawing as from what could be on it. Absent on a base nothing unique rolls
    * on, and on everything that is not a base.
    */
-  readonly uniques?: readonly UniqueListing[];
+  readonly uniques?: readonly UniqueGroup[];
 };
 
 /**

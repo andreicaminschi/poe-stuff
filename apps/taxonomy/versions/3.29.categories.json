@@ -484,6 +484,34 @@
       }
     ]
   },
+  "unique": {
+    "conditions": [
+      {
+        "condition": "Rarity",
+        "operator": "==",
+        "value": "Unique"
+      },
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "from": "name"
+      },
+      {
+        "condition": "Foulborn",
+        "operator": "==",
+        "value": false
+      }
+    ]
+  },
+  "unique/foulborn": {
+    "conditions": [
+      {
+        "condition": "Foulborn",
+        "operator": "==",
+        "value": true
+      }
+    ]
+  },
   "unique-relic": {
     "conditions": [
       {

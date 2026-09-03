@@ -4,12 +4,26 @@ import type {
   CorruptionOutcome,
   ItemCorruptions,
 } from "@poe/poe-watch/get-corruption-data.types";
-import type { Item, UniqueListing } from "../item.ts";
+import type { Item, UniqueGroup, UniqueListing } from "../item.ts";
 
 /** PoeWatch's frame for a unique. */
 const UNIQUE_FRAME = 3;
 
 const FOULBORN = "Foulborn ";
+
+/**
+ * Where a base's uniques are filed, so the taxonomy can author what a filter asks to tell
+ * them apart. Declared here rather than imported, the same way `excluded` is: the two agree
+ * on a published path, not on a module. A plain unique is `unique`, a foulborn one is
+ * `unique/foulborn`.
+ */
+const UNIQUE_CATEGORY = "unique";
+const FOULBORN_SUBCATEGORY = "foulborn";
+
+/** A listing and the subcategory it is filed under. */
+type FiledListing = UniqueListing & {
+  readonly subcategory: string | null;
+};
 
 /**
  * The unique a listing is of. `Foulborn Headhunter (Culling)` is Headhunter: the prefix is
@@ -60,7 +74,7 @@ function basesByUnique(groups: readonly GGGItemGroup[]): ReadonlyMap<string, str
 function listedUniques(
   listings: readonly ItemData[],
   corruptions: readonly ItemCorruptions[],
-): readonly UniqueListing[] {
+): readonly FiledListing[] {
   const byName = new Map<string, ItemData[]>();
   for (const listing of listings) {
     if (listing.frame !== UNIQUE_FRAME) continue;
@@ -72,15 +86,15 @@ function listedUniques(
 
   const outcomesById = new Map(corruptions.map((item) => [item.item_id, item.corruptions]));
 
-  const entries: UniqueListing[] = [];
+  const entries: FiledListing[] = [];
 
   for (const [name, same] of byName) {
     const chosen = mostListed(same);
     if (chosen === undefined) continue;
 
-    const isFoulborn = name.startsWith(FOULBORN);
+    const subcategory = name.startsWith(FOULBORN) ? FOULBORN_SUBCATEGORY : null;
 
-    entries.push({ name, meanPrice: chosen.mean, isFoulborn, corrupted: false });
+    entries.push({ name, meanPrice: chosen.mean, corrupted: false, subcategory });
 
     const outcomes = new Map<string, CorruptionOutcome[]>();
     for (const listing of same) {
@@ -98,13 +112,32 @@ function listedUniques(
       entries.push({
         name: `${name} (${implicit})`,
         meanPrice: best.mean,
-        isFoulborn,
         corrupted: true,
+        subcategory,
       });
     }
   }
 
   return entries;
+}
+
+/** One base's listings, split into a group per path. Plain first, each sorted by name. */
+function groupListings(filed: readonly FiledListing[]): readonly UniqueGroup[] {
+  const bySubcategory = new Map<string | null, UniqueListing[]>();
+
+  for (const { subcategory, ...listing } of filed) {
+    const seen = bySubcategory.get(subcategory);
+    if (seen === undefined) bySubcategory.set(subcategory, [listing]);
+    else seen.push(listing);
+  }
+
+  return [...bySubcategory]
+    .sort(([a], [b]) => (a ?? "").localeCompare(b ?? ""))
+    .map(([subcategory, listings]) => ({
+      category: UNIQUE_CATEGORY,
+      subcategory,
+      listings: [...listings].sort((a, b) => a.name.localeCompare(b.name)),
+    }));
 }
 
 /**
@@ -128,7 +161,7 @@ export function withUniques(
   corruptions: readonly ItemCorruptions[],
 ): readonly Item[] {
   const bases = basesByUnique(groups);
-  const perBase = new Map<string, UniqueListing[]>();
+  const perBase = new Map<string, FiledListing[]>();
 
   for (const entry of listedUniques(listings, corruptions)) {
     for (const base of bases.get(uniqueOf(entry.name)) ?? []) {
@@ -141,12 +174,9 @@ export function withUniques(
   return rows.map((item) => {
     if (item.name === null) return item;
 
-    const uniques = perBase.get(item.name);
-    if (uniques === undefined) return item;
+    const filed = perBase.get(item.name);
+    if (filed === undefined) return item;
 
-    return {
-      ...item,
-      uniques: [...uniques].sort((a, b) => a.name.localeCompare(b.name)),
-    };
+    return { ...item, uniques: groupListings(filed) };
   });
 }

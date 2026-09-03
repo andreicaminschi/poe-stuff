@@ -14,10 +14,11 @@ second reads the filter language: `@poe/item-parser` turns one item's copied tex
 shape the language can be asked about, and `@poe/filter-eval` parses a `.filter` and decides
 which block takes an item.
 
-**Nothing generates a filter yet.** That is `apps/generator`, and it is the missing spine —
-until something comes out of it, every source collected here is a leaf and nothing proves
-the whole works. It has its first file: the resolver that turns the conditions the taxonomy
-authored into the ones a block writes. What it still has no source for is the money.
+**`apps/generator` is a proof of concept.** `yarn generate` reads a config and a gold
+catalog and writes a `.filter`: every priced row in one of the config's tiers, blocks alike
+merged into one, ordered so nothing shadows a narrower block, and parsed back by
+`@poe/filter-eval` before it is written. It knows no game fact — every condition it writes
+comes out of the catalog, which carries what the taxonomy authored.
 
 ## Tiers
 
@@ -50,7 +51,7 @@ apps/item-inspect/     # @poe/item-inspect — paste an item, see how the parser
 apps/collector/        # README only. Replaces @poe/workers
 apps/catalog/          # the bronze/silver/gold pipeline. Replaces @poe/filterv2
 apps/taxonomy/         # the hand-maintained classification table and the filter conditions. Has a README.md
-apps/generator/        # the condition resolver, and notes. Never existed: items + prices -> a .filter
+apps/generator/        # config + catalog.json -> a .filter. A proof of concept. Has a README.md
 packages/workers/      # DEPRECATED @poe/workers. Does not compile
 packages/filterv2/     # DEPRECATED @poe/filterv2
 .s3/                   # local stand-in for object storage. Gitignored, nothing writes it yet
@@ -118,9 +119,9 @@ naming what it will own, which POC it replaces, and what has to be decided first
 | --- | --- | --- |
 | [`apps/item-inspect`](apps/item-inspect/README.md) | — | **Written.** Paste an item copied out of the game, see how the parser read it. The one consumer of `@poe/item-parser` today, and where its CLI lives now that `lib/` is pure. |
 | [`apps/collector`](apps/collector/README.md) | `@poe/workers` | The worker loop, the job handlers, the record of outstanding work, the writes into `.s3`, and `queries.json`. |
-| [`apps/catalog`](apps/catalog/README.md) | `@poe/filterv2` | **Written.** The bronze/silver/gold pipeline: collect every source for one league-hour, merge them into one row per item, classify against the taxonomy and write a file per category, then gather the drawable rows into `catalog.json` and `catalog.categories.json`. It carries the conditions the taxonomy authored and resolves none of them. It prices every filterable row and variant off PoeWatch — the exchange first, listings second — and hangs every unique off the base it rolls on under `uniques`, one entry per listed form; a unique is not a row. Also `find-duplicates-cli.ts`, which reports the display names more than one metadata id carries. |
+| [`apps/catalog`](apps/catalog/README.md) | `@poe/filterv2` | **Written.** The bronze/silver/gold pipeline: collect every source for one league-hour, merge them into one row per item, classify against the taxonomy and write a file per category, then gather the drawable rows into `catalog.json` and `catalog.categories.json`. It carries the conditions the taxonomy authored and resolves none of them. It prices every filterable row and variant off PoeWatch — the exchange first, listings second — and hangs every unique off the base it rolls on under `uniques` — one group per category path the taxonomy authors conditions for (`unique`, `unique/foulborn`), one listing per priced form inside it; a unique is not a row. Also `find-duplicates-cli.ts`, which reports the display names more than one metadata id carries. |
 | [`apps/taxonomy`](apps/taxonomy/README.md) | — | **Written.** The hand-maintained tables, two JSON files per version under `versions/`: what each item is, and the `.filter` conditions every category, subcategory and item matches on. Publishes a version into the lake and promotes one to `latest`. Nothing imports it — the catalog reads what it published through `@poe/taxonomy`. |
-| [`apps/generator`](apps/generator/README.md) | nothing — new | `(items, prices, config) -> a .filter file`. The spine. **One file so far**: `resolve-conditions.ts`, which composes a row's `.filter` conditions out of the four levels the taxonomy authored — category, subcategory, item, variant. It declares the row shape it reads rather than importing the catalog's, so `catalog.json` is the contract between them. `notes.md` holds what the catalog has learned that this app will have to honour. |
+| [`apps/generator`](apps/generator/README.md) | nothing — new | **Proof of concept.** `(catalog.json, catalog.categories.json, config) -> a .filter file`. `generate-cli.ts` reads `generate.config.json` — the tiers with their Chaos floors and action lines, the corruption note floor — and the gold folder, and writes the filter after `@poe/filter-eval` parses it back. `resolve-conditions.ts` composes a row's conditions out of the four levels the taxonomy authored; a base's `uniques` groups resolve through the same table on their own category path. It declares the row shape it reads rather than importing the catalog's, so `catalog.json` is the contract between them. `notes.md` holds what the catalog has learned that this app has to honour. |
 
 ## Deprecated
 
@@ -271,6 +272,13 @@ yarn catalog --league=Allflame --hour=1788292800 --force
 
 ```bash
 yarn duplicates --league=Allflame --hour=1788292800
+```
+
+Generate a `.filter` from a gold folder. The config names the folder, the output and the
+tiers; `--catalog=` and `--output=` override the first two:
+
+```bash
+yarn generate --config=apps/generator/generate.config.json
 ```
 
 ## Docs

@@ -5,6 +5,8 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@poe/taxonomy": "workspace:^"
+    "@poe/filter-eval": "workspace:^",
+    "@poe/taxonomy": "workspace:^",
+    "zod": "^4.5.4"
   }
 }

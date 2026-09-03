@@ -1,0 +1,55 @@
+{
+  "catalog": ".s3/catalog/run=allflame_1788292800/gold",
+  "output": "data/proto.filter",
+  "tiers": [
+    {
+      "name": "T0",
+      "min": 200,
+      "actions": [
+        "SetFontSize 45",
+        "SetTextColor 255 0 0 255",
+        "SetBorderColor 255 0 0 255",
+        "SetBackgroundColor 255 255 255 255",
+        "PlayAlertSound 6 300",
+        "PlayEffect Red",
+        "MinimapIcon 0 Red Star"
+      ]
+    },
+    {
+      "name": "T1",
+      "min": 30,
+      "actions": [
+        "SetFontSize 42",
+        "SetTextColor 255 255 255 255",
+        "SetBorderColor 255 255 255 255",
+        "SetBackgroundColor 240 90 35 255",
+        "PlayAlertSound 1 300",
+        "PlayEffect Orange",
+        "MinimapIcon 0 Orange Circle"
+      ]
+    },
+    {
+      "name": "T2",
+      "min": 5,
+      "actions": [
+        "SetFontSize 38",
+        "SetTextColor 0 0 0 255",
+        "SetBorderColor 0 0 0 255",
+        "SetBackgroundColor 249 150 25 255",
+        "PlayAlertSound 2 300",
+        "PlayEffect Yellow",
+        "MinimapIcon 1 Yellow Circle"
+      ]
+    },
+    {
+      "name": "T3",
+      "min": 0,
+      "actions": [
+        "SetFontSize 32"
+      ]
+    }
+  ],
+  "uniques": {
+    "corruptionMin": 50
+  }
+}
