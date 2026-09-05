@@ -11,6 +11,9 @@
 /** Base of the trade API, without a trailing slash. */
 export const DEFAULT_TRADE_API_URL = "https://www.pathofexile.com/api/trade";
 
+/** Base of the trade site a person opens in a browser, without a trailing slash. */
+export const DEFAULT_TRADE_SITE_URL = "https://www.pathofexile.com/trade/search";
+
 /**
  * Base of the Currency Exchange endpoint on the CDN, without a trailing slash. The realm
  * is part of this value — this is PoE1 PC, `.../currency-exchange/poe2` is PoE2. An hour

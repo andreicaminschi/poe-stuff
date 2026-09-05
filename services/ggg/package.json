@@ -11,6 +11,7 @@
     "./get-stats.types": "./get-stats.types.ts",
     "./search-listings.types": "./search-listings.types.ts",
     "./service": "./service.ts",
+    "./trade-url": "./trade-url.ts",
     "./types": "./types.ts"
   },
   "dependencies": {

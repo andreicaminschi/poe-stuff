@@ -52,6 +52,7 @@ services/ggg/
 | Entry point | Exports | Contract |
 | --- | --- | --- |
 | `@poe/ggg/service` | `createGGGService`, `GGGService`, `GGGServiceOptions` | Builds one limiter and returns every endpoint bound to it. Opens at one request per second until GGG's headers say otherwise. |
+| `@poe/ggg/trade-url` | `tradeSearchUrl`, `TradeSearch` | The trade site page for one item, as a person opens it in a browser: a unique by `name` plus `type`, a base by `type`. Always asks for `securable`, the status GGG calls Instant Buyout, and narrows on `foulborn` and `corrupted` when either is given. Pure — builds a URL and fetches nothing, so no limiter is involved. |
 | `@poe/ggg/get-item-data.types` | `GGGItem`, `UniqueGGGItem`, `BaseGGGItem`, `GGGItemGroup`, `GGGItemData`, `GGGItemGroupData`, `GGGItemDataResponse` | `GGGItem` is a union on `kind`, synthesised from `flags.unique`. |
 | `@poe/ggg/get-stats.types` | `GGGStat`, `GGGStatOption`, `GGGStatData`, `GGGStatOptionData`, `GGGStatGroupData`, `GGGStatDataResponse` | `options` is set on the stats picked from a list rather than typed as a number. |
 | `@poe/ggg/search-listings.types` | `GGGListingSearch`, `GGGSearchResponseData` | `hashes` holds at most 100 entries however large `matchCount` is. |
