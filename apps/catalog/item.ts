@@ -7,6 +7,8 @@ import type {
 /** A taxonomy variant, with the Chaos mean of the listing its selector picked. */
 export type PricedVariant = TaxonomyVariant & {
   readonly meanPrice?: number;
+  /** PoeWatch's own flag on that listing: a small sample or high variance stands behind it. */
+  readonly lowConfidence?: boolean;
 };
 
 /**
@@ -65,6 +67,8 @@ export type UniqueListing = {
   /** Chaos, a listing price. */
   readonly meanPrice: number;
   readonly corrupted: boolean;
+  /** PoeWatch's own flag on this listing: a small sample or high variance stands behind it. */
+  readonly lowConfidence?: boolean;
 };
 
 /**
@@ -143,6 +147,9 @@ export type Item = {
    * generator can use it. A row with variants prices each of them and not itself.
    */
   readonly meanPrice?: number;
+  /** PoeWatch's own flag on the listing `meanPrice` came from: a small sample or high
+   * variance stands behind it. Absent wherever `meanPrice` is. */
+  readonly lowConfidence?: boolean;
   /**
    * Every unique PoeWatch lists on this base, each form of each one, priced, grouped by the
    * category path that says how a filter tells the group apart.
@@ -182,16 +189,32 @@ const EXCLUDED = "excluded";
 const CURRENCY = "currency";
 
 /**
- * Whether the generator can write a line for this row.
- *
- * Five questions at once: can a player get one — the trade site lists it, or it traded on
- * the exchange — has the game not taken it out, is it something the game lets a filter act
- * on at all, was it set aside on purpose, and can a filter name it. A row that fails any of
- * them is real enough to keep and useless to write a rule for.
+ * Whether a player can get one, as the sources answer it.
  *
  * **A currency has to have traded on the exchange.** For every other category the trade
  * site's list is evidence enough; for currency it is a list of every name that ever was,
  * and the exchange is what separates a Chaos Orb from an Awakened Sextant.
+ */
+const isObtainable = (item: Item): boolean =>
+  item.category === CURRENCY
+    ? item.tradedOnExchange
+    : item.tradable || item.tradedOnExchange;
+
+/**
+ * Whether the generator can write a line for this row.
+ *
+ * Five questions at once: can a player get one, has the game not taken it out, is it
+ * something the game lets a filter act on at all, was it set aside on purpose, and can a
+ * filter name it. A row that fails any of them is real enough to keep and useless to write
+ * a rule for.
+ *
+ * **An authored row skips the first question, and only the first.** The obtainability test
+ * reads the trade site and the exchange, and both are answers about selling rather than
+ * about dropping. Gold drops in every map and no market will ever list it; a blighted map
+ * is filed by the game as an untradable proxy. Somebody wrote the row down and wrote the
+ * reason beside it, which is a better witness than a marketplace for the one question a
+ * marketplace cannot answer. The rest still apply: an authored row for a removed item, a
+ * quest item or an excluded category is still not filterable.
  *
  * **A quest item is never one of them.** The game shows quest items whatever a filter says,
  * so a rule for one does nothing.
@@ -201,9 +224,7 @@ const CURRENCY = "currency";
  * the client rejects while the one beside it drops.
  */
 export const isFilterable = (item: Item): boolean =>
-  (item.category === CURRENCY
-    ? item.tradedOnExchange
-    : item.tradable || item.tradedOnExchange) &&
+  (isAuthored(item) || isObtainable(item)) &&
   item.itemClass !== REMOVED &&
   !item.isQuestItem &&
   item.category !== EXCLUDED &&

@@ -21,10 +21,11 @@ function agreed(values: readonly (string | null)[]): string | null {
  * state are facts the game's data already stated, and restating them by hand is how a hand
  * file goes stale without anybody noticing.
  *
- * **An authored row is tradable, whatever it replaced.** `tradable` means the trade site
- * lists the name, and for the rows worth authoring it does — the site lists 145 blighted map
- * labels while RePoE files the concept as an untradable trade proxy. Reading the flag off
- * the proxy would answer a question about the proxy, not about the item.
+ * **`tradable` says what the replaced rows said, and nothing more.** It means the trade site
+ * lists the name, so writing `true` on a row the site has never heard of would answer a
+ * different question than the one the field asks. Gold drops in every map and no market
+ * will ever list it. What carries an authored row past that question is `isFilterable`,
+ * which skips the obtainability test for a row a person vouched for.
  *
  * Conditions, variants and the price selector are copied off the entry the way
  * `classifyItems` copies them off a real row's, and resolved just as little.
@@ -47,7 +48,7 @@ function fromReplaced(
     baseTypes: union(replaced.map((item) => item.baseTypes)),
     tags: union(replaced.map((item) => item.tags)),
     sources: [...sources],
-    tradable: true,
+    tradable: replaced.some((item) => item.tradable),
     tradedOnExchange: replaced.some((item) => item.tradedOnExchange),
     ...(entry.conditions === undefined ? {} : { conditions: entry.conditions }),
     ...(entry.variants === undefined ? {} : { variants: entry.variants }),
@@ -64,8 +65,8 @@ function fromReplaced(
  *
  * Runs after the taxonomy, and the entry carries its own category, so an authored row is
  * never looked up and can never land in `unresolved.json`. It still has to pass
- * `isFilterable` — authoring a row is a way to say what the filter can write, not a way
- * around the rules about what it may write.
+ * `isFilterable` — authoring a row answers whether a player can get one, and nothing else.
+ * A removed item, a quest item or an excluded category is refused however it was written.
  *
  * **A `replaces` key the run does not have throws.** An entry that quietly matches nothing
  * leaves the rows it was written to collapse sitting in the output, and the report that
