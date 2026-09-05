@@ -22,22 +22,15 @@
     "lint": "eslint .",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
-    "duplicates": "node apps/catalog/find-duplicates-cli.ts",
-    "generate": "node apps/generator/generate-cli.ts"
+    "duplicates": "node apps/catalog/find-duplicates-cli.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@jest/globals": "^30.4.1",
     "@swc/core": "^1.16.0",
     "@swc/jest": "^0.2.39",
-    "@types/eslint-plugin-jsx-a11y": "^6",
     "@types/node": "^26.2.0",
     "eslint": "^10.8.1",
-    "eslint-config-airbnb": "19.0.4",
-    "eslint-plugin-import": "2.25.3",
-    "eslint-plugin-jsx-a11y": "6.5.1",
-    "eslint-plugin-react": "7.28.0",
-    "eslint-plugin-react-hooks": "4.3.0",
     "globals": "^17.11.0",
     "jest": "^30.4.2",
     "jiti": "^2.7.0",

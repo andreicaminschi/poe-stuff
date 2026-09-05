@@ -75,3 +75,21 @@ evaluator reads a filled-in wrong value as fact. `AreaLevel` is drop context the
 holds; `Width`, `Height`, `DropLevel` and the `Base*` defences are base-type data that lives
 in GGG's item list; the eldritch implicit tiers and the gem conditions want wordings no
 sample item shows.
+
+## `apps/taxonomy`
+
+### Not done
+
+#### No list maps PoeWatch's foulborn labels to stats
+
+`Foulborn Headhunter (Culling, Minimap Icons)` names its mods the way PoeWatch abbreviates
+them, not the way the game prints them or the trade site indexes them. Nothing in the tree
+holds that mapping, and neither RePoE's `ModFoulbornMap.json` nor GGG's stat list carries
+the labels.
+
+It has to be a hand-kept table, one row per label PoeWatch uses: the label, the stat text,
+and the trade stat id. It breaks silently when PoeWatch renames a label or a league adds a
+mod, so it belongs where the other hand-maintained data lives, `apps/taxonomy`.
+
+Nothing needs it today. It was written down when a trade link wanted to name the exact form
+a price came from, and whatever builds that link next will want it again.

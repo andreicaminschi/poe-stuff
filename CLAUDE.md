@@ -14,11 +14,10 @@ second reads the filter language: `@poe/item-parser` turns one item's copied tex
 shape the language can be asked about, and `@poe/filter-eval` parses a `.filter` and decides
 which block takes an item.
 
-**`apps/generator` is a proof of concept.** `yarn generate` reads a config and a gold
-catalog and writes a `.filter`: every priced row in one of the config's tiers, blocks alike
-merged into one, ordered so nothing shadows a narrower block, and parsed back by
-`@poe/filter-eval` before it is written. It knows no game fact — every condition it writes
-comes out of the catalog, which carries what the taxonomy authored.
+**Nothing writes a `.filter` today.** `apps/generator` did, as a proof of concept, and was
+deleted rather than reworked: it read tier floors in Chaos and nothing else, and a category
+whose rungs are stack sizes rather than prices does not fit that shape. The catalog still
+produces everything such a tool needs, so what replaces it starts from `catalog.json`.
 
 ## Tiers
 
@@ -51,7 +50,6 @@ apps/item-inspect/     # @poe/item-inspect — paste an item, see how the parser
 apps/collector/        # README only. Replaces @poe/workers
 apps/catalog/          # the bronze/silver/gold pipeline. Replaces @poe/filterv2
 apps/taxonomy/         # the hand-maintained classification table and the filter conditions. Has a README.md
-apps/generator/        # config + catalog.json -> a .filter. A proof of concept. Has a README.md
 packages/workers/      # DEPRECATED @poe/workers. Does not compile
 packages/filterv2/     # DEPRECATED @poe/filterv2
 .s3/                   # local stand-in for object storage. Gitignored, nothing writes it yet
@@ -81,7 +79,7 @@ reachable contact, and a default would send one that does not exist. No service 
 
 | Service | Import as | Owns |
 | --- | --- | --- |
-| `@poe/ggg` | `@poe/ggg/service`, `/get-item-data.types`, `/get-stats.types`, `/search-listings.types`, `/fetch-listings.types`, `/errors`, `/types` | The GGG trade API: every endpoint bound to one rate limiter the server's own headers keep updated. Owns every GGG URL. See [services/ggg/README.md](services/ggg/README.md). |
+| `@poe/ggg` | `@poe/ggg/service`, `/trade-url`, `/get-item-data.types`, `/get-stats.types`, `/search-listings.types`, `/fetch-listings.types`, `/errors`, `/types` | The GGG trade API: every endpoint bound to one rate limiter the server's own headers keep updated. Owns every GGG URL, including `tradeSearchUrl`, the pure builder for the trade site page a person opens in a browser. See [services/ggg/README.md](services/ggg/README.md). |
 | `@poe/poe-watch` | `@poe/poe-watch/service`, `/get-compact-data.types`, `/get-corruption-data.types`, `/get-exchange-ratios.types`, `/errors`, `/types` | The PoeWatch price digests: one league's whole market per call, the corrupted-implicit outcomes per item, and the exchange book. A third party scraping trade listings, which is why a price from here is a listing rather than a sale. `/compact` needs `all=true` or it answers without a single crafting base. The catalog collects all three into bronze and prices silver off them: the exchange first, listings second, and every unique's forms and corruption outcomes onto its base. See [services/poe-watch/README.md](services/poe-watch/README.md). |
 | `@poe/poe-ninja` | `@poe/poe-ninja/service`, `/get-leagues.types`, `/get-item-overview.types`, `/get-exchange-overview.types`, `/get-league-items.types`, `/get-exchange-ratios.types`, `/errors`, `/types` | poe.ninja's economy API, as a second opinion on the market PoeWatch scrapes. One league is 28 item calls plus 18 exchange calls — there is no whole-market endpoint. **Nothing imports it yet.** What a row *is* comes from the `type` that was asked for; `itemClass` is unusable and is read nowhere. See [services/poe-ninja/README.md](services/poe-ninja/README.md). |
 | `@poe/taxonomy` | `@poe/taxonomy/service`, `/get-taxonomy.types`, `/errors`, `/types` | One published version of the item taxonomy, keyed by metadata id. **A third party we happen to write ourselves** — `apps/taxonomy` publishes the versions and this reads one back, so the catalog treats it exactly like GGG or RePoE and knows nothing about how it was authored. Handed a store with a single `read(key)`, so it never learns whether that is a file, a bucket or a URL. Validates nothing. See [services/taxonomy/README.md](services/taxonomy/README.md). |
@@ -112,7 +110,7 @@ never learns where the input came from. The moment a lib names a service in its
 
 ## Apps
 
-Three are written and `apps/generator` has started. `apps/collector` holds a `README.md`
+Three are written. `apps/collector` holds a `README.md`
 naming what it will own, which POC it replaces, and what has to be decided first.
 
 | App | Replaces | Owns |
@@ -121,7 +119,6 @@ naming what it will own, which POC it replaces, and what has to be decided first
 | [`apps/collector`](apps/collector/README.md) | `@poe/workers` | The worker loop, the job handlers, the record of outstanding work, the writes into `.s3`, and `queries.json`. |
 | [`apps/catalog`](apps/catalog/README.md) | `@poe/filterv2` | **Written.** The bronze/silver/gold pipeline: collect every source for one league-hour, merge them into one row per item, classify against the taxonomy and write a file per category, then gather the drawable rows into `catalog.json` and `catalog.categories.json`. It carries the conditions the taxonomy authored and resolves none of them. It prices every filterable row and variant off PoeWatch — the exchange first, listings second — and hangs every unique off the base it rolls on under `uniques` — one group per category path the taxonomy authors conditions for (`unique`, `unique/foulborn`), one listing per priced form inside it; a unique is not a row. Also `find-duplicates-cli.ts`, which reports the display names more than one metadata id carries. |
 | [`apps/taxonomy`](apps/taxonomy/README.md) | — | **Written.** The hand-maintained tables, two JSON files per version under `versions/`: what each item is, and the `.filter` conditions every category, subcategory and item matches on. Publishes a version into the lake and promotes one to `latest`. Nothing imports it — the catalog reads what it published through `@poe/taxonomy`. |
-| [`apps/generator`](apps/generator/README.md) | nothing — new | **Proof of concept.** `(catalog.json, catalog.categories.json, config) -> a .filter file`. `generate-cli.ts` reads `generate.config.json` — the tiers with their Chaos floors and action lines, the corruption note floor — and the gold folder, and writes the filter after `@poe/filter-eval` parses it back. `resolve-conditions.ts` composes a row's conditions out of the four levels the taxonomy authored; a base's `uniques` groups resolve through the same table on their own category path. It declares the row shape it reads rather than importing the catalog's, so `catalog.json` is the contract between them. `notes.md` holds what the catalog has learned that this app has to honour. |
 
 ## Deprecated
 
@@ -274,13 +271,6 @@ yarn catalog --league=Allflame --hour=1788292800 --force
 yarn duplicates --league=Allflame --hour=1788292800
 ```
 
-Generate a `.filter` from a gold folder. The config names the folder, the output and the
-tiers; `--catalog=` and `--output=` override the first two:
-
-```bash
-yarn generate --config=apps/generator/generate.config.json
-```
-
 ## Docs
 
 Every service has a `README.md`; `services/ggg` also has Mermaid `.mmd` diagrams in
@@ -289,18 +279,17 @@ Every service has a `README.md`; `services/ggg` also has Mermaid `.mmd` diagrams
 `lib/item-parser`, `lib/cache` and `lib/env` have none. Write one with the `/document`
 command.
 
-`apps/item-inspect`, `apps/taxonomy` and `apps/generator` have a `README.md`. The taxonomy's
+`apps/item-inspect`, `apps/taxonomy` and `apps/collector` have a `README.md`. The taxonomy's
 is where the condition language lives: the shape of a condition, how the four levels compose,
 and what the validator refuses. `apps/catalog` has none — the pipeline's shape is in the step
-files' doc comments. `apps/generator` also has `notes.md`: what the catalog has learned that
-the generator will have to honour, one entry per thing.
+files' doc comments.
 
 `apps/collector` has a `README.md` describing what does not exist yet. Each folder
 under `packages/` has a `DEPRECATED.md`.
 
 [docs/item-filter-syntax.md](docs/item-filter-syntax.md) is how filters work in PoE: the
 `.filter` grammar as GGG documents it — `Show`/`Hide`/`Minimal` blocks, `Continue`,
-`Import`, the operators, every condition and every action. Anything the generator emits has
+`Import`, the operators, every condition and every action. Anything a generated filter holds has
 to be a line in there.
 
 **Tech debt goes in [techdebt.md](techdebt.md) at the root, never in a package.** One

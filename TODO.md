@@ -39,7 +39,7 @@ Deferred decisions. Nothing here is scheduled.
 
 The classifier these entries describe was a POC and is deleted. They are kept because each
 one is a decision about the game rather than about the code, and every one of them comes
-back the moment `apps/generator` classifies items again. The constants named below no longer
+back the moment anything classifies items into tiers again. The constants named below no longer
 exist anywhere.
 
 - **The Originator implicit cannot be named, so both Originator buckets key on
