@@ -1,4 +1,4 @@
-import type { CategoryTable } from "./types.ts";
+import type { CategoryTable, TieringMethod } from "./types.ts";
 
 /** What `from` may name. The catalog reads exactly these two off a row. */
 const FIELDS = ["name", "baseTypes"];
@@ -111,6 +111,9 @@ export function conditionsProblem(value: unknown): string | null {
   return null;
 }
 
+/** Every value `tiering` may take. A category that writes anything else is refused. */
+const TIERING: readonly TieringMethod[] = ["chaos", "stack-size"];
+
 const PATH = /^[a-z0-9-]+(\/[a-z0-9-]+)?$/;
 
 /**
@@ -138,10 +141,20 @@ export function validateCategoryTable(
       throw new Error(`${source}: "${path}" is not an object`);
     }
 
-    const extra = unknownFields(record, ["conditions"]);
+    const extra = unknownFields(record, ["conditions", "name", "tiering"]);
 
     if (extra.length > 0) {
       throw new Error(`${source}: "${path}" has unknown fields: ${extra.join(", ")}`);
+    }
+
+    if (record.name !== undefined && !isText(record.name)) {
+      throw new Error(`${source}: "${path}" name must be a non-empty string when it is present`);
+    }
+
+    if (record.tiering !== undefined && !TIERING.includes(record.tiering as TieringMethod)) {
+      throw new Error(
+        `${source}: "${path}" tiering must be one of ${TIERING.join(", ")} when it is present`,
+      );
     }
 
     const problem = conditionsProblem(record.conditions);

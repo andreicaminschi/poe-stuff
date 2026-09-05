@@ -1,4 +1,19 @@
 {
+  "authored/gold": {
+    "name": "Gold",
+    "category": "gold",
+    "subcategory": null,
+    "replaces": [
+      "Metadata/Items/Currency/GoldCoin"
+    ],
+    "reason": "Gold drops in every map and no market will ever list it, so the trade site and the exchange both answer no to a question about selling that says nothing about dropping. Authoring the row is how a person answers it instead. It carries no price for the same reason: gold buys things inside the game rather than on the market, so nothing publishes a Chaos rate and nobody wants to maintain one. Its category is tiered on stack size instead."
+  },
+  "authored/transfigured-gem": {
+    "name": "Transfigured Gem",
+    "category": "skill-gem",
+    "subcategory": "transfigured",
+    "reason": "The 249 transfigured gems are each marked filterable: false, because the client rejects Absolution of Inspiring as a base type. A filter still draws all of them, with TransfiguredGem True — the block exists, the names do not. This row is that block. It replaces nothing: the 249 stay where they are so a price can attach to each gem by name."
+  },
   "authored/vaal-aspect": {
     "name": "Vaal Aspect",
     "category": "currency",
@@ -10,11 +25,5 @@
       "Metadata/Items/UniqueFragments/FragmentUniqueMap26_4"
     ],
     "reason": "Four ids, one display name, and the only thing separating them is the art file. A filter can write BaseType == \"Vaal Aspect\" and nothing finer, so four rows offering a choice the filter cannot make is four ways to get the same block. One row says what can actually be written."
-  },
-  "authored/transfigured-gem": {
-    "name": "Transfigured Gem",
-    "category": "skill-gem",
-    "subcategory": "transfigured",
-    "reason": "The 249 transfigured gems are each marked filterable: false, because the client rejects Absolution of Inspiring as a base type. A filter still draws all of them, with TransfiguredGem True — the block exists, the names do not. This row is that block. It replaces nothing: the 249 stay where they are so a price can attach to each gem by name."
   }
 }

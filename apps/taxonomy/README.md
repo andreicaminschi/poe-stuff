@@ -69,6 +69,13 @@ subcategory — and the parent of its children. Five categories today have both:
 **A category in use with no record throws at resolution.** Every row under it would
 otherwise vanish from the generated filter with nothing saying so.
 
+**A category says what its tier floors count.** `tiering` is `chaos` or `stack-size`, and
+absent means `chaos` — 89 of the 90 categories, where a floor is a price and the catalog
+prices the row. `gold` is the exception: gold has a Chaos value that nothing publishes and
+nobody wants to maintain, so its rungs count the size of the stack on the floor instead.
+The difference is not the unit. A Chaos floor is a number something compares a price
+against; a stack-size floor is a `StackSize` line something writes into the block.
+
 ## The condition language
 
 A condition is structured. Nothing anywhere holds a line of filter text.

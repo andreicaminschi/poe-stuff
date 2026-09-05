@@ -55,8 +55,23 @@ export type TaxonomyVariant = {
  * jobs — it is the default for its own rows and the parent of its children — and five
  * categories today have both.
  */
+/**
+ * What a category's tier floors are counted in.
+ *
+ * **Absent means `chaos`**, which is every category but one: a floor is a price, and the
+ * catalog prices the row. `stack-size` is for what the market never prices — gold has a
+ * Chaos value that nothing publishes, so its rungs are counted in the size of the stack on
+ * the floor instead, and the floor becomes a `StackSize` line to write rather than a price
+ * to compare.
+ */
+export type TieringMethod = "chaos" | "stack-size";
+
 export type TaxonomyCategory = {
   readonly conditions: readonly Condition[];
+  /** How the category reads in a picker. Absent means show the path, title-cased. */
+  readonly name?: string;
+  /** What this category's tier floors count. Absent means `chaos`. */
+  readonly tiering?: TieringMethod;
 };
 
 /**

@@ -6,7 +6,8 @@
         "operator": "==",
         "from": "name"
       }
-    ]
+    ],
+    "name": "Allflame Ember"
   },
   "artifact": {
     "conditions": [
@@ -15,7 +16,8 @@
         "operator": "==",
         "from": "name"
       }
-    ]
+    ],
+    "name": "Artifact"
   },
   "astrolabe": {
     "conditions": [
@@ -24,7 +26,8 @@
         "operator": "==",
         "from": "name"
       }
-    ]
+    ],
+    "name": "Astrolabe"
   },
   "base-type": {
     "conditions": [
@@ -33,76 +36,100 @@
         "operator": "==",
         "from": "name"
       }
-    ]
+    ],
+    "name": "Base Type"
   },
   "base-type/amulet": {
-    "conditions": []
+    "conditions": [],
+    "name": "Amulet"
   },
   "base-type/belt": {
-    "conditions": []
+    "conditions": [],
+    "name": "Belt"
   },
   "base-type/body-armour": {
-    "conditions": []
+    "conditions": [],
+    "name": "Body Armour"
   },
   "base-type/boots": {
-    "conditions": []
+    "conditions": [],
+    "name": "Boots"
   },
   "base-type/bow": {
-    "conditions": []
+    "conditions": [],
+    "name": "Bow"
   },
   "base-type/claw": {
-    "conditions": []
+    "conditions": [],
+    "name": "Claw"
   },
   "base-type/dagger": {
-    "conditions": []
+    "conditions": [],
+    "name": "Dagger"
   },
   "base-type/fishing-rod": {
-    "conditions": []
+    "conditions": [],
+    "name": "Fishing Rod"
   },
   "base-type/gloves": {
-    "conditions": []
+    "conditions": [],
+    "name": "Gloves"
   },
   "base-type/helmet": {
-    "conditions": []
+    "conditions": [],
+    "name": "Helmet"
   },
   "base-type/jewel": {
-    "conditions": []
+    "conditions": [],
+    "name": "Jewel"
   },
   "base-type/one-handed-axe": {
-    "conditions": []
+    "conditions": [],
+    "name": "One-Handed Axe"
   },
   "base-type/one-handed-mace": {
-    "conditions": []
+    "conditions": [],
+    "name": "One-Handed Mace"
   },
   "base-type/one-handed-sword": {
-    "conditions": []
+    "conditions": [],
+    "name": "One-Handed Sword"
   },
   "base-type/quiver": {
-    "conditions": []
+    "conditions": [],
+    "name": "Quiver"
   },
   "base-type/ring": {
-    "conditions": []
+    "conditions": [],
+    "name": "Ring"
   },
   "base-type/shield": {
-    "conditions": []
+    "conditions": [],
+    "name": "Shield"
   },
   "base-type/staff": {
-    "conditions": []
+    "conditions": [],
+    "name": "Staff"
   },
   "base-type/tincture": {
-    "conditions": []
+    "conditions": [],
+    "name": "Tincture"
   },
   "base-type/two-handed-axe": {
-    "conditions": []
+    "conditions": [],
+    "name": "Two-Handed Axe"
   },
   "base-type/two-handed-mace": {
-    "conditions": []
+    "conditions": [],
+    "name": "Two-Handed Mace"
   },
   "base-type/two-handed-sword": {
-    "conditions": []
+    "conditions": [],
+    "name": "Two-Handed Sword"
   },
   "base-type/wand": {
-    "conditions": []
+    "conditions": [],
+    "name": "Wand"
   },
   "chart": {
     "conditions": [
@@ -111,10 +138,12 @@
         "operator": "==",
         "from": "name"
       }
-    ]
+    ],
+    "name": "Chart"
   },
   "chart/deepwater": {
-    "conditions": []
+    "conditions": [],
+    "name": "Deepwater"
   },
   "corpse": {
     "conditions": [
@@ -123,7 +152,8 @@
         "operator": "==",
         "from": "name"
       }
-    ]
+    ],
+    "name": "Corpse"
   },
   "currency": {
     "conditions": [
@@ -132,22 +162,28 @@
         "operator": "==",
         "from": "name"
       }
-    ]
+    ],
+    "name": "Currency"
   },
   "currency/amulet": {
-    "conditions": []
+    "conditions": [],
+    "name": "Amulet"
   },
   "currency/catalysts": {
-    "conditions": []
+    "conditions": [],
+    "name": "Catalysts"
   },
   "currency/jewel": {
-    "conditions": []
+    "conditions": [],
+    "name": "Jewel"
   },
   "currency/keepers": {
-    "conditions": []
+    "conditions": [],
+    "name": "Keepers"
   },
   "currency/maps": {
-    "conditions": []
+    "conditions": [],
+    "name": "Maps"
   },
   "delirium-orb": {
     "conditions": [
@@ -156,7 +192,8 @@
         "operator": "==",
         "from": "name"
       }
-    ]
+    ],
+    "name": "Delirium Orb"
   },
   "divination-card": {
     "conditions": [
@@ -165,7 +202,8 @@
         "operator": "==",
         "from": "name"
       }
-    ]
+    ],
+    "name": "Divination Card"
   },
   "ducat": {
     "conditions": [
@@ -174,7 +212,8 @@
         "operator": "==",
         "from": "name"
       }
-    ]
+    ],
+    "name": "Ducat"
   },
   "enshrouded": {
     "conditions": [
@@ -183,10 +222,12 @@
         "operator": "==",
         "from": "name"
       }
-    ]
+    ],
+    "name": "Enshrouded"
   },
   "enshrouded/effects-wrappingpaper": {
-    "conditions": []
+    "conditions": [],
+    "name": "Effects Wrapping Paper"
   },
   "enshrouding-crystal": {
     "conditions": [
@@ -195,7 +236,8 @@
         "operator": "==",
         "from": "name"
       }
-    ]
+    ],
+    "name": "Enshrouding Crystal"
   },
   "essence": {
     "conditions": [
@@ -204,7 +246,8 @@
         "operator": "==",
         "from": "name"
       }
-    ]
+    ],
+    "name": "Essence"
   },
   "flask": {
     "conditions": [
@@ -213,19 +256,24 @@
         "operator": "==",
         "from": "name"
       }
-    ]
+    ],
+    "name": "Flask"
   },
   "flask/hybrid-flask": {
-    "conditions": []
+    "conditions": [],
+    "name": "Hybrid Flask"
   },
   "flask/life-flask": {
-    "conditions": []
+    "conditions": [],
+    "name": "Life Flask"
   },
   "flask/mana-flask": {
-    "conditions": []
+    "conditions": [],
+    "name": "Mana Flask"
   },
   "flask/utility-flask": {
-    "conditions": []
+    "conditions": [],
+    "name": "Utility Flask"
   },
   "fossil": {
     "conditions": [
@@ -234,7 +282,8 @@
         "operator": "==",
         "from": "name"
       }
-    ]
+    ],
+    "name": "Fossil"
   },
   "fragment": {
     "conditions": [
@@ -243,7 +292,19 @@
         "operator": "==",
         "from": "name"
       }
-    ]
+    ],
+    "name": "Fragment"
+  },
+  "gold": {
+    "conditions": [
+      {
+        "condition": "BaseType",
+        "operator": "==",
+        "value": "Gold"
+      }
+    ],
+    "name": "Gold",
+    "tiering": "stack-size"
   },
   "heistequipment": {
     "conditions": [
@@ -252,10 +313,12 @@
         "operator": "==",
         "from": "name"
       }
-    ]
+    ],
+    "name": "Heist Equipment"
   },
   "heistequipment/heist": {
-    "conditions": []
+    "conditions": [],
+    "name": "Heist"
   },
   "heistmission": {
     "conditions": [
@@ -264,10 +327,12 @@
         "operator": "==",
         "from": "name"
       }
-    ]
+    ],
+    "name": "Heist Mission"
   },
   "heistmission/heist": {
-    "conditions": []
+    "conditions": [],
+    "name": "Heist"
   },
   "idol": {
     "conditions": [
@@ -276,10 +341,12 @@
         "operator": "==",
         "from": "name"
       }
-    ]
+    ],
+    "name": "Idol"
   },
   "idol/relics": {
-    "conditions": []
+    "conditions": [],
+    "name": "Relics"
   },
   "invitation": {
     "conditions": [
@@ -288,7 +355,8 @@
         "operator": "==",
         "from": "name"
       }
-    ]
+    ],
+    "name": "Invitation"
   },
   "leaguestone": {
     "conditions": [
@@ -297,10 +365,12 @@
         "operator": "==",
         "from": "name"
       }
-    ]
+    ],
+    "name": "Leaguestone"
   },
   "leaguestone/classic": {
-    "conditions": []
+    "conditions": [],
+    "name": "Classic"
   },
   "logbook": {
     "conditions": [
@@ -309,10 +379,12 @@
         "operator": "==",
         "from": "name"
       }
-    ]
+    ],
+    "name": "Logbook"
   },
   "logbook/maps": {
-    "conditions": []
+    "conditions": [],
+    "name": "Maps"
   },
   "map": {
     "conditions": [
@@ -321,7 +393,8 @@
         "operator": "==",
         "from": "name"
       }
-    ]
+    ],
+    "name": "Map"
   },
   "map/blight-ravaged": {
     "conditions": [
@@ -345,7 +418,8 @@
         "operator": "==",
         "value": null
       }
-    ]
+    ],
+    "name": "Blight-Ravaged"
   },
   "map/blighted": {
     "conditions": [
@@ -365,16 +439,20 @@
         "operator": "==",
         "value": null
       }
-    ]
+    ],
+    "name": "Blighted"
   },
   "map/maps": {
-    "conditions": []
+    "conditions": [],
+    "name": "Maps"
   },
   "map/nightmare": {
-    "conditions": []
+    "conditions": [],
+    "name": "Nightmare"
   },
   "map/vaal-temple": {
-    "conditions": []
+    "conditions": [],
+    "name": "Vaal Temple"
   },
   "oil": {
     "conditions": [
@@ -383,7 +461,8 @@
         "operator": "==",
         "from": "name"
       }
-    ]
+    ],
+    "name": "Oil"
   },
   "omen": {
     "conditions": [
@@ -392,7 +471,8 @@
         "operator": "==",
         "from": "name"
       }
-    ]
+    ],
+    "name": "Omen"
   },
   "resonator": {
     "conditions": [
@@ -401,7 +481,8 @@
         "operator": "==",
         "from": "name"
       }
-    ]
+    ],
+    "name": "Resonator"
   },
   "runegraft": {
     "conditions": [
@@ -410,7 +491,8 @@
         "operator": "==",
         "from": "name"
       }
-    ]
+    ],
+    "name": "Runegraft"
   },
   "scarab": {
     "conditions": [
@@ -419,7 +501,8 @@
         "operator": "==",
         "from": "name"
       }
-    ]
+    ],
+    "name": "Scarab"
   },
   "scrying-orb": {
     "conditions": [
@@ -428,7 +511,8 @@
         "operator": "==",
         "from": "name"
       }
-    ]
+    ],
+    "name": "Scrying Orb"
   },
   "skill-gem": {
     "conditions": [
@@ -437,19 +521,24 @@
         "operator": "==",
         "from": "name"
       }
-    ]
+    ],
+    "name": "Skill Gem"
   },
   "skill-gem/active": {
-    "conditions": []
+    "conditions": [],
+    "name": "Active"
   },
   "skill-gem/awakened": {
-    "conditions": []
+    "conditions": [],
+    "name": "Awakened"
   },
   "skill-gem/exceptional": {
-    "conditions": []
+    "conditions": [],
+    "name": "Exceptional"
   },
   "skill-gem/support": {
-    "conditions": []
+    "conditions": [],
+    "name": "Support"
   },
   "skill-gem/transfigured": {
     "conditions": [
@@ -470,10 +559,12 @@
         "operator": "==",
         "value": null
       }
-    ]
+    ],
+    "name": "Transfigured"
   },
   "skill-gem/vaal": {
-    "conditions": []
+    "conditions": [],
+    "name": "Vaal"
   },
   "tattoo": {
     "conditions": [
@@ -482,7 +573,8 @@
         "operator": "==",
         "from": "name"
       }
-    ]
+    ],
+    "name": "Tattoo"
   },
   "unique": {
     "conditions": [
@@ -501,16 +593,8 @@
         "operator": "==",
         "value": false
       }
-    ]
-  },
-  "unique/foulborn": {
-    "conditions": [
-      {
-        "condition": "Foulborn",
-        "operator": "==",
-        "value": true
-      }
-    ]
+    ],
+    "name": "Unique"
   },
   "unique-relic": {
     "conditions": [
@@ -519,7 +603,18 @@
         "operator": "==",
         "from": "name"
       }
-    ]
+    ],
+    "name": "Unique Relic"
+  },
+  "unique/foulborn": {
+    "conditions": [
+      {
+        "condition": "Foulborn",
+        "operator": "==",
+        "value": true
+      }
+    ],
+    "name": "Foulborn"
   },
   "valdo-map": {
     "conditions": [
@@ -528,10 +623,12 @@
         "operator": "==",
         "from": "name"
       }
-    ]
+    ],
+    "name": "Valdo Map"
   },
   "valdo-map/valdo": {
-    "conditions": []
+    "conditions": [],
+    "name": "Valdo"
   },
   "vial": {
     "conditions": [
@@ -540,7 +637,8 @@
         "operator": "==",
         "from": "name"
       }
-    ]
+    ],
+    "name": "Vial"
   },
   "warrant": {
     "conditions": [
@@ -549,7 +647,8 @@
         "operator": "==",
         "from": "name"
       }
-    ]
+    ],
+    "name": "Warrant"
   },
   "wombgift": {
     "conditions": [
@@ -558,6 +657,7 @@
         "operator": "==",
         "from": "name"
       }
-    ]
+    ],
+    "name": "Wombgift"
   }
 }
