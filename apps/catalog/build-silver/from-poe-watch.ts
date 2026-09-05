@@ -103,7 +103,9 @@ export function fromPoeWatch(
   // A row with no trade in the window carries no price, and prices nothing here either.
   const exchange = new Map(
     ratios.flatMap((ratio) =>
-      ratio.price === undefined ? [] : [[ratio.name, ratio.price.chaos] as const],
+      ratio.price === undefined
+        ? []
+        : [[ratio.name, { chaos: ratio.price.chaos, lowConfidence: ratio.price.lowConfidence }] as const],
     ),
   );
 
@@ -119,15 +121,21 @@ export function fromPoeWatch(
 
     if (item.variants === undefined) {
       const sale = exchange.get(item.price?.name ?? item.name);
-      if (sale !== undefined) return { ...item, meanPrice: sale };
+      if (sale !== undefined) {
+        return { ...item, meanPrice: sale.chaos, lowConfidence: sale.lowConfidence };
+      }
 
       const chosen = pick(listed(item.price), item.price);
-      return chosen === undefined ? item : { ...item, meanPrice: chosen.mean };
+      return chosen === undefined
+        ? item
+        : { ...item, meanPrice: chosen.mean, lowConfidence: chosen.lowConfidence };
     }
 
     const variants: PricedVariant[] = item.variants.map((variant) => {
       const chosen = pick(listed(variant.price), variant.price);
-      return chosen === undefined ? variant : { ...variant, meanPrice: chosen.mean };
+      return chosen === undefined
+        ? variant
+        : { ...variant, meanPrice: chosen.mean, lowConfidence: chosen.lowConfidence };
     });
 
     return { ...item, variants };

@@ -94,7 +94,13 @@ function listedUniques(
 
     const subcategory = name.startsWith(FOULBORN) ? FOULBORN_SUBCATEGORY : null;
 
-    entries.push({ name, meanPrice: chosen.mean, corrupted: false, subcategory });
+    entries.push({
+      name,
+      meanPrice: chosen.mean,
+      corrupted: false,
+      subcategory,
+      lowConfidence: chosen.lowConfidence,
+    });
 
     const outcomes = new Map<string, CorruptionOutcome[]>();
     for (const listing of same) {
@@ -114,6 +120,7 @@ function listedUniques(
         meanPrice: best.mean,
         corrupted: true,
         subcategory,
+        lowConfidence: best.lowConfidence,
       });
     }
   }
