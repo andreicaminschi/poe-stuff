@@ -1,36 +1,24 @@
-import { versionKey } from "./lake.ts";
-import type { Lake, Version } from "./types.ts";
+import { categoriesKey, versionKey } from "./lake.ts";
+import { assertPublishable, entryOf, readRegistry, writeRegistry } from "./registry.ts";
+import type { Lake } from "@poe/lake/types";
+import type { Version } from "./types.ts";
 
-/**
- * Writes one version, once.
- *
- * **A published version is immutable.** Something already read this file and classified a
- * run against it; rewriting it would change what that run meant after the fact, with
- * nothing recording that it happened. A correction is the next version, not an edit.
- *
- * **`force` is the exception, and it is for a version still being written.** A hand pass
- * over a league's table is dozens of edits, and every one of them needs a run to look at
- * before the next. Burning a version number per edit would leave a shelf of versions that
- * only ever existed to be replaced. Once anyone else reads a version, the rule above is
- * the rule again.
- */
 export async function publishTaxonomy(
   lake: Lake,
   version: string,
   table: Version,
-  force = false,
-): Promise<string> {
-  const key = versionKey(version);
+): Promise<readonly string[]> {
+  const registry = await readRegistry(lake);
+  assertPublishable(registry, version);
 
-  if (!force && (await lake.exists(key))) {
-    throw new Error(
-      `${version} is already published. Publish a new version, or pass --force to overwrite it.`,
-    );
+  const keys = [categoriesKey(version), versionKey(version)] as const;
+
+  for (const key of keys) {
+    if (await lake.exists(key)) {
+      throw new Error(`${key} already exists. A published version is never rewritten.`);
+    }
   }
 
-  // The variants are authored in their own file and published on the row, so the reader
-  // sees one shape per row and never learns there were two files. Both tables of rows get
-  // the same treatment.
   const fold = <T extends object>(rows: Readonly<Record<string, T>>) =>
     Object.fromEntries(
       Object.entries(rows).map(([id, row]) => {
@@ -40,12 +28,24 @@ export async function publishTaxonomy(
       }),
     );
 
-  await lake.writeJson(key, {
+  await lake.writeJsonAtomic(keys[0], { version, categories: table.categories });
+  await lake.writeJsonAtomic(keys[1], {
     version,
     items: fold(table.items),
-    categories: table.categories,
     authored: fold(table.authored),
   });
 
-  return key;
+  await writeRegistry(lake, {
+    ...registry,
+    versions: {
+      ...registry.versions,
+      [version]: {
+        ...entryOf(registry, version),
+        state: "published",
+        publishedAt: new Date().toISOString(),
+      },
+    },
+  });
+
+  return keys;
 }

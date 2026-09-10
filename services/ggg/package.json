@@ -12,7 +12,8 @@
     "./search-listings.types": "./search-listings.types.ts",
     "./service": "./service.ts",
     "./trade-url": "./trade-url.ts",
-    "./types": "./types.ts"
+    "./types": "./types.ts",
+    "./fetch-currency-hour.types": "./fetch-currency-hour.types.ts"
   },
   "dependencies": {
     "@util/cache": "workspace:^"

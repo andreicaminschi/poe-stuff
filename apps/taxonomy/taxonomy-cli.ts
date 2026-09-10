@@ -1,37 +1,74 @@
-/**
- * Publishes and promotes taxonomy versions.
- *
- * ```
- * yarn taxonomy:publish 3.29
- * yarn taxonomy:promote 3.29
- * yarn taxonomy:republish          # overwrite whatever latest points at
- * ```
- *
- * Needs no environment and makes no request: everything it touches is a file under the
- * lake, and the tables it publishes are compiled into this app.
- */
-
-import { createLocalLake, DEFAULT_ROOT, pointerKey } from "./lake.ts";
+import { createLakeService } from "@poe/lake/service";
+import { createTaxonomy } from "./create-taxonomy.ts";
 import { promoteTaxonomy } from "./promote-taxonomy.ts";
 import { publishTaxonomy } from "./publish-taxonomy.ts";
-import type { Lake } from "./types.ts";
-import { versionTable } from "./versions.ts";
+import { readVersionFiles } from "./read-version-files.ts";
+import { highestDraft, readRegistry, versionNumber } from "./registry.ts";
+import {
+  resolutionProblems,
+  resolveCategory,
+  resolveRow,
+  unauthoredCategories,
+} from "./resolve-conditions.ts";
+import type { Lake } from "@poe/lake/types";
+import { collectVersion } from "./validate-version.ts";
+import { buildVersion, versionTable } from "./versions.ts";
+
+const USAGE =
+  "usage: taxonomy-cli.ts <list|create|publish|promote|validate|resolve> [version] [--parent=<v>] [--id=<key>] [--category=<path>] [--root=<dir>]";
 
 const flag = (args: readonly string[], name: string): string | undefined =>
   args.find((arg) => arg.startsWith(`--${name}=`))?.slice(name.length + 3);
 
-const has = (args: readonly string[], name: string): boolean =>
-  args.includes(`--${name}`);
+const json = (value: unknown): void => {
+  process.stdout.write(`${JSON.stringify(value)}\n`);
+};
 
-/** Whichever version is promoted. What `republish` means by "the last one". */
-async function promotedVersion(lake: Lake): Promise<string> {
-  const key = pointerKey();
+async function list(lake: Lake): Promise<void> {
+  const registry = await readRegistry(lake);
+  const highest = highestDraft(registry);
+  const rows = Object.entries(registry.versions).sort(
+    ([a], [b]) => versionNumber(b) - versionNumber(a),
+  );
 
-  if (!(await lake.exists(key))) {
-    throw new Error(`Nothing is promoted (${key} does not exist). Name a version.`);
+  if (rows.length === 0) {
+    process.stdout.write("no versions exist\n");
+    return;
   }
 
-  return (await lake.readJson<{ version: string }>(key)).version;
+  for (const [version, entry] of rows) {
+    const zombie = entry.state === "draft" && version !== highest ? " (overtaken)" : "";
+    const from = entry.parent === undefined ? "" : ` from ${entry.parent}`;
+    process.stdout.write(`${version}\t${entry.state}${zombie}${from}\n`);
+  }
+}
+
+async function validate(lake: Lake, version: string): Promise<void> {
+  const files = await readVersionFiles(lake, version);
+  const problems = collectVersion(files);
+
+  if (problems.length > 0) {
+    return json({ problems, resolution: [], unauthored: {} });
+  }
+
+  const table = buildVersion(version, files);
+
+  json({
+    problems,
+    resolution: resolutionProblems(table),
+    unauthored: unauthoredCategories(table),
+  });
+}
+
+async function resolve(lake: Lake, version: string, args: readonly string[]): Promise<void> {
+  const id = flag(args, "id");
+  const category = flag(args, "category");
+  const table = await versionTable(lake, version);
+
+  if (id !== undefined) return json(resolveRow(table, id));
+  if (category !== undefined) return json(resolveCategory(table, category));
+
+  throw new Error("usage: taxonomy-cli.ts resolve <version> --id=<key> | --category=<path>");
 }
 
 async function main(): Promise<void> {
@@ -39,48 +76,48 @@ async function main(): Promise<void> {
   const [command, named] = args.filter((arg) => !arg.startsWith("--"));
 
   if (command === undefined) {
-    throw new Error(
-      "usage: taxonomy-cli.ts <publish|republish|promote> [version] [--force]",
-    );
+    throw new Error(USAGE);
   }
 
-  const lake = createLocalLake(flag(args, "root") ?? DEFAULT_ROOT);
+  const lake = createLakeService({ root: flag(args, "root") });
 
-  // Republish is publish with the two things a hand pass always wants: the version it is
-  // already working on, and permission to overwrite it.
-  const republish = command === "republish";
+  if (command === "list") {
+    await list(lake);
+    return;
+  }
 
-  if (command === "publish" || republish) {
-    const version = named ?? (republish ? await promotedVersion(lake) : undefined);
+  if (command === "create") {
+    const parent = flag(args, "parent");
 
-    if (version === undefined) {
-      throw new Error("usage: taxonomy-cli.ts publish <version> [--force]");
+    if (parent === undefined) {
+      throw new Error("usage: taxonomy-cli.ts create --parent=<published version>");
     }
 
-    const key = await publishTaxonomy(
-      lake,
-      version,
-      versionTable(version),
-      republish || has(args, "force"),
-    );
+    const version = await createTaxonomy(lake, parent);
+    process.stdout.write(`created ${version} from ${parent}\n`);
+    return;
+  }
 
-    process.stdout.write(`published ${version} -> ${key}\n`);
+  if (named === undefined) {
+    throw new Error(USAGE);
+  }
+
+  if (command === "publish") {
+    const keys = await publishTaxonomy(lake, named, await versionTable(lake, named));
+    process.stdout.write(`published ${named} -> ${keys.join(", ")}\n`);
     return;
   }
 
   if (command === "promote") {
-    if (named === undefined) {
-      throw new Error("usage: taxonomy-cli.ts promote <version>");
-    }
-
-    const key = await promoteTaxonomy(lake, named);
-    process.stdout.write(`latest is now ${named} -> ${key}\n`);
+    const keys = await promoteTaxonomy(lake, named);
+    process.stdout.write(`latest is now ${named} -> ${keys.join(", ")}\n`);
     return;
   }
 
-  throw new Error(
-    `Unknown command "${command}". Use publish, republish or promote.`,
-  );
+  if (command === "validate") return validate(lake, named);
+  if (command === "resolve") return resolve(lake, named, args);
+
+  throw new Error(`Unknown command "${command}". ${USAGE}`);
 }
 
 main().catch((error: unknown) => {

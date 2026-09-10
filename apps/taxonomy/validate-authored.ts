@@ -1,6 +1,7 @@
 import type { AuthoredRow, AuthoredTable } from "./types.ts";
+import { collect, throwFirst, type RowProblem } from "./validate.ts";
 import { conditionsProblem } from "./validate-conditions.ts";
-import { priceProblem } from "./validate-table.ts";
+import { listingProblem } from "./validate-table.ts";
 
 const FIELDS = [
   "name",
@@ -9,25 +10,15 @@ const FIELDS = [
   "replaces",
   "reason",
   "conditions",
-  "price",
+  "listing",
 ];
 
-/**
- * The catalog's key rule, restated. It built these keys itself before the table moved here,
- * and a published key has to keep reading the same way.
- */
 const slug = (field: string): string =>
   field
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 
-/**
- * `authored/vaal-aspect`. Its own namespace, so it can never collide with a metadata id.
- *
- * The slug is usually of the name, and need not be: two rows may share a name and differ by
- * what they replace. What is checked is the shape — the prefix, and a slug after it.
- */
 const PREFIX = "authored/";
 
 const isAuthoredKey = (key: string): boolean =>
@@ -41,7 +32,6 @@ const isObject = (value: unknown): value is Record<string, unknown> =>
 const isText = (value: unknown): value is string =>
   typeof value === "string" && value.length > 0;
 
-/** Reads one authored row, and says what is wrong with it. */
 function rowProblem(key: string, value: unknown): string | null {
   if (!isAuthoredKey(key)) {
     return `is not keyed "${PREFIX}" followed by a slug`;
@@ -77,8 +67,8 @@ function rowProblem(key: string, value: unknown): string | null {
     if (problem !== null) return problem;
   }
 
-  if (value.price !== undefined) {
-    const problem = priceProblem(value.price);
+  if (value.listing !== undefined) {
+    const problem = listingProblem(value.listing);
 
     if (problem !== null) return problem;
   }
@@ -86,22 +76,16 @@ function rowProblem(key: string, value: unknown): string | null {
   return null;
 }
 
-/** Checks parsed JSON against `AuthoredTable` and hands back the same value, typed. */
+export const collectAuthoredTable = (
+  value: unknown,
+  source: string,
+): readonly RowProblem[] => collect(value, source, rowProblem);
+
 export function validateAuthoredTable(
   value: unknown,
   source: string,
 ): AuthoredTable {
-  if (!isObject(value)) {
-    throw new Error(`${source} is not an object`);
-  }
-
-  for (const [key, row] of Object.entries(value)) {
-    const problem = rowProblem(key, row);
-
-    if (problem !== null) {
-      throw new Error(`${source}: "${key}" ${problem}`);
-    }
-  }
+  throwFirst(source, collectAuthoredTable(value, source));
 
   return value as Readonly<Record<string, AuthoredRow>>;
 }

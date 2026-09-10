@@ -12,24 +12,26 @@ An entry can also override three things the sources get wrong: `filterable` says
 cannot name the row, `tradable` and `tradedOnExchange` say whether it can be obtained at all.
 All three are absent on almost every row, and absent means take the sources' answer.
 
-A version carries a second table, `categories`, keyed by path — `map` beside `map/blighted`,
-the tree flattened into the key. Each record holds the `.filter` conditions every row under
+A version has a second table, `categories`, published as its own file and read with
+`getCategories`. It is keyed by path — `map` beside `map/blighted`, the tree flattened into
+the key. Each record holds the `.filter` conditions every row under
 it matches on, and an item can override them or split into priced variants. The language and
 how the levels compose are documented where they are authored, in
 [apps/taxonomy/README.md](../../apps/taxonomy/README.md).
 
-It stops at the bytes. The service is handed a store — an object with a single `read(key)` —
-and never learns whether that key is a file, an object in a bucket or a URL. It also does no
-validation: what comes back is returned as `Taxonomy` on the writer's word.
+It reads the published files straight off disk, under a `root` it is given (default `.s3`).
+It does no validation: what comes back is returned as `Taxonomy` on the writer's word.
 
 ## Structure
 
 ```
 services/taxonomy/
 ├── service.ts               # createTaxonomyService — the only constructor
-├── get-taxonomy.ts          # resolve a version, read it, or raise
-├── get-taxonomy.types.ts    # Taxonomy, TaxonomyEntry, TaxonomyPointer
-├── types.ts                 # TaxonomyStore and the constructor's options
+├── get-taxonomy.ts          # one version's rows, or raise
+├── get-taxonomy.types.ts    # Taxonomy — the contract
+├── get-categories.ts        # one version's category table, or raise
+├── get-categories.types.ts  # TaxonomyCategories — the contract
+├── types.ts                 # the constructor's options, and every type the contracts are built from
 ├── config.ts                # the key layout and the default prefix
 ├── errors.ts                # TaxonomyNotFoundError
 └── package.json
@@ -39,13 +41,14 @@ services/taxonomy/
 
 | Import | Exports | Contract |
 | --- | --- | --- |
-| `@poe/taxonomy/service` | `createTaxonomyService`, `TaxonomyService` | Takes a store and an optional prefix. `getTaxonomy(version?)` answers with one version, or the promoted one when no version is named. |
-| `@poe/taxonomy/get-taxonomy.types` | `Taxonomy`, `TaxonomyEntry`, `TaxonomyCategory`, `TaxonomyVariant`, `Condition`, `TaxonomyPointer` | Types only. `Taxonomy.items` is keyed by metadata id and `Taxonomy.categories` by category path, so either lookup is a property access. |
-| `@poe/taxonomy/types` | `TaxonomyStore`, `TaxonomyServiceOptions` | Types only. `TaxonomyStore` is what a caller implements. |
+| `@poe/taxonomy/service` | `createTaxonomyService`, `TaxonomyService` | Takes an optional `root` (default `.s3`) and `prefix` (default `taxonomy`). `getTaxonomy(version?)` answers with one version's rows, `getCategories(version?)` with its category table; either takes the promoted one when no version is named. |
+| `@poe/taxonomy/get-categories.types` | `TaxonomyCategories` | Types only. `{ version, categories }`. |
+| `@poe/taxonomy/get-taxonomy.types` | `Taxonomy` | Types only. `Taxonomy.items` is keyed by metadata id, so a lookup is a property access. |
+| `@poe/taxonomy/types` | `TaxonomyServiceOptions`, `Condition`, `ListingMatch`, `TaxonomyVariant`, `TaxonomyEntry`, `TaxonomyAuthored`, `TaxonomyCategory`, `TieringMethod` | Types only. |
 | `@poe/taxonomy/errors` | `TaxonomyNotFoundError` | Carries the `key` that was missing. |
 
-**Not exported.** `config.ts` exports `DEFAULT_PREFIX`, `POINTER_FILE`, `versionKey` and
-`pointerKey`, and none of them appear in the `exports` map. They are reachable only from
+**Not exported.** `config.ts` exports the default prefix and every key builder, and none of
+them appear in the `exports` map. They are reachable only from
 inside the package.
 
 ## Examples
@@ -55,9 +58,9 @@ inside the package.
 ```ts
 import { createTaxonomyService } from "@poe/taxonomy/service";
 
-const taxonomy = await createTaxonomyService({ store }).getTaxonomy();
+const taxonomy = await createTaxonomyService().getTaxonomy();
 
-console.log(taxonomy.version); // "3.29"
+console.log(taxonomy.version); // "3.29.4"
 
 // Keyed by metadata id. Two items can share a display name, so a name-keyed table gave the
 // skill gem `Wildfire` and the unique jewel `Wildfire` one classification between them.
@@ -68,32 +71,11 @@ console.log(taxonomy.items["Metadata/Items/Currency/CurrencyDelveCraftingMinions
 ### Pin a run to one version
 
 ```ts
-const service = createTaxonomyService({ store });
+const service = createTaxonomyService({ root: ".s3" });
 
-// Resolve once, then pass the version on. Reading `latest` twice in one run can straddle
-// a promote and answer with two different tables.
-const { version } = await service.getTaxonomy();
-const same = await service.getTaxonomy(version);
-```
-
-### Write a store over a local folder
-
-```ts
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
-import type { TaxonomyStore } from "@poe/taxonomy/types";
-
-const folderStore = (root: string): TaxonomyStore => ({
-  async read(key) {
-    try {
-      return JSON.parse(await readFile(join(root, ...key.split("/")), "utf8")) as unknown;
-    } catch {
-      return undefined;
-    }
-  },
-});
-
-const service = createTaxonomyService({ store: folderStore(".s3") });
+// Read the version off the rows, then ask for that version's categories.
+const rows = await service.getTaxonomy();
+const { categories } = await service.getCategories(rows.version);
 ```
 
 ### Tell a missing version from a broken read
@@ -102,10 +84,10 @@ const service = createTaxonomyService({ store: folderStore(".s3") });
 import { TaxonomyNotFoundError } from "@poe/taxonomy/errors";
 
 try {
-  await createTaxonomyService({ store }).getTaxonomy("3.30");
+  await createTaxonomyService().getTaxonomy("3.30.1");
 } catch (error) {
   if (error instanceof TaxonomyNotFoundError) {
-    console.log(`nothing published at ${error.key}`); // taxonomy/3.30.json
+    console.log(`nothing published at ${error.key}`); // taxonomy/3.30.1.json
   } else {
     throw error;
   }
@@ -114,23 +96,26 @@ try {
 
 ## Environment
 
-This package reads none. It has no `.env` and never touches `process.env` — the store and
-the prefix are constructor arguments, so whoever builds the service decides where a
-taxonomy comes from.
+This package reads none. It has no `.env` and never touches `process.env` — the root and
+the prefix are constructor arguments.
 
 ## Gotchas
 
-- **Resolving `latest` is two reads, and they can disagree.** `latest.json` holds a version
-  string rather than a copy of the table. Two calls to `getTaxonomy()` in one run can land
-  either side of a promote and return different tables. Resolve the version once and pass it
-  from then on.
+- **`latest` is a copy, so one call is one table.** `taxonomy/latest/taxonomy.json` holds
+  the promoted version whole, with its own `version` inside. Two calls to `getTaxonomy()` in
+  one run can still land either side of a promote. Read the version off the first answer and
+  pass it from then on.
+- **The rows and the categories are two files.** A promote writes them one after the other,
+  so a reader can get one of each. Read the rows, then ask `getCategories(rows.version)`.
+- **It reads a local folder and nothing else.** A bucket or an HTTP host needs a change here,
+  not an option.
 - **Nothing checks the payload.** A file that parses as JSON is returned as `Taxonomy`
   whatever is in it. A caller that cares validates what it got.
 - **A missing key is an error, not an empty answer.** `getTaxonomy()` before anything has
-  been promoted raises `TaxonomyNotFoundError` for `taxonomy/latest.json`.
+  been promoted raises `TaxonomyNotFoundError` for `taxonomy/latest/taxonomy.json`.
 - **The key layout is a shared format, not shared code.** This package builds
-  `taxonomy/<version>.json` and `taxonomy/latest.json` from its own `config.ts`, and
-  `apps/taxonomy` builds the same strings from its own. Changing one without the other
+  `taxonomy/<version>.json` and `taxonomy/latest/taxonomy.json` from its own `config.ts`, and
+  `apps/taxonomy` and `apps/admin-panel` build the same strings from their own. Changing one without the other
   breaks the read at runtime, with nothing failing at compile time.
 
 ## How to run

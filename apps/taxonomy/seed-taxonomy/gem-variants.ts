@@ -13,7 +13,7 @@ const form = (
     { condition: "Quality", operator: "==", value: quality },
     { condition: "Corrupted", value: corrupted },
   ],
-  price: { gemLevel: level, gemQuality: quality, gemIsCorrupted: corrupted },
+  listing: { gemLevel: level, gemQuality: quality, gemIsCorrupted: corrupted },
 });
 
 /**

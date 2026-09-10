@@ -144,14 +144,74 @@ export type CurrencyMarket = {
   readonly highest_ratio: CurrencySide;
 };
 
-/** Envelope returned by `GET /api/currency-exchange/:hour`. */
-export type CurrencyExchange = {
-  /**
-   * Start of the next hour, in unix seconds. Equal to the requested id at the end of the
-   * stream — the hour now running is not published until it ends, and asking for it
-   * answers `404` with an empty `markets`, which `call` raises rather than returns.
-   */
-  readonly next_change_id: number;
-  readonly markets: readonly CurrencyMarket[];
+export type GGGListingsResponseData = { readonly result: readonly unknown[] };
+
+export type GGGItemData = {
+  readonly name?: string;
+  readonly type: string;
+  readonly text?: string;
+  readonly disc?: string;
+  readonly flags?: { readonly unique?: boolean };
 };
 
+export type GGGItemGroupData = {
+  readonly id: string;
+  readonly label: string;
+  readonly entries: readonly GGGItemData[];
+};
+
+export type GGGItemDataResponse = {
+  readonly result: readonly GGGItemGroupData[];
+};
+
+export type UniqueGGGItem = {
+  readonly kind: "unique";
+  readonly name: string;
+  readonly baseType: string;
+  readonly displayText: string;
+  readonly variantTag?: string;
+};
+
+export type BaseGGGItem = {
+  readonly kind: "base";
+  readonly baseType: string;
+  readonly displayText?: string;
+  readonly variantTag?: string;
+};
+
+/** The payload carries no tag; `kind` is synthesised from `flags.unique`. */
+export type GGGItem = UniqueGGGItem | BaseGGGItem;
+
+export type GGGStatOptionData = {
+  readonly id: string | number;
+  readonly text: string;
+};
+
+export type GGGStatData = {
+  readonly id: string;
+  readonly text: string;
+  readonly type: string;
+  readonly option?: { readonly options: readonly GGGStatOptionData[] };
+};
+
+export type GGGStatGroupData = {
+  readonly id: string;
+  readonly label: string;
+  readonly entries: readonly GGGStatData[];
+};
+
+export type GGGStatDataResponse = {
+  readonly result: readonly GGGStatGroupData[];
+};
+
+export type GGGStatOption = {
+  readonly id: string | number;
+  readonly text: string;
+};
+
+export type GGGSearchResponseData = {
+  readonly id: string;
+  readonly complexity: number;
+  readonly total: number;
+  readonly result: readonly string[];
+};

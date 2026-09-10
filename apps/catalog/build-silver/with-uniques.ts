@@ -1,9 +1,7 @@
 import type { GGGItemGroup } from "@poe/ggg/get-item-data.types";
 import type { ItemData } from "@poe/poe-watch/get-compact-data.types";
-import type {
-  CorruptionOutcome,
-  ItemCorruptions,
-} from "@poe/poe-watch/get-corruption-data.types";
+import type { CorruptionOutcome } from "@poe/poe-watch/types";
+import type { ItemCorruptions } from "@poe/poe-watch/get-corruption-data.types";
 import type { Item, UniqueGroup, UniqueListing } from "../item.ts";
 
 /** PoeWatch's frame for a unique. */

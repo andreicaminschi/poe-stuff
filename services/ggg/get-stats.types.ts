@@ -1,29 +1,4 @@
-export type GGGStatOptionData = {
-  readonly id: string | number;
-  readonly text: string;
-};
-
-export type GGGStatData = {
-  readonly id: string;
-  readonly text: string;
-  readonly type: string;
-  readonly option?: { readonly options: readonly GGGStatOptionData[] };
-};
-
-export type GGGStatGroupData = {
-  readonly id: string;
-  readonly label: string;
-  readonly entries: readonly GGGStatData[];
-};
-
-export type GGGStatDataResponse = {
-  readonly result: readonly GGGStatGroupData[];
-};
-
-export type GGGStatOption = {
-  readonly id: string | number;
-  readonly text: string;
-};
+import type { GGGStatOption } from "./types.ts";
 
 /**
  * `type` is one of `explicit`, `implicit`, `pseudo`, `fractured`, `enchant`, `crafted`,

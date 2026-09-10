@@ -1,24 +1,25 @@
-import { pointerKey, versionKey } from "./lake.ts";
-import type { Lake } from "./types.ts";
+import { categoriesKey, latestCategoriesKey, latestKey, versionKey } from "./lake.ts";
+import type { Lake } from "@poe/lake/types";
 
-/**
- * Points `latest` at a version.
- *
- * The pointer holds a version rather than a copy of the table, so nothing is stored twice
- * and a promote is one small write. A version that was never published is refused here
- * rather than at the reader, where it would surface as a missing file long after the
- * mistake was made.
- */
-export async function promoteTaxonomy(
-  lake: Lake,
-  version: string,
-): Promise<string> {
+export async function promoteTaxonomy(lake: Lake, version: string): Promise<readonly string[]> {
   if (!(await lake.exists(versionKey(version)))) {
     throw new Error(`${version} is not published. Publish it first.`);
   }
 
-  const key = pointerKey();
-  await lake.writeJson(key, { version });
+  if (!(await lake.exists(categoriesKey(version)))) {
+    throw new Error(
+      `${version} was published before categories had their own file. Publish a new version.`,
+    );
+  }
 
-  return key;
+  const copies = [
+    [categoriesKey(version), latestCategoriesKey()],
+    [versionKey(version), latestKey()],
+  ] as const;
+
+  for (const [source, target] of copies) {
+    await lake.writeJsonAtomic(target, await lake.readJson<unknown>(source));
+  }
+
+  return copies.map(([, target]) => target);
 }

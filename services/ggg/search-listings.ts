@@ -1,9 +1,8 @@
 import { call } from "./call.ts";
-import type {
-  GGGListingSearch,
-  GGGSearchResponseData,
-} from "./search-listings.types.ts";
-import type { GggContext } from "./types.ts";
+import type { GGGListingSearch } from "./search-listings.types.ts";
+import type { GGGSearchResponseData, GggContext } from "./types.ts";
+
+
 
 export const mapGGGSearchResponseDataToGGGListingSearch = (
   data: GGGSearchResponseData,

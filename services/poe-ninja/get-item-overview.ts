@@ -1,11 +1,7 @@
 import { fetchJson } from "./call.ts";
 import { GAME_PATH } from "./config.ts";
-import type {
-  ItemOverviewLine,
-  ItemOverviewResponse,
-  ItemType,
-} from "./get-item-overview.types.ts";
-import type { PoeNinjaContext } from "./types.ts";
+import type { ItemOverviewLine } from "./get-item-overview.types.ts";
+import type { ItemOverviewResponse, ItemType, PoeNinjaContext } from "./types.ts";
 
 /**
  * One league's rows for one item `type`, from

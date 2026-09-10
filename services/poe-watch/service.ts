@@ -5,14 +5,11 @@ import {
 } from "./config.ts";
 import { getCompactData } from "./get-compact-data.ts";
 import type { ItemData } from "./get-compact-data.types.ts";
-import { getCorruptionData } from "./get-corruption-data.ts";
 import type { ItemCorruptions } from "./get-corruption-data.types.ts";
+import type { ExchangeRatioItem } from "./get-exchange-ratios.types.ts";
+import type { Game, ResponseCache } from "./types.ts";
+import { getCorruptionData } from "./get-corruption-data.ts";
 import { getExchangeRatios } from "./get-exchange-ratios.ts";
-import type {
-  ExchangeRatioItem,
-  Game,
-} from "./get-exchange-ratios.types.ts";
-import type { ResponseCache } from "./types.ts";
 
 export type PoeWatchServiceOptions = {
   /** Base of the PoeWatch API. Defaults to `https://api.poe.watch`. */

@@ -1,9 +1,7 @@
 import { TYPE_RULES, groupFor } from "./item-types.ts";
 import type { TypeRule } from "./item-types.ts";
-import type {
-  ItemOverviewLine,
-  ItemType,
-} from "./get-item-overview.types.ts";
+import type { ItemOverviewLine } from "./get-item-overview.types.ts";
+import type { ItemType } from "./types.ts";
 import type { NinjaItem } from "./get-league-items.types.ts";
 
 /**

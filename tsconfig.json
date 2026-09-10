@@ -6,10 +6,7 @@
     "moduleResolution": "nodenext",
     "types": ["node"],
 
-    // Node runs .ts directly by stripping types, so tsc only type-checks.
     "noEmit": true,
-    // Type stripping never rewrites syntax: no enums, namespaces, or
-    // parameter properties, and relative imports keep their .ts extension.
     "erasableSyntaxOnly": true,
     "verbatimModuleSyntax": true,
     "allowImportingTsExtensions": true,
@@ -23,9 +20,6 @@
     "resolveJsonModule": true,
     "isolatedModules": true
   },
-  // `packages/` is deprecated POC code and is deliberately absent: `@poe/workers` cannot
-  // compile at all now that `@poe/ledger` and `@poe/poe-wiki` are deleted, and a typecheck
-  // that is permanently red stops being a signal. Delete those two folders and this
-  // comment goes with them.
-  "include": ["apps/**/*.ts", "lib/**/*.ts", "services/**/*.ts"]
+  "include": ["apps/**/*.ts", "lib/**/*.ts", "services/**/*.ts"],
+  "exclude": ["apps/admin-panel/**"]
 }

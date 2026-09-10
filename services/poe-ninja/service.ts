@@ -1,21 +1,15 @@
 import { DEFAULT_BASE_URL, DEFAULT_USER_AGENT, trimUrl } from "./config.ts";
 import { getExchangeOverview } from "./get-exchange-overview.ts";
-import type {
-  ExchangeOverviewResponse,
-  ExchangeType,
-} from "./get-exchange-overview.types.ts";
-import { getExchangeRatios } from "./get-exchange-ratios.ts";
+import type { ExchangeOverviewResponse } from "./get-exchange-overview.types.ts";
+import type { ExchangeType, ItemType, ResponseCache } from "./types.ts";
 import type { NinjaExchangeItem } from "./get-exchange-ratios.types.ts";
-import { getItemOverview } from "./get-item-overview.ts";
-import type {
-  ItemOverviewLine,
-  ItemType,
-} from "./get-item-overview.types.ts";
-import { getLeagueItems } from "./get-league-items.ts";
+import type { ItemOverviewLine } from "./get-item-overview.types.ts";
 import type { NinjaItem } from "./get-league-items.types.ts";
-import { getLeagues } from "./get-leagues.ts";
 import type { EconomyLeague } from "./get-leagues.types.ts";
-import type { ResponseCache } from "./types.ts";
+import { getExchangeRatios } from "./get-exchange-ratios.ts";
+import { getItemOverview } from "./get-item-overview.ts";
+import { getLeagueItems } from "./get-league-items.ts";
+import { getLeagues } from "./get-leagues.ts";
 
 export type PoeNinjaServiceOptions = {
   /** Base of the poe.ninja API. Defaults to `https://poe.ninja`. */

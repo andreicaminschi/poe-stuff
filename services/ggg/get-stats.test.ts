@@ -7,8 +7,9 @@ import {
   afterEach,
 } from "@jest/globals";
 import { getStats, mapGGGStatDataToGGGStat } from "./get-stats.ts";
-import type { GGGStatGroupData } from "./get-stats.types.ts";
-import type { CachedResponse, GggContext, ResponseCache } from "./types.ts";
+import type { GGGStatGroupData, CachedResponse, GggContext, ResponseCache } from "./types.ts";
+
+
 
 const TRADE_API_URL = "https://api.example.test/trade";
 const HOUR_MS = 3_600_000;

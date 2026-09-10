@@ -1,10 +1,7 @@
 import { describe, it, expect, jest, beforeEach } from "@jest/globals";
 import { fetchCurrencyHour } from "./fetch-currency-hour.ts";
-import type {
-  CurrencyExchange,
-  CurrencyMarket,
-  GggContext,
-} from "./types.ts";
+import type { CurrencyExchange } from "./fetch-currency-hour.types.ts";
+import type { CurrencyMarket, GggContext } from "./types.ts";
 
 const CURRENCY_API_URL = "https://cdn.example.test/currency-exchange";
 const TRADE_API_URL = "https://api.example.test/trade";

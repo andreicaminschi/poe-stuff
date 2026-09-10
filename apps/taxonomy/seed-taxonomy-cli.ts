@@ -1,56 +1,44 @@
-/**
- * Seeds the variants the game's data can describe, for the version being edited.
- *
- * ```
- * yarn taxonomy:seed
- * yarn taxonomy:seed --version=3.30
- * ```
- *
- * Runs every seed and writes `versions/<version>.variants.seeded.json` and
- * `versions/<version>.authored.seeded.json` whole — the files are what the seeds say, every
- * time. A person's variants and rows live in the `.manual.json` pair and are not touched.
- * Seeding does not publish; `republish` does, and reads all four.
- *
- * Reads RePoE and nothing else, with its default user agent: RePoE accepts it, and only GGG
- * demands a named contact. Needs no environment.
- */
-
-import { writeFileSync } from "node:fs";
 import { createRepoeService } from "@poe/repoe/service";
-import { createLocalLake, DEFAULT_ROOT, pointerKey } from "./lake.ts";
+import { createLakeService } from "@poe/lake/service";
+import { sourceKey } from "./lake.ts";
+import { entryOf, highestDraft, readRegistry } from "./registry.ts";
 import { seedTaxonomy } from "./seed-taxonomy.ts";
+import type { Lake } from "@poe/lake/types";
+import type { SourceFile } from "./types.ts";
 import { versionTable } from "./versions.ts";
 
 const flag = (args: readonly string[], name: string): string | undefined =>
   args.find((arg) => arg.startsWith(`--${name}=`))?.slice(name.length + 3);
 
-/** Whichever version is promoted. What an unnamed seed means by "the one being edited". */
-async function promotedVersion(root: string): Promise<string> {
-  const lake = createLocalLake(root);
-  const key = pointerKey();
+async function draftVersion(lake: Lake): Promise<string> {
+  const version = highestDraft(await readRegistry(lake));
 
-  if (!(await lake.exists(key))) {
-    throw new Error(`Nothing is promoted (${key} does not exist). Pass --version=<v>.`);
+  if (version === undefined) {
+    throw new Error("No draft exists. Run yarn taxonomy:create --parent=<v> first.");
   }
 
-  return (await lake.readJson<{ version: string }>(key)).version;
+  return version;
 }
 
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
-  const version =
-    flag(args, "version") ?? (await promotedVersion(flag(args, "root") ?? DEFAULT_ROOT));
+  const lake = createLakeService({ root: flag(args, "root") });
+  const version = flag(args, "version") ?? (await draftVersion(lake));
 
-  const { items } = versionTable(version);
+  if (entryOf(await readRegistry(lake), version).state === "published") {
+    throw new Error(`${version} is published and cannot be reseeded. Create a new version.`);
+  }
+
+  const { items } = await versionTable(lake, version);
   const { variants, authored, counts } = await seedTaxonomy(items, createRepoeService());
 
   const files = [
-    [`versions/${version}.variants.seeded.json`, variants],
-    [`versions/${version}.authored.seeded.json`, authored],
-  ] as const;
+    ["variants.seeded", variants],
+    ["authored.seeded", authored],
+  ] as const satisfies readonly (readonly [SourceFile, unknown])[];
 
   for (const [file, table] of files) {
-    writeFileSync(new URL(file, import.meta.url), `${JSON.stringify(table, null, 2)}\n`);
+    await lake.writeJson(sourceKey(version, file), table);
   }
 
   for (const [seed, count] of Object.entries(counts)) {
@@ -58,7 +46,7 @@ async function main(): Promise<void> {
       `${seed}: ${count.variants} rows of variants, ${count.authored} authored rows\n`,
     );
   }
-  for (const [file] of files) process.stdout.write(`wrote ${file}\n`);
+  for (const [file] of files) process.stdout.write(`wrote ${sourceKey(version, file)}\n`);
 }
 
 main().catch((error: unknown) => {

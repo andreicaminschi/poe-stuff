@@ -1,5 +1,6 @@
 import { manifestKey } from "../lake/keys.ts";
-import type { Lake, Manifest, Stage, StageRecord } from "../types.ts";
+import type { Lake } from "@poe/lake/types";
+import type { Manifest, Stage, StageRecord } from "../types.ts";
 
 /** The run's manifest, or nothing when the run has never finished a stage. */
 export async function readManifest(

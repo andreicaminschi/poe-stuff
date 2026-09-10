@@ -1,10 +1,4 @@
-import type { SparkLine } from "./types.ts";
-
-/** One modifier line on an item, as poe.ninja renders it. */
-export type ModifierLine = {
-  readonly text: string;
-  readonly optional: boolean;
-};
+import type { ModifierLine, SparkLine } from "./types.ts";
 
 /**
  * One row of `GET /poe1/api/economy/stash/current/item/overview`.
@@ -75,48 +69,3 @@ export type ItemOverviewLine = {
   readonly mapRegion?: string;
   readonly artFilename?: string;
 };
-
-/** Envelope returned by the item overview. `lines` is empty for a type nothing traded. */
-export type ItemOverviewResponse = { readonly lines: readonly ItemOverviewLine[] };
-
-/**
- * Every item `type` the PoE1 item overview answers for.
- *
- * Four of them — `Incubator`, `ShrineBelt`, `ImbuedGem`, `Memory` — answer with an empty
- * `lines` array in the league this was built against. That is an answer, not a failure:
- * nothing in the league traded one.
- *
- * `as const` rather than an enum, which `erasableSyntaxOnly` forbids.
- */
-export const ITEM_TYPES = [
-  "Wombgift",
-  "Corpse",
-  "Incubator",
-  "UniqueWeapon",
-  "UniqueArmour",
-  "UniqueAccessory",
-  "UniqueFlask",
-  "UniqueJewel",
-  "ForbiddenJewel",
-  "ShrineBelt",
-  "UniqueTincture",
-  "UniqueRelic",
-  "SkillGem",
-  "ImbuedGem",
-  "ClusterJewel",
-  "Map",
-  "BlightedMap",
-  "BlightRavagedMap",
-  "UniqueMap",
-  "ValdoMap",
-  "Invitation",
-  "Memory",
-  "IncursionTemple",
-  "ScryingOrb",
-  "BaseType",
-  "Flask",
-  "Beast",
-  "Vial",
-] as const;
-
-export type ItemType = (typeof ITEM_TYPES)[number];

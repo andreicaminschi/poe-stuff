@@ -1,5 +1,6 @@
 import { call } from "./call.ts";
-import type { CurrencyExchange, GggContext } from "./types.ts";
+import type { CurrencyExchange } from "./fetch-currency-hour.types.ts";
+import type { GggContext } from "./types.ts";
 
 export type FetchCurrencyHourOptions = {
   /**

@@ -10,6 +10,7 @@ import { extractRepoeClusterJewels } from "./extract-repoe-cluster-jewels.ts";
 import { extractRepoeEssences } from "./extract-repoe-essences.ts";
 import { extractRepoeGems } from "./extract-repoe-gems.ts";
 import { extractTaxonomy } from "./extract-taxonomy.ts";
+import { BRONZE_FILES, bronzeKey } from "./lake/keys.ts";
 import { readManifest, withStage, writeManifest } from "./pipeline/manifest.ts";
 import { validateBronze } from "./validate-bronze.ts";
 import type {
@@ -22,12 +23,6 @@ import type {
   StepContext,
 } from "./types.ts";
 
-/**
- * Every step there is, in the order they run.
- *
- * **This list is the pipeline.** A new source or a new silver file is a new file beside
- * this one and a line here — nothing else changes, because no step knows another exists.
- */
 export const STEPS: readonly Step[] = [
   extractGGGItems,
   extractCurrencyHour,
@@ -44,51 +39,37 @@ export const STEPS: readonly Step[] = [
   buildGold,
 ];
 
-/**
- * The stages, and whether a finished one can be left alone.
- *
- * Bronze is what a rerun skips: the hour it collected is gone and re-fetching it would give
- * a different answer, so a run that has it keeps it. Silver and gold are derived and are
- * always rebuilt — that is the whole of what "replay" means here, and why there is no flag
- * for it. `force` is the flag for the other direction, collecting bronze again.
- */
+export const SOURCES: readonly string[] = [
+  ...new Set(STEPS.flatMap((step) => (step.source === undefined ? [] : [step.source]))),
+];
+
 const STAGES: readonly { readonly stage: Stage; readonly reusable: boolean }[] = [
   { stage: "bronze", reusable: true },
   { stage: "silver", reusable: false },
   { stage: "gold", reusable: false },
 ];
 
+export type Force = ReadonlySet<string>;
+
 export type RunOptions = {
   onEvent?: (event: PipelineEvent) => void;
-  /**
-   * Collect a stage the run already has.
-   *
-   * **This overwrites the record of what the sources said at that hour.** Bronze is skipped
-   * on a replay precisely because re-fetching gives a different answer, so forcing it makes
-   * the run's own history say something it did not say at the time. It is here because the
-   * taxonomy is one of those sources and is ours: a table republished after a run was
-   * collected reaches it no other way.
-   */
-  force?: boolean;
+  force?: Force;
 };
 
 const noop = () => {};
 
-/**
- * Runs one stage's steps in order and records what they wrote.
- *
- * **In order, never at once.** One GGG service is one IP and one budget; two steps calling
- * it in parallel would spend that budget twice as fast as the limiter believes.
- */
+const NONE: Force = new Set();
+
 async function runStage(
   stage: Stage,
   context: StepContext,
   onEvent: (event: PipelineEvent) => void,
+  include: (step: Step) => boolean,
 ): Promise<StageRecord> {
   const startedAt = new Date().toISOString();
   const steps: ManifestStep[] = [];
 
-  for (const step of STEPS.filter((candidate) => candidate.stage === stage)) {
+  for (const step of STEPS.filter((candidate) => candidate.stage === stage && include(candidate))) {
     onEvent({ type: "step-started", id: step.id, stage });
 
     const result = await step.run(context);
@@ -105,17 +86,37 @@ async function runStage(
   return { startedAt, finishedAt: new Date().toISOString(), steps };
 }
 
-/**
- * Every stage of one run, and the manifest they leave behind.
- *
- * The manifest is rewritten after each stage rather than once at the end, so a run that
- * dies during silver still records the bronze the next one can reuse. A stage with no steps
- * is skipped without an entry: claiming a stage finished when nothing ran is what would
- * make the next run skip work it never did.
- */
+const mergeRecords = (old: StageRecord, fresh: StageRecord): StageRecord => ({
+  ...fresh,
+  steps: STEPS.flatMap(
+    (step) =>
+      fresh.steps.find((line) => line.id === step.id) ??
+      old.steps.find((line) => line.id === step.id) ??
+      [],
+  ),
+});
+
+function bronzePlan(
+  existing: StageRecord | undefined,
+  force: Force,
+): ((step: Step) => boolean) | undefined {
+  if (existing === undefined) return () => true;
+  if (force.size === 0) return undefined;
+
+  return (step) => step.source === undefined || force.has(step.source);
+}
+
+async function taxonomyVersionOf(context: StepContext): Promise<string | undefined> {
+  const key = bronzeKey(context.runId, BRONZE_FILES.taxonomy);
+
+  return (await context.lake.exists(key))
+    ? (await context.lake.readJson<{ version: string }>(key)).version
+    : undefined;
+}
+
 export async function runPipeline(
   context: StepContext,
-  { onEvent = noop, force = false }: RunOptions = {},
+  { onEvent = noop, force = NONE }: RunOptions = {},
 ): Promise<Manifest> {
   const { lake, runId, league, hourId } = context;
 
@@ -129,12 +130,25 @@ export async function runPipeline(
   for (const { stage, reusable } of STAGES) {
     if (!STEPS.some((step) => step.stage === stage)) continue;
 
-    if (reusable && !force && manifest.stages[stage] !== undefined) {
+    const existing = manifest.stages[stage];
+    const include = reusable ? bronzePlan(existing, force) : () => true;
+
+    if (include === undefined) {
       onEvent({ type: "stage-skipped", stage, reason: "already collected" });
-      continue;
+    } else {
+      const fresh = await runStage(stage, context, onEvent, include);
+      manifest = withStage(
+        manifest,
+        stage,
+        reusable && existing !== undefined ? mergeRecords(existing, fresh) : fresh,
+      );
     }
 
-    manifest = withStage(manifest, stage, await runStage(stage, context, onEvent));
+    if (stage === "bronze") {
+      const taxonomyVersion = await taxonomyVersionOf(context);
+      manifest = taxonomyVersion === undefined ? manifest : { ...manifest, taxonomyVersion };
+    }
+
     await writeManifest(lake, manifest);
   }
 

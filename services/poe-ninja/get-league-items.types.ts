@@ -1,4 +1,4 @@
-import type { ItemType } from "./get-item-overview.types.ts";
+import type { ItemType } from "./types.ts";
 
 /**
  * One item's market data, in the shape a filter reads a market through.

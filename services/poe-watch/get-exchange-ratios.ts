@@ -1,10 +1,6 @@
 import { call, currentHour } from "./call.ts";
-import type {
-  ExchangeRatioItem,
-  ExchangeRatiosResponse,
-  Game,
-} from "./get-exchange-ratios.types.ts";
-import type { PoeWatchContext } from "./types.ts";
+import type { ExchangeRatioItem } from "./get-exchange-ratios.types.ts";
+import type { ExchangeRatiosResponse, Game, PoeWatchContext } from "./types.ts";
 
 /**
  * Every item's Chaos and Divine exchange ratios for one league, from

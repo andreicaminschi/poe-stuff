@@ -1,6 +1,6 @@
 import type { ItemData } from "@poe/poe-watch/get-compact-data.types";
 import type { ExchangeRatioItem } from "@poe/poe-watch/get-exchange-ratios.types";
-import type { PriceSelector } from "@poe/taxonomy/get-taxonomy.types";
+import type { ListingMatch } from "@poe/taxonomy/types";
 import { isFilterable } from "../item.ts";
 import type { Item, PricedVariant } from "../item.ts";
 
@@ -41,7 +41,7 @@ function byName(listings: readonly ItemData[]): ReadonlyMap<string, ItemData[]> 
  * not carry reads `undefined` and fails to match, which is right: `gemLevel` on a base
  * selects nothing.
  */
-const matches = (listing: ItemData, selector: PriceSelector): boolean =>
+const matches = (listing: ItemData, selector: ListingMatch): boolean =>
   Object.entries(selector).every(
     ([key, value]) =>
       (listing as unknown as Readonly<Record<string, unknown>>)[key] === value,
@@ -56,7 +56,7 @@ const matches = (listing: ItemData, selector: PriceSelector): boolean =>
  */
 function pick(
   listings: readonly ItemData[],
-  selector: PriceSelector | undefined,
+  selector: ListingMatch | undefined,
 ): ItemData | undefined {
   const kept =
     selector === undefined
@@ -114,25 +114,25 @@ export function fromPoeWatch(
 
     // The listings are looked up under the selector's name when it has one — a cluster jewel
     // is listed under its enchant — and a variant inherits its row's.
-    const listed = (selector: PriceSelector | undefined): readonly ItemData[] =>
+    const listed = (selector: ListingMatch | undefined): readonly ItemData[] =>
       index.get(
-        listingKey(selector?.name ?? item.price?.name ?? item.name ?? ""),
+        listingKey(selector?.name ?? item.listing?.name ?? item.name ?? ""),
       ) ?? [];
 
     if (item.variants === undefined) {
-      const sale = exchange.get(item.price?.name ?? item.name);
+      const sale = exchange.get(item.listing?.name ?? item.name);
       if (sale !== undefined) {
         return { ...item, meanPrice: sale.chaos, lowConfidence: sale.lowConfidence };
       }
 
-      const chosen = pick(listed(item.price), item.price);
+      const chosen = pick(listed(item.listing), item.listing);
       return chosen === undefined
         ? item
         : { ...item, meanPrice: chosen.mean, lowConfidence: chosen.lowConfidence };
     }
 
     const variants: PricedVariant[] = item.variants.map((variant) => {
-      const chosen = pick(listed(variant.price), variant.price);
+      const chosen = pick(listed(variant.listing), variant.listing);
       return chosen === undefined
         ? variant
         : { ...variant, meanPrice: chosen.mean, lowConfidence: chosen.lowConfidence };

@@ -1,9 +1,8 @@
 import { call } from "./call.ts";
-import type {
-  GGGListingPage,
-  GGGListingsResponseData,
-} from "./fetch-listings.types.ts";
-import type { GggContext } from "./types.ts";
+import type { GGGListingPage } from "./fetch-listings.types.ts";
+import type { GGGListingsResponseData, GggContext } from "./types.ts";
+
+
 
 /** GGG answers a longer list with a 400 rather than a truncated page. */
 export const HASHES_PER_PAGE = 10;

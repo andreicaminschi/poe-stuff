@@ -11,10 +11,12 @@
     "services/*"
   ],
   "scripts": {
+    "admin": "yarn workspace @poe/admin-panel dev",
     "catalog": "node --env-file=apps/catalog/.env apps/catalog/catalog-cli.ts",
+    "catalog:publish": "node apps/catalog/publish-catalog-cli.ts",
     "taxonomy": "node apps/taxonomy/taxonomy-cli.ts",
     "taxonomy:publish": "node apps/taxonomy/taxonomy-cli.ts publish",
-    "taxonomy:republish": "node apps/taxonomy/taxonomy-cli.ts republish",
+    "taxonomy:create": "node apps/taxonomy/taxonomy-cli.ts create",
     "taxonomy:promote": "node apps/taxonomy/taxonomy-cli.ts promote",
     "taxonomy:seed": "node apps/taxonomy/seed-taxonomy-cli.ts",
     "typecheck": "tsc",

@@ -1,5 +1,5 @@
 import type { GGGItemGroup } from "@poe/ggg/get-item-data.types";
-import type { CurrencyExchange } from "@poe/ggg/types";
+import type { CurrencyExchange } from "@poe/ggg/fetch-currency-hour.types";
 import type { ItemData } from "@poe/poe-watch/get-compact-data.types";
 import type { ItemCorruptions } from "@poe/poe-watch/get-corruption-data.types";
 import type { ExchangeRatioItem } from "@poe/poe-watch/get-exchange-ratios.types";

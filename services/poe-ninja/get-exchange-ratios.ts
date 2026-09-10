@@ -1,13 +1,7 @@
 import { fanOut } from "./fan-out.ts";
 import { getExchangeOverview } from "./get-exchange-overview.ts";
-import { EXCHANGE_TYPES } from "./get-exchange-overview.types.ts";
-import type {
-  ExchangeItemMeta,
-  ExchangeLine,
-  ExchangeType,
-} from "./get-exchange-overview.types.ts";
+import { EXCHANGE_TYPES, type ExchangeItemMeta, type ExchangeLine, type ExchangeType, type PoeNinjaContext } from "./types.ts";
 import type { NinjaExchangeItem } from "./get-exchange-ratios.types.ts";
-import type { PoeNinjaContext } from "./types.ts";
 
 /**
  * The Currency Exchange for one league, across all 18 exchange types.

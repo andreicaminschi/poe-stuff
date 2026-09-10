@@ -15,7 +15,7 @@
 
 import { findDuplicates, knownDuplicates } from "./find-duplicates.ts";
 import type { Item } from "./item.ts";
-import { createLocalLake, DEFAULT_ROOT } from "./lake.ts";
+import { createLakeService } from "@poe/lake/service";
 import { manifestKey, runPrefix } from "./lake/keys.ts";
 import { dateFromHour, hourFromDate, parseHour, previousHour, runId } from "./run-id.ts";
 import type { Manifest } from "./types.ts";
@@ -44,7 +44,7 @@ async function main(): Promise<void> {
 
   const hourId = chooseHour(args);
   const id = runId(league, hourId);
-  const lake = createLocalLake(flag(args, "root") ?? DEFAULT_ROOT);
+  const lake = createLakeService({ root: flag(args, "root") });
 
   const manifest = await lake.readJson<Manifest>(manifestKey(id));
   const silver = manifest.stages.silver;

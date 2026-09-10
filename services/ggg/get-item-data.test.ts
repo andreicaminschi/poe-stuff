@@ -11,8 +11,9 @@ import {
   mapGGGItemDataToGGGItem,
   mapGGGItemGroupDataToGGGItemGroup,
 } from "./get-item-data.ts";
-import type { GGGItemGroupData } from "./get-item-data.types.ts";
-import type { CachedResponse, GggContext, ResponseCache } from "./types.ts";
+import type { GGGItemGroupData, CachedResponse, GggContext, ResponseCache } from "./types.ts";
+
+
 
 const TRADE_API_URL = "https://api.example.test/trade";
 const HOUR_MS = 3_600_000;

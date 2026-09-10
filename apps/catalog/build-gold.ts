@@ -1,4 +1,4 @@
-import type { Taxonomy } from "@poe/taxonomy/get-taxonomy.types";
+import type { TaxonomyCategories } from "@poe/taxonomy/get-categories.types";
 import type { Item } from "./item.ts";
 import {
   BRONZE_FILES,
@@ -10,25 +10,8 @@ import {
 } from "./lake/keys.ts";
 import type { Manifest, Step } from "./types.ts";
 
-/** What silver calls the file holding a category's drawable rows. */
 const FILTERABLE = ".filterable.json";
 
-/**
- * Silver, gathered into the two files the generator reads.
- *
- * `catalog.json` is every filterable row in one array — silver's split by category is a
- * browsing convenience, and the generator wants one file. `catalog.categories.json` is the
- * taxonomy's flattened category tree, copied out of bronze.
- *
- * **Nothing here is resolved.** A row carries the conditions authored for it and the
- * categories file carries the levels above it, and laying one over the other is the
- * generator's job. Doing it here would bake one reading of the tables into an artifact that
- * outlives them, and the catalog does not write filters.
- *
- * The categories come from bronze rather than from the lake, because the run pinned a
- * taxonomy version: reading `latest` again could hand the generator a table this run never
- * used.
- */
 export const buildGold: Step = {
   id: "build-gold",
   stage: "gold",
@@ -41,8 +24,6 @@ export const buildGold: Step = {
       throw new Error(`${runId} has no silver stage to gather`);
     }
 
-    // The manifest already records every key silver wrote, so gold needs no way to list the
-    // lake — it reads back exactly what the stage before it said it produced.
     const keys = silver.steps
       .flatMap((step) => step.keys)
       .filter((key) => key.endsWith(FILTERABLE));
@@ -50,18 +31,15 @@ export const buildGold: Step = {
     const rows: Item[] = [];
     for (const key of keys) rows.push(...(await lake.readJson<Item[]>(key)));
 
-    const taxonomy = await lake.readJson<Taxonomy>(
-      bronzeKey(runId, BRONZE_FILES.taxonomy),
-    );
+    const categoriesKey = bronzeKey(runId, BRONZE_FILES.taxonomyCategories);
 
-    // A run collected before the taxonomy carried conditions has no table here, and bronze
-    // is skipped on a replay, so the validator that would have caught it never ran. Writing
-    // the missing value would hand the generator a file saying `undefined`.
-    if (taxonomy.categories === undefined) {
+    if (!(await lake.exists(categoriesKey))) {
       throw new Error(
-        `${runId}: bronze holds taxonomy ${taxonomy.version} with no categories. Collect the run again.`,
+        `${runId}: bronze has no taxonomy categories file. Collect again with --force=taxonomy.`,
       );
     }
+
+    const { categories } = await lake.readJson<TaxonomyCategories>(categoriesKey);
 
     rows.sort(
       (a, b) => (a.name ?? a.key).localeCompare(b.name ?? b.key) ||
@@ -74,7 +52,7 @@ export const buildGold: Step = {
 
     for (const [file, value] of [
       [GOLD_FILES.catalog, rows],
-      [GOLD_FILES.categories, taxonomy.categories],
+      [GOLD_FILES.categories, categories],
     ] as const) {
       const key = goldKey(runId, file);
       await lake.writeJson(key, value);

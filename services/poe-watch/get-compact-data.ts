@@ -1,6 +1,6 @@
 import { call, currentHour } from "./call.ts";
-import type { CompactResponse, ItemData } from "./get-compact-data.types.ts";
-import type { PoeWatchContext } from "./types.ts";
+import type { CompactResponse, PoeWatchContext } from "./types.ts";
+import type { ItemData } from "./get-compact-data.types.ts";
 
 /**
  * Every priced item in one league, from `GET /compact`.

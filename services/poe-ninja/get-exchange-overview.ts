@@ -1,10 +1,7 @@
 import { fetchJson } from "./call.ts";
 import { GAME_PATH } from "./config.ts";
-import type {
-  ExchangeOverviewResponse,
-  ExchangeType,
-} from "./get-exchange-overview.types.ts";
-import type { PoeNinjaContext } from "./types.ts";
+import type { ExchangeOverviewResponse } from "./get-exchange-overview.types.ts";
+import type { ExchangeType, PoeNinjaContext } from "./types.ts";
 
 /**
  * One league's Currency Exchange book for one `type`, from

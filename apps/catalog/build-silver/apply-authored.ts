@@ -1,4 +1,4 @@
-import type { TaxonomyAuthored } from "@poe/taxonomy/get-taxonomy.types";
+import type { TaxonomyAuthored } from "@poe/taxonomy/types";
 import { blankItem } from "../item.ts";
 import type { Item, ItemSource } from "../item.ts";
 
@@ -52,7 +52,7 @@ function fromReplaced(
     tradedOnExchange: replaced.some((item) => item.tradedOnExchange),
     ...(entry.conditions === undefined ? {} : { conditions: entry.conditions }),
     ...(entry.variants === undefined ? {} : { variants: entry.variants }),
-    ...(entry.price === undefined ? {} : { price: entry.price }),
+    ...(entry.listing === undefined ? {} : { listing: entry.listing }),
   };
 }
 

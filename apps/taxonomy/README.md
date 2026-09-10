@@ -19,36 +19,70 @@ we happen to write ourselves.
 
 ```
 apps/taxonomy/
-├── versions/3.29.json             # items: one entry per metadata id
-├── versions/3.29.categories.json  # categories: the flattened tree, one entry per path
-├── versions/3.29.authored.manual.json  # rows no source produces, keyed authored/<slug>, a person's
-├── versions/3.29.authored.seeded.json  # the same, the seed's. Never edited by hand
-├── versions/3.29.variants.manual.json  # variants a person wrote, keyed like the row they belong to
-├── versions/3.29.variants.seeded.json  # variants the seed wrote. Never edited by hand
-├── versions.ts                    # loads and validates one version's six files
+├── versions.ts                    # validates and merges one version's six files
+├── read-version-files.ts          # the six files, raw
+├── registry.ts                    # version numbers, and who may be published
+├── create-taxonomy.ts             # a new draft, copied from a published version
+├── publish-taxonomy.ts            # write a version, once
+├── promote-taxonomy.ts            # copy a published version into latest
+├── resolve-conditions.ts          # the four-level override rule, and the only copy of it
 ├── seed-taxonomy.ts               # every seed, run at once: the game's data -> the two .seeded.json
 ├── seed-taxonomy/                 # one seed per class: gem-variants, cluster-jewels
+├── validate.ts                    # the walker every validator runs on
+├── validate-version.ts            # every problem in all six files at once
 ├── validate-table.ts              # an item entry is well formed
 ├── validate-conditions.ts         # a condition list is well formed, and a category path
 ├── validate-authored.ts           # an authored row is well formed and keyed under authored/
 ├── validate-variants.ts           # a variant list is well formed and names a real row
-├── publish-taxonomy.ts            # write a version into the lake, once
-├── promote-taxonomy.ts            # point latest at a version
-├── lake.ts                        # this app's lake, not the catalog's
-├── types.ts                       # AuthoredEntry, AuthoredCategory, Condition, Version
-├── taxonomy-cli.ts                # publish | republish | promote
+├── lake.ts                        # this app's lake, and its key layout
+├── types.ts                       # AuthoredEntry, AuthoredCategory, Condition, Version, Registry
+├── taxonomy-cli.ts                # list | create | publish | promote | validate | resolve
 └── seed-taxonomy-cli.ts           # seed
 ```
 
-**A version is six files and one published object.** The items are thousands of rows, the
+The data is not in this folder, and not in git. It lives in the lake:
+
+```
+.s3/taxonomy/registry.json                     which versions exist, and which are published
+.s3/taxonomy/versions/<v>/items.json           one entry per metadata id
+.s3/taxonomy/versions/<v>/categories.json      the flattened tree, one entry per path
+.s3/taxonomy/versions/<v>/authored.manual.json rows no source produces, a person's
+.s3/taxonomy/versions/<v>/authored.seeded.json the same, the seed's. Never edited by hand
+.s3/taxonomy/versions/<v>/variants.manual.json variants a person wrote
+.s3/taxonomy/versions/<v>/variants.seeded.json variants the seed wrote. Never edited by hand
+.s3/taxonomy/<v>.json                          one published version's rows, merged
+.s3/taxonomy/<v>.categories.json               the same version's category table
+.s3/taxonomy/latest/taxonomy.json              the promoted rows, a real copy
+.s3/taxonomy/latest/categories.json            the promoted categories, a real copy
+```
+
+## Versions
+
+A version is `3.29.4`: the patch, then a count. **The count is the identity.** It goes up on
+every creation and is never reused — an abandoned draft burns its number.
+
+- A new version is a copy of a **published** one, identical until the first edit.
+- **Only the newest version can be published, and only while it is a draft.** Every other
+  draft is overtaken: it stays and can be read, and it can never be published.
+- **A published version is never rewritten.** There is no override. A correction is the next
+  version.
+- `latest` is a copy of the promoted version's two files, not a pointer. Each file carries its
+  `version`, so a reader that lands mid-promote can tell it holds one of each.
+- A version published before the categories had their own file cannot be promoted. Publish
+  a new one.
+
+The registry is the index because the lake cannot list. Nothing deletes an overtaken draft.
+
+**A version is six files, published as two.** The items are thousands of rows, the
 categories are dozens, and the authored rows and the variants are two files each — the
 seeded and the manual; keeping them apart means reaching any of the small ones without
-scrolling past every item. `publish` writes `{ version, items, categories, authored }` as one
-file, each pair merged, with each row's variants folded onto its entry.
+scrolling past every item. `publish` writes `{ version, items, authored }` to `<v>.json`,
+each pair merged, with each row's variants folded onto its entry, and
+`{ version, categories }` to `<v>.categories.json` beside it.
 
 ## Categories
 
-`versions/<version>.categories.json` is a **flattened tree**. The key is the path, and the
+`categories.json` is a **flattened tree**. The key is the path, and the
 path is the only thing that makes one record the parent of another:
 
 ```json
@@ -165,16 +199,16 @@ name is an open question, in `TODO.md`.
 ### Seeded and manual
 
 Variants come from two files, and the version is their merge.
-`versions/<version>.variants.seeded.json` is written by `yarn taxonomy:seed` — every seed at
-once, the whole file, every time — and is never edited by hand.
-`versions/<version>.variants.manual.json` is a person's, and **a manual key replaces the
+`variants.seeded.json` is written by `yarn taxonomy:seed` — every seed at once, the whole
+file, every time, and only into a draft — and is never edited by hand.
+`variants.manual.json` is a person's, and **a manual key replaces the
 seeded list whole**: write a gem's variants there and the seeded ones for that gem are gone,
 not patched. Authored rows are the same pair, `authored.seeded.json` and
 `authored.manual.json`, merged the same way.
 
 A seed reads what the game says an item can be — a gem's `naturalMaxLevel`, a cluster jewel's
 enchants — off `@poe/repoe`, and nothing else. **The taxonomy never touches PoeWatch.** The
-`price` selectors a seed writes are in PoeWatch's field names the way conditions are in GGG's:
+`listing` matches a seed writes are in PoeWatch's field names the way conditions are in GGG's:
 a published vocabulary the catalog reads, not a service the taxonomy calls. A form nobody
 lists is written anyway and stays unpriced.
 
@@ -188,7 +222,7 @@ both wrote is a repeat and fails validation. A seed may also write authored rows
   corrupted five alone. `L` is RePoE's `naturalMaxLevel`.
 - **Cluster jewels.** Every enchant × passive bucket × item level bucket, as variants on the
   three real rows — an enchant is a form of the jewel the way a level is a form of a gem.
-  `price: { name, passives, itemLevel }`. The buckets are PoeWatch's conventions, fixed in
+  `listing: { name, passives, itemLevel }`. The buckets are PoeWatch's conventions, fixed in
   the seed: small `2, 3`, medium `4, 5, 6`, large `8, 9-11, 12`; item level `1, 50, 68, 75,
   84`.
 
@@ -209,20 +243,20 @@ it always did and the catalog reads nothing new.
 ### Which listing prices a variant
 
 PoeWatch lists one name many times: a gem per level and quality, an armour per link count, a
-map per tier. A variant says which of those listings is its price with a `price` selector,
+map per tier. A variant says which of those listings is its price with a `listing` match,
 written in PoeWatch's own field names. A listing matches when every written key is equal on
 it; among the matches, the most-listed one is read.
 
 ```json
 { "name": "level 6",
   "conditions": [ { "condition": "GemLevel", "operator": ">=", "value": 6 } ],
-  "price": { "gemLevel": 6, "gemQuality": 20, "gemIsCorrupted": false } }
+  "listing": { "gemLevel": 6, "gemQuality": 20, "gemIsCorrupted": false } }
 ```
 
 The keys are `gemLevel`, `gemQuality`, `gemIsCorrupted`, `linkCount`, `itemLevel`, `mapTier`,
 `tier`, `passives`, and `name` — the listing's own name, for a row PoeWatch lists under
 something other than its display name; a variant without one inherits its row's. **Absent
-means the most-listed row for the name**, which is what every row without variants gets. An item without variants may carry `price` itself, for a base that
+means the most-listed row for the name**, which is what every row without variants gets. An item without variants may carry `listing` itself, for a base that
 should not price at whatever form is listed most. A selector that matches nothing — a gem
 key on a base — leaves the row unpriced, and is not an error.
 
@@ -245,18 +279,14 @@ Beside `category` and `subcategory`, an entry may state three things the sources
 nobody wants it drawn. Everything in it lands in `excluded.json` and never reaches a
 `.filterable.json`.
 
-`original` holds what the seed said and is **never edited**. A row where the two differ is a
-decision somebody made; a row where they agree has either been checked and left alone or not
-been looked at yet.
-
 ## Authored rows
 
-`versions/<version>.authored.manual.json` holds the rows no arrangement of the sources
+`authored.manual.json` holds the rows no arrangement of the sources
 produces, keyed `authored/<slug>` — a namespace no metadata id can collide with. The slug is
 usually of the name, and need not be. **This is the only place a hand-written row is
 authored.** `authored.seeded.json` beside it is the seed's — empty today — and a manual key
 replaces a seeded row whole. The catalog builds the row from the entry and
-from whatever `replaces` names, and copies `conditions`, `price` and variants off it the way
+from whatever `replaces` names, and copies `conditions`, `listing` and variants off it the way
 it does off a real row.
 
 ```json
@@ -288,12 +318,17 @@ and a published version is immutable.
   item nor an authored row in the version.
 - An authored row keyed by anything but `authored/` and a slug, with no `reason`, or with
   an empty `replaces`.
-- A `price` selector with an unknown key, a wrong value type, or no keys at all.
+- A `listing` match with an unknown key, a wrong value type, or no keys at all.
 - A category key that is not `category` or `category/subcategory`, slugged.
 
-It fails on the first bad row and names it. The rest fail at resolution, where the row that
-needed the answer can be named: an empty resolved set, a `from` that reads an empty field, a
-name carrying a quote, two variants resolving identically.
+`publish` fails on the first bad row and names it. `validate` runs the same rules and reports
+every bad row at once — see `validate.ts`, where one rule is read both ways.
+
+The rest fail at resolution, in `resolve-conditions.ts`, where the row that needed the answer
+can be named: a category with no record, an empty resolved set, a name carrying a quote, two
+variants resolving identically. A subcategory with no record is not one of them — it is an
+empty layer. `validate` reports a category nobody has authored once, with its row count,
+rather than once per row.
 
 ## Environment
 
@@ -301,41 +336,54 @@ None. Everything this app touches is a file under the lake.
 
 ## Gotchas
 
-- **A published version is immutable, and `republish` is the exception.** A league's hand
-  pass is dozens of edits, each needing a run to look at, so burning a version number per
-  edit would leave a shelf of versions that only existed to be replaced. Once anyone else
-  reads a version, publish a new one.
-- **Republishing does not reach a collected run.** Bronze is the record of what the sources
-  said at that hour, and `yarn catalog` on an existing run replays silver without
-  re-collecting. Delete the run, or collect a new hour.
-- **`versions.ts` lists the versions.** A new league is six new files under `versions/`
-  and a line in `VERSIONS` — the two `.seeded.json` start as `{}` and the seed fills them.
-- **The key layout is a shared format, not shared code.** This app builds
-  `taxonomy/<version>.json` from its own `lake.ts` and `@poe/taxonomy` builds the same
-  string from its own `config.ts`. Changing one without the other breaks at runtime with
-  nothing failing at compile time.
+- **The lake holds the only copy.** The version files left git. Losing `.s3/taxonomy` loses
+  every patch's hand work, and nothing backs it up.
+- **A new version does not reach a collected run.** Bronze is the record of what the sources
+  said at that hour. Rebuild it with `yarn catalog --force=taxonomy`, or collect a new hour.
+- **`validate` and `resolve` print JSON, and it is a contract.** The admin panel parses it.
+  Every other command answers with its exit code.
+- **The key layout is a shared format, not shared code.** This app, `@poe/taxonomy` and
+  `apps/admin-panel` each build the same key strings from their own files. Changing one
+  without the others breaks at runtime with nothing failing at compile time.
 
 ## How to run
 
-Seed the version you are editing. Every seed runs, and the two `.seeded.json` files are
-rewritten whole:
+List every version, newest first:
+
+```bash
+yarn taxonomy list
+```
+
+Start a draft from a published version:
+
+```bash
+yarn taxonomy:create --parent=3.29.3
+```
+
+Seed the draft. Every seed runs, and the two `.seeded.json` files are rewritten whole:
 
 ```bash
 yarn taxonomy:seed
 ```
 
-Publish the version you are editing, over the one already in the lake:
+Check every row of a version at once:
 
 ```bash
-yarn taxonomy:republish
+yarn taxonomy validate 3.29.4
 ```
 
-Publish a version for the first time, and point `latest` at it:
+Show what one row resolves to:
 
 ```bash
-yarn taxonomy:publish 3.30
+yarn taxonomy resolve 3.29.4 --id=Metadata/Items/Jewels/JewelInt
+```
+
+Publish the draft, and make it current:
+
+```bash
+yarn taxonomy:publish 3.29.4
 ```
 
 ```bash
-yarn taxonomy:promote 3.30
+yarn taxonomy:promote 3.29.4
 ```

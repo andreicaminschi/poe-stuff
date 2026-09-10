@@ -1,60 +1,72 @@
-# catalog
+# apps/catalog
 
-**Not written yet.** This folder holds the intent, not the code.
+The bronze/silver/gold pipeline for one league and one hour. Replaces
+[`packages/filterv2`](../../packages/filterv2), which is deprecated.
 
-Replaces [`packages/filterv2`](../../packages/filterv2), which is deprecated.
+## Purpose
 
-## What it will own
+One row per item a filter can draw, with what it is and what it is worth. It collects every
+source for one league-hour, merges them into one row per item, classifies each against the
+taxonomy, and gathers the drawable rows into one file for whatever writes a `.filter`.
 
-The catalog: one row per item the game can show, carrying everything
-[`apps/generator`](../generator/README.md) needs to decide which bucket that item belongs
-in. Identity and value in one artifact, because a bucket is a decision about both.
+## Stages
 
-It fans in across sources that each know a different part of the answer:
+| Stage | Does | On a rerun |
+| --- | --- | --- |
+| bronze | Fetches every source as it answered that hour: GGG items and currency, PoeWatch, RePoE, and the taxonomy. Then validates what it wrote. | Reused. The hour is gone, and fetching again gives a different answer. |
+| silver | Merges the sources into one row per item and writes a file per category. | Rebuilt. |
+| gold | Gathers the drawable rows into `catalog.json` and `catalog.categories.json`. | Rebuilt. |
 
-| Source | Knows |
+`pipeline.ts` holds the list of steps, and each step's doc comment says what it does.
+
+## Layout
+
+```
+.s3/catalog/run=<league>_<hour>/bronze/        what each source said
+.s3/catalog/run=<league>_<hour>/silver/        one file per category
+.s3/catalog/run=<league>_<hour>/gold/          catalog.json, catalog.categories.json
+.s3/catalog/run=<league>_<hour>/manifest.json  which stages finished, and the taxonomy version used
+.s3/catalog/latest/<league>.catalog.json       the published catalog, a copy of one run's gold
+```
+
+**Build and publish are separate.** A build changes nothing anyone else reads. Only
+`catalog:publish` does, and it copies both gold files into `latest/`.
+
+## Environment
+
+| Var | Holds |
 | --- | --- |
-| GGG `/data/items` | everything the trade site will let you search for, except currency |
-| GGG Currency Exchange | currency, hours before the trade site hears about it |
-| RePoE `base_items.json` | the game's own item class, release state and tags |
-| poe.watch | what a row is worth, and how many listings that price was read off |
-| the league's Item Filter Information forum post | what this league renamed, added and removed |
+| `POE_USER_AGENT` | Required. Sent on every request, and GGG wants it to name a real contact. |
 
-The generator is the only consumer. That is deliberate: this app decides **what is true
-about an item**, and the generator decides **what to do about it**. Keeping the two apart
-is what lets a pricing change and a loudness change be reviewed separately.
+It lives in `apps/catalog/.env`, which `yarn catalog` loads. The taxonomy is read from the
+same `--root` the run writes to.
 
-## What it has to get right
+## Gotchas
 
-The merge order in the POC is the part worth copying exactly:
+- **`--force` overwrites the record of that hour.** Bare, it refetches every source. Named, it
+  refetches only those — `--force=taxonomy` is how a newly promoted taxonomy reaches a run
+  that already has bronze. The known names are `ggg`, `poewatch`, `repoe` and `taxonomy`.
+- **The hour defaults to the last finished one** when building, because GGG answers 404 for
+  the hour still running. Publishing never defaults the hour.
+- **Two files per publish, one at a time.** Each write is atomic, but a failure between them
+  leaves one new file beside one old one.
 
-1. Detect whether a league has launched that RePoE has not caught up with. Everything after
-   reads differently depending on the answer — a RePoE that cannot name half the exchange
-   is alarming on an ordinary Tuesday and expected on launch day.
-2. Merge the trade site and the exchange. The exchange owns currency outright; taking both
-   would mean two sources disagreeing with no way to say which is right.
-3. Apply the forum post — renames, removals, the league's new items.
-4. Fill from RePoE **last**, so the game's own export outranks whatever the post or the
-   trade site claimed. That precedence is structural, not a `??` buried in one branch.
+## How to run
 
-Rows are immutable: every step returns a new row rather than writing into one it was
-handed, so the compiler rejects the mutation instead of a reviewer catching it.
+Build the last finished hour:
 
-## What has to be decided first
+```bash
+yarn catalog --league=Allflame
+```
 
-- **A canonical item id.** Five sources name the same item five ways — GGG by name or base
-  type, RePoE by metadata path, the exchange by metadata path, poe.watch by its own numeric
-  id, a `.filter` by its `BaseType` string. Every join here crosses them. Rows that cannot
-  be resolved are an output, not a dropped row: they are the league-break alarm.
-- **What a price on a row means.** poe.watch scrapes listings, not sales, so its `daily`
-  counts what was offered rather than what changed hands. A row therefore needs provenance
-  — which source, how many observations, how old — or the generator cannot tell a cheap
-  item from a thin market, and a price checker built on this later cannot show its work.
-- **Where the forum post comes from at all.** The POC fetched it through `@poe/ggg`, and
-  those endpoints are gone — the service covers the trade API and the Currency Exchange CDN
-  only. The forum is not an API: GGG publishes announcements as threads and nothing else,
-  so reading one means fetching HTML off the same host and the same per-IP budget as trade.
-  Whatever does that has to be paced by the same limiter, or a challenge earned scraping the
-  forum lands on `searchListings` too.
-- **How the post is read once fetched.** The POC shells out to `claude -p` and keys the
-  answer by a checksum of the post text, because GGG edits these posts in place.
+Rebuild an hour with a newer taxonomy:
+
+```bash
+yarn catalog --league=Allflame --hour=1788292800 --force=taxonomy
+```
+
+Publish it:
+
+```bash
+yarn catalog:publish --league=Allflame --hour=1788292800
+```

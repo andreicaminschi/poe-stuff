@@ -1,17 +1,3 @@
-/**
- * One `.filter` condition, structured rather than written out as a line.
- *
- * Exactly one of `value` and `from`: `value` is a literal, `from` names a field on the
- * catalog row to read instead. **`value: null` removes** a condition an earlier level
- * authored, which is how a subcategory that draws a flag drops its category's `BaseType`.
- *
- * `operator` defaults to `==`, and exists before anything needs it — `MapTier >= 11` and
- * `GemLevel >= 20` are coming, and a notation keyed on `==` alone could never grow them.
- *
- * **A record that authors `BaseType` does not author `Class`.** `BaseType ==` is an exact
- * match, no filterable name in the catalog needs a class to disambiguate, and a record
- * carrying both is the mistake this rule exists to make visible.
- */
 export type Condition = {
   readonly condition: string;
   readonly operator?: string;
@@ -19,23 +5,7 @@ export type Condition = {
   readonly from?: string;
 };
 
-/**
- * Which of PoeWatch's rows for a name is the one to price.
- *
- * PoeWatch lists one name many times — a gem per level and quality, an armour per link
- * count, a map per tier — and the keys here are its own field names, so the catalog can
- * compare without translating. A row matches when every written key is equal on it.
- * Absent means the most-listed row for the name.
- *
- * **The fact is authored twice on purpose.** `GemLevel >= 6` is what a `.filter` asks of an
- * item on the ground; `gemLevel: 6` is which listing to read a price off. The catalog copies
- * conditions and never reads them, and this keeps it that way.
- *
- * `name` is the listing's own name, for a row whose display name is not what PoeWatch lists
- * it under — a cluster jewel is listed as `Large Cluster Jewel (12% increased Cold Damage)`.
- * A variant without one inherits its row's.
- */
-export type PriceSelector = {
+export type ListingMatch = {
   readonly name?: string;
   readonly passives?: string;
   readonly gemLevel?: number;
@@ -47,43 +17,14 @@ export type PriceSelector = {
   readonly tier?: number;
 };
 
-/**
- * One priced variant of an item: a narrower condition set that is drawn on its own.
- *
- * A level 6 Awakened Added Chaos and a level 1 are one base type, two prices and two blocks.
- * An item with variants resolves once per variant and not once for itself, so an item that
- * still needs a plain form writes a variant with no conditions.
- */
 export type AuthoredVariant = {
   readonly name: string;
   readonly conditions: readonly Condition[];
-  /** Which listing prices this variant. Absent means the most-listed row for the name. */
-  readonly price?: PriceSelector;
+  readonly listing?: ListingMatch;
 };
 
-/**
- * Every variant one version authors, keyed by the same metadata id the items are.
- *
- * A third file rather than a field on the entry, so the items table stays what each thing
- * is and this stays how each thing is priced and drawn. Every key must name an item in the
- * version. The two are merged at publish time, and nothing downstream learns they were apart.
- */
 export type VariantTable = Readonly<Record<string, readonly AuthoredVariant[]>>;
 
-/**
- * A row somebody wrote by hand, because no arrangement of the sources produces it.
- *
- * Keyed `authored/<slug of name>`: a namespace no metadata id can collide with, which is
- * what lets the variants file key both tables at once. `replaces` names the item keys it
- * stands in for and may be left out — with it, several rows a filter cannot tell apart
- * collapse into the one it can write; without it, the row is one no source has at all.
- *
- * `reason` is the point of the entry. A hand-written row with no reason records that
- * somebody decided, not what they decided.
- *
- * Authored here rather than in the catalog so that one file says what the hand-written rows
- * are, and the same `conditions`, `price` and variants reach them as reach a real row.
- */
 export type AuthoredRow = {
   readonly name: string;
   readonly category: string;
@@ -91,41 +32,21 @@ export type AuthoredRow = {
   readonly replaces?: readonly string[];
   readonly reason: string;
   readonly conditions?: readonly Condition[];
-  readonly price?: PriceSelector;
+  readonly listing?: ListingMatch;
 };
 
 export type AuthoredTable = Readonly<Record<string, AuthoredRow>>;
 
-/**
- * What one category or subcategory authors, keyed by its path in `categories`.
- *
- * The tree is flattened into the key — `map` and `map/blighted` sit side by side — and a
- * category record does two jobs at once: it is the default for its own rows and the parent
- * of its children. Five categories today have both.
- */
-/**
- * What a category's tier floors are counted in.
- *
- * **Absent means `chaos`**, which is every category but one: a floor is a price, and the
- * catalog prices the row. `stack-size` is for what the market never prices — gold has a
- * Chaos value that nothing publishes, so its rungs are counted in the size of the stack on
- * the floor instead, and the floor becomes a `StackSize` line to write rather than a price
- * to compare.
- */
 export type TieringMethod = "chaos" | "stack-size";
 
 export type AuthoredCategory = {
   readonly conditions: readonly Condition[];
-  /** How the category reads in a picker. Absent means show the path, title-cased. */
   readonly name?: string;
-  /** What this category's tier floors count. Absent means `chaos`. */
   readonly tiering?: TieringMethod;
 };
 
-/** One version's category tree, flattened, keyed by path. */
 export type CategoryTable = Readonly<Record<string, AuthoredCategory>>;
 
-/** The four files of one version, read and validated. */
 export type Version = {
   readonly items: TaxonomyTable;
   readonly categories: CategoryTable;
@@ -133,88 +54,40 @@ export type Version = {
   readonly variants: VariantTable;
 };
 
-/**
- * One item's classification, as it is authored.
- *
- * This app declares its own shape rather than importing the reader's. `@poe/taxonomy` is
- * what reads a published file back, and the two agreeing is the point of publishing a
- * format instead of a module — a shared types file would mean neither could move without
- * the other, and the reader could no longer tell a format change from a compile error.
- */
 export type AuthoredEntry = {
-  /**
-   * The display name, kept beside the metadata id the row is keyed by.
-   *
-   * The key is what the catalog joins on and the name is what a `.filter` matches, and they
-   * are not one to one: a unique that rolls on two bases is two ids under one name, and two
-   * ids can share a name outright — `Wildfire` is a skill gem and a unique jewel.
-   */
   readonly name: string;
-  /**
-   * The broad group the row belongs to, and where its silver file gets its name.
-   *
-   * **`excluded` is reserved.** A row in it is one nobody wants in a generated filter —
-   * not because a filter could not name it, which is what `filterable` says, but because it
-   * should not be drawn at all. Everything in that category lands in `excluded.json` and
-   * never reaches a `.filterable.json`.
-   */
   readonly category: string;
   readonly subcategory: string | null;
-  /**
-   * Whether a `.filter` can name this row at all.
-   *
-   * **Absent means yes.** Most rows can be named, so only the exceptions are written down
-   * and the field stays out of the way of the hand pass.
-   *
-   * The trade site listing a name is not evidence that a base type exists — the client
-   * answers `no basetypes found for "Alpine Shaman"` for a name `/data/items` lists and the
-   * spectre table confirms. Nothing in either file separates that from `Bearded Shaman`,
-   * which really does drop, so the client is the only authority and this is where its
-   * answer is written down.
-   */
   readonly filterable?: boolean;
-  /**
-   * Whether the trade site lists this name, said by hand where the sources get it wrong.
-   *
-   * **Absent means take the sources' answer.** These two are the only fields here that
-   * override a fact rather than add one, so writing either is a claim that the game's data
-   * and the trade site are both answering a different question than the one asked.
-   *
-   * `Metadata/Items/TradeProxy/BlightedMap` is why they exist. RePoE has the row and marks
-   * it untradable because the proxy itself is not an item, while the trade site lists 145
-   * blighted map names against it. The item drops, a filter draws it with `BlightedMap
-   * True`, and nothing in either source says so.
-   */
   readonly tradable?: boolean;
   readonly tradedOnExchange?: boolean;
-  /** Conditions for this row alone, laid over its category's and its subcategory's. */
   readonly conditions?: readonly Condition[];
-  /**
-   * Which listing prices the row itself. Read only on a row without variants — with them,
-   * a price attaches to each variant and the row has none of its own. Variants are not
-   * authored here: they live in `<version>.variants.json`, keyed by the same id.
-   */
-  readonly price?: PriceSelector;
-  /**
-   * What the seed said, kept beside what a person decided.
-   *
-   * **Never edited.** The pair is what makes a hand pass reviewable: a row where the two
-   * differ was a deliberate correction, and a row where they match has either been checked
-   * and left alone or not been looked at yet. Overwriting this to match a correction throws
-   * away the only record that the correction happened.
-   */
-  readonly original: {
-    readonly category: string;
-    readonly subcategory: string | null;
-  };
+  readonly listing?: ListingMatch;
 };
 
-/** One version's whole table, keyed by display name. */
 export type TaxonomyTable = Readonly<Record<string, AuthoredEntry>>;
 
-/** Somewhere published versions are written. This app's own, not the catalog's. */
-export type Lake = {
-  readJson<T>(key: string): Promise<T>;
-  writeJson(key: string, value: unknown): Promise<void>;
-  exists(key: string): Promise<boolean>;
+
+export type VersionState = "draft" | "published";
+
+export type RegistryEntry = {
+  readonly state: VersionState;
+  readonly parent?: string;
+  readonly createdAt: string;
+  readonly publishedAt?: string;
 };
+
+export type Registry = {
+  readonly next: number;
+  readonly versions: Readonly<Record<string, RegistryEntry>>;
+};
+
+export type SourceFile =
+  | "items"
+  | "categories"
+  | "authored.seeded"
+  | "authored.manual"
+  | "variants.seeded"
+  | "variants.manual";
+
+export type VersionFiles = Readonly<Record<SourceFile, unknown>>;

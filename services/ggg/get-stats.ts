@@ -1,10 +1,8 @@
 import { call } from "./call.ts";
-import type {
-  GGGStat,
-  GGGStatData,
-  GGGStatDataResponse,
-} from "./get-stats.types.ts";
-import type { GggContext } from "./types.ts";
+import type { GGGStat } from "./get-stats.types.ts";
+import type { GGGStatData, GGGStatDataResponse, GggContext } from "./types.ts";
+
+
 
 const HOUR_MS = 3_600_000;
 

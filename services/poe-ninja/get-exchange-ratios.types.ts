@@ -1,3 +1,5 @@
+import type { NinjaExchangeSide } from "./types.ts";
+
 /**
  * One item's Currency Exchange price, in the shape a filter reads the exchange through.
  *
@@ -20,15 +22,4 @@ export type NinjaExchangeItem = {
   readonly category: string;
   readonly chaos: NinjaExchangeSide;
   readonly divine: NinjaExchangeSide;
-};
-
-/** One side of an exchange row. `chaosValue` is what a price is read off. */
-export type NinjaExchangeSide = {
-  readonly value: number;
-  readonly lowConfidence: boolean;
-  readonly timestamp: number;
-  readonly volume: number;
-  readonly change24H: number;
-  readonly chaosValue?: number;
-  readonly divineValue?: number;
 };

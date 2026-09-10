@@ -92,7 +92,7 @@ export function clusterJewelVariants(jewels: ClusterJewels): VariantTable {
               ...passivesConditions(passives),
               ...conditions,
             ],
-            price: { name: listing, passives, itemLevel: bucket },
+            listing: { name: listing, passives, itemLevel: bucket },
           });
         }
       }

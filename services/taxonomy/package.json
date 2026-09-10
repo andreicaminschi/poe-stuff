@@ -4,8 +4,12 @@
   "license": "MIT",
   "private": true,
   "type": "module",
+  "dependencies": {
+    "@poe/lake": "workspace:^"
+  },
   "exports": {
     "./errors": "./errors.ts",
+    "./get-categories.types": "./get-categories.types.ts",
     "./get-taxonomy.types": "./get-taxonomy.types.ts",
     "./service": "./service.ts",
     "./types": "./types.ts"
