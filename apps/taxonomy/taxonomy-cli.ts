@@ -1,5 +1,7 @@
 import { createLakeService } from "@poe/lake/service";
+import { createRepoeService } from "@poe/repoe/service";
 import { createTaxonomy } from "./create-taxonomy.ts";
+import { initTaxonomy } from "./init-taxonomy.ts";
 import { promoteTaxonomy } from "./promote-taxonomy.ts";
 import { publishTaxonomy } from "./publish-taxonomy.ts";
 import { readVersionFiles } from "./read-version-files.ts";
@@ -11,11 +13,12 @@ import {
   unauthoredCategories,
 } from "./resolve-conditions.ts";
 import type { Lake } from "@poe/lake/types";
+import { seedItems } from "./seed-items.ts";
 import { collectVersion } from "./validate-version.ts";
 import { buildVersion, versionTable } from "./versions.ts";
 
 const USAGE =
-  "usage: taxonomy-cli.ts <list|create|publish|promote|validate|resolve> [version] [--parent=<v>] [--id=<key>] [--category=<path>] [--root=<dir>]";
+  "usage: taxonomy-cli.ts <list|init|create|publish|promote|validate|resolve> [version] [--game=<x.y>] [--parent=<v>] [--id=<key>] [--category=<path>] [--root=<dir>]";
 
 const flag = (args: readonly string[], name: string): string | undefined =>
   args.find((arg) => arg.startsWith(`--${name}=`))?.slice(name.length + 3);
@@ -83,6 +86,20 @@ async function main(): Promise<void> {
 
   if (command === "list") {
     await list(lake);
+    return;
+  }
+
+  if (command === "init") {
+    const game = flag(args, "game");
+
+    if (game === undefined) {
+      throw new Error("usage: taxonomy-cli.ts init --game=<x.y>");
+    }
+
+    const repoe = createRepoeService();
+    const [baseItems, gems] = await Promise.all([repoe.getBaseItems(), repoe.getGems()]);
+    const version = await initTaxonomy(lake, game, seedItems(baseItems, gems));
+    process.stdout.write(`created ${version} from RePoE\n`);
     return;
   }
 

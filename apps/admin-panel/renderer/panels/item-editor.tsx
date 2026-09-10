@@ -7,7 +7,9 @@ import { useSelectedItem } from "../hooks/use-selected-item.ts";
 import { useSession } from "../session-store.ts";
 import { pathOf } from "../utils/path-of.ts";
 import { resolutionNote } from "../utils/resolution-note.ts";
+import { EditorFoot } from "../components/editor-foot.tsx";
 import { ItemPane } from "./item-pane.tsx";
+import { MultiItemPane } from "./multi-item-pane.tsx";
 import { VariantsPane } from "./variants-pane.tsx";
 
 type Resolved = { readonly rows: readonly Resolution[]; readonly above: Resolution };
@@ -22,6 +24,7 @@ export function ItemEditor() {
   const stale = useSession(
     (state) => state.selectedKey !== undefined && state.changes.items[state.selectedKey] !== undefined,
   );
+  const bulk = useSession((state) => state.checked.length > 1);
   const item = useSelectedItem();
   const savedItem = useSavedItem();
   const editable = useEditable();
@@ -63,6 +66,17 @@ export function ItemEditor() {
     stale,
     hasVariants,
   });
+
+  if (bulk) {
+    return (
+      <div className="col detail">
+        <div className="panes">
+          <MultiItemPane />
+        </div>
+        <EditorFoot dirty={dirty} busy={busy} editable={editable} revert={revert} save={save} />
+      </div>
+    );
+  }
 
   return (
     <div className="col detail">
@@ -114,19 +128,7 @@ export function ItemEditor() {
         ) : null}
       </div>
 
-      <div className="foot end">
-        <button type="button" className="btn" disabled={dirty === 0 || busy} onClick={revert}>
-          Revert
-        </button>
-        <button
-          type="button"
-          className="btn primary"
-          disabled={dirty === 0 || busy || !editable}
-          onClick={() => void save()}
-        >
-          Save{dirty === 0 ? "" : ` ${dirty}`}
-        </button>
-      </div>
+      <EditorFoot dirty={dirty} busy={busy} editable={editable} revert={revert} save={save} />
     </div>
   );
 }

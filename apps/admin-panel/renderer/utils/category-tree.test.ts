@@ -17,7 +17,6 @@ const draft: Draft = {
     a: item("a", "map", null),
     b: item("b", "map", "blighted"),
     c: item("c", "unique-armour", "boots"),
-    d: item("d", "excluded", null),
   },
   categories: { map: { path: "map", tiering: "chaos", conditions: [] } },
 };
@@ -35,10 +34,22 @@ describe("categoryTree", () => {
     expect(categoryTree(draft).nodes.find((node) => node.path === "map")?.count).toBe(2);
   });
 
-  it("pins excluded apart from the rest", () => {
-    const tree = categoryTree(draft);
+  describe("with a view", () => {
+    const flagged: Draft = {
+      ...draft,
+      items: { ...draft.items, e: { ...item("e", "map", "blighted"), excluded: true } },
+    };
 
-    expect(tree.excluded?.path).toBe("excluded");
-    expect(tree.nodes.some((node) => node.path === "excluded")).toBe(false);
+    it("counts only unflagged rows when included", () => {
+      expect(categoryTree(flagged, "included").nodes.find((node) => node.path === "map")?.count).toBe(2);
+    });
+
+    it("lists only categories with flagged rows when excluded", () => {
+      const tree = categoryTree(flagged, "excluded");
+
+      expect(tree.nodes.map((node) => node.path)).toEqual(["map"]);
+      expect(tree.nodes[0]?.count).toBe(1);
+      expect(tree.nodes[0]?.children.map((child) => child.path)).toEqual(["map/blighted"]);
+    });
   });
 });

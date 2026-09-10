@@ -22,6 +22,8 @@ apps/taxonomy/
 ├── versions.ts                    # validates and merges one version's six files
 ├── read-version-files.ts          # the six files, raw
 ├── registry.ts                    # version numbers, and who may be published
+├── init-taxonomy.ts               # the first draft, into an empty registry
+├── seed-items.ts                  # RePoE's bases and transfigured gems -> items, filed by item_class
 ├── create-taxonomy.ts             # a new draft, copied from a published version
 ├── publish-taxonomy.ts            # write a version, once
 ├── promote-taxonomy.ts            # copy a published version into latest
@@ -36,7 +38,7 @@ apps/taxonomy/
 ├── validate-variants.ts           # a variant list is well formed and names a real row
 ├── lake.ts                        # this app's lake, and its key layout
 ├── types.ts                       # AuthoredEntry, AuthoredCategory, Condition, Version, Registry
-├── taxonomy-cli.ts                # list | create | publish | promote | validate | resolve
+├── taxonomy-cli.ts                # list | init | create | publish | promote | validate | resolve
 └── seed-taxonomy-cli.ts           # seed
 ```
 
@@ -61,6 +63,10 @@ The data is not in this folder, and not in git. It lives in the lake:
 A version is `3.29.4`: the patch, then a count. **The count is the identity.** It goes up on
 every creation and is never reused — an abandoned draft burns its number.
 
+- **The first version comes from RePoE and nothing else.** `init` writes a row per entry in
+  `base_items.json` and per transfigured gem, filed under its `item_class` with no
+  subcategory. Categories, authored rows and variants start empty. It refuses a registry that
+  already holds a version.
 - A new version is a copy of a **published** one, identical until the first edit.
 - **Only the newest version can be published, and only while it is a draft.** Every other
   draft is overtaken: it stays and can be read, and it can never be published.
@@ -274,10 +280,7 @@ Beside `category` and `subcategory`, an entry may state three things the sources
 | `filterable` | A `.filter` cannot name this row. The client rejects `Alpine Shaman` while `Bearded Shaman` drops, and nothing but the client knows. |
 | `tradable` | The trade site lists this name. RePoE marks the blighted map trade proxy untradable while the site lists 145 names against it. |
 | `tradedOnExchange` | The same, for the Currency Exchange. |
-
-`category: "excluded"` is reserved and means something else: the row is real, nameable, and
-nobody wants it drawn. Everything in it lands in `excluded.json` and never reaches a
-`.filterable.json`.
+| `excluded` | Nobody wants this row drawn. It is real and nameable, stays in its category's `.json`, and never reaches a `.filterable.json`. An authored row may carry it too. |
 
 ## Authored rows
 
@@ -352,6 +355,12 @@ List every version, newest first:
 
 ```bash
 yarn taxonomy list
+```
+
+Start the first draft from RePoE, into an empty registry:
+
+```bash
+yarn taxonomy:init --game=3.29
 ```
 
 Start a draft from a published version:

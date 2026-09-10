@@ -31,6 +31,7 @@ export type AuthoredRow = {
   readonly subcategory: string | null;
   readonly replaces?: readonly string[];
   readonly reason: string;
+  readonly excluded?: boolean;
   readonly conditions?: readonly Condition[];
   readonly listing?: ListingMatch;
 };
@@ -61,6 +62,7 @@ export type AuthoredEntry = {
   readonly filterable?: boolean;
   readonly tradable?: boolean;
   readonly tradedOnExchange?: boolean;
+  readonly excluded?: boolean;
   readonly conditions?: readonly Condition[];
   readonly listing?: ListingMatch;
 };

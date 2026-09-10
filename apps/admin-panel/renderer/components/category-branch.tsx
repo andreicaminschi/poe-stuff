@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { CategoryNode } from "../types.ts";
 import { CategoryLine } from "./category-line.tsx";
 
@@ -12,6 +13,8 @@ export function CategoryBranch({
   readonly onSelect: (path: string) => void;
   readonly onEdit: (path: string) => void;
 }) {
+  const [collapsed, setCollapsed] = useState(false);
+
   return (
     <>
       <CategoryLine
@@ -20,8 +23,9 @@ export function CategoryBranch({
         selected={node.path === selection}
         onSelect={onSelect}
         onEdit={onEdit}
+        {...(node.children.length === 0 ? {} : { collapsed, onToggle: () => setCollapsed(!collapsed) })}
       />
-      {node.children.map((child) => (
+      {(collapsed ? [] : node.children).map((child) => (
         <CategoryLine
           key={child.path}
           node={child}

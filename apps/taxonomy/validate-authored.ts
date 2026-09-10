@@ -9,6 +9,7 @@ const FIELDS = [
   "subcategory",
   "replaces",
   "reason",
+  "excluded",
   "conditions",
   "listing",
 ];
@@ -52,6 +53,10 @@ function rowProblem(key: string, value: unknown): string | null {
   }
 
   if (!isText(value.reason)) return "reason must be a non-empty string";
+
+  if (value.excluded !== undefined && typeof value.excluded !== "boolean") {
+    return "excluded must be a boolean when it is present";
+  }
 
   if (value.replaces !== undefined) {
     if (!Array.isArray(value.replaces) || !value.replaces.every(isText)) {

@@ -15,12 +15,13 @@ export type CategoryNode = {
 
 export type CategoryTree = {
   readonly nodes: readonly CategoryNode[];
-  readonly excluded?: CategoryNode;
 };
 
 export type Flag = "filterable" | "tradable" | "tradedOnExchange";
 
 export type Tab = "item" | "variants";
+
+export type View = "included" | "excluded";
 
 export type CategoryTarget =
   | { readonly kind: "edit"; readonly path: string }

@@ -1,14 +1,10 @@
 import { useMemo } from "react";
 import type { CategoryNode } from "../types.ts";
-import { useCategoryTree } from "./use-category-tree.ts";
+import { categoryTree } from "../utils/category-tree.ts";
+import { useDraft } from "./use-draft.ts";
 
 export function useTopCategories(): readonly CategoryNode[] {
-  const tree = useCategoryTree();
+  const draft = useDraft();
 
-  return useMemo(() => {
-    if (tree === undefined) return [];
-    if (tree.excluded === undefined) return tree.nodes;
-
-    return [...tree.nodes, tree.excluded];
-  }, [tree]);
+  return useMemo(() => (draft === undefined ? [] : categoryTree(draft).nodes), [draft]);
 }

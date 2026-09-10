@@ -14,6 +14,9 @@ export function Items() {
   const selection = useSession((state) => state.selection);
   const selectedKey = useSession((state) => state.selectedKey);
   const selectItem = useSession((state) => state.selectItem);
+  const checked = useSession((state) => state.checked);
+  const toggleChecked = useSession((state) => state.toggleChecked);
+  const setChecked = useSession((state) => state.setChecked);
   const [filter, setFilter] = useState("");
   const [showAll, setShowAll] = useState(false);
 
@@ -31,17 +34,37 @@ export function Items() {
 
   const title =
     selection === undefined
-      ? "Pick a category"
+      ? "All items"
       : selection
           .split("/")
           .map((part, at, parts) => draft?.categories[parts.slice(0, at + 1).join("/")]?.name ?? titleCase(part))
           .join(" › ");
 
   const shown = showAll ? sorted : sorted.slice(0, LIMIT);
+  const checkedKeys = new Set(checked);
+  const checkedHere = sorted.filter((row) => checkedKeys.has(row.key)).length;
+  const allChecked = sorted.length > 0 && checkedHere === sorted.length;
+
+  const toggleAll = () => {
+    const here = new Set(sorted.map((row) => row.key));
+    const others = checked.filter((key) => !here.has(key));
+    setChecked(allChecked ? others : [...others, ...here]);
+  };
 
   return (
     <div className="col items">
       <div className="head row">
+        <input
+          type="checkbox"
+          className="check"
+          aria-label="Select all"
+          checked={allChecked}
+          disabled={sorted.length === 0}
+          ref={(box) => {
+            if (box !== null) box.indeterminate = checkedHere > 0 && !allChecked;
+          }}
+          onChange={toggleAll}
+        />
         <p className="label grow">
           {title} <span className="mono faint">{sorted.length}</span>
         </p>
@@ -65,6 +88,15 @@ export function Items() {
                 if (event.key === "Enter") selectItem(row.key);
               }}
             >
+              <input
+                type="checkbox"
+                className="check"
+                aria-label={`Select ${row.name}`}
+                checked={checkedKeys.has(row.key)}
+                onClick={(event) => event.stopPropagation()}
+                onKeyDown={(event) => event.stopPropagation()}
+                onChange={() => toggleChecked(row.key)}
+              />
               <span className="name">{row.name}</span>
               <span className="id">
                 <bdi>{row.key}</bdi>

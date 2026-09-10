@@ -124,6 +124,8 @@ export type Item = {
    * table says otherwise.
    */
   readonly filterable: boolean;
+  /** Set aside on purpose in the taxonomy: real, nameable, never drawn. */
+  readonly excluded: boolean;
   /**
    * The conditions the taxonomy authored for this row alone, **copied and not resolved**.
    *
@@ -167,15 +169,6 @@ export type Item = {
 const REMOVED = "RemovedItem";
 
 /**
- * The taxonomy category meaning "keep the row, never draw it".
- *
- * Declared here rather than imported from the taxonomy app, the same way the key layout is:
- * the two agree on a published format, not on a module. Rows land in `excluded.json` like
- * any other category, so what was set aside stays readable.
- */
-const EXCLUDED = "excluded";
-
-/**
  * The taxonomy category whose rows have to trade on the Currency Exchange to count.
  *
  * The trade site lists every currency name it has ever had — sextants, scouting reports,
@@ -210,7 +203,7 @@ const isObtainable = (item: Item): boolean =>
  * is filed by the game as an untradable proxy. Somebody wrote the row down and wrote the
  * reason beside it, which is a better witness than a marketplace for the one question a
  * marketplace cannot answer. The rest still apply: an authored row for a removed item, a
- * quest item or an excluded category is still not filterable.
+ * quest item or an excluded row is still not filterable.
  *
  * **A quest item is never one of them.** The game shows quest items whatever a filter says,
  * so a rule for one does nothing.
@@ -223,7 +216,7 @@ export const isFilterable = (item: Item): boolean =>
   (isAuthored(item) || isObtainable(item)) &&
   item.itemClass !== REMOVED &&
   !item.isQuestItem &&
-  item.category !== EXCLUDED &&
+  !item.excluded &&
   item.filterable;
 
 /**
@@ -256,6 +249,7 @@ export const blankItem = (key: string, name: string | null = key): Item => ({
   tradable: false,
   tradedOnExchange: false,
   filterable: true,
+  excluded: false,
 });
 
 /** Adds a source to a row, and answers with the same row when it is already there. */

@@ -9,11 +9,12 @@ const FIELDS = [
   "filterable",
   "tradable",
   "tradedOnExchange",
+  "excluded",
   "conditions",
   "listing",
 ];
 
-const OPTIONAL_FLAGS = ["filterable", "tradable", "tradedOnExchange"] as const;
+const OPTIONAL_FLAGS = ["filterable", "tradable", "tradedOnExchange", "excluded"] as const;
 
 const PRICE_KEYS: Readonly<Record<string, "number" | "boolean" | "string">> = {
   name: "string",

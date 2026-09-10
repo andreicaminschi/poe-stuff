@@ -92,6 +92,9 @@ input.filter { width:180px; }
 .cat.on { color:var(--text); border-left-color:var(--accent); background:rgba(200,161,90,.06); }
 .cat .n { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .cat .c { font:11px var(--mono); color:var(--faint); }
+.cat .caret { flex:none; width:14px; border:0; background:none; color:var(--faint); cursor:pointer; padding:0; font-size:11px; }
+.cat .caret:disabled { cursor:default; }
+.cat .caret:hover:enabled { color:var(--accent); }
 .cat.sub { padding-left:30px; font-size:12px; }
 .cat.sub .n::before { content:"\21B3 "; color:var(--faint); }
 .cat.bare .n { color:var(--faint); font-style:italic; }
@@ -99,11 +102,11 @@ input.filter { width:180px; }
 .cat .edit { opacity:0; border:0; background:none; color:var(--faint); cursor:pointer; font-size:12px; padding:0 2px; }
 .cat:hover .edit, .cat.on .edit { opacity:1; }
 .cat .edit:hover { color:var(--accent); }
-.catsplit { height:1px; background:var(--line-soft); margin:9px 14px; }
 
 .item { display:flex; align-items:baseline; gap:12px; padding:7px 16px; border-left:2px solid transparent; cursor:pointer; }
 .item:hover { background:rgba(255,255,255,.02); }
 .item.on { border-left-color:var(--accent); background:rgba(200,161,90,.06); }
+.check { flex:none; margin:0; accent-color:var(--accent); cursor:pointer; align-self:center; }
 .item .name { font-size:14px; flex:none; }
 .item .id {
   font:10px var(--mono); color:var(--faint); direction:rtl; text-align:left;

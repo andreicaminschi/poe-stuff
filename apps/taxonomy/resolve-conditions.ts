@@ -156,10 +156,10 @@ export function resolveCategory(version: Version, path: string): Resolution {
 function drawableRows(version: Version): readonly (readonly [string, string])[] {
   return [
     ...Object.entries(version.items)
-      .filter(([, row]) => row.category !== "excluded" && row.filterable !== false)
+      .filter(([, row]) => row.excluded !== true && row.filterable !== false)
       .map(([key, row]) => [key, row.category] as const),
     ...Object.entries(version.authored)
-      .filter(([, row]) => row.category !== "excluded")
+      .filter(([, row]) => row.excluded !== true)
       .map(([key, row]) => [key, row.category] as const),
   ];
 }

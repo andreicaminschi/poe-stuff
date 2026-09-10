@@ -140,7 +140,7 @@ describe("resolutionProblems and unauthoredCategories", () => {
       "Metadata/U2": row("Unique Two", "unique-armour", "gloves"),
       "Metadata/Q": row('Bad "Name"', "map", null),
       "Metadata/Hidden": row("Hidden", "nowhere", null, { filterable: false }),
-      "Metadata/Gone": row("Gone", "excluded", null),
+      "Metadata/Gone": row("Gone", "unique-armour", "boots", { excluded: true }),
     },
   });
 

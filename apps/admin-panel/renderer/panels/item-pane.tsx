@@ -8,6 +8,7 @@ import { useTopCategories } from "../hooks/use-top-categories.ts";
 import { useSession } from "../session-store.ts";
 import type { Flag } from "../types.ts";
 import { pathOf } from "../utils/path-of.ts";
+import { withExcluded } from "../utils/with-excluded.ts";
 import { withFlag } from "../utils/with-flag.ts";
 import { withListing } from "../utils/with-listing.ts";
 import { withListingName } from "../utils/with-listing-name.ts";
@@ -206,12 +207,20 @@ export function ItemPane({
         </p>
       </div>
 
-      {item.source === "ggg" && editable ? (
+      {editable ? (
         <div className="grp">
           <h4>Actions</h4>
-          <button type="button" className="btn" onClick={() => openDialog({ kind: "author", replaces: item.key })}>
-            Author a replacement row…
-          </button>
+          <div className="row">
+            <button type="button" className="btn" onClick={() => editItem(withExcluded(item, item.excluded !== true))}>
+              {item.excluded === true ? "Include" : "Exclude"}
+            </button>
+            {item.source === "ggg" ? (
+              <button type="button" className="btn" onClick={() => openDialog({ kind: "author", replaces: item.key })}>
+                Author a replacement row…
+              </button>
+            ) : null}
+          </div>
+          {item.excluded === true ? <p className="note">Excluded rows are never drawn.</p> : null}
         </div>
       ) : null}
     </div>

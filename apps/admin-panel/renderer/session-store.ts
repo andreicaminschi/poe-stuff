@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import type { Draft, Validation, VersionList } from "../api/panel-api.ts";
 import type { Category, Item } from "../api/taxonomy.types.ts";
-import type { Changes, Dialog, Tab } from "./types.ts";
+import type { Changes, Dialog, Tab, View } from "./types.ts";
 import { changeCount } from "./utils/change-count.ts";
 import { NO_CHANGES } from "./utils/no-changes.ts";
 import { pathOf } from "./utils/path-of.ts";
@@ -14,8 +14,10 @@ export type Session = {
   readonly versionId?: string;
   readonly saved?: Draft;
   readonly changes: Changes;
+  readonly view: View;
   readonly selection?: string;
   readonly selectedKey?: string;
+  readonly checked: readonly string[];
   readonly tab: Tab;
   readonly dialog?: Dialog;
   readonly validation?: Validation;
@@ -27,13 +29,18 @@ export type Session = {
   boot(): Promise<void>;
   switchVersion(id: string): void;
   newDraft(parent: string): Promise<void>;
+  setView(view: View): void;
   select(path: string): void;
+  toggleCategory(path: string): void;
   selectItem(key: string, tab?: Tab): void;
+  toggleChecked(key: string): void;
+  setChecked(keys: readonly string[]): void;
   goTo(key: string): void;
   setTab(tab: Tab): void;
   openDialog(dialog: Dialog): void;
   closeDialog(): void;
   editItem(item: Item): void;
+  editItems(items: readonly Item[]): void;
   editCategory(category: Category): void;
   revert(): void;
   save(): Promise<void>;
@@ -67,11 +74,16 @@ export const useSession = create<Session>()((set, get) => {
     if (get().versionId === id) set({ saved: draft, changes: NO_CHANGES });
   };
 
+  const checkedState = (checked: readonly string[]): Partial<Session> =>
+    checked.length === 1 ? { checked, selectedKey: checked[0] } : { checked };
+
   const discardConfirmed = (): boolean =>
     changeCount(get().changes) === 0 || window.confirm("Discard unsaved edits?");
 
   return {
     changes: NO_CHANGES,
+    view: "included",
+    checked: [],
     tab: "item",
     busy: false,
     priceNames: [],
@@ -88,7 +100,7 @@ export const useSession = create<Session>()((set, get) => {
 
     switchVersion(id) {
       if (!discardConfirmed()) return;
-      set({ versionId: id, saved: undefined, selectedKey: undefined });
+      set({ versionId: id, saved: undefined, selectedKey: undefined, checked: [] });
       void run(() => loadVersion(id));
     },
 
@@ -100,18 +112,39 @@ export const useSession = create<Session>()((set, get) => {
         if (!result.ok) throw new Error(result.log);
         const list = await loadVersions();
         const id = list.versions.find((version) => version.editable)?.id;
-        set({ versionId: id, saved: undefined, selectedKey: undefined, status: result.log.trim() });
+        set({ versionId: id, saved: undefined, selectedKey: undefined, checked: [], status: result.log.trim() });
         if (id !== undefined) await loadVersion(id);
       }),
 
-    select: (path) => set({ selection: path, selectedKey: undefined }),
+    setView: (view) => set({ view, selection: undefined, selectedKey: undefined, checked: [] }),
+
+    select: (path) => set({ selection: path, selectedKey: undefined, checked: [] }),
+
+    toggleCategory: (path) =>
+      set((state) => ({ selection: state.selection === path ? undefined : path, selectedKey: undefined, checked: [] })),
 
     selectItem: (key, tab) => set(tab === undefined ? { selectedKey: key } : { selectedKey: key, tab }),
+
+    toggleChecked: (key) =>
+      set((state) =>
+        checkedState(
+          state.checked.includes(key) ? state.checked.filter((other) => other !== key) : [...state.checked, key],
+        ),
+      ),
+
+    setChecked: (keys) => set(checkedState(keys)),
 
     goTo(key) {
       const target = get().changes.items[key] ?? get().saved?.items[key];
       if (target === undefined) return;
-      set({ selection: pathOf(target.classification), selectedKey: key, tab: "item", dialog: undefined });
+      set({
+        view: target.excluded === true ? "excluded" : "included",
+        selection: pathOf(target.classification),
+        selectedKey: key,
+        checked: [],
+        tab: "item",
+        dialog: undefined,
+      });
     },
 
     setTab: (tab) => set({ tab }),
@@ -121,6 +154,8 @@ export const useSession = create<Session>()((set, get) => {
     closeDialog: () => set({ dialog: undefined }),
 
     editItem: (item) => set((state) => ({ changes: withItem(state.changes, item) })),
+
+    editItems: (items) => set((state) => ({ changes: items.reduce(withItem, state.changes) })),
 
     editCategory: (category) =>
       set((state) => ({ changes: withCategory(state.changes, category.path, category) })),

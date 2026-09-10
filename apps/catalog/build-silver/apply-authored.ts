@@ -50,6 +50,7 @@ function fromReplaced(
     sources: [...sources],
     tradable: replaced.some((item) => item.tradable),
     tradedOnExchange: replaced.some((item) => item.tradedOnExchange),
+    excluded: entry.excluded ?? false,
     ...(entry.conditions === undefined ? {} : { conditions: entry.conditions }),
     ...(entry.variants === undefined ? {} : { variants: entry.variants }),
     ...(entry.listing === undefined ? {} : { listing: entry.listing }),
@@ -66,7 +67,7 @@ function fromReplaced(
  * Runs after the taxonomy, and the entry carries its own category, so an authored row is
  * never looked up and can never land in `unresolved.json`. It still has to pass
  * `isFilterable` — authoring a row answers whether a player can get one, and nothing else.
- * A removed item, a quest item or an excluded category is refused however it was written.
+ * A removed item, a quest item or an excluded row is refused however it was written.
  *
  * **A `replaces` key the run does not have throws.** An entry that quietly matches nothing
  * leaves the rows it was written to collapse sitting in the output, and the report that
