@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import type { Item } from "../../api/taxonomy.types.ts";
+import type { Item } from "../../api/taxonomy/types.ts";
 import { useSession } from "../session-store.ts";
 import { rowsIn } from "../utils/rows-in.ts";
 import { useDraft } from "./use-draft.ts";

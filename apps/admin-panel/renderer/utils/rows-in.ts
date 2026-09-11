@@ -1,4 +1,4 @@
-import type { Draft, Item } from "../../api/taxonomy.types.ts";
+import type { Draft, Item } from "../../api/taxonomy/types.ts";
 import type { View } from "../types.ts";
 
 export function rowsIn(draft: Draft, path: string | undefined, view: View): readonly Item[] {

@@ -1,4 +1,4 @@
-import type { Draft } from "../../api/taxonomy.types.ts";
+import type { Draft } from "../../api/taxonomy/types.ts";
 import type { CategoryNode, CategoryTree, View } from "../types.ts";
 import { pathOf } from "./path-of.ts";
 import { titleCase } from "./title-case.ts";

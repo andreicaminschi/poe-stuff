@@ -1,4 +1,4 @@
-import { sourceKey } from "./keys.ts";
+import { sourceKey } from "../util/keys.ts";
 import type { Lake } from "@poe/lake/types";
 import type {
   AuthoredFile,
@@ -12,7 +12,7 @@ import type {
   ItemsFile,
   Variant,
   VariantsFile,
-} from "./taxonomy.types.ts";
+} from "./types.ts";
 
 const toGggItem = (key: string, row: ItemRow, variants: readonly Variant[]): GggItem => ({
   source: "ggg",

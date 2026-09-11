@@ -1,4 +1,4 @@
-import { CATALOG_PREFIX, manifestKey, RUN_FOLDER } from "./keys.ts";
+import { CATALOG_PREFIX, manifestKey, RUN_FOLDER } from "../util/keys.ts";
 import type { Lake } from "@poe/lake/types";
 
 type ManifestFile = {

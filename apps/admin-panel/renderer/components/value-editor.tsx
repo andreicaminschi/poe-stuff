@@ -1,4 +1,4 @@
-import type { Condition, ConditionValue } from "../../api/taxonomy.types.ts";
+import type { Condition, ConditionValue } from "../../api/taxonomy/types.ts";
 import { kindOf } from "../utils/kind-of.ts";
 import { ListValue } from "./list-value.tsx";
 

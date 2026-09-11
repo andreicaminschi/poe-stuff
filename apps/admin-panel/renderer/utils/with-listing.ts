@@ -1,4 +1,4 @@
-import type { ListingMatch } from "../../api/taxonomy.types.ts";
+import type { ListingMatch } from "../../api/taxonomy/types.ts";
 
 export function withListing<T extends { readonly listing?: ListingMatch }>(
   row: T,

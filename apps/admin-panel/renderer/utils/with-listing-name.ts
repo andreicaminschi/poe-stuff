@@ -1,4 +1,4 @@
-import type { ListingMatch } from "../../api/taxonomy.types.ts";
+import type { ListingMatch } from "../../api/taxonomy/types.ts";
 
 export function withListingName(listing: ListingMatch | undefined, name: string): ListingMatch | undefined {
   const { name: _drop, ...rest } = listing ?? {};

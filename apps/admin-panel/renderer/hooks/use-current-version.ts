@@ -1,4 +1,4 @@
-import type { VersionSummary } from "../../api/taxonomy.getVersions.api.ts";
+import type { VersionSummary } from "../../api/taxonomy/getVersions.api.ts";
 import { useSession } from "../session-store.ts";
 
 export function useCurrentVersion(): VersionSummary | undefined {

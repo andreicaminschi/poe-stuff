@@ -1,4 +1,4 @@
-import type { Item } from "../../api/taxonomy.types.ts";
+import type { Item } from "../../api/taxonomy/types.ts";
 import { useSession } from "../session-store.ts";
 
 export function useSavedItem(): Item | undefined {

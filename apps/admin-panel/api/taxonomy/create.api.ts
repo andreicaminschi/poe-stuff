@@ -1,4 +1,4 @@
-import { runAction, type ActionResult } from "./yarn.ts";
+import { runAction, type ActionResult } from "../util/yarn.ts";
 
 export const createVersion = (repo: string, parent: string): Promise<ActionResult> =>
   runAction(repo, ["taxonomy:create", `--parent=${parent}`]);

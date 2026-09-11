@@ -1,6 +1,6 @@
-import { registryKey, sourceKey } from "./keys.ts";
+import { assertEditable } from "../util/assert-editable.ts";
+import { sourceKey } from "../util/keys.ts";
 import type { Lake } from "@poe/lake/types";
-import { toVersionList } from "./taxonomy.getVersions.api.ts";
 import type {
   AuthoredFile,
   AuthoredItem,
@@ -15,9 +15,7 @@ import type {
   ItemsFile,
   Variant,
   VariantsFile,
-} from "./taxonomy.types.ts";
-
-type Registry = Parameters<typeof toVersionList>[0];
+} from "./types.ts";
 
 const toItemRow = (item: GggItem): ItemRow => ({
   name: item.name,
@@ -80,15 +78,6 @@ function nextManualVariants(
   }
 
   return next;
-}
-
-async function assertEditable(lake: Lake, id: string): Promise<void> {
-  const list = toVersionList(await lake.readJson<Registry>(registryKey()), undefined);
-  const version = list.versions.find((candidate) => candidate.id === id);
-
-  if (version?.editable !== true) {
-    throw new Error(`${id} cannot be edited. Only the newest draft can.`);
-  }
 }
 
 async function saveItems(lake: Lake, id: string, items: readonly Item[]): Promise<void> {

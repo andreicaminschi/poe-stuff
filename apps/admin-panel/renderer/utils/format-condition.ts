@@ -1,4 +1,4 @@
-import type { Condition, ConditionValue } from "../../api/taxonomy.types.ts";
+import type { Condition, ConditionValue } from "../../api/taxonomy/types.ts";
 
 const showValue = (value: ConditionValue | undefined): string => {
   if (value === undefined) return "";

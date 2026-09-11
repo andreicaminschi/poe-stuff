@@ -1,5 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import type { Draft, GggItem } from "../../api/taxonomy.types.ts";
+import type { Draft, GggItem } from "../../api/taxonomy/types.ts";
 import { categoryTree } from "./category-tree.ts";
 
 const item = (key: string, category: string, subcategory: string | null): GggItem => ({

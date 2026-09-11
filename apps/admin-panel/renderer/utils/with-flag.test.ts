@@ -1,5 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import type { GggItem } from "../../api/taxonomy.types.ts";
+import type { GggItem } from "../../api/taxonomy/types.ts";
 import { withFlag } from "./with-flag.ts";
 
 const item: GggItem = {

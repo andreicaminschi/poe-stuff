@@ -13,6 +13,10 @@ export const sourceKey = (version: string, file: SourceFile): string =>
 
 export const latestTaxonomyKey = (): string => "taxonomy/latest/taxonomy.json";
 
+export const ledgerKey = (version: string): string => `admin-panel/ledger/${version}.json`;
+
+export const ledgerArchiveKey = (version: string): string => `admin-panel/ledger/${version}.published.json`;
+
 export const CATALOG_PREFIX = "catalog";
 
 export const RUN_FOLDER = /^run=(.+)$/;

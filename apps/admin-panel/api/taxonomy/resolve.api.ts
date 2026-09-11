@@ -1,5 +1,5 @@
-import type { Condition } from "./taxonomy.types.ts";
-import { runQuery } from "./yarn.ts";
+import type { Condition } from "./types.ts";
+import { runQuery } from "../util/yarn.ts";
 
 export type Level = "category" | "subcategory" | "item" | "variant";
 

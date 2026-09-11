@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import type { Item, Variant } from "../../api/taxonomy.types.ts";
-import type { Resolution } from "../../api/taxonomy.resolve.api.ts";
+import type { Item, Variant } from "../../api/taxonomy/types.ts";
+import type { Resolution } from "../../api/taxonomy/resolve.api.ts";
 import { ConditionsEditor } from "../components/conditions-editor.tsx";
 import { useConditionNames } from "../hooks/use-condition-names.ts";
 import { useEditable } from "../hooks/use-editable.ts";

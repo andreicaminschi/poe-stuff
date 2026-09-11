@@ -1,4 +1,4 @@
-import type { Draft } from "../../api/taxonomy.types.ts";
+import type { Draft } from "../../api/taxonomy/types.ts";
 import type { Changes } from "../types.ts";
 
 function overlay<T>(

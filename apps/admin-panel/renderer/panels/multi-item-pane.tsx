@@ -1,4 +1,4 @@
-import type { Item } from "../../api/taxonomy.types.ts";
+import type { Item } from "../../api/taxonomy/types.ts";
 import { useDraft } from "../hooks/use-draft.ts";
 import { useEditable } from "../hooks/use-editable.ts";
 import { useTopCategories } from "../hooks/use-top-categories.ts";

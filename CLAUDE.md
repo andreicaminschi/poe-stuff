@@ -41,7 +41,9 @@ could be deployed to a browser alone — so the one-folder-level rule starts aga
 Inside it, `panels/` and `dialogs/` read the session store (`session-store.ts`) and the hooks
 in `hooks/`. `components/` take props only and never touch the store — that is what keeps them
 reusable. Something that reads a file or runs a command goes in
-`apps/admin-panel/api/` as one `<app>.<action>.api.ts`, listed in `api/panel-api.ts`. The
+`apps/admin-panel/api/<domain>/` as one `<action>.api.ts`, listed in `api/panel-api.ts`. `api/`
+is a root of its own the same way: one folder per domain, `util/` for what the domains share,
+and the contract and the service (`panel.ts`) at its root. The
 window imports types and constants from `api/`, never a function — a value import would pull
 Node into the window.
 

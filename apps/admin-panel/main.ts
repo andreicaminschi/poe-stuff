@@ -1,8 +1,8 @@
 import { join } from "node:path";
 import { app, BrowserWindow, ipcMain } from "electron";
-import { repoRoot } from "./api/lake.ts";
+import { repoRoot } from "./api/util/lake.ts";
 import { API_NAMES } from "./api/panel-api.ts";
-import { createPanelService } from "./api/panel.service.ts";
+import { createPanelService } from "./api/panel.ts";
 
 const service = createPanelService(repoRoot(app.getAppPath()));
 

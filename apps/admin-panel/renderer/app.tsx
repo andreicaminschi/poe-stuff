@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { AuthorModal } from "./dialogs/author-modal.tsx";
 import { CategoryModal } from "./dialogs/category-modal.tsx";
+import { ChangesPanel } from "./dialogs/changes-panel.tsx";
 import { RunsPanel } from "./dialogs/runs-panel.tsx";
 import { ValidationPanel } from "./dialogs/validation-panel.tsx";
 import { useCurrentVersion } from "./hooks/use-current-version.ts";
@@ -25,6 +26,25 @@ export function App() {
   useEffect(() => {
     void boot();
   }, [boot]);
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (!(event.ctrlKey || event.metaKey) || event.shiftKey || event.key.toLowerCase() !== "z") return;
+      const target = event.target;
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement
+      ) {
+        return;
+      }
+      event.preventDefault();
+      void useSession.getState().undo();
+    };
+
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   if (draft === undefined) {
     return (
@@ -59,6 +79,7 @@ export function App() {
 
       {dialog?.kind === "validation" ? <ValidationPanel /> : null}
       {dialog?.kind === "runs" ? <RunsPanel /> : null}
+      {dialog?.kind === "changes" ? <ChangesPanel /> : null}
       {dialog?.kind === "category" ? <CategoryModal target={dialog.target} /> : null}
       {dialog?.kind === "author" ? <AuthorModal replaces={dialog.replaces} /> : null}
     </div>

@@ -1,4 +1,4 @@
-import type { Category, Item } from "../api/taxonomy.types.ts";
+import type { Category, Item } from "../api/taxonomy/types.ts";
 
 export type Changes = {
   readonly items: Readonly<Record<string, Item>>;
@@ -31,6 +31,7 @@ export type CategoryTarget =
 export type Dialog =
   | { readonly kind: "validation" }
   | { readonly kind: "runs" }
+  | { readonly kind: "changes" }
   | { readonly kind: "category"; readonly target: CategoryTarget }
   | { readonly kind: "author"; readonly replaces: string };
 

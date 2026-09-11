@@ -1,5 +1,5 @@
-import type { CatalogSource } from "./panel-api.ts";
-import { runAction, type ActionResult } from "./yarn.ts";
+import type { CatalogSource } from "../panel-api.ts";
+import { runAction, type ActionResult } from "../util/yarn.ts";
 
 export const buildCatalog = (
   repo: string,

@@ -1,5 +1,5 @@
-import type { Condition } from "../../api/taxonomy.types.ts";
-import type { Level, ResolvedCondition } from "../../api/taxonomy.resolve.api.ts";
+import type { Condition } from "../../api/taxonomy/types.ts";
+import type { Level, ResolvedCondition } from "../../api/taxonomy/resolve.api.ts";
 import type { Kind } from "../types.ts";
 import { formatCondition } from "../utils/format-condition.ts";
 import { kindOf } from "../utils/kind-of.ts";

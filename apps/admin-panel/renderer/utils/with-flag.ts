@@ -1,4 +1,4 @@
-import type { GggItem } from "../../api/taxonomy.types.ts";
+import type { GggItem } from "../../api/taxonomy/types.ts";
 import type { Flag } from "../types.ts";
 
 export function withFlag(item: GggItem, field: Flag, value: boolean | undefined): GggItem {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { Resolution } from "../../api/taxonomy.resolve.api.ts";
+import type { Resolution } from "../../api/taxonomy/resolve.api.ts";
 import { useDirty } from "../hooks/use-dirty.ts";
 import { useEditable } from "../hooks/use-editable.ts";
 import { useSavedItem } from "../hooks/use-saved-item.ts";
@@ -21,6 +21,8 @@ export function ItemEditor() {
   const busy = useSession((state) => state.busy);
   const save = useSession((state) => state.save);
   const revert = useSession((state) => state.revert);
+  const undo = useSession((state) => state.undo);
+  const ledgerSize = useSession((state) => state.ledger.length);
   const stale = useSession(
     (state) => state.selectedKey !== undefined && state.changes.items[state.selectedKey] !== undefined,
   );
@@ -29,6 +31,7 @@ export function ItemEditor() {
   const savedItem = useSavedItem();
   const editable = useEditable();
   const dirty = useDirty();
+  const canUndo = editable && dirty === 0 && ledgerSize > 0;
   const [resolved, setResolved] = useState<Resolved | undefined>();
   const [failure, setFailure] = useState<string | undefined>();
 
@@ -73,7 +76,15 @@ export function ItemEditor() {
         <div className="panes">
           <MultiItemPane />
         </div>
-        <EditorFoot dirty={dirty} busy={busy} editable={editable} revert={revert} save={save} />
+        <EditorFoot
+          dirty={dirty}
+          busy={busy}
+          editable={editable}
+          canUndo={canUndo}
+          undo={undo}
+          revert={revert}
+          save={save}
+        />
       </div>
     );
   }
@@ -128,7 +139,15 @@ export function ItemEditor() {
         ) : null}
       </div>
 
-      <EditorFoot dirty={dirty} busy={busy} editable={editable} revert={revert} save={save} />
+      <EditorFoot
+          dirty={dirty}
+          busy={busy}
+          editable={editable}
+          canUndo={canUndo}
+          undo={undo}
+          revert={revert}
+          save={save}
+        />
     </div>
   );
 }

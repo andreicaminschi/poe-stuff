@@ -1,5 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import type { Draft, GggItem } from "../../api/taxonomy.types.ts";
+import type { Draft, GggItem } from "../../api/taxonomy/types.ts";
 import { applyChanges } from "./apply-changes.ts";
 import { NO_CHANGES } from "./no-changes.ts";
 import { withItem } from "./with-item.ts";

@@ -1,4 +1,4 @@
-import type { Draft } from "../../api/taxonomy.types.ts";
+import type { Draft } from "../../api/taxonomy/types.ts";
 
 export function conditionNames(draft: Draft): readonly string[] {
   const conditions = [

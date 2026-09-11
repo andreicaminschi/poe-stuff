@@ -18,14 +18,17 @@ way it will call their APIs once they have some.
 apps/admin-panel/
 ├── main.ts                 # Electron main: binds every adapter to IPC, opens the window
 ├── preload.ts              # exposes one IPC call per adapter as window.panel
-├── api/                    # the adapters — the contracts
+├── api/                    # the adapters — the contracts. A root of its own, one folder per domain
 │   ├── panel-api.ts        # PanelApi: every call the window can make. Types and constants only
-│   ├── panel.service.ts    # binds each adapter to the repo
-│   ├── <app>.<action>.api.ts
-│   ├── taxonomy.types.ts   # the six files as apps/taxonomy writes them, and the panel's words for them
-│   ├── keys.ts             # the lake layout, the only place the panel names a path
-│   ├── lake.ts             # reads and writes under .s3
-│   └── yarn.ts             # runs a yarn command
+│   ├── panel.ts            # binds each adapter to the repo
+│   ├── <domain>/<action>.api.ts
+│   ├── taxonomy/types.ts   # the six files as apps/taxonomy writes them, and the panel's words for them
+│   ├── ledger/types.ts     # one saved unit of edits, and the ledger they make
+│   └── util/               # what the domains share
+│       ├── assert-editable.ts # refuses a write to anything but the newest draft
+│       ├── keys.ts         # the lake layout, the only place the panel names a path
+│       ├── lake.ts         # reads and writes under .s3
+│       └── yarn.ts         # runs a yarn command
 ├── renderer/               # the React window
 └── electron.vite.config.ts
 ```
@@ -60,7 +63,7 @@ adapters do and touches nothing in `renderer/`.
 
 ## Gotchas
 
-- **The PoeWatch name list is a stub.** `prices.getNames.api.ts` returns nothing, so "Listed
+- **The PoeWatch name list is a stub.** `prices/getNames.api.ts` returns nothing, so "Listed
   as" is typed by hand until something publishes the names.
 - **yarn needs a shell on Windows.** An argument holding `"`, `%`, `$` or a backtick is refused
   rather than passed through, since the shell would expand it.

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import type { Condition, Tiering } from "../../api/taxonomy.types.ts";
-import type { Resolution } from "../../api/taxonomy.resolve.api.ts";
+import type { Condition, Tiering } from "../../api/taxonomy/types.ts";
+import type { Resolution } from "../../api/taxonomy/resolve.api.ts";
 import { ConditionsEditor } from "../components/conditions-editor.tsx";
 import { Modal } from "../components/modal.tsx";
 import { Segmented } from "../components/segmented.tsx";
@@ -10,6 +10,7 @@ import { useEditable } from "../hooks/use-editable.ts";
 import { useTopCategories } from "../hooks/use-top-categories.ts";
 import { useSession } from "../session-store.ts";
 import type { CategoryTarget } from "../types.ts";
+import { categoryDeleteProblem } from "../utils/category-delete-problem.ts";
 import { categoryDialogTitle } from "../utils/category-dialog-title.ts";
 import { categoryPath } from "../utils/category-path.ts";
 import { newCategoryProblem } from "../utils/new-category-problem.ts";
@@ -26,7 +27,9 @@ export function CategoryModal({ target }: { readonly target: CategoryTarget }) {
   const editable = useEditable();
   const versionId = useSession((state) => state.versionId);
   const saved = useSession((state) => state.saved);
-  const editCategory = useSession((state) => state.editCategory);
+  const saveCategory = useSession((state) => state.saveCategory);
+  const deleteCategory = useSession((state) => state.deleteCategory);
+  const busy = useSession((state) => state.busy);
   const closeDialog = useSession((state) => state.closeDialog);
 
   const existing = target.kind === "edit" ? draft?.categories[target.path] : undefined;
@@ -58,6 +61,15 @@ export function CategoryModal({ target }: { readonly target: CategoryTarget }) {
     target.kind === "edit" ? undefined : newCategoryProblem(slug, path, draft?.categories[path] !== undefined);
 
   const title = categoryDialogTitle(target, existing !== undefined);
+  const deletable = target.kind === "edit" && existing !== undefined && editable;
+  const deleteProblem = deletable && draft !== undefined ? categoryDeleteProblem(draft, path) : undefined;
+
+  const remove = () => {
+    if (!window.confirm(`Delete ${path}? Undo brings it back.`)) return;
+    void deleteCategory(path).then(() => {
+      if (useSession.getState().error === undefined) closeDialog();
+    });
+  };
 
   return (
     <Modal
@@ -65,16 +77,30 @@ export function CategoryModal({ target }: { readonly target: CategoryTarget }) {
       onClose={closeDialog}
       footer={
         <>
+          {deletable ? (
+            <button
+              type="button"
+              className="btn"
+              disabled={busy || deleteProblem !== undefined}
+              title={deleteProblem ?? "Delete this category"}
+              onClick={remove}
+            >
+              Delete
+            </button>
+          ) : null}
           <button type="button" className="btn" onClick={closeDialog}>
             Cancel
           </button>
           <button
             type="button"
             className="btn primary"
-            disabled={!editable || problem !== undefined}
+            disabled={!editable || busy || problem !== undefined}
             onClick={() => {
-              editCategory({ path, ...(name.trim() === "" ? {} : { name: name.trim() }), tiering, conditions });
-              closeDialog();
+              void saveCategory({ path, ...(name.trim() === "" ? {} : { name: name.trim() }), tiering, conditions }).then(
+                () => {
+                  if (useSession.getState().error === undefined) closeDialog();
+                },
+              );
             }}
           >
             Save
@@ -108,6 +134,7 @@ export function CategoryModal({ target }: { readonly target: CategoryTarget }) {
           />
         </div>
         {problem === undefined ? null : <p className="err">{problem}</p>}
+        {deleteProblem === undefined ? null : <p className="note">Cannot delete: {deleteProblem}</p>}
         {target.kind === "edit" && existing === undefined ? (
           <p className="note">Rows are filed here but it has no record. Saving writes one.</p>
         ) : null}

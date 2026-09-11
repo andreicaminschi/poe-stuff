@@ -1,4 +1,4 @@
-import { latestTaxonomyKey, registryKey } from "./keys.ts";
+import { latestTaxonomyKey, registryKey } from "../util/keys.ts";
 import type { Lake } from "@poe/lake/types";
 
 type RegistryFile = {

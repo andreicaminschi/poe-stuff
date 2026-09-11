@@ -9,8 +9,7 @@ import { slug } from "../utils/slug.ts";
 export function AuthorModal({ replaces }: { readonly replaces: string }) {
   const draft = useDraft();
   const tops = useTopCategories();
-  const editItem = useSession((state) => state.editItem);
-  const goTo = useSession((state) => state.goTo);
+  const authorRow = useSession((state) => state.authorRow);
   const closeDialog = useSession((state) => state.closeDialog);
 
   const source = draft?.items[replaces];
@@ -35,7 +34,7 @@ export function AuthorModal({ replaces }: { readonly replaces: string }) {
             className="btn primary"
             disabled={problem !== undefined}
             onClick={() => {
-              editItem({
+              authorRow({
                 source: "authored",
                 key,
                 name: name.trim(),
@@ -49,7 +48,6 @@ export function AuthorModal({ replaces }: { readonly replaces: string }) {
                 conditions: [],
                 variants: [],
               });
-              goTo(key);
             }}
           >
             Add row

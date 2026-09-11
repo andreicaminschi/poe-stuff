@@ -1,5 +1,5 @@
-import type { ResolvedCondition } from "../../api/taxonomy.resolve.api.ts";
-import type { Item } from "../../api/taxonomy.types.ts";
+import type { ResolvedCondition } from "../../api/taxonomy/resolve.api.ts";
+import type { Item } from "../../api/taxonomy/types.ts";
 import { ConditionsEditor, type ResolvedView } from "../components/conditions-editor.tsx";
 import { Segmented } from "../components/segmented.tsx";
 import { useConditionNames } from "../hooks/use-condition-names.ts";

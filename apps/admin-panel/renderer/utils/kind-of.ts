@@ -1,4 +1,4 @@
-import type { Condition } from "../../api/taxonomy.types.ts";
+import type { Condition } from "../../api/taxonomy/types.ts";
 import type { Kind } from "../types.ts";
 
 export const kindOf = (condition: Condition): Kind => {

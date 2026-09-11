@@ -1,5 +1,5 @@
-import type { Resolution } from "./taxonomy.resolve.api.ts";
-import { runQuery } from "./yarn.ts";
+import type { Resolution } from "./resolve.api.ts";
+import { runQuery } from "../util/yarn.ts";
 
 type ValidateOutput = {
   readonly problems: readonly { readonly file: string; readonly key: string; readonly problem: string }[];
