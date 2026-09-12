@@ -20,6 +20,13 @@ function bareText(value: Value): string | undefined {
   return undefined;
 }
 
+function orderedText(value: Value): string | undefined {
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean" || value.length === 0) return undefined;
+
+  return value.join(" ");
+}
+
 function booleanText(value: Value): string | undefined {
   if (typeof value !== "boolean") return undefined;
 
@@ -35,7 +42,8 @@ function gemText(value: Value): string | undefined {
 function valueText(kind: ConditionKind, value: Value): string | undefined {
   if (kind === "boolean") return booleanText(value);
   if (kind === "numeric") return typeof value === "number" ? String(value) : undefined;
-  if (kind === "ordered" || kind === "sockets") return bareText(value);
+  if (kind === "ordered") return orderedText(value);
+  if (kind === "sockets") return bareText(value);
   if (kind === "gem") return gemText(value);
 
   return listText(value);

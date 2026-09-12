@@ -15,6 +15,7 @@ export function Items() {
   const selection = useSession((state) => state.selection);
   const selectedKey = useSession((state) => state.selectedKey);
   const selectItem = useSession((state) => state.selectItem);
+  const selectVariant = useSession((state) => state.selectVariant);
   const checked = useSession((state) => state.checked);
   const toggleChecked = useSession((state) => state.toggleChecked);
   const setChecked = useSession((state) => state.setChecked);
@@ -117,7 +118,14 @@ export function Items() {
                 onClick={() => selectItem(row.key, "variants")}
               >
                 {row.variants.slice(0, CHIPS).map((variant) => (
-                  <span className="v" key={variant.name}>
+                  <span
+                    className="v"
+                    key={variant.name}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      selectVariant(row.key, variant.name);
+                    }}
+                  >
                     {variant.name}
                   </span>
                 ))}

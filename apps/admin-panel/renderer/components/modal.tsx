@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 
 export function Modal({
   title,
@@ -13,16 +13,21 @@ export function Modal({
   readonly footer?: ReactNode;
   readonly wide?: boolean;
 }) {
+  const scrim = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+      if (event.key !== "Escape") return;
+      // Only the topmost modal closes.
+      if ([...document.querySelectorAll(".scrim")].at(-1) !== scrim.current) return;
+      onClose();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
   return (
-    <div className="scrim" onClick={onClose}>
+    <div className="scrim" ref={scrim} onClick={onClose}>
       <div
         className={`modal${wide ? " wide" : ""}`}
         role="dialog"

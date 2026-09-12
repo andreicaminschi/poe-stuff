@@ -10,6 +10,7 @@ const hourLabel = (hour: number): string =>
 
 export function RunsPanel() {
   const onClose = useSession((state) => state.closeDialog);
+  const confirm = useSession((state) => state.confirm);
   const [runs, setRuns] = useState<readonly RunSummary[] | undefined>();
   const [force, setForce] = useState<readonly CatalogSource[]>([]);
   const [status, setStatus] = useState<Status>("idle");
@@ -23,7 +24,7 @@ export function RunsPanel() {
   useEffect(load, [load]);
 
   const build = async () => {
-    if (force.length > 0 && !window.confirm(`Refetching ${force.join(", ")} overwrites what that hour's run recorded. Go on?`)) {
+    if (force.length > 0 && !(await confirm(`Refetching ${force.join(", ")} overwrites what that hour's run recorded. Go on?`))) {
       return;
     }
     setStatus("running");
@@ -35,7 +36,7 @@ export function RunsPanel() {
   };
 
   const publish = async (run: RunSummary) => {
-    if (!window.confirm(`Make ${run.id} the current ${run.league} catalog?`)) return;
+    if (!(await confirm(`Make ${run.id} the current ${run.league} catalog?`))) return;
     const result = await window.panel.publishCatalog(run.league, run.hour);
     setStatus(result.ok ? "done" : "failed");
     setLog(result.log);

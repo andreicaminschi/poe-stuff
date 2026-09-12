@@ -1,6 +1,12 @@
 import type { Condition, Level, RemovedCondition, ResolvedCondition } from "../../api/taxonomy/types.ts";
 import type { FromValues, Kind, Origins, ValueOption, ValueOptions } from "../types.ts";
+import { betweenRows } from "../utils/between-rows.ts";
 import { conditionOptions } from "../utils/condition-options.ts";
+import { fromBetween } from "../utils/from-between.ts";
+import { numericCondition } from "../utils/numeric-condition.ts";
+import { raritySet } from "../utils/rarity-set.ts";
+import { RarityValue } from "./rarity-value.tsx";
+import { toBetween } from "../utils/to-between.ts";
 import { formatCondition } from "../utils/format-condition.ts";
 import { kindOf } from "../utils/kind-of.ts";
 import { originText } from "../utils/origin-text.ts";
@@ -44,6 +50,27 @@ const removal = (condition: Condition): Condition => ({
   ...(condition.operator === undefined ? {} : { operator: condition.operator }),
   value: null,
 });
+
+const BETWEEN = "between";
+
+const NUMBER_KINDS: readonly Kind[] = ["number", "remove"];
+
+const kindsFor = (condition: Condition): readonly (readonly [Kind, string])[] =>
+  KINDS.filter(
+    ([kind]) =>
+      (kind !== "from-name" || kindOf(condition) === "from-name") &&
+      (!numericCondition(condition.condition) || NUMBER_KINDS.includes(kind)),
+  );
+
+const isRarity = (name: string): boolean => name.trim().toLowerCase() === "rarity";
+
+const renamed = (condition: Condition, name: string): Condition => {
+  const next = { ...condition, condition: name };
+  if (isRarity(name) && condition.value !== null) return { condition: name, operator: "==", value: raritySet(next) };
+  if (!numericCondition(name) || NUMBER_KINDS.includes(kindOf(next))) return next;
+
+  return withKind(next, "number");
+};
 
 const keyOf = (condition: Condition): string => `${condition.condition} ${condition.operator ?? "=="}`;
 
@@ -108,63 +135,153 @@ export function ConditionsEditor({
           )}
         </div>
         {own.length === 0 ? <p className="note">None.</p> : null}
-        {own.map((condition, index) => (
-          <div className={`crow own${kindOf(condition) === "remove" ? " removed" : ""}`} key={index}>
-            <ComboBox
-              ariaLabel="Condition"
-              placeholder="Condition"
-              value={condition.condition}
-              options={allNames}
-              disabled={disabled}
-              onChange={(name) => replace(index, { ...condition, condition: name })}
-            />
-            <select
-              className="mono"
-              value={condition.operator ?? "=="}
-              disabled={disabled}
-              onChange={(event) => replace(index, { ...condition, operator: event.target.value })}
-            >
-              {OPERATORS.map((operator) => (
-                <option key={operator} value={operator}>
-                  {operator}
-                </option>
-              ))}
-            </select>
-            <select
-              value={kindOf(condition)}
-              title={HINTS[kindOf(condition)] ?? ""}
-              disabled={disabled}
-              onChange={(event) => replace(index, withKind(condition, event.target.value as Kind))}
-            >
-              {KINDS.filter(([kind]) => kind !== "from-name" || kindOf(condition) === "from-name").map(([kind, label]) => (
-                <option key={kind} value={kind} title={HINTS[kind] ?? ""}>
-                  {label}
-                </option>
-              ))}
-            </select>
-            <ValueEditor
-              condition={condition}
-              disabled={disabled}
-              onChange={(next) => replace(index, next)}
-              {...(row === undefined ? {} : { row })}
-              {...(valueOptions?.[condition.condition] === undefined
-                ? {}
-                : { options: valueOptions[condition.condition] as readonly ValueOption[] })}
-            />
-            {disabled ? (
-              <span />
-            ) : (
-              <button
-                type="button"
-                className="btn icon"
-                title="Delete"
-                onClick={() => onChange(own.filter((_, at) => at !== index))}
+        {betweenRows(own).map((entry) => {
+          if (entry.kind === "between") {
+            const { low, high, from, to } = entry;
+            return (
+              <div className="crow own" key={`between ${low} ${high}`}>
+                <ComboBox
+                  ariaLabel="Condition"
+                  placeholder="Condition"
+                  value={from.condition}
+                  options={allNames}
+                  disabled={disabled}
+                  onChange={(name) =>
+                    onChange?.(own.map((condition, at) => (at === low || at === high ? { ...condition, condition: name } : condition)))
+                  }
+                />
+                <select
+                  className="mono"
+                  value={BETWEEN}
+                  disabled={disabled}
+                  onChange={(event) => onChange?.(fromBetween(own, low, high, event.target.value))}
+                >
+                  {[...OPERATORS, BETWEEN].map((operator) => (
+                    <option key={operator} value={operator}>
+                      {operator}
+                    </option>
+                  ))}
+                </select>
+                <span className="faint">number</span>
+                <div className="between">
+                  <ValueEditor condition={from} disabled={disabled} onChange={(next) => replace(low, next)} />
+                  <span className="faint">to</span>
+                  <ValueEditor condition={to} disabled={disabled} onChange={(next) => replace(high, next)} />
+                </div>
+                {disabled ? (
+                  <span />
+                ) : (
+                  <button
+                    type="button"
+                    className="btn icon"
+                    title="Delete"
+                    onClick={() => onChange(own.filter((_, at) => at !== low && at !== high))}
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            );
+          }
+
+          const { index, condition } = entry;
+          if (isRarity(condition.condition) && condition.value !== null) {
+            return (
+              <div className="crow own" key={index}>
+                <ComboBox
+                  ariaLabel="Condition"
+                  placeholder="Condition"
+                  value={condition.condition}
+                  options={allNames}
+                  disabled={disabled}
+                  onChange={(name) => replace(index, renamed(condition, name))}
+                />
+                <span className="mono faint">==</span>
+                <span className="faint">rarity</span>
+                <RarityValue
+                  value={raritySet(condition)}
+                  disabled={disabled}
+                  onChange={(value) => replace(index, { condition: condition.condition, operator: "==", value })}
+                />
+                {disabled ? (
+                  <span />
+                ) : (
+                  <button
+                    type="button"
+                    className="btn icon"
+                    title="Delete"
+                    onClick={() => onChange(own.filter((_, at) => at !== index))}
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            );
+          }
+
+          const numeric = numericCondition(condition.condition);
+          return (
+            <div className={`crow own${kindOf(condition) === "remove" ? " removed" : ""}`} key={index}>
+              <ComboBox
+                ariaLabel="Condition"
+                placeholder="Condition"
+                value={condition.condition}
+                options={allNames}
+                disabled={disabled}
+                onChange={(name) => replace(index, renamed(condition, name))}
+              />
+              <select
+                className="mono"
+                value={condition.operator ?? "=="}
+                disabled={disabled}
+                onChange={(event) =>
+                  event.target.value === BETWEEN
+                    ? onChange?.(toBetween(own, index))
+                    : replace(index, { ...condition, operator: event.target.value })
+                }
               >
-                ×
-              </button>
-            )}
-          </div>
-        ))}
+                {(numeric ? [...OPERATORS, BETWEEN] : OPERATORS).map((operator) => (
+                  <option key={operator} value={operator}>
+                    {operator}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={kindOf(condition)}
+                title={HINTS[kindOf(condition)] ?? ""}
+                disabled={disabled}
+                onChange={(event) => replace(index, withKind(condition, event.target.value as Kind))}
+              >
+                {kindsFor(condition).map(([kind, label]) => (
+                  <option key={kind} value={kind} title={HINTS[kind] ?? ""}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+              <ValueEditor
+                condition={condition}
+                disabled={disabled}
+                onChange={(next) => replace(index, next)}
+                {...(row === undefined ? {} : { row })}
+                {...(valueOptions?.[condition.condition] === undefined
+                  ? {}
+                  : { options: valueOptions[condition.condition] as readonly ValueOption[] })}
+              />
+              {disabled ? (
+                <span />
+              ) : (
+                <button
+                  type="button"
+                  className="btn icon"
+                  title="Delete"
+                  onClick={() => onChange(own.filter((_, at) => at !== index))}
+                >
+                  ×
+                </button>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {resolved === undefined ? null : (

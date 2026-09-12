@@ -1,4 +1,4 @@
-import type { Condition, ListingMatch, TaxonomyVariant } from "@poe/taxonomy/types";
+import type { Condition, Listing, TaxonomyVariant } from "@poe/taxonomy/types";
 
 /** A taxonomy variant, with the Chaos mean of the listing its selector picked. */
 export type PricedVariant = TaxonomyVariant & {
@@ -64,7 +64,7 @@ export type Item = {
   /** The row's priced variants, copied the same way, each with its own mean. */
   readonly variants?: readonly PricedVariant[];
   /** Which PoeWatch listing prices the row, copied from the taxonomy. */
-  readonly listing?: ListingMatch;
+  readonly listing?: Listing;
   /**
    * PoeWatch's mean for the row, in Chaos. A listing price, not a sale price. A row with
    * variants prices each of them and not itself.

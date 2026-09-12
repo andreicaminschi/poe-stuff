@@ -1,15 +1,16 @@
 import type { PriceName } from "../../api/panel-api.ts";
-import type { ValueOption } from "../types.ts";
+import type { PriceOption } from "../types.ts";
+import { describeListing } from "./describe-listing.ts";
 
-/** Listing and exchange names as one sorted option per name, carrying every label it has. */
-export function mergePriceNames(listings: readonly PriceName[], exchange: readonly PriceName[]): readonly ValueOption[] {
-  const labels = new Map<string, string[]>();
+/** Listings and exchange names as one sorted option per listing, carrying every label it has. */
+export function mergePriceNames(listings: readonly PriceName[], exchange: readonly PriceName[]): readonly PriceOption[] {
+  const byValue = new Map<string, PriceOption>();
 
-  for (const { name, label } of [...listings, ...exchange]) {
-    labels.set(name, [...(labels.get(name) ?? []), label]);
+  for (const { label, listing } of [...listings, ...exchange]) {
+    const value = describeListing(listing);
+    const seen = byValue.get(value);
+    byValue.set(value, { value, label: seen?.label === undefined ? label : `${seen.label} · ${label}`, listing });
   }
 
-  return [...labels]
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([value, list]) => ({ value, label: list.join(" · ") }));
+  return [...byValue.values()].sort((a, b) => a.value.localeCompare(b.value));
 }

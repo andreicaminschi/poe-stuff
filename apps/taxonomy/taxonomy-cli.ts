@@ -122,12 +122,15 @@ async function main(): Promise<void> {
   }
 
   if (command === "publish") {
-    const keys = await publishTaxonomy(
+    const published = await publishTaxonomy(
       lake,
       named,
       await versionTable(lake, named, readRejectedBaseTypes()),
     );
-    process.stdout.write(`published ${named} -> ${keys.join(", ")}\n`);
+    process.stdout.write(
+      `published ${named} -> ${published.keys.join(", ")}\n` +
+        `left out ${published.rowsLeftOut} rows and ${published.variantsLeftOut} variants with no listing\n`,
+    );
     return;
   }
 

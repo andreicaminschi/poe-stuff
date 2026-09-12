@@ -1,4 +1,4 @@
-import type { Category, Item, Level } from "../api/taxonomy/types.ts";
+import type { Category, Item, Level, ListingMatch } from "../api/taxonomy/types.ts";
 
 export type Changes = {
   readonly items: Readonly<Record<string, Item>>;
@@ -36,6 +36,9 @@ export type BootStep = {
 /** One suggestion in a searchable picker. The label shows under the value. */
 export type ValueOption = { readonly value: string; readonly label?: string };
 
+/** A "Listed as" choice: the listing's text, and the query that finds it. */
+export type PriceOption = ValueOption & { readonly listing: ListingMatch };
+
 /** Suggestions per condition name, such as `Class` and `BaseType`. */
 export type ValueOptions = Readonly<Record<string, readonly ValueOption[]>>;
 
@@ -56,6 +59,7 @@ export type Dialog =
   | { readonly kind: "changes" }
   | { readonly kind: "compiled" }
   | { readonly kind: "category"; readonly target: CategoryTarget }
-  | { readonly kind: "author"; readonly replaces: string };
+  | { readonly kind: "author"; readonly replaces: string }
+  | { readonly kind: "discover" };
 
 export type Kind = "text" | "number" | "flag" | "list" | "from-name" | "from-baseTypes" | "remove";

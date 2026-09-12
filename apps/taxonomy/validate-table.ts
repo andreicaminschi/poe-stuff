@@ -27,6 +27,9 @@ const PRICE_KEYS: Readonly<Record<string, "number" | "boolean" | "string">> = {
   itemLevel: "number",
   mapTier: "number",
   tier: "number",
+  frame: "number",
+  influences: "string",
+  synthesised: "boolean",
 };
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
@@ -42,6 +45,19 @@ const unknownFields = (value: Record<string, unknown>, known: readonly string[])
   Object.keys(value).filter((key) => !known.includes(key));
 
 export function listingProblem(value: unknown): string | null {
+  if (!Array.isArray(value)) return queryProblem(value);
+  if (value.length === 0) return "listing is an empty list";
+
+  for (const query of value) {
+    const problem = queryProblem(query);
+
+    if (problem !== null) return problem;
+  }
+
+  return null;
+}
+
+function queryProblem(value: unknown): string | null {
   if (!isObject(value)) return "listing is not an object";
 
   const keys = Object.keys(value);

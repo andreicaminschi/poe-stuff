@@ -1,20 +1,18 @@
 import type { PoeWatchService } from "@poe/poe-watch/service";
+import type { ListingMatch } from "../taxonomy/types.ts";
+import { listingQuery } from "./listing-query.ts";
 
-/** One name PoeWatch lists under, and what it is there: its category, or the exchange. */
-export type PriceName = { readonly name: string; readonly label: string };
+/** One listing a row can price off: the query that finds it, and what it is there. */
+export type PriceName = { readonly name: string; readonly label: string; readonly listing: ListingMatch };
 
-/** Every name PoeWatch lists an item under, once each, with its category and form count. */
+/** Every PoeWatch listing, one each, with its category, price and volume. */
 export async function getListingNames(poeWatch: PoeWatchService, league: string): Promise<readonly PriceName[]> {
-  const byName = new Map<string, { readonly category: string; readonly forms: number }>();
+  const listings = await poeWatch.getCompactData(league);
 
-  for (const listing of await poeWatch.getCompactData(league)) {
-    const seen = byName.get(listing.name);
-    byName.set(listing.name, { category: seen?.category ?? listing.category, forms: (seen?.forms ?? 0) + 1 });
-  }
-
-  return [...byName].map(([name, { category, forms }]) => ({
-    name,
-    label: forms === 1 ? category : `${category} · ${forms} forms`,
+  return listings.map((listing) => ({
+    name: listing.name,
+    label: `${listing.category} · ${Math.round(listing.mean)}c · ${listing.daily}/d`,
+    listing: listingQuery(listing),
   }));
 }
 
@@ -22,5 +20,5 @@ export async function getListingNames(poeWatch: PoeWatchService, league: string)
 export async function getExchangeNames(poeWatch: PoeWatchService, league: string): Promise<readonly PriceName[]> {
   const ratios = await poeWatch.getExchangeRatios(league, "poe1");
 
-  return [...new Set(ratios.map((ratio) => ratio.name))].map((name) => ({ name, label: "exchange" }));
+  return [...new Set(ratios.map((ratio) => ratio.name))].map((name) => ({ name, label: "exchange", listing: { name } }));
 }

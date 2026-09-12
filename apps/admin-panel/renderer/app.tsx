@@ -3,6 +3,8 @@ import { AuthorModal } from "./dialogs/author-modal.tsx";
 import { CategoryModal } from "./dialogs/category-modal.tsx";
 import { ChangesPanel } from "./dialogs/changes-panel.tsx";
 import { CompiledPanel } from "./dialogs/compiled-panel.tsx";
+import { ConfirmDialog } from "./dialogs/confirm-dialog.tsx";
+import { DiscoverVariants } from "./dialogs/discover-variants.tsx";
 import { RunsPanel } from "./dialogs/runs-panel.tsx";
 import { ValidationPanel } from "./dialogs/validation-panel.tsx";
 import { useCurrentVersion } from "./hooks/use-current-version.ts";
@@ -80,6 +82,8 @@ export function App() {
       {dialog?.kind === "compiled" ? <CompiledPanel /> : null}
       {dialog?.kind === "category" ? <CategoryModal target={dialog.target} /> : null}
       {dialog?.kind === "author" ? <AuthorModal replaces={dialog.replaces} /> : null}
+      {dialog?.kind === "discover" ? <DiscoverVariants /> : null}
+      <ConfirmDialog />
     </div>
   );
 }

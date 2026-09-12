@@ -5,6 +5,8 @@ export type Condition = {
   readonly from?: string;
 };
 
+export type Listing = ListingMatch | readonly ListingMatch[];
+
 export type ListingMatch = {
   readonly name?: string;
   readonly passives?: string;
@@ -15,12 +17,15 @@ export type ListingMatch = {
   readonly itemLevel?: number;
   readonly mapTier?: number;
   readonly tier?: number;
+  readonly frame?: number;
+  readonly influences?: string;
+  readonly synthesised?: boolean;
 };
 
 export type AuthoredVariant = {
   readonly name: string;
   readonly conditions: readonly Condition[];
-  readonly listing?: ListingMatch;
+  readonly listing?: Listing;
 };
 
 export type VariantTable = Readonly<Record<string, readonly AuthoredVariant[]>>;
@@ -34,7 +39,7 @@ export type AuthoredRow = {
   readonly reason: string;
   readonly excluded?: boolean;
   readonly conditions?: readonly Condition[];
-  readonly listing?: ListingMatch;
+  readonly listing?: Listing;
 };
 
 export type AuthoredTable = Readonly<Record<string, AuthoredRow>>;
@@ -67,7 +72,7 @@ export type AuthoredEntry = {
   readonly tradedOnExchange?: boolean;
   readonly excluded?: boolean;
   readonly conditions?: readonly Condition[];
-  readonly listing?: ListingMatch;
+  readonly listing?: Listing;
 };
 
 export type TaxonomyTable = Readonly<Record<string, AuthoredEntry>>;

@@ -1,5 +1,5 @@
 import type { Item } from "../../api/taxonomy/types.ts";
-import { ComboBox } from "../components/combo-box.tsx";
+import { ListingPicker } from "../components/listing-picker.tsx";
 import { ConditionsEditor, type ResolvedView } from "../components/conditions-editor.tsx";
 import { Segmented } from "../components/segmented.tsx";
 import { useConditionNames } from "../hooks/use-condition-names.ts";
@@ -14,7 +14,6 @@ import { withDisplayName } from "../utils/with-display-name.ts";
 import { withExcluded } from "../utils/with-excluded.ts";
 import { withFlag } from "../utils/with-flag.ts";
 import { withListing } from "../utils/with-listing.ts";
-import { withListingName } from "../utils/with-listing-name.ts";
 
 type Tri = "sources" | "yes" | "no";
 
@@ -208,18 +207,20 @@ export function ItemPane({
         <h4>Price</h4>
         <div className="fld">
           <label htmlFor="row-listed">Listed as</label>
-          <ComboBox
+          <ListingPicker
             id="row-listed"
-            placeholder={item.name}
-            value={item.listing?.name ?? ""}
+            placeholder={hasVariants ? "Not used: the variants are priced" : "Required: pick a PoeWatch listing"}
+            listing={item.listing}
             options={priceOptions}
             disabled={!editable}
-            onChange={(name) => editItem(withListing(item, withListingName(item.listing, name)))}
+            onPick={(listing) => editItem(withListing(item, listing))}
           />
         </div>
         <p className="note">
-          Empty means the row's own name.{hasVariants ? " This row has variants, so each variant's price is read instead." : ""}
-          {priceOptions.length === 0 ? " PoeWatch's names did not download, so type the listing name." : ""}
+          {hasVariants
+            ? "Not required. This row has variants, so each variant's listing is read and this one is ignored."
+            : "Required. The exact listing this row prices off; without one the row is not published."}
+          {priceOptions.length === 0 ? " PoeWatch's listings did not download." : ""}
         </p>
       </div>
 

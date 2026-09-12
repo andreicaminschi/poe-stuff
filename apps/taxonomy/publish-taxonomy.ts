@@ -3,11 +3,17 @@ import { assertPublishable, entryOf, readRegistry, writeRegistry } from "./regis
 import type { Lake } from "@poe/lake/types";
 import type { Version } from "./types.ts";
 
+export type Published = {
+  readonly keys: readonly string[];
+  readonly rowsLeftOut: number;
+  readonly variantsLeftOut: number;
+};
+
 export async function publishTaxonomy(
   lake: Lake,
   version: string,
   table: Version,
-): Promise<readonly string[]> {
+): Promise<Published> {
   const registry = await readRegistry(lake);
   assertPublishable(registry, version);
 
@@ -19,12 +25,23 @@ export async function publishTaxonomy(
     }
   }
 
-  const fold = <T extends object>(rows: Readonly<Record<string, T>>) =>
-    Object.fromEntries(
-      Object.entries(rows).map(([id, row]) => {
-        const variants = table.variants[id];
+  let rowsLeftOut = 0;
+  let variantsLeftOut = 0;
 
-        return [id, variants === undefined ? row : { ...row, variants }];
+  const fold = <T extends { readonly listing?: unknown; readonly excluded?: boolean }>(
+    rows: Readonly<Record<string, T>>,
+  ) =>
+    Object.fromEntries(
+      Object.entries(rows).flatMap(([id, row]) => {
+        const all = table.variants[id] ?? [];
+        const variants = all.filter((variant) => variant.listing !== undefined);
+        variantsLeftOut += all.length - variants.length;
+
+        if (variants.length > 0) return [[id, { ...row, variants }]];
+        if (row.listing !== undefined || row.excluded === true) return [[id, row]];
+
+        rowsLeftOut += 1;
+        return [];
       }),
     );
 
@@ -47,5 +64,5 @@ export async function publishTaxonomy(
     },
   });
 
-  return keys;
+  return { keys, rowsLeftOut, variantsLeftOut };
 }

@@ -10,6 +10,7 @@ const item: GggItem = {
   name: "a",
   classification: { category: "currency", subcategory: null },
   conditions: [],
+  listing: { name: "a" },
   variants: [],
 };
 
@@ -79,6 +80,16 @@ describe("useSession", () => {
     expect(useSession.getState().error).toBe("disk full");
     expect(Object.keys(useSession.getState().changes.items)).toEqual(["a"]);
     expect(useSession.getState().ledger).toEqual([]);
+  });
+
+  it("refuses to save an item with no listing, and names it", async () => {
+    const { listing: _drop, ...unlisted } = item;
+    useSession.getState().editItem(unlisted);
+    await useSession.getState().save();
+
+    expect(appendLedger).not.toHaveBeenCalled();
+    expect(useSession.getState().error).toBe('Pick "Listed as" before saving: a');
+    expect(Object.keys(useSession.getState().changes.items)).toEqual(["a"]);
   });
 
   it("saves a category as its own entry", async () => {

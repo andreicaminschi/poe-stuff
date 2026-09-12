@@ -34,6 +34,8 @@ function open(): void {
     },
   });
 
+  window.maximize();
+
   const devUrl = process.env.ELECTRON_RENDERER_URL;
 
   if (devUrl === undefined) void window.loadFile(join(import.meta.dirname, "../renderer/index.html"));

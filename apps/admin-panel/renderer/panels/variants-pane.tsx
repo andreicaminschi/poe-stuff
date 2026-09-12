@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { Item, Resolution, Variant } from "../../api/taxonomy/types.ts";
-import { ComboBox } from "../components/combo-box.tsx";
+import { ListingPicker } from "../components/listing-picker.tsx";
 import { ConditionsEditor } from "../components/conditions-editor.tsx";
 import { useConditionNames } from "../hooks/use-condition-names.ts";
 import { useValueOptions } from "../hooks/use-value-options.ts";
@@ -10,7 +10,6 @@ import { conditionOrigins } from "../utils/condition-origins.ts";
 import { displayName } from "../utils/display-name.ts";
 import { fromValues } from "../utils/from-values.ts";
 import { withListing } from "../utils/with-listing.ts";
-import { withListingName } from "../utils/with-listing-name.ts";
 
 const freshName = (list: readonly Variant[]): string => {
   const taken = new Set(list.map((variant) => variant.name));
@@ -30,17 +29,16 @@ export function VariantsPane({
   const valueOptions = useValueOptions();
   const editable = useEditable();
   const editItem = useSession((state) => state.editItem);
+  const openDialog = useSession((state) => state.openDialog);
   const priceOptions = useSession((state) => state.priceOptions);
   const { variants } = item;
-  const [selected, setSelected] = useState<string | undefined>(variants[0]?.name);
+  const selected = useSession((state) => state.selectedVariant);
+  const setSelected = useSession((state) => state.setVariant);
   const [filter, setFilter] = useState("");
 
-  useEffect(() => {
-    if (!variants.some((variant) => variant.name === selected)) setSelected(variants[0]?.name);
-  }, [variants, selected]);
-
   const change = (next: readonly Variant[]) => editItem({ ...item, variants: next });
-  const index = variants.findIndex((variant) => variant.name === selected);
+  const found = variants.findIndex((variant) => variant.name === selected);
+  const index = found === -1 ? 0 : found;
   const current = variants[index];
   const update = (next: Variant) => {
     change(variants.map((variant, at) => (at === index ? next : variant)));
@@ -77,7 +75,7 @@ export function VariantsPane({
               key={variant.name}
               role="button"
               tabIndex={0}
-              className={`variant${variant.name === selected ? " on" : ""}`}
+              className={`variant${variant.name === current?.name ? " on" : ""}`}
               onClick={() => setSelected(variant.name)}
               onKeyDown={(event) => {
                 if (event.key === "Enter") setSelected(variant.name);
@@ -113,6 +111,11 @@ export function VariantsPane({
             + Variant
           </button>
         ) : null}
+        {editable ? (
+          <button type="button" className="btn tiny ghost wide" onClick={() => openDialog({ kind: "discover" })}>
+            Discover from PoeWatch
+          </button>
+        ) : null}
       </div>
 
       {current === undefined ? null : (
@@ -135,16 +138,16 @@ export function VariantsPane({
             {duplicate ? <p className="err">Two variants share this name.</p> : null}
             <div className="fld">
               <label htmlFor="variant-listed">Listed as</label>
-              <ComboBox
+              <ListingPicker
                 id="variant-listed"
-                placeholder="the row's listing"
-                value={current.listing?.name ?? ""}
+                placeholder="Required: pick a PoeWatch listing"
+                listing={current.listing}
                 options={priceOptions}
                 disabled={!editable}
-                onChange={(name) => update(withListing(current, withListingName(current.listing, name)))}
+                onPick={(listing) => update(withListing(current, listing))}
               />
             </div>
-            <p className="note">Empty inherits the row's listing name.</p>
+            <p className="note">Required. The exact listing this variant prices off.</p>
           </div>
           <div className="grp">
             <h4>Conditions</h4>

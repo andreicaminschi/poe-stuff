@@ -1,5 +1,6 @@
 import type { RunSummary } from "./catalog/getRuns.api.ts";
 import type { CompiledFilter, CompileSkip } from "./filter/compile.api.ts";
+import type { Form } from "./prices/getForms.api.ts";
 import type { PriceName } from "./prices/getNames.api.ts";
 import type { Ledger, LedgerEntry } from "./ledger/types.ts";
 import type { Draft, DraftChanges } from "./taxonomy/types.ts";
@@ -21,6 +22,7 @@ export type PanelApi = {
   publishCatalog(league: string, hour: number): Promise<ActionResult>;
   getListingNames(): Promise<readonly PriceName[]>;
   getExchangeNames(): Promise<readonly PriceName[]>;
+  getForms(name: string): Promise<readonly Form[]>;
   getLedger(id: string): Promise<Ledger>;
   appendLedger(id: string, entry: LedgerEntry): Promise<void>;
   popLedger(id: string, seq: number): Promise<void>;
@@ -41,6 +43,7 @@ export const API_NAMES = [
   "publishCatalog",
   "getListingNames",
   "getExchangeNames",
+  "getForms",
   "getLedger",
   "appendLedger",
   "popLedger",
@@ -60,6 +63,7 @@ export type {
   CompileSkip,
   Draft,
   DraftChanges,
+  Form,
   Ledger,
   LedgerEntry,
   PriceName,

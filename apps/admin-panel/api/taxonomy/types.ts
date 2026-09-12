@@ -1,11 +1,12 @@
 import type {
   Condition,
+  Listing,
   ListingMatch,
   TaxonomyVariant,
   TieringMethod,
 } from "@poe/taxonomy/types";
 
-export type { Condition, ListingMatch };
+export type { Condition, Listing, ListingMatch };
 
 import type { RemovedCondition, ResolvedCondition } from "@poe/filter-compile/types";
 
@@ -34,7 +35,7 @@ type ItemFields = {
   readonly name: string;
   readonly classification: Classification;
   readonly conditions: readonly Condition[];
-  readonly listing?: ListingMatch;
+  readonly listing?: Listing;
   readonly variants: readonly Variant[];
   readonly excluded?: boolean;
 };
@@ -87,7 +88,7 @@ export type ItemRow = {
   readonly tradedOnExchange?: boolean;
   readonly excluded?: boolean;
   readonly conditions?: readonly Condition[];
-  readonly listing?: ListingMatch;
+  readonly listing?: Listing;
 };
 
 export type AuthoredRow = {
@@ -99,7 +100,7 @@ export type AuthoredRow = {
   readonly reason: string;
   readonly excluded?: boolean;
   readonly conditions?: readonly Condition[];
-  readonly listing?: ListingMatch;
+  readonly listing?: Listing;
 };
 
 export type CategoryRecord = {

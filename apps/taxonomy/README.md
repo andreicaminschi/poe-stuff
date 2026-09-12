@@ -267,8 +267,19 @@ it; among the matches, the most-listed one is read.
 ```
 
 The keys are `gemLevel`, `gemQuality`, `gemIsCorrupted`, `linkCount`, `itemLevel`, `mapTier`,
-`tier`, `passives`, and `name` — the listing's own name, for a row PoeWatch lists under
-something other than its display name; a variant without one inherits its row's. **Absent
+`tier`, `passives`, `frame`, `influences`, `synthesised`, and `name` — the listing's own name, for a row PoeWatch lists under
+something other than its display name; a variant without one inherits its row's.
+`listing` may also be a list of queries, to link one row to several listings — every unique
+Heavy Belt on Heavy Belt. An empty list is refused. The taxonomy only records the links; the
+catalog reads each and keeps the dearest as the row's price.
+`influences` is PoeWatch's own string, such as `"shaper,warlord"`. `synthesised` is not a
+PoeWatch field: the catalog reads it off the listing's icon.
+
+**A row with no `listing` is not published.** It stays in the draft until someone gives it
+one, and `publish` leaves it out and says how many it left. A variant with no `listing` is
+left out the same way. A row with variants needs no `listing` of its own: it is published
+while at least one variant has one, and its own `listing` is ignored. An `excluded` row needs
+no `listing` either, and is published as it is. A row the Currency Exchange trades needs one too: `{ "name": … }`. **Absent
 means the most-listed row for the name**, which is what every row without variants gets. An item without variants may carry `listing` itself, for a base that
 should not price at whatever form is listed most. A selector that matches nothing — a gem
 key on a base — leaves the row unpriced, and is not an error.

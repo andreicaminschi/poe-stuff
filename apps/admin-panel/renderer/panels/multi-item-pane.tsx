@@ -9,6 +9,7 @@ import { useSession } from "../session-store.ts";
 import { pathOf } from "../utils/path-of.ts";
 import { sharedConditions } from "../utils/shared-conditions.ts";
 import { sharedValue } from "../utils/shared-value.ts";
+import { withExcluded } from "../utils/with-excluded.ts";
 import { withSharedConditions } from "../utils/with-shared-conditions.ts";
 
 const MIXED = "*mixed*";
@@ -34,6 +35,7 @@ export function MultiItemPane() {
       : sharedValue(items.map((item) => (item.classification.subcategory === null ? "" : pathOf(item.classification))));
   const top = categories.find((node) => node.path === category);
 
+  const excludedCount = items.filter((item) => item.excluded === true).length;
   const shared = sharedConditions(items);
   const withExtras = items.filter((item) => item.conditions.length > shared.length).length;
 
@@ -110,6 +112,31 @@ export function MultiItemPane() {
           </select>
         </div>
         {category === undefined ? <p className="note">Pick one category before setting a subcategory.</p> : null}
+      </div>
+
+      <div className="grp">
+        <h4>Excluded</h4>
+        <div className="row">
+          <button
+            type="button"
+            className="btn"
+            disabled={!editable || excludedCount === items.length}
+            onClick={() => editItems(items.map((item) => withExcluded(item, true)))}
+          >
+            Exclude all
+          </button>
+          <button
+            type="button"
+            className="btn"
+            disabled={!editable || excludedCount === 0}
+            onClick={() => editItems(items.map((item) => withExcluded(item, false)))}
+          >
+            Include all
+          </button>
+        </div>
+        <p className="note">
+          {excludedCount} of {items.length} are excluded.
+        </p>
       </div>
 
       <div className="grp">

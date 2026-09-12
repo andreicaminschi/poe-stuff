@@ -10,6 +10,9 @@ export type Condition = {
   readonly from?: string;
 };
 
+/** One query, or several when a row links more than one listing. */
+export type Listing = ListingMatch | readonly ListingMatch[];
+
 export type ListingMatch = {
   readonly name?: string;
   readonly passives?: string;
@@ -20,12 +23,15 @@ export type ListingMatch = {
   readonly itemLevel?: number;
   readonly mapTier?: number;
   readonly tier?: number;
+  readonly frame?: number;
+  readonly influences?: string;
+  readonly synthesised?: boolean;
 };
 
 export type TaxonomyVariant = {
   readonly name: string;
   readonly conditions: readonly Condition[];
-  readonly listing?: ListingMatch;
+  readonly listing?: Listing;
 };
 
 export type TaxonomyEntry = {
@@ -39,7 +45,7 @@ export type TaxonomyEntry = {
   readonly excluded?: boolean;
   readonly conditions?: readonly Condition[];
   readonly variants?: readonly TaxonomyVariant[];
-  readonly listing?: ListingMatch;
+  readonly listing?: Listing;
 };
 
 export type TaxonomyAuthored = {
@@ -52,7 +58,7 @@ export type TaxonomyAuthored = {
   readonly excluded?: boolean;
   readonly conditions?: readonly Condition[];
   readonly variants?: readonly TaxonomyVariant[];
-  readonly listing?: ListingMatch;
+  readonly listing?: Listing;
 };
 
 export type TieringMethod = "chaos" | "stack-size";
