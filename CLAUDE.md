@@ -14,10 +14,16 @@ second reads the filter language: `@poe/item-parser` turns one item's copied tex
 shape the language can be asked about, and `@poe/filter-eval` parses a `.filter` and decides
 which block takes an item.
 
-**Nothing writes a `.filter` today.** `apps/generator` did, as a proof of concept, and was
-deleted rather than reworked: it read tier floors in Chaos and nothing else, and a category
+**Nothing writes a styled `.filter` today.** `apps/generator` did, as a proof of concept, and
+was deleted rather than reworked: it read tier floors in Chaos and nothing else, and a category
 whose rungs are stack sizes rather than prices does not fit that shape. The catalog still
 produces everything such a tool needs, so what replaces it starts from `catalog.json`.
+`yarn catalog:compile` writes an unstyled `.filter`, one `Show` block per row or variant, so
+the game client can say which condition lines it rejects. It checks the taxonomy and is not
+the product.
+
+[README.md](README.md) describes the product end to end: the pipeline from taxonomy to
+`.filter`, the catalog's row contract, and what the generator has and has not decided.
 
 ## Tiers
 
@@ -76,6 +82,7 @@ docs/plans/            # feature plans. Gitignored and never pushed
 research/              # design notes, archived. Not a spec of what is built
 queries.json           # hand-written trade searches. Belongs to the deprecated collector
 influence-queries.json # generated, 2 MB, tracked. Belongs to the deprecated collector
+README.md              # the product end to end: pipeline, catalog contract, generator status
 techdebt.md            # what the repo knowingly duplicates and does not do yet
 tsconfig.json          # one config. Type-checks apps, lib and services — not packages
 jest.config.js         # plain .js: jest loads config before any transform exists
@@ -100,7 +107,7 @@ reachable contact, and a default would send one that does not exist. No service 
 | `@poe/poe-ninja` | `@poe/poe-ninja/service`, `/get-leagues.types`, `/get-item-overview.types`, `/get-exchange-overview.types`, `/get-league-items.types`, `/get-exchange-ratios.types`, `/errors`, `/types` | poe.ninja's economy API, as a second opinion on the market PoeWatch scrapes. One league is 28 item calls plus 18 exchange calls — there is no whole-market endpoint. **Nothing imports it yet.** What a row *is* comes from the `type` that was asked for; `itemClass` is unusable and is read nowhere. See [services/poe-ninja/README.md](services/poe-ninja/README.md). |
 | `@poe/lake` | `@poe/lake/service`, `/types` | JSON files under `.s3`, addressed by `/`-joined keys: read, write, atomic write, exists, list, clear. Every app and the taxonomy service store through it. It owns how bytes are stored and never where — each app keeps its own keys. See [services/lake/README.md](services/lake/README.md). |
 | `@poe/taxonomy` | `@poe/taxonomy/service`, `/get-taxonomy.types`, `/get-categories.types`, `/errors`, `/types` | One published version of the item taxonomy, keyed by metadata id, and its category table, published as a separate file and read with `getCategories`. `latest` is a real copy of the promoted version. Read the categories by the rows' `version`, never `latest` twice. **A third party we happen to write ourselves** — `apps/taxonomy` publishes the versions and this reads one back, so the catalog treats it exactly like GGG or RePoE and knows nothing about how it was authored. Reads the published files straight off disk, under a `root` it is given (default `.s3`). Validates nothing. See [services/taxonomy/README.md](services/taxonomy/README.md). |
-| `@poe/repoe` | `@poe/repoe/service`, `/get-base-items.types`, `/get-gems.types`, `/get-spectres.types`, `/get-essences.types`, `/errors`, `/types` | RePoE's exports: the game's own data files, unpacked after each patch and served as static JSON off GitHub Pages. Carries no prices — this is what the game knows about an item, not what the market thinks of it. Six endpoints, each the whole file in one request with no query and no way to ask for less: `base_items.json`, `Gems.min.json`, `Spectres.json`, `Essence.min.json`, `cluster_jewels.json` — which pairs a cluster enchant's mod text with the passive name `EnchantmentPassiveNode` matches — and `ModFoulbornMap.json`, the only published list of which uniques drop foulborn. They share no vocabulary and nothing here reconciles them. Only two take the `.min` variant — `Spectres.min.json` is published empty, and `base_items.min.json` drops null keys rather than whitespace. **Nothing live imports it** — only the deprecated `@poe/filterv2` does. `item_class` is GGG's internal name, not the `Class` a `.filter` matches on. See [services/repoe/README.md](services/repoe/README.md). |
+| `@poe/repoe` | `@poe/repoe/service`, `/get-base-items.types`, `/get-gems.types`, `/get-spectres.types`, `/get-essences.types`, `/get-cluster-jewels.types`, `/get-foulborn-map.types`, `/errors`, `/types` | RePoE's exports: the game's own data files, unpacked after each patch and served as static JSON off GitHub Pages. Carries no prices — this is what the game knows about an item, not what the market thinks of it. Six endpoints, each the whole file in one request with no query and no way to ask for less: `base_items.json`, `Gems.min.json`, `Spectres.json`, `Essence.min.json`, `cluster_jewels.json` — which pairs a cluster enchant's mod text with the passive name `EnchantmentPassiveNode` matches — and `ModFoulbornMap.json`, the only published list of which uniques drop foulborn. They share no vocabulary and nothing here reconciles them. Only two take the `.min` variant — `Spectres.min.json` is published empty, and `base_items.min.json` drops null keys rather than whitespace. `apps/taxonomy` seeds from it: `init` writes a row per base item and transfigured gem, and `seed` writes the gem and cluster-jewel variants. The deprecated `@poe/filterv2` imports it too. `item_class` is GGG's internal name, not the `Class` a `.filter` matches on. See [services/repoe/README.md](services/repoe/README.md). |
 
 ## Libraries
 
@@ -110,7 +117,7 @@ filesystem and no environment, because a desktop client is the plan.
 | Library | Import as | Owns |
 | --- | --- | --- |
 | `@poe/filter-eval` | `@poe/filter-eval/parse-filter`, `/evaluate-filter`, `/filter-ast`, `/format-note` | The `.filter` grammar as code: a parser, an evaluator that decides which block takes an item, and the `#@` note a generated block carries its bucket in. **Depends on nothing, on purpose** — it is the independent reader that checks whatever wrote a filter, and sharing a types file with the writer would end that. See [lib/filter-eval/README.md](lib/filter-eval/README.md). |
-| `@poe/filter-compile` | `@poe/filter-compile/compose`, `/fill-from`, `/condition-line`, `/types` | The one copy of how a row's conditions resolve: category, subcategory, item and variant laid over each other, `from: "name"` and `from: "baseTypes"` filled off the row, and a resolved condition written as a `.filter` line from `@poe/filter-eval`'s registry. `apps/taxonomy` validates with it, so what it reports and what compiles cannot disagree. |
+| `@poe/filter-compile` | `@poe/filter-compile/compose`, `/fill-from`, `/condition-line`, `/resolve-row`, `/types` | The one copy of how a row's conditions resolve: category, subcategory, item and variant laid over each other, `from: "name"` and `from: "baseTypes"` filled off the row, and a resolved condition written as a `.filter` line from `@poe/filter-eval`'s registry. `apps/taxonomy` validates with it, so what it reports and what compiles cannot disagree. |
 | `@poe/item-parser` | `@poe/item-parser/parse-item`, `/resolve-item`, `/to-filter-item`, `/match-mods`, `/mod-text`, `/parse-header`, `/parse-mods`, `/parse-properties`, `/sections`, `/types` | One item's copied text, read back. `parseItem` is pure and needs nothing; `resolveItem` looks each modifier up in GGG's published stat list to get the ids the trade site knows it by; `toFilterItem` turns the result into the shape `@poe/filter-eval` asks conditions about. Nothing about any modifier is written down — matching is against published text, so a modifier that ships next league matches the day it appears. |
 | `@util/cache` | `@util/cache/cache-key`, `/file-cache`, `/sleep` | `cacheKey` for stable file and map keys. `fileCache<T>` — JSON on disk, one file per key, backing every service's response cache. `sleep` is a promise around `setTimeout`. |
 | `@util/env` | `@util/env` | `requireEnv` / `optionalEnv` — the only place `process.env` is read, so a missing variable fails with one message that names it. **The exception to the purity rule, and app-only**: no other library may import it. |
@@ -344,10 +351,13 @@ yarn duplicates --league=Allflame --hour=1788292800
 
 ## Docs
 
+[README.md](README.md) at the root describes the product, for whoever builds the next part.
+Package READMEs describe their own package.
+
 Every service has a `README.md`; `services/ggg` also has Mermaid `.mmd` diagrams in
 `services/ggg/docs/`. `lib/filter-eval` has a `README.md`.
 
-`lib/item-parser`, `lib/cache` and `lib/env` have none. Write one with the `/document`
+`lib/filter-compile`, `lib/item-parser`, `lib/cache` and `lib/env` have none. Write one with the `/document`
 command.
 
 `apps/item-inspect`, `apps/taxonomy` and `apps/collector` have a `README.md`. The taxonomy's
