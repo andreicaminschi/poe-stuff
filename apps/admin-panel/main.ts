@@ -1,10 +1,19 @@
+import { existsSync } from "node:fs";
 import { join } from "node:path";
+import { optionalEnv } from "@util/env";
 import { app, BrowserWindow, ipcMain } from "electron";
 import { repoRoot } from "./api/util/lake.ts";
 import { API_NAMES } from "./api/panel-api.ts";
 import { createPanelService } from "./api/panel.ts";
 
-const service = createPanelService(repoRoot(app.getAppPath()));
+const envFile = join(app.getAppPath(), ".env");
+if (existsSync(envFile)) process.loadEnvFile(envFile);
+
+const service = createPanelService(
+  repoRoot(app.getAppPath()),
+  app.getPath("documents"),
+  optionalEnv("POE_USER_AGENT"),
+);
 
 for (const name of API_NAMES) {
   const call = service[name] as (...args: unknown[]) => Promise<unknown>;

@@ -157,7 +157,7 @@ function groupListings(filed: readonly FiledListing[]): readonly UniqueGroup[] {
  * A listing whose unique the trade list does not name goes nowhere: `Unidentified Foulborn
  * Crusader Chainmail` is a base with a tag and no unique behind it yet, and a name the list
  * has stopped carrying is one nobody can search for. A base two ids share gets the list on
- * both, the way `tradable` marks both.
+ * both.
  */
 export function withUniques(
   rows: readonly Item[],
@@ -177,8 +177,6 @@ export function withUniques(
   }
 
   return rows.map((item) => {
-    if (item.name === null) return item;
-
     const filed = perBase.get(item.name);
     if (filed === undefined) return item;
 

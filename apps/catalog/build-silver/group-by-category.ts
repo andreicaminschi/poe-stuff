@@ -18,8 +18,7 @@ export function groupByCategory(
   const groups = new Map<string, Item[]>();
 
   for (const item of items) {
-    // Only a classified row reaches here, so the category is set.
-    const category = slug(item.category ?? "unknown");
+    const category = slug(item.category);
     const rows = groups.get(category);
 
     if (rows === undefined) groups.set(category, [item]);
@@ -29,11 +28,7 @@ export function groupByCategory(
   return new Map(
     [...groups].map(([category, rows]) => [
       category,
-      [...rows].sort(
-        (a, b) =>
-          (a.name ?? a.key).localeCompare(b.name ?? b.key) ||
-          a.key.localeCompare(b.key),
-      ),
+      [...rows].sort((a, b) => a.name.localeCompare(b.name) || a.key.localeCompare(b.key)),
     ]),
   );
 }

@@ -1,7 +1,6 @@
 import type { GGGService } from "@poe/ggg/service";
 import type { Lake } from "@poe/lake/types";
 import type { PoeWatchService } from "@poe/poe-watch/service";
-import type { RepoeService } from "@poe/repoe/service";
 import type { TaxonomyService } from "@poe/taxonomy/service";
 
 
@@ -12,7 +11,6 @@ export type StepContext = {
   readonly hourId: number;
   readonly ggg: GGGService;
   readonly poeWatch: PoeWatchService;
-  readonly repoe: RepoeService;
   readonly taxonomy: TaxonomyService;
   readonly taxonomyVersion?: string;
 };

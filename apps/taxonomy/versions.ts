@@ -4,10 +4,16 @@ import type { Lake } from "@poe/lake/types";
 import type { Version, VersionFiles } from "./types.ts";
 import { validateCategoryTable } from "./validate-conditions.ts";
 import { validateAuthoredTable } from "./validate-authored.ts";
+import { collectBaseTypes, seedNames } from "./validate-base-types.ts";
+import { throwFirst } from "./validate.ts";
 import { validateTaxonomyTable } from "./validate-table.ts";
 import { validateVariantTable } from "./validate-variants.ts";
 
-export function buildVersion(version: string, files: VersionFiles): Version {
+export function buildVersion(
+  version: string,
+  files: VersionFiles,
+  rejected: ReadonlySet<string>,
+): Version {
   const named = (file: keyof VersionFiles) => sourceKey(version, file);
 
   const items = validateTaxonomyTable(files.items, named("items"));
@@ -16,6 +22,8 @@ export function buildVersion(version: string, files: VersionFiles): Version {
     ...validateAuthoredTable(files["authored.seeded"], named("authored.seeded")),
     ...validateAuthoredTable(files["authored.manual"], named("authored.manual")),
   };
+
+  throwFirst(`${version} authored`, collectBaseTypes(authored, seedNames(items), rejected));
 
   const known = new Set([...Object.keys(items), ...Object.keys(authored)]);
 
@@ -32,6 +40,10 @@ export function buildVersion(version: string, files: VersionFiles): Version {
   };
 }
 
-export async function versionTable(lake: Lake, version: string): Promise<Version> {
-  return buildVersion(version, await readVersionFiles(lake, version));
+export async function versionTable(
+  lake: Lake,
+  version: string,
+  rejected: ReadonlySet<string>,
+): Promise<Version> {
+  return buildVersion(version, await readVersionFiles(lake, version), rejected);
 }

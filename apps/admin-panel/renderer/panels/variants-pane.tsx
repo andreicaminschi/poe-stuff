@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
-import type { Item, Variant } from "../../api/taxonomy/types.ts";
-import type { Resolution } from "../../api/taxonomy/resolve.api.ts";
+import type { Item, Resolution, Variant } from "../../api/taxonomy/types.ts";
+import { ComboBox } from "../components/combo-box.tsx";
 import { ConditionsEditor } from "../components/conditions-editor.tsx";
 import { useConditionNames } from "../hooks/use-condition-names.ts";
+import { useValueOptions } from "../hooks/use-value-options.ts";
 import { useEditable } from "../hooks/use-editable.ts";
 import { useSession } from "../session-store.ts";
+import { conditionOrigins } from "../utils/condition-origins.ts";
+import { displayName } from "../utils/display-name.ts";
+import { fromValues } from "../utils/from-values.ts";
 import { withListing } from "../utils/with-listing.ts";
 import { withListingName } from "../utils/with-listing-name.ts";
 
@@ -18,15 +22,15 @@ const freshName = (list: readonly Variant[]): string => {
 export function VariantsPane({
   item,
   resolutions,
-  stale,
 }: {
   readonly item: Item;
   readonly resolutions?: readonly Resolution[];
-  readonly stale: boolean;
 }) {
   const names = useConditionNames();
+  const valueOptions = useValueOptions();
   const editable = useEditable();
   const editItem = useSession((state) => state.editItem);
+  const priceOptions = useSession((state) => state.priceOptions);
   const { variants } = item;
   const [selected, setSelected] = useState<string | undefined>(variants[0]?.name);
   const [filter, setFilter] = useState("");
@@ -49,7 +53,7 @@ export function VariantsPane({
   return (
     <div className="pane">
       <div className="subhead">
-        <div className="title">{item.name}</div>
+        <div className="title">{displayName(item)}</div>
         <div className="id">
           {variants.length === 0 ? "No variants. The row resolves once, as itself." : `${variants.length} variants`}
         </div>
@@ -131,14 +135,13 @@ export function VariantsPane({
             {duplicate ? <p className="err">Two variants share this name.</p> : null}
             <div className="fld">
               <label htmlFor="variant-listed">Listed as</label>
-              <input
+              <ComboBox
                 id="variant-listed"
-                type="text"
-                list="price-names"
                 placeholder="the row's listing"
                 value={current.listing?.name ?? ""}
+                options={priceOptions}
                 disabled={!editable}
-                onChange={(event) => update(withListing(current, withListingName(current.listing, event.target.value)))}
+                onChange={(name) => update(withListing(current, withListingName(current.listing, name)))}
               />
             </div>
             <p className="note">Empty inherits the row's listing name.</p>
@@ -151,19 +154,18 @@ export function VariantsPane({
               {...(resolution === undefined
                 ? {}
                 : {
-                    inherited: resolution.conditions.filter((condition) => condition.level !== "variant"),
                     resolved: {
-                      label: "This variant matches",
+                      label: "Conditions applied to this variant",
                       conditions: resolution.conditions,
+                      removed: resolution.removed,
                       problems: resolution.problems,
+                      origins: conditionOrigins(item.classification, displayName(item), current.name),
                     },
                   })}
-              note={
-                stale || resolution === undefined
-                  ? "Save to see what this resolves to."
-                  : "Worked out by the taxonomy against the saved draft."
-              }
+              level="variant"
               names={names}
+              row={fromValues(item)}
+              valueOptions={valueOptions}
             />
           </div>
         </div>

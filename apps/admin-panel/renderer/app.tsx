@@ -2,11 +2,13 @@ import { useEffect } from "react";
 import { AuthorModal } from "./dialogs/author-modal.tsx";
 import { CategoryModal } from "./dialogs/category-modal.tsx";
 import { ChangesPanel } from "./dialogs/changes-panel.tsx";
+import { CompiledPanel } from "./dialogs/compiled-panel.tsx";
 import { RunsPanel } from "./dialogs/runs-panel.tsx";
 import { ValidationPanel } from "./dialogs/validation-panel.tsx";
 import { useCurrentVersion } from "./hooks/use-current-version.ts";
 import { useDraft } from "./hooks/use-draft.ts";
 import { useEditable } from "./hooks/use-editable.ts";
+import { BootScreen } from "./panels/boot-screen.tsx";
 import { Categories } from "./panels/categories.tsx";
 import { ItemEditor } from "./panels/item-editor.tsx";
 import { Items } from "./panels/items.tsx";
@@ -19,6 +21,7 @@ export function App() {
   const error = useSession((state) => state.error);
   const dismissError = useSession((state) => state.dismissError);
   const dialog = useSession((state) => state.dialog);
+  const booting = useSession((state) => state.booting);
   const draft = useDraft();
   const version = useCurrentVersion();
   const editable = useEditable();
@@ -46,13 +49,7 @@ export function App() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  if (draft === undefined) {
-    return (
-      <div className="boot">
-        {error === undefined ? <p className="note">Loading…</p> : <pre className="err">{error}</pre>}
-      </div>
-    );
-  }
+  if (booting || draft === undefined) return <BootScreen />;
 
   return (
     <div className="app">
@@ -80,6 +77,7 @@ export function App() {
       {dialog?.kind === "validation" ? <ValidationPanel /> : null}
       {dialog?.kind === "runs" ? <RunsPanel /> : null}
       {dialog?.kind === "changes" ? <ChangesPanel /> : null}
+      {dialog?.kind === "compiled" ? <CompiledPanel /> : null}
       {dialog?.kind === "category" ? <CategoryModal target={dialog.target} /> : null}
       {dialog?.kind === "author" ? <AuthorModal replaces={dialog.replaces} /> : null}
     </div>

@@ -19,6 +19,9 @@ import type {
 
 const toItemRow = (item: GggItem): ItemRow => ({
   name: item.name,
+  ...(item.displayName === undefined || item.displayName.trim() === ""
+    ? {}
+    : { displayName: item.displayName.trim() }),
   category: item.classification.category,
   subcategory: item.classification.subcategory,
   ...(item.filterable === undefined ? {} : { filterable: item.filterable }),
@@ -31,6 +34,7 @@ const toItemRow = (item: GggItem): ItemRow => ({
 
 const toAuthoredRow = (item: AuthoredItem): AuthoredRow => ({
   name: item.name,
+  baseType: item.baseType,
   category: item.classification.category,
   subcategory: item.classification.subcategory,
   ...(item.replaces.length === 0 ? {} : { replaces: item.replaces }),

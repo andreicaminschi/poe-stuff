@@ -1,4 +1,5 @@
 import type { TaxonomyCategories } from "@poe/taxonomy/get-categories.types";
+import { UNPRICED } from "./build-silver.ts";
 import type { Item } from "./item.ts";
 import {
   BRONZE_FILES,
@@ -9,8 +10,6 @@ import {
   manifestKey,
 } from "./lake/keys.ts";
 import type { Manifest, Step } from "./types.ts";
-
-const FILTERABLE = ".filterable.json";
 
 export const buildGold: Step = {
   id: "build-gold",
@@ -26,7 +25,7 @@ export const buildGold: Step = {
 
     const keys = silver.steps
       .flatMap((step) => step.keys)
-      .filter((key) => key.endsWith(FILTERABLE));
+      .filter((key) => !key.endsWith(UNPRICED));
 
     const rows: Item[] = [];
     for (const key of keys) rows.push(...(await lake.readJson<Item[]>(key)));
@@ -41,10 +40,7 @@ export const buildGold: Step = {
 
     const { categories } = await lake.readJson<TaxonomyCategories>(categoriesKey);
 
-    rows.sort(
-      (a, b) => (a.name ?? a.key).localeCompare(b.name ?? b.key) ||
-        a.key.localeCompare(b.key),
-    );
+    rows.sort((a, b) => a.name.localeCompare(b.name) || a.key.localeCompare(b.key));
 
     await lake.clear(goldPrefix(runId));
 

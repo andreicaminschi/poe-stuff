@@ -93,3 +93,48 @@ mod, so it belongs where the other hand-maintained data lives, `apps/taxonomy`.
 
 Nothing needs it today. It was written down when a trade link wanted to name the exact form
 a price came from, and whatever builds that link next will want it again.
+
+#### The taxonomy has one copy
+
+Every version lives in `.s3/taxonomy`, on one disk, out of git. That was the decision — a copy
+per version would grow the repository forever — but until the lake is a real bucket with
+durability of its own, a lost disk loses every patch's hand work. Undoing it is a backup job,
+not a code change.
+
+## `apps/catalog`
+
+### Not done
+
+#### Publishing writes two files, not one
+
+`catalog:publish` copies `catalog.json` and `catalog.categories.json` into `latest/`. Each
+write is atomic, so no reader sees half a file. A failure between the two leaves one new file
+beside one old one, and nothing detects the mismatch. Fixing it means one file, or a manifest
+written last that a reader checks — both change what a consumer reads.
+
+## `apps/admin-panel`
+
+### Duplicated
+
+#### The lake layout, a third time
+
+`api/keys.ts` builds the same key strings as `apps/taxonomy/lake.ts` and
+`services/taxonomy/config.ts`, and the catalog's run layout as `apps/catalog/lake/keys.ts`.
+Reading and writing go through `@poe/lake`, but the keys are each app's own, so this is by
+convention and nothing checks it. A changed layout breaks
+the panel at runtime.
+
+#### The publish rule
+
+`taxonomy.getVersions.api.ts` works out which draft is editable with the same rule as
+`highestDraft` in `apps/taxonomy/registry.ts`: the newest version, while it is a draft. The
+panel needs the answer to draw a read-only screen, and asking the taxonomy would cost a
+process per version list. If the rule changes in one place only, the panel offers edits the
+taxonomy then refuses to publish.
+
+#### The six file shapes
+
+`api/taxonomy.files.ts` restates the file shapes from `apps/taxonomy/types.ts`. They are the
+data model the adapters map from, and a field added to the taxonomy is invisible to the panel
+until it is added here.
+

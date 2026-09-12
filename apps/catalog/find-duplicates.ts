@@ -5,8 +5,6 @@ import type { Item } from "./item.ts";
 export type DuplicateName = {
   readonly name: string;
   readonly ids: readonly string[];
-  /** The `item_class` behind each id, deduplicated. One entry means one kind of thing. */
-  readonly classes: readonly string[];
   readonly categories: readonly string[];
 };
 
@@ -66,9 +64,8 @@ export function findDuplicates(
   const byName = new Map<string, Item[]>();
 
   for (const row of rows) {
-    const name = row.name ?? row.key;
-    const seen = byName.get(name);
-    if (seen === undefined) byName.set(name, [row]);
+    const seen = byName.get(row.name);
+    if (seen === undefined) byName.set(row.name, [row]);
     else seen.push(row);
   }
 
@@ -80,8 +77,7 @@ export function findDuplicates(
     clashes.push({
       name,
       ids: unique(group.map((row) => row.key)),
-      classes: unique(group.map((row) => row.itemClass ?? "-")),
-      categories: unique(group.map((row) => row.category ?? "-")),
+      categories: unique(group.map((row) => row.category)),
     });
   }
 

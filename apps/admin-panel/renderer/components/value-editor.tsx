@@ -1,26 +1,39 @@
 import type { Condition, ConditionValue } from "../../api/taxonomy/types.ts";
+import type { FromValues, ValueOption } from "../types.ts";
 import { kindOf } from "../utils/kind-of.ts";
+import { ComboBox } from "./combo-box.tsx";
 import { ListValue } from "./list-value.tsx";
 
 export function ValueEditor({
   condition,
   onChange,
   disabled,
+  row,
+  options,
 }: {
   readonly condition: Condition;
   readonly onChange: (condition: Condition) => void;
   readonly disabled: boolean;
+  readonly row?: FromValues;
+  readonly options?: readonly ValueOption[];
 }) {
   const set = (value: ConditionValue) => onChange({ ...condition, value });
 
   switch (kindOf(condition)) {
     case "text":
-      return (
+      return options === undefined ? (
         <input
           type="text"
           value={typeof condition.value === "string" ? condition.value : ""}
           disabled={disabled}
           onChange={(event) => set(event.target.value)}
+        />
+      ) : (
+        <ComboBox
+          value={typeof condition.value === "string" ? condition.value : ""}
+          options={options}
+          disabled={disabled}
+          onChange={set}
         />
       );
     case "number":
@@ -54,12 +67,13 @@ export function ValueEditor({
           value={Array.isArray(condition.value) ? condition.value : []}
           disabled={disabled}
           onChange={(value) => set(value)}
+          {...(options === undefined ? {} : { options })}
         />
       );
     case "from-name":
-      return <span className="frozen">the row's own name</span>;
+      return <span className="frozen">{row?.name ?? ""}</span>;
     case "from-baseTypes":
-      return <span className="frozen">the row's base types</span>;
+      return <span className="frozen">{row?.baseTypes.join(", ") ?? ""}</span>;
     case "remove":
       return <span className="frozen removed">removes it from the levels above</span>;
   }

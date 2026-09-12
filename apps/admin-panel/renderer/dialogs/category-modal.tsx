@@ -1,16 +1,18 @@
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
+import { resolvePath } from "@poe/filter-compile/resolve-row";
 import type { Condition, Tiering } from "../../api/taxonomy/types.ts";
-import type { Resolution } from "../../api/taxonomy/resolve.api.ts";
 import { ConditionsEditor } from "../components/conditions-editor.tsx";
 import { Modal } from "../components/modal.tsx";
 import { Segmented } from "../components/segmented.tsx";
 import { useConditionNames } from "../hooks/use-condition-names.ts";
+import { useValueOptions } from "../hooks/use-value-options.ts";
 import { useDraft } from "../hooks/use-draft.ts";
 import { useEditable } from "../hooks/use-editable.ts";
 import { useTopCategories } from "../hooks/use-top-categories.ts";
 import { useSession } from "../session-store.ts";
 import type { CategoryTarget } from "../types.ts";
 import { categoryDeleteProblem } from "../utils/category-delete-problem.ts";
+import { conditionOrigins } from "../utils/condition-origins.ts";
 import { categoryDialogTitle } from "../utils/category-dialog-title.ts";
 import { categoryPath } from "../utils/category-path.ts";
 import { newCategoryProblem } from "../utils/new-category-problem.ts";
@@ -24,9 +26,8 @@ export function CategoryModal({ target }: { readonly target: CategoryTarget }) {
   const draft = useDraft();
   const tops = useTopCategories();
   const names = useConditionNames();
+  const valueOptions = useValueOptions();
   const editable = useEditable();
-  const versionId = useSession((state) => state.versionId);
-  const saved = useSession((state) => state.saved);
   const saveCategory = useSession((state) => state.saveCategory);
   const deleteCategory = useSession((state) => state.deleteCategory);
   const busy = useSession((state) => state.busy);
@@ -38,24 +39,14 @@ export function CategoryModal({ target }: { readonly target: CategoryTarget }) {
   const [name, setName] = useState(existing?.name ?? "");
   const [tiering, setTiering] = useState<Tiering>(existing?.tiering ?? "chaos");
   const [conditions, setConditions] = useState<readonly Condition[]>(existing?.conditions ?? []);
-  const [resolution, setResolution] = useState<Resolution | undefined>();
 
   const isSub = target.kind === "new-subcategory" || (target.kind === "edit" && target.path.includes("/"));
   const path = categoryPath(target, parent, slug);
 
-  useEffect(() => {
-    if (target.kind !== "edit" || versionId === undefined) return;
-    let live = true;
-    window.panel.resolveCategory(versionId, target.path).then(
-      (answer) => {
-        if (live) setResolution(answer);
-      },
-      () => {},
-    );
-    return () => {
-      live = false;
-    };
-  }, [target, versionId, saved]);
+  const composed = useMemo(
+    () => (draft === undefined || path === "" ? undefined : resolvePath({ ...draft.categories, [path]: { conditions } }, path)),
+    [draft, path, conditions],
+  );
 
   const problem =
     target.kind === "edit" ? undefined : newCategoryProblem(slug, path, draft?.categories[path] !== undefined);
@@ -159,14 +150,23 @@ export function CategoryModal({ target }: { readonly target: CategoryTarget }) {
         <ConditionsEditor
           own={conditions}
           {...(editable ? { onChange: setConditions } : {})}
-          {...(resolution === undefined
+          {...(composed === undefined
             ? {}
             : {
-                inherited: resolution.conditions.filter((condition) => isSub && condition.level === "category"),
-                resolved: { label: "An item here matches", conditions: resolution.conditions, problems: resolution.problems },
+                resolved: {
+                  label: "Conditions applied to items here",
+                  conditions: composed.applied,
+                  removed: composed.removed,
+                  problems: [],
+                  origins: conditionOrigins({
+                    category: path.split("/")[0] ?? path,
+                    subcategory: path.split("/")[1] ?? null,
+                  }),
+                },
               })}
-          note={target.kind === "edit" ? "Resolved against the saved draft. ‹name› is each row's own." : "Save the draft to resolve it."}
+          level={isSub ? "subcategory" : "category"}
           names={names}
+          valueOptions={valueOptions}
         />
       </div>
     </Modal>

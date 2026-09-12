@@ -1,8 +1,10 @@
-import type { Condition } from "../../api/taxonomy/types.ts";
-import type { Level, ResolvedCondition } from "../../api/taxonomy/resolve.api.ts";
-import type { Kind } from "../types.ts";
+import type { Condition, Level, RemovedCondition, ResolvedCondition } from "../../api/taxonomy/types.ts";
+import type { FromValues, Kind, Origins, ValueOption, ValueOptions } from "../types.ts";
+import { conditionOptions } from "../utils/condition-options.ts";
 import { formatCondition } from "../utils/format-condition.ts";
 import { kindOf } from "../utils/kind-of.ts";
+import { originText } from "../utils/origin-text.ts";
+import { ComboBox } from "./combo-box.tsx";
 import { ValueEditor } from "./value-editor.tsx";
 
 const OPERATORS = ["==", "=", "!=", "!", "<", "<=", ">", ">="];
@@ -12,16 +14,13 @@ const KINDS: readonly (readonly [Kind, string])[] = [
   ["number", "number"],
   ["flag", "yes/no"],
   ["list", "list"],
-  ["from-name", "row's name"],
-  ["from-baseTypes", "row's base types"],
+  ["from-name", "item's name"],
+  ["from-baseTypes", "item's base type"],
   ["remove", "remove"],
 ];
 
-const LEVEL_LABEL: Readonly<Record<Level, string>> = {
-  category: "From the category",
-  subcategory: "From the subcategory",
-  item: "From the item",
-  variant: "From the variant",
+const HINTS: Readonly<Partial<Record<Kind, string>>> = {
+  remove: "Removes this condition from the levels above.",
 };
 
 const EMPTY: Readonly<Record<Kind, Pick<Condition, "value" | "from">>> = {
@@ -40,71 +39,59 @@ const withKind = (condition: Condition, kind: Kind): Condition => ({
   ...EMPTY[kind],
 });
 
+const removal = (condition: Condition): Condition => ({
+  condition: condition.condition,
+  ...(condition.operator === undefined ? {} : { operator: condition.operator }),
+  value: null,
+});
+
+const keyOf = (condition: Condition): string => `${condition.condition} ${condition.operator ?? "=="}`;
+
+function appliedOrigin(condition: ResolvedCondition, origins: Origins): string {
+  const from = `from ${originText(condition.level, origins)}`;
+  if (condition.overrides === undefined) return from;
+
+  return `${from} · overrides ${condition.overrides.map((level) => originText(level, origins)).join(", ")}`;
+}
+
+const removedOrigin = (condition: RemovedCondition, origins: Origins): string =>
+  `from ${originText(condition.level, origins)}, removed by ${originText(condition.removedBy, origins)}`;
+
 export type ResolvedView = {
   readonly label: string;
   readonly conditions: readonly ResolvedCondition[];
+  readonly removed: readonly RemovedCondition[];
   readonly problems: readonly string[];
+  readonly origins: Origins;
 };
 
 export function ConditionsEditor({
   own,
   onChange,
-  inherited,
   resolved,
   note,
   names,
+  row,
+  valueOptions,
+  level,
 }: {
   readonly own: readonly Condition[];
   readonly onChange?: (conditions: readonly Condition[]) => void;
-  readonly inherited?: readonly ResolvedCondition[];
   readonly resolved?: ResolvedView;
   readonly note?: string;
   readonly names: readonly string[];
+  readonly row?: FromValues;
+  readonly valueOptions?: ValueOptions;
+  /** The level these conditions are authored at. A condition from above can be removed for it. */
+  readonly level: Level;
 }) {
   const disabled = onChange === undefined;
   const replace = (index: number, next: Condition) =>
     onChange?.(own.map((condition, at) => (at === index ? next : condition)));
-  const levels = [...new Set((inherited ?? []).map((condition) => condition.level))];
+  const allNames = conditionOptions(names, "").map((value) => ({ value }));
 
   return (
     <div className="conditions">
-      <datalist id="condition-names">
-        {names.map((name) => (
-          <option key={name} value={name} />
-        ))}
-      </datalist>
-
-      {levels.map((level) => (
-        <div className="clevel" key={level}>
-          <div className="cap">{LEVEL_LABEL[level]}</div>
-          {(inherited ?? [])
-            .filter((condition) => condition.level === level)
-            .map((condition) => (
-              <div className="crow inherited" key={`${condition.condition} ${condition.operator ?? "=="}`}>
-                <span className="frozen">{formatCondition(condition)}</span>
-                {disabled ? null : (
-                  <button
-                    type="button"
-                    className="btn icon"
-                    title="Remove here"
-                    onClick={() =>
-                      onChange([
-                        ...own,
-                        {
-                          condition: condition.condition,
-                          ...(condition.operator === undefined ? {} : { operator: condition.operator }),
-                          value: null,
-                        },
-                      ])
-                    }
-                  >
-                    ⊘
-                  </button>
-                )}
-              </div>
-            ))}
-        </div>
-      ))}
 
       <div className="clevel">
         <div className="cap">
@@ -123,13 +110,13 @@ export function ConditionsEditor({
         {own.length === 0 ? <p className="note">None.</p> : null}
         {own.map((condition, index) => (
           <div className={`crow own${kindOf(condition) === "remove" ? " removed" : ""}`} key={index}>
-            <input
-              type="text"
-              list="condition-names"
+            <ComboBox
+              ariaLabel="Condition"
               placeholder="Condition"
               value={condition.condition}
+              options={allNames}
               disabled={disabled}
-              onChange={(event) => replace(index, { ...condition, condition: event.target.value })}
+              onChange={(name) => replace(index, { ...condition, condition: name })}
             />
             <select
               className="mono"
@@ -145,16 +132,25 @@ export function ConditionsEditor({
             </select>
             <select
               value={kindOf(condition)}
+              title={HINTS[kindOf(condition)] ?? ""}
               disabled={disabled}
               onChange={(event) => replace(index, withKind(condition, event.target.value as Kind))}
             >
-              {KINDS.map(([kind, label]) => (
-                <option key={kind} value={kind}>
+              {KINDS.filter(([kind]) => kind !== "from-name" || kindOf(condition) === "from-name").map(([kind, label]) => (
+                <option key={kind} value={kind} title={HINTS[kind] ?? ""}>
                   {label}
                 </option>
               ))}
             </select>
-            <ValueEditor condition={condition} disabled={disabled} onChange={(next) => replace(index, next)} />
+            <ValueEditor
+              condition={condition}
+              disabled={disabled}
+              onChange={(next) => replace(index, next)}
+              {...(row === undefined ? {} : { row })}
+              {...(valueOptions?.[condition.condition] === undefined
+                ? {}
+                : { options: valueOptions[condition.condition] as readonly ValueOption[] })}
+            />
             {disabled ? (
               <span />
             ) : (
@@ -175,13 +171,24 @@ export function ConditionsEditor({
         <>
           <div className="cap">{resolved.label}</div>
           <div className="resolved">
-            {resolved.conditions.length === 0 ? (
-              <span className="faint">Nothing. It matches everything.</span>
-            ) : (
-              resolved.conditions.map((condition) => (
-                <div key={`${condition.condition} ${condition.operator ?? "=="}`}>{formatCondition(condition)}</div>
-              ))
-            )}
+            {resolved.conditions.length === 0 ? <span className="faint">Not drawn: no conditions yet.</span> : null}
+            {resolved.conditions.map((condition) => (
+              <div className="rline" key={`applied ${keyOf(condition)}`}>
+                <span className="cond">{formatCondition(condition)}</span>
+                <span className="origin">{appliedOrigin(condition, resolved.origins)}</span>
+                {disabled || condition.level === level ? null : (
+                  <button type="button" className="btn tiny ghost" onClick={() => onChange([...own, removal(condition)])}>
+                    Remove for this {level}
+                  </button>
+                )}
+              </div>
+            ))}
+            {resolved.removed.map((condition) => (
+              <div className="rline gone" key={`removed ${keyOf(condition)}`}>
+                <span className="cond">{formatCondition(condition)}</span>
+                <span className="origin">{removedOrigin(condition, resolved.origins)}</span>
+              </div>
+            ))}
           </div>
           {resolved.problems.map((problem) => (
             <p className="err" key={problem}>

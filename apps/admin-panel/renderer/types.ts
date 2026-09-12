@@ -1,4 +1,4 @@
-import type { Category, Item } from "../api/taxonomy/types.ts";
+import type { Category, Item, Level } from "../api/taxonomy/types.ts";
 
 export type Changes = {
   readonly items: Readonly<Record<string, Item>>;
@@ -23,6 +23,28 @@ export type Tab = "item" | "variants";
 
 export type View = "included" | "excluded";
 
+export type BootState = "waiting" | "running" | "done" | "failed";
+
+/** One line of the opening screen. */
+export type BootStep = {
+  readonly id: string;
+  readonly label: string;
+  readonly state: BootState;
+  readonly detail?: string;
+};
+
+/** One suggestion in a searchable picker. The label shows under the value. */
+export type ValueOption = { readonly value: string; readonly label?: string };
+
+/** Suggestions per condition name, such as `Class` and `BaseType`. */
+export type ValueOptions = Readonly<Record<string, readonly ValueOption[]>>;
+
+/** The name behind each level a condition can come from, e.g. `category: "StackableCurrency"`. */
+export type Origins = Readonly<Partial<Record<Level, string>>>;
+
+/** What a `from` condition fills in on one item. */
+export type FromValues = { readonly name: string; readonly baseTypes: readonly string[] };
+
 export type CategoryTarget =
   | { readonly kind: "edit"; readonly path: string }
   | { readonly kind: "new-category" }
@@ -32,6 +54,7 @@ export type Dialog =
   | { readonly kind: "validation" }
   | { readonly kind: "runs" }
   | { readonly kind: "changes" }
+  | { readonly kind: "compiled" }
   | { readonly kind: "category"; readonly target: CategoryTarget }
   | { readonly kind: "author"; readonly replaces: string };
 

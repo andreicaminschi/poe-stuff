@@ -30,6 +30,7 @@ export type TaxonomyVariant = {
 
 export type TaxonomyEntry = {
   readonly name: string;
+  readonly displayName?: string;
   readonly category: string;
   readonly subcategory: string | null;
   readonly filterable?: boolean;
@@ -43,6 +44,7 @@ export type TaxonomyEntry = {
 
 export type TaxonomyAuthored = {
   readonly name: string;
+  readonly baseType: string;
   readonly category: string;
   readonly subcategory: string | null;
   readonly replaces?: readonly string[];

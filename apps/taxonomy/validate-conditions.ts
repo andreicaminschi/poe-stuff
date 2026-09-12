@@ -97,11 +97,12 @@ export function conditionsProblem(value: unknown): string | null {
 
 const TIERING: readonly TieringMethod[] = ["chaos", "stack-size"];
 
-const PATH = /^[a-z0-9-]+(\/[a-z0-9-]+)?$/;
+const NAME = String.raw`[^/\s](?:[^/]*[^/\s])?`;
+const PATH = new RegExp(`^${NAME}(?:/${NAME})?$`);
 
 function categoryProblem(path: string, record: unknown): string | null {
   if (!PATH.test(path)) {
-    return 'is not a category path — expected "category" or "category/subcategory", slugged';
+    return 'is not a category path — expected "category" or "category/subcategory", with no spaces at either end of a name';
   }
 
   if (!isObject(record)) return "is not an object";

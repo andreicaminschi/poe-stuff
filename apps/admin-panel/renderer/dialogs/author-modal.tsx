@@ -14,11 +14,12 @@ export function AuthorModal({ replaces }: { readonly replaces: string }) {
 
   const source = draft?.items[replaces];
   const [name, setName] = useState(source?.name ?? "");
+  const [baseType, setBaseType] = useState(source?.name ?? "");
   const [category, setCategory] = useState(source?.classification.category ?? tops[0]?.path ?? "");
   const [reason, setReason] = useState("");
 
   const key = `authored/${slug(name)}`;
-  const problem = authoredRowProblem({ name, key, taken: draft?.items[key] !== undefined, reason });
+  const problem = authoredRowProblem({ name, baseType, key, taken: draft?.items[key] !== undefined, reason });
 
   return (
     <Modal
@@ -38,6 +39,7 @@ export function AuthorModal({ replaces }: { readonly replaces: string }) {
                 source: "authored",
                 key,
                 name: name.trim(),
+                baseType: baseType.trim(),
                 classification: {
                   category,
                   subcategory:
@@ -61,6 +63,15 @@ export function AuthorModal({ replaces }: { readonly replaces: string }) {
           <input id="author-name" type="text" value={name} onChange={(event) => setName(event.target.value)} />
         </div>
         <p className="note mono">{key}</p>
+        <div className="fld">
+          <label htmlFor="author-base-type">Base type</label>
+          <input
+            id="author-base-type"
+            type="text"
+            value={baseType}
+            onChange={(event) => setBaseType(event.target.value)}
+          />
+        </div>
         <div className="fld">
           <label htmlFor="author-category">Category</label>
           <select id="author-category" value={category} onChange={(event) => setCategory(event.target.value)}>

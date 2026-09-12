@@ -136,6 +136,7 @@ describe("useSession", () => {
       source: "authored" as const,
       key: "authored/new",
       name: "New",
+      baseType: "New",
       classification: { category: "currency", subcategory: null },
       reason: "why",
       replaces: ["a"],

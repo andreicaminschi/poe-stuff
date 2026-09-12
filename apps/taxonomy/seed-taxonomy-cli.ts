@@ -2,6 +2,7 @@ import { createRepoeService } from "@poe/repoe/service";
 import { createLakeService } from "@poe/lake/service";
 import { sourceKey } from "./lake.ts";
 import { entryOf, highestDraft, readRegistry } from "./registry.ts";
+import { readRejectedBaseTypes } from "./rejected-base-types.ts";
 import { seedTaxonomy } from "./seed-taxonomy.ts";
 import type { Lake } from "@poe/lake/types";
 import type { SourceFile } from "./types.ts";
@@ -29,7 +30,7 @@ async function main(): Promise<void> {
     throw new Error(`${version} is published and cannot be reseeded. Create a new version.`);
   }
 
-  const { items } = await versionTable(lake, version);
+  const { items } = await versionTable(lake, version, readRejectedBaseTypes());
   const { variants, authored, counts } = await seedTaxonomy(items, createRepoeService());
 
   const files = [

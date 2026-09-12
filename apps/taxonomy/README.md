@@ -106,8 +106,15 @@ and nothing deeper.
 subcategory — and the parent of its children. Five categories today have both: `base-type`,
 `currency`, `flask`, `map` and `valdo-map`.
 
-**A category in use with no record throws at resolution.** Every row under it would
-otherwise vanish from the generated filter with nothing saying so.
+**A category with no record adds no conditions, and that is fine.** Conditions are written
+by hand, never generated, so most categories start with none. A row is drawn as soon as any
+of its levels — category, subcategory, the row itself, or the variant — has a condition. A
+row with none is not drawn yet, and compile lists it as "has no conditions yet".
+
+**A category name is whatever you call it.** A seeded row is filed under its RePoE
+`item_class`, such as `StackableCurrency` or `Active Skill Gem`, and that name can hold a
+record as it is. A key is one name or `name/name`: no `/` inside a name, and no spaces at
+either end.
 
 **A category says what its tier floors count.** `tiering` is `chaos` or `stack-size`, and
 absent means `chaos` — 89 of the 90 categories, where a floor is a price and the catalog
@@ -132,7 +139,7 @@ A condition is structured. Nothing anywhere holds a line of filter text.
 | `condition` | The `.filter` condition name, spelled as [docs/item-filter-syntax.md](../../docs/item-filter-syntax.md) spells it. |
 | `operator` | Defaults to `==`. Present so `MapTier >= 11` and `GemLevel >= 20` can be written when they are needed. |
 | `value` | A literal: string, number, boolean, or list of strings. **`null` removes** the condition an earlier level authored. |
-| `from` | Reads the value off the catalog row instead. `name` or `baseTypes`, and nothing else. |
+| `from` | Reads the value off the taxonomy row instead. `name` is the row's name. `baseTypes` is `[name]` on a plain row and `[baseType]` on an authored row. Nothing else. |
 
 `value` and `from` are the two ways to say the same thing, so a condition carries exactly one
 of them.
@@ -280,6 +287,7 @@ Beside `category` and `subcategory`, an entry may state three things the sources
 | `filterable` | A `.filter` cannot name this row. The client rejects `Alpine Shaman` while `Bearded Shaman` drops, and nothing but the client knows. |
 | `tradable` | The trade site lists this name. RePoE marks the blighted map trade proxy untradable while the site lists 145 names against it. |
 | `tradedOnExchange` | The same, for the Currency Exchange. |
+| `displayName` | An internal name the admin panel shows and edits. `init` seeds it as the RePoE name. Nothing that resolves conditions, fills `from` or prices a row reads it — those read `name`. |
 | `excluded` | Nobody wants this row drawn. It is real and nameable, stays in its category's `.json`, and never reaches a `.filterable.json`. An authored row may carry it too. |
 
 ## Authored rows
@@ -295,6 +303,7 @@ it does off a real row.
 ```json
 "authored/vaal-aspect": {
   "name": "Vaal Aspect",
+  "baseType": "Vaal Aspect",
   "category": "currency",
   "subcategory": "maps",
   "replaces": [ "Metadata/Items/UniqueFragments/FragmentUniqueMap26_1", "..." ],
@@ -306,6 +315,12 @@ it does off a real row.
 rows a filter cannot tell apart collapse into the one it can write; without it, the row is one
 no source has at all. `reason` is required — a hand-written row with no reason records that
 somebody decided, not what they decided.
+
+`baseType` is required and is what a filter writes; `name` is only what the row is called, and
+the two may differ — `Absolution of Inspiring` is drawn by `Absolution`. A valid `baseType` is
+the name of a seed row in the same version and is not in
+[rejected-base-types.json](rejected-base-types.json), the git-tracked list of names the client
+refused to load. That list is filled by hand, one failed filter load at a time.
 
 ## What the validator refuses
 
@@ -321,17 +336,21 @@ and a published version is immutable.
   item nor an authored row in the version.
 - An authored row keyed by anything but `authored/` and a slug, with no `reason`, or with
   an empty `replaces`.
+- An authored row with no `baseType`, a `baseType` no seed row is named, or one in
+  `rejected-base-types.json`.
 - A `listing` match with an unknown key, a wrong value type, or no keys at all.
-- A category key that is not `category` or `category/subcategory`, slugged.
+- A category key that is not `category` or `category/subcategory`, or a name with spaces at
+  either end.
 
 `publish` fails on the first bad row and names it. `validate` runs the same rules and reports
 every bad row at once — see `validate.ts`, where one rule is read both ways.
 
 The rest fail at resolution, in `resolve-conditions.ts`, where the row that needed the answer
-can be named: a category with no record, an empty resolved set, a name carrying a quote, two
-variants resolving identically. A subcategory with no record is not one of them — it is an
-empty layer. `validate` reports a category nobody has authored once, with its row count,
-rather than once per row.
+can be named: a name or base type carrying a quote, a `from` it cannot fill, two variants
+resolving identically. A category or subcategory with no record is not one of them — it is
+an empty layer — and neither is a row that resolves to nothing, which is simply not drawn
+yet. `validate` lists the categories nobody has authored once each, with a row count, as
+information.
 
 ## Environment
 

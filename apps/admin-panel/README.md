@@ -39,8 +39,7 @@ Every call the window makes is one `.api.ts`. It names the data model — what t
 command holds — and the domain model the window works in, and maps one to the other.
 
 - **Data calls** read and write the lake directly (`getVersions`, `getVersion`, `saveDraft`,
-  `getRuns`), or parse JSON off a command's stdout (`validate`, `resolveItem`,
-  `resolveCategory`).
+  `getRuns`, the ledger calls), or parse JSON off a command's stdout (`validate`).
 - **Actions** run a yarn command, and the exit code is the whole answer (`createVersion`,
   `publishVersion`, `promoteVersion`, `buildCatalog`, `publishCatalog`). Their output is shown
   to a person and never parsed.
@@ -55,16 +54,25 @@ adapters do and touches nothing in `renderer/`.
   changed into the four hand-edited files. It never writes the two `.seeded` files.
 - **An edited seeded list or row is copied into the hand-written file**, which then replaces
   the seeded one whole.
-- **"This item matches" comes from the taxonomy.** `yarn taxonomy resolve` runs against the
-  saved draft, so an unsaved edit shows its result after a save. The panel computes no
-  override.
+- **Everything works off the working version**: the draft's files, the ledger replayed, and
+  the unsaved edits on top. "This item matches", "This variant matches" and the category
+  preview are worked out in the window with `@poe/filter-compile`, the same resolver the
+  taxonomy validates with and the catalog compiles with, so they follow every edit at once.
+  Validate and Compile stage the working version in a throwaway lake and run there.
 - **Publish validates, publishes and promotes**, in that order, after a confirm.
+- **Compile filter is temporary.** It stages the working version in a throwaway lake, publishes
+  the copy there, and runs `yarn catalog:compile` against it. The result
+  lands in `Documents/My Games/Path of Exile/taxonomy-compiled.filter`, so the game client can
+  say which lines it rejects. The real lake is only read.
 - **One league, Allflame. One catalog build at a time**, because GGG counts requests per IP.
 
 ## Gotchas
 
-- **The PoeWatch name list is a stub.** `prices/getNames.api.ts` returns nothing, so "Listed
-  as" is typed by hand until something publishes the names.
+- **PoeWatch's names download when the panel opens**, behind the progress screen, through
+  `@poe/poe-watch` with the same hourly file cache under `.s3/.cache` every service uses. The
+  first open in an hour downloads tens of megabytes; later ones read from disk. A failed
+  download leaves "Listed as" typed by hand. `POE_USER_AGENT` in `apps/admin-panel/.env` is
+  optional and overrides PoeWatch's default user agent.
 - **yarn needs a shell on Windows.** An argument holding `"`, `%`, `$` or a backtick is refused
   rather than passed through, since the shell would expand it.
 - **The repo is found two folders above the app.** A packaged build has no repo there and will

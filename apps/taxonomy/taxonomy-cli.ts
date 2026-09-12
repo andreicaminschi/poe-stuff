@@ -5,6 +5,7 @@ import { initTaxonomy } from "./init-taxonomy.ts";
 import { promoteTaxonomy } from "./promote-taxonomy.ts";
 import { publishTaxonomy } from "./publish-taxonomy.ts";
 import { readVersionFiles } from "./read-version-files.ts";
+import { readRejectedBaseTypes } from "./rejected-base-types.ts";
 import { highestDraft, readRegistry, versionNumber } from "./registry.ts";
 import {
   resolutionProblems,
@@ -48,13 +49,14 @@ async function list(lake: Lake): Promise<void> {
 
 async function validate(lake: Lake, version: string): Promise<void> {
   const files = await readVersionFiles(lake, version);
-  const problems = collectVersion(files);
+  const rejected = readRejectedBaseTypes();
+  const problems = collectVersion(files, rejected);
 
   if (problems.length > 0) {
     return json({ problems, resolution: [], unauthored: {} });
   }
 
-  const table = buildVersion(version, files);
+  const table = buildVersion(version, files, rejected);
 
   json({
     problems,
@@ -66,7 +68,7 @@ async function validate(lake: Lake, version: string): Promise<void> {
 async function resolve(lake: Lake, version: string, args: readonly string[]): Promise<void> {
   const id = flag(args, "id");
   const category = flag(args, "category");
-  const table = await versionTable(lake, version);
+  const table = await versionTable(lake, version, readRejectedBaseTypes());
 
   if (id !== undefined) return json(resolveRow(table, id));
   if (category !== undefined) return json(resolveCategory(table, category));
@@ -120,7 +122,11 @@ async function main(): Promise<void> {
   }
 
   if (command === "publish") {
-    const keys = await publishTaxonomy(lake, named, await versionTable(lake, named));
+    const keys = await publishTaxonomy(
+      lake,
+      named,
+      await versionTable(lake, named, readRejectedBaseTypes()),
+    );
     process.stdout.write(`published ${named} -> ${keys.join(", ")}\n`);
     return;
   }

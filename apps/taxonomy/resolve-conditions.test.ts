@@ -73,7 +73,7 @@ describe("resolveRow", () => {
 
     expect(resolveRow(v, "Metadata/G")[0]?.conditions).toEqual([
       { condition: "BaseType", operator: "==", value: "Empower", level: "category" },
-      { condition: "GemLevel", operator: ">=", value: 4, level: "variant" },
+      { condition: "GemLevel", operator: ">=", value: 4, level: "variant", overrides: ["item"] },
       { condition: "GemLevel", operator: "<=", value: 4, level: "item" },
     ]);
   });
@@ -103,12 +103,25 @@ describe("resolveRow", () => {
     expect(b?.problems).toEqual(['resolves the same as variant "a"']);
   });
 
-  it("reports a missing category record instead of throwing", () => {
+  it("treats a missing category record as no conditions, not a problem", () => {
     const v = version({ items: { "Metadata/X": row("X", "nowhere", "deeper") } });
+    const [resolution] = resolveRow(v, "Metadata/X");
 
-    expect(resolveRow(v, "Metadata/X")[0]?.problems).toEqual([
-      'is filed under "nowhere", which has no category record',
-      "resolves to no conditions, so matches everything",
+    expect(resolution?.conditions).toEqual([]);
+    expect(resolution?.problems).toEqual([]);
+  });
+
+  it("draws a row off its own condition when its category has no record", () => {
+    const v = version({
+      items: {
+        "Metadata/X": row("X", "Active Skill Gem", null, {
+          conditions: [{ condition: "BaseType", operator: "==", from: "name" }],
+        }),
+      },
+    });
+
+    expect(resolveRow(v, "Metadata/X")[0]?.conditions).toEqual([
+      { condition: "BaseType", operator: "==", value: "X", level: "item" },
     ]);
   });
 
@@ -128,6 +141,44 @@ describe("resolveRow", () => {
     ]);
   });
 
+  it("reads from:baseTypes as the row's name on a plain row", () => {
+    const v = version({
+      categories: { gem: { conditions: [{ condition: "BaseType", operator: "==", from: "baseTypes" }] } },
+      items: { "Metadata/G": row("Empower", "gem", null) },
+    });
+
+    expect(resolveRow(v, "Metadata/G")[0]?.conditions).toEqual([
+      { condition: "BaseType", operator: "==", value: ["Empower"], level: "category" },
+    ]);
+  });
+
+  it("reads from:baseTypes as an authored row's baseType, and from:name as its name", () => {
+    const v = version({
+      categories: {
+        gem: {
+          conditions: [
+            { condition: "BaseType", operator: "==", from: "baseTypes" },
+            { condition: "TransfiguredGem", operator: "==", from: "name" },
+          ],
+        },
+      },
+      authored: {
+        "authored/inspiring": {
+          name: "Absolution of Inspiring",
+          baseType: "Absolution",
+          category: "gem",
+          subcategory: null,
+          reason: "transfigured",
+        },
+      },
+    });
+
+    expect(resolveRow(v, "authored/inspiring")[0]?.conditions).toEqual([
+      { condition: "BaseType", operator: "==", value: ["Absolution"], level: "category" },
+      { condition: "TransfiguredGem", operator: "==", value: "Absolution of Inspiring", level: "category" },
+    ]);
+  });
+
   it("throws on a key the version does not have", () => {
     expect(() => resolveRow(version(), "Metadata/Nope")).toThrow("is not an item");
   });
@@ -144,7 +195,7 @@ describe("resolutionProblems and unauthoredCategories", () => {
     },
   });
 
-  it("reports rows only under categories that have a record", () => {
+  it("reports only the rows that have a problem", () => {
     expect(resolutionProblems(v).map((r) => r.key)).toEqual(["Metadata/Q"]);
   });
 

@@ -7,6 +7,14 @@
  * that gets outgrown later: the language fixes its size.
  */
 
+/** The games a condition name belongs to. */
+export const GAMES = ["poe1", "poe2"] as const;
+
+export type Game = (typeof GAMES)[number];
+
+const POE1 = ["poe1"] as const satisfies readonly Game[];
+const POE2 = ["poe2"] as const satisfies readonly Game[];
+
 /** Every operator the grammar has. `=` is the default when a line omits one. */
 export type Operator = "=" | "==" | "!" | "!=" | "<" | "<=" | ">" | ">=";
 
@@ -56,101 +64,105 @@ export type SocketSpec = {
  * Closed value sets travel with the name so the parser can reject an off-list value.
  *
  * PoE2-only and deleted names are kept: they cost a line each, and leaving them out would
- * make this registry disagree with the document it is copied from.
+ * make this registry disagree with the document it is copied from. `games` says which game
+ * a name belongs to.
  */
 export const CONDITIONS = {
   // --- boolean -------------------------------------------------------------------------
-  AlternateQuality: { kind: "boolean" },
-  AlwaysShow: { kind: "boolean" }, // PoE2-only
-  AnyEnchantment: { kind: "boolean" },
-  BlightedMap: { kind: "boolean" },
-  Corrupted: { kind: "boolean" },
-  ElderItem: { kind: "boolean" },
-  ElderMap: { kind: "boolean" },
-  Exceptional: { kind: "boolean" },
-  Foulborn: { kind: "boolean" },
-  FracturedItem: { kind: "boolean" },
-  HasCruciblePassiveTree: { kind: "boolean" },
-  HasImplicitMod: { kind: "boolean" },
-  HasVaalUniqueMod: { kind: "boolean" }, // PoE2-only
-  Identified: { kind: "boolean" },
-  Imbued: { kind: "boolean" },
-  IsVaalUnique: { kind: "boolean" }, // PoE2-only
-  MirageMap: { kind: "boolean" },
-  Mirrored: { kind: "boolean" },
-  Replica: { kind: "boolean" },
-  Scourged: { kind: "boolean" },
-  ShapedMap: { kind: "boolean" },
-  ShaperItem: { kind: "boolean" },
-  SynthesisedItem: { kind: "boolean" },
-  TwiceCorrupted: { kind: "boolean" }, // PoE2-only
-  UberBlightedMap: { kind: "boolean" },
-  Vestigial: { kind: "boolean" },
-  ZanaMemory: { kind: "boolean" },
+  AlternateQuality: { kind: "boolean", games: POE1 },
+  AlwaysShow: { kind: "boolean", games: POE2 },
+  AnyEnchantment: { kind: "boolean", games: POE1 },
+  BlightedMap: { kind: "boolean", games: POE1 },
+  Corrupted: { kind: "boolean", games: POE1 },
+  ElderItem: { kind: "boolean", games: POE1 },
+  ElderMap: { kind: "boolean", games: POE1 },
+  Exceptional: { kind: "boolean", games: POE1 },
+  Foulborn: { kind: "boolean", games: POE1 },
+  FracturedItem: { kind: "boolean", games: POE1 },
+  HasCruciblePassiveTree: { kind: "boolean", games: POE1 },
+  HasImplicitMod: { kind: "boolean", games: POE1 },
+  HasVaalUniqueMod: { kind: "boolean", games: POE2 },
+  Identified: { kind: "boolean", games: POE1 },
+  Imbued: { kind: "boolean", games: POE1 },
+  IsVaalUnique: { kind: "boolean", games: POE2 },
+  MirageMap: { kind: "boolean", games: POE1 },
+  Mirrored: { kind: "boolean", games: POE1 },
+  Replica: { kind: "boolean", games: POE1 },
+  Scourged: { kind: "boolean", games: POE1 },
+  ShapedMap: { kind: "boolean", games: POE1 },
+  ShaperItem: { kind: "boolean", games: POE1 },
+  SynthesisedItem: { kind: "boolean", games: POE1 },
+  TwiceCorrupted: { kind: "boolean", games: POE2 },
+  UberBlightedMap: { kind: "boolean", games: POE1 },
+  Vestigial: { kind: "boolean", games: POE1 },
+  ZanaMemory: { kind: "boolean", games: POE1 },
 
   // --- numeric -------------------------------------------------------------------------
-  AreaLevel: { kind: "numeric" },
-  BaseArmour: { kind: "numeric" },
-  BaseDefencePercentile: { kind: "numeric" },
-  BaseEnergyShield: { kind: "numeric" },
-  BaseEvasion: { kind: "numeric" },
-  BaseWard: { kind: "numeric" },
-  CorruptedMods: { kind: "numeric" },
-  DropLevel: { kind: "numeric" },
-  EnchantmentPassiveNum: { kind: "numeric" },
-  GemLevel: { kind: "numeric" },
-  HasEaterOfWorldsImplicit: { kind: "numeric" },
-  HasSearingExarchImplicit: { kind: "numeric" },
-  Height: { kind: "numeric" },
-  ItemLevel: { kind: "numeric" },
-  LinkedSockets: { kind: "numeric" },
-  MapTier: { kind: "numeric" },
-  MemoryStrands: { kind: "numeric" },
-  Quality: { kind: "numeric" },
-  StackSize: { kind: "numeric" },
-  UnidentifiedItemTier: { kind: "numeric" }, // PoE2-only
-  WaystoneTier: { kind: "numeric" }, // PoE2-only
-  Width: { kind: "numeric" },
+  AreaLevel: { kind: "numeric", games: POE1 },
+  BaseArmour: { kind: "numeric", games: POE1 },
+  BaseDefencePercentile: { kind: "numeric", games: POE1 },
+  BaseEnergyShield: { kind: "numeric", games: POE1 },
+  BaseEvasion: { kind: "numeric", games: POE1 },
+  BaseWard: { kind: "numeric", games: POE1 },
+  CorruptedMods: { kind: "numeric", games: POE1 },
+  DropLevel: { kind: "numeric", games: POE1 },
+  EnchantmentPassiveNum: { kind: "numeric", games: POE1 },
+  GemLevel: { kind: "numeric", games: POE1 },
+  HasEaterOfWorldsImplicit: { kind: "numeric", games: POE1 },
+  HasSearingExarchImplicit: { kind: "numeric", games: POE1 },
+  Height: { kind: "numeric", games: POE1 },
+  ItemLevel: { kind: "numeric", games: POE1 },
+  LinkedSockets: { kind: "numeric", games: POE1 },
+  MapTier: { kind: "numeric", games: POE1 },
+  MemoryStrands: { kind: "numeric", games: POE1 },
+  Quality: { kind: "numeric", games: POE1 },
+  StackSize: { kind: "numeric", games: POE1 },
+  UnidentifiedItemTier: { kind: "numeric", games: POE2 },
+  WaystoneTier: { kind: "numeric", games: POE2 },
+  Width: { kind: "numeric", games: POE1 },
 
   // --- ordered -------------------------------------------------------------------------
   // The one condition the doc compares with `<` and `>` against named values.
-  Rarity: { kind: "ordered", order: ["Normal", "Magic", "Rare", "Unique"] },
+  Rarity: { kind: "ordered", order: ["Normal", "Magic", "Rare", "Unique"], games: POE1 },
 
   // --- strings -------------------------------------------------------------------------
   // Open value sets. The doc names no whitelist for any of these.
-  ArchnemesisMod: { kind: "strings" },
-  BaseType: { kind: "strings" },
-  Class: { kind: "strings" },
-  EnchantmentPassiveNode: { kind: "strings" },
+  ArchnemesisMod: { kind: "strings", games: POE1 },
+  BaseType: { kind: "strings", games: POE1 },
+  Class: { kind: "strings", games: POE1 },
+  EnchantmentPassiveNode: { kind: "strings", games: POE1 },
 
   // --- enums ---------------------------------------------------------------------------
   // An item can hold several at once, so the item side of these is a list.
   GemQualityType: {
     kind: "enums",
     values: ["Superior", "Divergent", "Anomalous", "Phantasmal"],
+    games: POE1,
   }, // deleted from the game, kept because the doc still lists it
   HasInfluence: {
     kind: "enums",
     values: ["Shaper", "Elder", "Crusader", "Hunter", "Redeemer", "Warlord", "None"],
+    games: POE1,
   },
 
   // --- sockets -------------------------------------------------------------------------
   // `SocketGroup` asks within one linked group, `Sockets` ignores the links.
-  SocketGroup: { kind: "sockets" },
-  Sockets: { kind: "sockets" },
+  SocketGroup: { kind: "sockets", games: POE1 },
+  Sockets: { kind: "sockets", games: POE1 },
 
   // --- counted -------------------------------------------------------------------------
   // A list of names with an optional count of how many of them must be present.
-  HasEnchantment: { kind: "counted" },
-  HasExplicitMod: { kind: "counted" },
+  HasEnchantment: { kind: "counted", games: POE1 },
+  HasExplicitMod: { kind: "counted", games: POE1 },
 
   // --- gem -----------------------------------------------------------------------------
   // "True/False, gem name" — the only condition that takes either.
-  TransfiguredGem: { kind: "gem" },
+  TransfiguredGem: { kind: "gem", games: POE1 },
 } as const satisfies Record<
   string,
   {
     readonly kind: ConditionKind;
+    readonly games: readonly Game[];
     /** Present on `ordered`: the ladder its values are compared along. */
     readonly order?: readonly string[];
     /** Present on `enums`: the closed set its values must come from. */

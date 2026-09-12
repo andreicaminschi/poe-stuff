@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import type { Draft } from "../../api/taxonomy/types.ts";
 import { Modal } from "../components/modal.tsx";
 import { useSession } from "../session-store.ts";
+import { displayName } from "../utils/display-name.ts";
 import { fieldDiff, type FieldChange } from "../utils/field-diff.ts";
 import { replayLedger } from "../utils/replay-ledger.ts";
 
@@ -46,7 +47,7 @@ export function ChangesPanel() {
           {Object.entries(entry.changes.items ?? {}).map(([key, item]) => (
             <div className="change" key={key}>
               <button type="button" className="problem" onClick={() => goTo(key)}>
-                <span>{item.name}</span>
+                <span>{displayName(item)}</span>
                 <span className="mono faint">{key}</span>
               </button>
               <Diff changes={fieldDiff(before?.items[key], item)} />

@@ -5,10 +5,11 @@
   "private": true,
   "type": "module",
   "dependencies": {
+    "@poe/filter-compile": "workspace:^",
+    "@poe/filter-eval": "workspace:^",
     "@poe/ggg": "workspace:^",
     "@poe/lake": "workspace:^",
     "@poe/poe-watch": "workspace:^",
-    "@poe/repoe": "workspace:^",
     "@poe/taxonomy": "workspace:^",
     "@util/env": "workspace:^",
     "zod": "^4.5.4"

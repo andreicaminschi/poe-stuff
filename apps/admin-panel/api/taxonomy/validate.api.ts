@@ -1,4 +1,7 @@
-import type { Resolution } from "./resolve.api.ts";
+import { rm } from "node:fs/promises";
+import type { Lake } from "@poe/lake/types";
+import type { DraftChanges, Resolution } from "./types.ts";
+import { stageWorking } from "../util/stage-working.ts";
 import { runQuery } from "../util/yarn.ts";
 
 type ValidateOutput = {
@@ -39,6 +42,13 @@ export function toValidation(output: ValidateOutput): Validation {
   };
 }
 
-export async function validate(repo: string, id: string): Promise<Validation> {
-  return toValidation(await runQuery<ValidateOutput>(repo, ["taxonomy", "validate", id]));
+/** The working version — the draft, the ledger and the unsaved edits — validated on a staged copy. */
+export async function validate(repo: string, lake: Lake, id: string, changes: DraftChanges): Promise<Validation> {
+  const root = await stageWorking(lake, id, changes);
+
+  try {
+    return toValidation(await runQuery<ValidateOutput>(repo, ["taxonomy", "validate", id, `--root=${root}`]));
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
 }

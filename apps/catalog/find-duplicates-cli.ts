@@ -57,7 +57,7 @@ async function main(): Promise<void> {
   // list the lake — it reads back exactly what silver said it produced.
   const keys = silver.steps
     .flatMap((step) => step.keys)
-    .filter((key) => key.endsWith(".filterable.json"));
+    .filter((key) => !key.endsWith(".unpriced.json"));
 
   const rows: Item[] = [];
   for (const key of keys) rows.push(...(await lake.readJson<Item[]>(key)));

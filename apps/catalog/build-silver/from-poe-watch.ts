@@ -1,7 +1,6 @@
 import type { ItemData } from "@poe/poe-watch/get-compact-data.types";
 import type { ExchangeRatioItem } from "@poe/poe-watch/get-exchange-ratios.types";
 import type { ListingMatch } from "@poe/taxonomy/types";
-import { isFilterable } from "../item.ts";
 import type { Item, PricedVariant } from "../item.ts";
 
 /**
@@ -75,10 +74,10 @@ function pick(
 }
 
 /**
- * Attaches PoeWatch's mean to every filterable row.
+ * Attaches PoeWatch's mean to every row.
  *
  * Joined on the display name, the only thing the two share — PoeWatch carries no metadata
- * id. A name two ids share prices both, the way `tradable` already marks both.
+ * id. A name two ids share prices both.
  *
  * **The exchange first, listings second.** A row the Currency Exchange trades takes the
  * exchange's price: a volume-weighted mean of actual trades, where compact is what people
@@ -90,9 +89,6 @@ function pick(
  * variant. A row without prices itself, through its own selector when it has one. A
  * selector that matches no listing leaves the field absent rather than failing: a gem key on
  * a base is no price, not an error.
- *
- * Runs after everything that decides whether a row is filterable, and prices nothing else,
- * so the field being there means the generator can use it.
  */
 export function fromPoeWatch(
   rows: readonly Item[],
@@ -110,14 +106,10 @@ export function fromPoeWatch(
   );
 
   return rows.map((item) => {
-    if (item.name === null || !isFilterable(item)) return item;
-
     // The listings are looked up under the selector's name when it has one — a cluster jewel
     // is listed under its enchant — and a variant inherits its row's.
     const listed = (selector: ListingMatch | undefined): readonly ItemData[] =>
-      index.get(
-        listingKey(selector?.name ?? item.listing?.name ?? item.name ?? ""),
-      ) ?? [];
+      index.get(listingKey(selector?.name ?? item.listing?.name ?? item.name)) ?? [];
 
     if (item.variants === undefined) {
       const sale = exchange.get(item.listing?.name ?? item.name);

@@ -1,13 +1,16 @@
-import type { ResolvedCondition } from "../../api/taxonomy/resolve.api.ts";
 import type { Item } from "../../api/taxonomy/types.ts";
+import { ComboBox } from "../components/combo-box.tsx";
 import { ConditionsEditor, type ResolvedView } from "../components/conditions-editor.tsx";
 import { Segmented } from "../components/segmented.tsx";
 import { useConditionNames } from "../hooks/use-condition-names.ts";
+import { useValueOptions } from "../hooks/use-value-options.ts";
 import { useEditable } from "../hooks/use-editable.ts";
 import { useTopCategories } from "../hooks/use-top-categories.ts";
 import { useSession } from "../session-store.ts";
 import type { Flag } from "../types.ts";
+import { fromValues } from "../utils/from-values.ts";
 import { pathOf } from "../utils/path-of.ts";
+import { withDisplayName } from "../utils/with-display-name.ts";
 import { withExcluded } from "../utils/with-excluded.ts";
 import { withFlag } from "../utils/with-flag.ts";
 import { withListing } from "../utils/with-listing.ts";
@@ -36,21 +39,20 @@ const FLAGS: readonly (readonly [Flag, string])[] = [
 
 export function ItemPane({
   item,
-  inherited,
   resolved,
   resolveNote,
   hasVariants,
 }: {
   readonly item: Item;
-  readonly inherited?: readonly ResolvedCondition[];
   readonly resolved?: ResolvedView;
   readonly resolveNote?: string;
   readonly hasVariants: boolean;
 }) {
   const categories = useTopCategories();
   const names = useConditionNames();
+  const valueOptions = useValueOptions();
   const editable = useEditable();
-  const priceNames = useSession((state) => state.priceNames);
+  const priceOptions = useSession((state) => state.priceOptions);
   const editItem = useSession((state) => state.editItem);
   const openDialog = useSession((state) => state.openDialog);
   const { classification } = item;
@@ -58,25 +60,43 @@ export function ItemPane({
 
   return (
     <div className="pane">
-      <div className="subhead">
-        <div className="title">{item.name}</div>
-        <div className="id">{item.key}</div>
+      <div className="grp">
+        <div className="fld">
+          <label htmlFor="row-name">Name</label>
+          <input
+            id="row-name"
+            type="text"
+            value={item.source === "ggg" ? (item.displayName ?? item.name) : item.name}
+            placeholder={item.name}
+            disabled={!editable}
+            onChange={(event) => editItem(withDisplayName(item, event.target.value))}
+          />
+        </div>
+        {item.source === "ggg" ? (
+          <div className="fld">
+            <label>RePoE name</label>
+            <span>{item.name}</span>
+          </div>
+        ) : (
+          <div className="fld">
+            <label htmlFor="row-base-type">Base type</label>
+            <input
+              id="row-base-type"
+              type="text"
+              value={item.baseType}
+              disabled={!editable}
+              onChange={(event) => editItem({ ...item, baseType: event.target.value })}
+            />
+          </div>
+        )}
+        <div className="fld">
+          <label>Metadata id</label>
+          <span className="mono faint">{item.key}</span>
+        </div>
       </div>
 
       <div className="grp">
         <h4>Classification</h4>
-        {item.source === "ggg" ? null : (
-          <div className="fld">
-            <label htmlFor="row-name">Name</label>
-            <input
-              id="row-name"
-              type="text"
-              value={item.name}
-              disabled={!editable}
-              onChange={(event) => editItem({ ...item, name: event.target.value })}
-            />
-          </div>
-        )}
         <div className="fld">
           <label htmlFor="row-category">Category</label>
           <select
@@ -175,10 +195,12 @@ export function ItemPane({
         <ConditionsEditor
           own={item.conditions}
           {...(editable ? { onChange: (conditions) => editItem({ ...item, conditions }) } : {})}
-          {...(inherited === undefined ? {} : { inherited })}
           {...(resolved === undefined ? {} : { resolved })}
           {...(resolveNote === undefined ? {} : { note: resolveNote })}
           names={names}
+          row={fromValues(item)}
+          level="item"
+          valueOptions={valueOptions}
         />
       </div>
 
@@ -186,24 +208,18 @@ export function ItemPane({
         <h4>Price</h4>
         <div className="fld">
           <label htmlFor="row-listed">Listed as</label>
-          <input
+          <ComboBox
             id="row-listed"
-            type="text"
-            list="price-names"
             placeholder={item.name}
             value={item.listing?.name ?? ""}
+            options={priceOptions}
             disabled={!editable}
-            onChange={(event) => editItem(withListing(item, withListingName(item.listing, event.target.value)))}
+            onChange={(name) => editItem(withListing(item, withListingName(item.listing, name)))}
           />
-          <datalist id="price-names">
-            {priceNames.map((name) => (
-              <option key={name} value={name} />
-            ))}
-          </datalist>
         </div>
         <p className="note">
           Empty means the row's own name.{hasVariants ? " This row has variants, so each variant's price is read instead." : ""}
-          {priceNames.length === 0 ? " No PoeWatch name list is wired up yet — type the listing name." : ""}
+          {priceOptions.length === 0 ? " PoeWatch's names did not download, so type the listing name." : ""}
         </p>
       </div>
 

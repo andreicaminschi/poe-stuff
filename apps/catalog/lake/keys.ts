@@ -10,14 +10,9 @@ export const slug = (field: string): string =>
 
 export const BRONZE_FILES = {
   gggItems: "ggg_items.json",
-  currencyHour: "ggg_currency-hour.json",
   poeWatchCompact: "poe-watch_compact.json",
   poeWatchCorruptions: "poe-watch_corruptions.json",
   poeWatchRatios: "poe-watch_exchange-ratios.json",
-  repoeBaseItems: "repoe_base-items.json",
-  repoeGems: "repoe_gems.json",
-  repoeEssences: "repoe_essences.json",
-  repoeClusterJewels: "repoe_cluster-jewels.json",
   taxonomy: "taxonomy_items.json",
   taxonomyCategories: "taxonomy_categories.json",
 } as const;

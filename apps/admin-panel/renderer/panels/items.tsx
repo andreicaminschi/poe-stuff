@@ -3,6 +3,7 @@ import { ItemFlags } from "../components/item-flags.tsx";
 import { useDraft } from "../hooks/use-draft.ts";
 import { useRows } from "../hooks/use-rows.ts";
 import { useSession } from "../session-store.ts";
+import { displayName } from "../utils/display-name.ts";
 import { titleCase } from "../utils/title-case.ts";
 
 const LIMIT = 400;
@@ -27,9 +28,14 @@ export function Items() {
     const matched =
       needle === ""
         ? rows
-        : rows.filter((row) => row.name.toLowerCase().includes(needle) || row.key.toLowerCase().includes(needle));
+        : rows.filter(
+            (row) =>
+              displayName(row).toLowerCase().includes(needle) ||
+              row.name.toLowerCase().includes(needle) ||
+              row.key.toLowerCase().includes(needle),
+          );
 
-    return [...matched].sort((a, b) => a.name.localeCompare(b.name));
+    return [...matched].sort((a, b) => displayName(a).localeCompare(displayName(b)));
   }, [rows, filter]);
 
   const title =
@@ -91,13 +97,13 @@ export function Items() {
               <input
                 type="checkbox"
                 className="check"
-                aria-label={`Select ${row.name}`}
+                aria-label={`Select ${displayName(row)}`}
                 checked={checkedKeys.has(row.key)}
                 onClick={(event) => event.stopPropagation()}
                 onKeyDown={(event) => event.stopPropagation()}
                 onChange={() => toggleChecked(row.key)}
               />
-              <span className="name">{row.name}</span>
+              <span className="name">{displayName(row)}</span>
               <span className="id">
                 <bdi>{row.key}</bdi>
               </span>

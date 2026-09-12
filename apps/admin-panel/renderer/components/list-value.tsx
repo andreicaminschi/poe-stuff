@@ -1,19 +1,23 @@
 import { useState } from "react";
+import type { ValueOption } from "../types.ts";
+import { ComboBox } from "./combo-box.tsx";
 
 export function ListValue({
   value,
   onChange,
   disabled,
+  options,
 }: {
   readonly value: readonly string[];
   readonly onChange: (value: readonly string[]) => void;
   readonly disabled: boolean;
+  readonly options?: readonly ValueOption[];
 }) {
   const [adding, setAdding] = useState("");
 
-  const add = () => {
-    const entry = adding.trim();
-    if (entry !== "" && !value.includes(entry)) onChange([...value, entry]);
+  const add = (entry: string) => {
+    const trimmed = entry.trim();
+    if (trimmed !== "" && !value.includes(trimmed)) onChange([...value, trimmed]);
     setAdding("");
   };
 
@@ -30,16 +34,14 @@ export function ListValue({
         </span>
       ))}
       {disabled ? null : (
-        <input
-          type="text"
+        <ComboBox
           className="addtag"
           placeholder="+ add"
           value={adding}
-          onChange={(event) => setAdding(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") add();
-          }}
-          onBlur={add}
+          options={options ?? []}
+          onChange={setAdding}
+          onCommit={add}
+          onBlur={() => add(adding)}
         />
       )}
     </div>

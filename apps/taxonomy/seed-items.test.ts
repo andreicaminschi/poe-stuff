@@ -8,6 +8,13 @@ const bases = {
   "Metadata/Items/Gems/SkillGemFireball": { name: "Fireball", item_class: "Active Skill Gem" },
   "Metadata/Items/Gems/SupportGemAddedFire": { name: "Added Fire Damage Support", item_class: "Support Skill Gem" },
   "Metadata/Items/Currency/RandomFossilOutcome1": { name: "", item_class: "StackableCurrency" },
+  "Metadata/Items/QuestItems/ShaperMemoryFragments/ShaperMemoryFragment1_1": {
+    name: "Shaper's Orb (Tier 1)",
+    item_class: "QuestItem",
+  },
+  "Metadata/Items/Heist/HeistEquipmentToolTest": { name: "[UNUSED] Heist Test Tool", item_class: "HeistEquipmentTool" },
+  "Metadata/Items/Gems/SupportGemWip": { name: "WIP Support", item_class: "Support Skill Gem" },
+  "Metadata/Items/MicrotransactionWrapper": { name: "MTX Wrapper", item_class: "Microtransaction" },
 } as unknown as BaseItems;
 
 const gems = {
@@ -29,6 +36,7 @@ describe("seedItems", () => {
   it("files a base under its item class", () => {
     expect(table["Metadata/Items/Currency/CurrencyRerollRare"]).toEqual({
       name: "Chaos Orb",
+      displayName: "Chaos Orb",
       category: "StackableCurrency",
       subcategory: null,
     });
@@ -37,6 +45,7 @@ describe("seedItems", () => {
   it("files a transfigured gem under its base gem's class", () => {
     expect(table["Metadata/Items/Gems/SkillGemFireballAltX"]).toEqual({
       name: "Fireball of Starfall",
+      displayName: "Fireball of Starfall",
       category: "Active Skill Gem",
       subcategory: null,
     });
@@ -49,6 +58,16 @@ describe("seedItems", () => {
 
   it("skips a base with no name", () => {
     expect(table["Metadata/Items/Currency/RandomFossilOutcome1"]).toBeUndefined();
+  });
+
+  it("skips quest items", () => {
+    expect(table["Metadata/Items/QuestItems/ShaperMemoryFragments/ShaperMemoryFragment1_1"]).toBeUndefined();
+  });
+
+  it("skips names holding a bracket, WIP or MTX", () => {
+    expect(table["Metadata/Items/Heist/HeistEquipmentToolTest"]).toBeUndefined();
+    expect(table["Metadata/Items/Gems/SupportGemWip"]).toBeUndefined();
+    expect(table["Metadata/Items/MicrotransactionWrapper"]).toBeUndefined();
   });
 
   it("skips a gem whose base is unknown", () => {

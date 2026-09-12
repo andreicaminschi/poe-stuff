@@ -16,11 +16,16 @@
     "zustand": "5.0.15"
   },
   "devDependencies": {
+    "@poe/filter-compile": "workspace:^",
+    "@poe/filter-eval": "workspace:^",
     "@poe/lake": "workspace:^",
+    "@poe/poe-watch": "workspace:^",
     "@poe/taxonomy": "workspace:^",
     "@types/node": "^26.2.0",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
+    "@util/cache": "workspace:^",
+    "@util/env": "workspace:^",
     "@vitejs/plugin-react": "^5.0.0",
     "electron": "44.3.0",
     "electron-builder": "26.15.3",

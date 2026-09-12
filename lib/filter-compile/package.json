@@ -1,0 +1,17 @@
+{
+  "name": "@poe/filter-compile",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./compose": "./compose.ts",
+    "./condition-line": "./condition-line.ts",
+    "./fill-from": "./fill-from.ts",
+    "./resolve-row": "./resolve-row.ts",
+    "./types": "./types.ts"
+  },
+  "dependencies": {
+    "@poe/filter-eval": "workspace:^"
+  }
+}

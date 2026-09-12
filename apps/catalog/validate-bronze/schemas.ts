@@ -1,10 +1,8 @@
 import type { GGGItemGroup } from "@poe/ggg/get-item-data.types";
-import type { CurrencyExchange } from "@poe/ggg/fetch-currency-hour.types";
 import type { ItemData } from "@poe/poe-watch/get-compact-data.types";
 import type { CorruptionOutcome, ExchangeRatioPrice } from "@poe/poe-watch/types";
 import type { ItemCorruptions } from "@poe/poe-watch/get-corruption-data.types";
 import type { ExchangeRatioItem } from "@poe/poe-watch/get-exchange-ratios.types";
-import type { BaseItem, ClusterJewel, ClusterJewelPassive, Essence, Gem } from "@poe/repoe/types";
 import type { TaxonomyCategories } from "@poe/taxonomy/get-categories.types";
 import type { Taxonomy } from "@poe/taxonomy/get-taxonomy.types";
 import { z } from "zod";
@@ -34,24 +32,6 @@ const gggItems = z
   .min(1, "the item list has no groups") satisfies z.ZodType<
   readonly GGGItemGroup[]
 >;
-
-const side = z.record(z.string(), z.number());
-
-const currencyHour = z.looseObject({
-  next_change_id: z.number(),
-  markets: z.array(
-    z.looseObject({
-      league: z.string(),
-      market_id: z.string(),
-      market_pair: z.tuple([z.string(), z.string()]),
-      volume_traded: side,
-      lowest_stock: side,
-      highest_stock: side,
-      lowest_ratio: side,
-      highest_ratio: side,
-    }),
-  ),
-}) satisfies z.ZodType<CurrencyExchange>;
 
 type ValidatedCompactItem = Pick<ItemData, "id" | "name"> & {
   readonly category: string;
@@ -98,62 +78,6 @@ const poeWatchCorruptions = z.array(
   }),
 ) satisfies z.ZodType<readonly ValidatedCorruptions[]>;
 
-type ValidatedBaseItem = Pick<
-  BaseItem,
-  "name" | "item_class" | "release_state" | "tags" | "visual_identity"
->;
-
-const repoeBaseItems = z
-  .record(
-    z.string(),
-    z.looseObject({
-      name: z.string(),
-      item_class: z.string(),
-      release_state: z.string(),
-      tags: z.array(z.string()),
-      visual_identity: z.looseObject({
-        dds_file: z.string(),
-        id: z.string(),
-      }),
-    }),
-  )
-  .refine(
-    (items) => Object.keys(items).length > 0,
-    "the base item export is empty",
-  ) satisfies z.ZodType<Record<string, ValidatedBaseItem>>;
-
-const namedRecord = (what: string) =>
-  z
-    .record(z.string(), z.looseObject({ name: z.string() }))
-    .refine((rows) => Object.keys(rows).length > 0, `the ${what} export is empty`);
-
-const gems = namedRecord("gem") satisfies z.ZodType<
-  Record<string, Pick<Gem, "name">>
->;
-
-const essences = namedRecord("essence") satisfies z.ZodType<
-  Record<string, Pick<Essence, "name">>
->;
-
-type ValidatedClusterJewel = Pick<ClusterJewel, "name"> & {
-  readonly passive_skills: readonly Pick<ClusterJewelPassive, "name" | "stat_text">[];
-};
-
-const repoeClusterJewels = z
-  .record(
-    z.string(),
-    z.looseObject({
-      name: z.string(),
-      passive_skills: z.array(
-        z.looseObject({ name: z.string(), stat_text: z.array(z.string()).min(1) }),
-      ),
-    }),
-  )
-  .refine(
-    (sizes) => Object.keys(sizes).length === 3,
-    "the cluster jewel export does not hold exactly three sizes",
-  ) satisfies z.ZodType<Record<string, ValidatedClusterJewel>>;
-
 const condition = z.looseObject({
   condition: z.string(),
   operator: z.string().optional(),
@@ -178,6 +102,7 @@ const taxonomy = z.looseObject({
       z.string(),
       z.looseObject({
         name: z.string(),
+        displayName: z.string().optional(),
         category: z.string(),
         subcategory: z.string().nullable(),
         filterable: z.boolean().optional(),
@@ -192,6 +117,7 @@ const taxonomy = z.looseObject({
     z.string(),
     z.looseObject({
       name: z.string(),
+      baseType: z.string(),
       category: z.string(),
       subcategory: z.string().nullable(),
       replaces: z.array(z.string()).optional(),
@@ -214,14 +140,9 @@ export const BRONZE_SCHEMAS: readonly {
   readonly schema: z.ZodType;
 }[] = [
   { file: BRONZE_FILES.gggItems, schema: gggItems },
-  { file: BRONZE_FILES.currencyHour, schema: currencyHour },
   { file: BRONZE_FILES.poeWatchCompact, schema: poeWatchCompact },
   { file: BRONZE_FILES.poeWatchCorruptions, schema: poeWatchCorruptions },
   { file: BRONZE_FILES.poeWatchRatios, schema: poeWatchRatios },
-  { file: BRONZE_FILES.repoeBaseItems, schema: repoeBaseItems },
-  { file: BRONZE_FILES.repoeGems, schema: gems },
-  { file: BRONZE_FILES.repoeEssences, schema: essences },
-  { file: BRONZE_FILES.repoeClusterJewels, schema: repoeClusterJewels },
   { file: BRONZE_FILES.taxonomy, schema: taxonomy },
   { file: BRONZE_FILES.taxonomyCategories, schema: taxonomyCategories },
 ];

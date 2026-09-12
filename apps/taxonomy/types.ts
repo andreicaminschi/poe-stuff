@@ -27,6 +27,7 @@ export type VariantTable = Readonly<Record<string, readonly AuthoredVariant[]>>;
 
 export type AuthoredRow = {
   readonly name: string;
+  readonly baseType: string;
   readonly category: string;
   readonly subcategory: string | null;
   readonly replaces?: readonly string[];
@@ -57,6 +58,8 @@ export type Version = {
 
 export type AuthoredEntry = {
   readonly name: string;
+  /** An internal name the panel shows. Seeded as the RePoE name. Nothing resolves or prices by it. */
+  readonly displayName?: string;
   readonly category: string;
   readonly subcategory: string | null;
   readonly filterable?: boolean;

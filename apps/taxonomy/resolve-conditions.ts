@@ -1,156 +1,47 @@
-import type { Condition, Version } from "./types.ts";
+import { resolveForms, resolvePath } from "@poe/filter-compile/resolve-row";
+import type { FromSource, RemovedCondition, ResolvedCondition } from "@poe/filter-compile/types";
+import type { AuthoredEntry, AuthoredRow, Version } from "./types.ts";
 
-export type Level = "category" | "subcategory" | "item" | "variant";
-
-export type ResolvedCondition = Condition & { readonly level: Level };
+export type { Level, RemovedCondition, ResolvedCondition } from "@poe/filter-compile/types";
 
 export type Resolution = {
   readonly key: string;
   readonly variant?: string;
   readonly conditions: readonly ResolvedCondition[];
+  readonly removed: readonly RemovedCondition[];
   readonly problems: readonly string[];
 };
 
-type Layer = { readonly level: Level; readonly conditions: readonly Condition[] };
-
-const keyOf = (condition: Condition): string =>
-  `${condition.condition} ${condition.operator ?? "=="}`;
-
-function compose(layers: readonly Layer[]): readonly ResolvedCondition[] {
-  const byKey = new Map<string, ResolvedCondition>();
-
-  for (const { level, conditions } of layers) {
-    for (const condition of conditions) {
-      if (condition.value === null) byKey.delete(keyOf(condition));
-      else byKey.set(keyOf(condition), { ...condition, level });
-    }
-  }
-
-  return [...byKey.values()];
-}
-
-function categoryLayers(
+/** The row, and what a `from` reads off it: a plain row's base type is its name. */
+function rowOf(
   version: Version,
-  category: string,
-  subcategory: string | null,
-): { readonly layers: readonly Layer[]; readonly problems: readonly string[] } {
-  const paths: readonly (readonly [Level, string])[] = [
-    ["category", category],
-    ...(subcategory === null ? [] : [["subcategory", `${category}/${subcategory}`] as const]),
-  ];
-
-  return {
-    layers: paths.flatMap(([level, path]) => {
-      const record = version.categories[path];
-      return record === undefined ? [] : [{ level, conditions: record.conditions }];
-    }),
-    problems:
-      version.categories[category] === undefined
-        ? [`is filed under "${category}", which has no category record`]
-        : [],
-  };
-}
-
-const fromName = ({ from: _drop, ...condition }: ResolvedCondition, name: string): ResolvedCondition => ({
-  ...condition,
-  value: name,
-});
-
-function nameProblems(name: string, readsName: boolean): readonly string[] {
-  if (!readsName) return [];
-  if (name.length === 0) return ["reads its name, which is empty"];
-  if (name.includes('"')) return ["has a quote in its name, which a .filter line cannot hold"];
-
-  return [];
-}
-
-function fillFromName(
-  conditions: readonly ResolvedCondition[],
-  name: string,
-): { readonly conditions: readonly ResolvedCondition[]; readonly problems: readonly string[] } {
-  const readsName = conditions.some((condition) => condition.from === "name");
-
-  return {
-    conditions: conditions.map((condition) => (condition.from === "name" ? fromName(condition, name) : condition)),
-    problems: nameProblems(name, readsName),
-  };
-}
-
-const finish = (
   key: string,
-  variant: string | undefined,
-  composed: readonly ResolvedCondition[],
-  name: string,
-  inherited: readonly string[],
-): Resolution => {
-  const filled = fillFromName(composed, name);
+): { readonly row: AuthoredEntry | AuthoredRow; readonly source: FromSource } {
+  const item = version.items[key];
+  if (item !== undefined) return { row: item, source: { name: item.name, baseTypes: [item.name] } };
 
-  return {
-    key,
-    ...(variant === undefined ? {} : { variant }),
-    conditions: filled.conditions,
-    problems: [
-      ...inherited,
-      ...filled.problems,
-      ...(filled.conditions.length === 0 ? ["resolves to no conditions, so matches everything"] : []),
-    ],
-  };
-};
-
-function rowOf(version: Version, key: string) {
-  const row = version.items[key] ?? version.authored[key];
-
-  if (row === undefined) {
-    throw new Error(`"${key}" is not an item or an authored row in this version`);
+  const authored = version.authored[key];
+  if (authored !== undefined) {
+    return { row: authored, source: { name: authored.name, baseTypes: [authored.baseType] } };
   }
 
-  return row;
+  throw new Error(`"${key}" is not an item or an authored row in this version`);
 }
 
 export function resolveRow(version: Version, key: string): readonly Resolution[] {
-  const row = rowOf(version, key);
-  const { layers, problems } = categoryLayers(version, row.category, row.subcategory);
-  const below = [...layers, { level: "item" as const, conditions: row.conditions ?? [] }];
-  const variants = version.variants[key];
+  const { row, source } = rowOf(version, key);
 
-  if (variants === undefined) {
-    return [finish(key, undefined, compose(below), row.name, problems)];
-  }
-
-  const resolved = variants.map((variant) =>
-    finish(
-      key,
-      variant.name,
-      compose([...below, { level: "variant", conditions: variant.conditions }]),
-      row.name,
-      problems,
-    ),
-  );
-
-  const signature = (resolution: Resolution) =>
-    JSON.stringify(resolution.conditions.map(({ level, ...condition }) => condition));
-  const firstWith = new Map<string, string>();
-
-  for (const resolution of resolved) {
-    if (!firstWith.has(signature(resolution))) {
-      firstWith.set(signature(resolution), resolution.variant ?? "");
-    }
-  }
-
-  return resolved.map((resolution) => {
-    const first = firstWith.get(signature(resolution));
-
-    return first === resolution.variant
-      ? resolution
-      : { ...resolution, problems: [...resolution.problems, `resolves the same as variant "${String(first)}"`] };
-  });
+  return resolveForms(
+    version.categories,
+    { ...source, category: row.category, subcategory: row.subcategory, conditions: row.conditions ?? [] },
+    version.variants[key],
+  ).map((form) => ({ key, ...form }));
 }
 
 export function resolveCategory(version: Version, path: string): Resolution {
-  const [category = "", subcategory = null] = path.split("/");
-  const { layers, problems } = categoryLayers(version, category, subcategory);
+  const { applied, removed } = resolvePath(version.categories, path);
 
-  return { key: path, conditions: compose(layers), problems };
+  return { key: path, conditions: applied, removed, problems: [] };
 }
 
 function drawableRows(version: Version): readonly (readonly [string, string])[] {
@@ -166,7 +57,6 @@ function drawableRows(version: Version): readonly (readonly [string, string])[] 
 
 export function resolutionProblems(version: Version): readonly Resolution[] {
   return drawableRows(version)
-    .filter(([, category]) => version.categories[category] !== undefined)
     .flatMap(([key]) => resolveRow(version, key))
     .filter((resolution) => resolution.problems.length > 0);
 }

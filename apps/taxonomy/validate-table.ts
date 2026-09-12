@@ -4,6 +4,7 @@ import { conditionsProblem } from "./validate-conditions.ts";
 
 const FIELDS = [
   "name",
+  "displayName",
   "category",
   "subcategory",
   "filterable",
@@ -70,6 +71,10 @@ function entryProblem(value: unknown): string | null {
 
   if (!isCategory(value.name)) {
     return "name must be a non-empty string";
+  }
+
+  if (value.displayName !== undefined && !isCategory(value.displayName)) {
+    return "displayName must be a non-empty string when it is present";
   }
 
   if (!isCategory(value.category)) {

@@ -5,6 +5,7 @@ import { listingProblem } from "./validate-table.ts";
 
 const FIELDS = [
   "name",
+  "baseType",
   "category",
   "subcategory",
   "replaces",
@@ -45,6 +46,8 @@ function rowProblem(key: string, value: unknown): string | null {
   if (extra.length > 0) return `has unknown fields: ${extra.join(", ")}`;
 
   if (!isText(value.name)) return "name must be a non-empty string";
+
+  if (!isText(value.baseType)) return "baseType must be a non-empty string";
 
   if (!isText(value.category)) return "category must be a non-empty string";
 

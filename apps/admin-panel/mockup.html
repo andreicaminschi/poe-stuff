@@ -1,0 +1,753 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Taxonomy admin panel — mockup</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600&family=Gelasio:wght@400;500;600&family=IBM+Plex+Mono:wght@400&display=swap">
+<style>
+  :root {
+    --ground:#0e1013; --bg:#14161a; --panel:#1b1e24; --panel-2:#22262e;
+    --line:#2f3540; --line-soft:#242932;
+    --text:#dde1e7; --dim:#8d96a4; --faint:#5e6674;
+    --accent:#c8a15a; --accent-dim:#6d5a33;
+    --take:#74c882; --check:#5fb4d9; --gamble:#a85ae6; --danger:#e2735d;
+    --ui:"Barlow Semi Condensed","Segoe UI",system-ui,sans-serif;
+    --loot:Gelasio,Georgia,"Times New Roman",serif;
+    --mono:"IBM Plex Mono",Consolas,monospace;
+  }
+  * { box-sizing:border-box; }
+  html,body { height:100%; }
+  body {
+    margin:0; background:var(--bg); color:var(--text);
+    font:400 15px/1.5 var(--ui); -webkit-font-smoothing:antialiased;
+    display:flex; flex-direction:column;
+  }
+  h1,h2,h3,h4 { margin:0; font-weight:600; }
+  button { font-family:inherit; }
+  :focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  @media (prefers-reduced-motion:reduce) { * { transition:none !important; } }
+
+  .btn {
+    border:1px solid var(--line); background:var(--panel-2); color:var(--text);
+    padding:5px 12px; border-radius:4px; font-size:13px; cursor:pointer;
+    transition:border-color .12s;
+  }
+  .btn:hover { border-color:#4c5460; }
+  .btn.tiny { padding:2px 8px; font-size:12px; }
+  .btn.primary { border-color:var(--accent-dim); color:var(--accent); }
+  .btn.primary:hover { border-color:var(--accent); }
+  .btn.ghost { background:none; border-style:dashed; color:var(--accent); }
+  .btn.icon { padding:2px 7px; font-size:12px; color:var(--faint); background:none; border-color:transparent; }
+  .btn.icon:hover { border-color:var(--line); color:var(--danger); }
+
+  .label {
+    font-size:11px; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--faint); margin:0 0 10px; font-weight:500;
+  }
+  .pill {
+    border:1px solid var(--line); border-radius:11px; padding:1px 10px;
+    font-size:12px; color:var(--dim); white-space:nowrap;
+  }
+  .pill.draft { border-color:var(--accent-dim); color:var(--accent); }
+  .mono { font-family:var(--mono); font-variant-numeric:tabular-nums; }
+
+  /* Version bar */
+  .bar {
+    display:flex; align-items:center; gap:12px; padding:11px 20px;
+    background:var(--ground); border-bottom:1px solid var(--line); flex:none;
+  }
+  .bar .ver { font-size:15px; font-weight:600; letter-spacing:.02em; }
+  .bar .from { color:var(--faint); font-size:12px; }
+  .bar .sp { flex:1; }
+  .bar .sep { width:1px; height:20px; background:var(--line); }
+
+  /* Three columns */
+  .cols {
+    flex:1; min-height:0;
+    display:grid; grid-template-columns:400px minmax(0,1fr) 660px;
+  }
+  .col { min-width:0; display:flex; flex-direction:column; overflow:hidden; }
+  .col + .col { border-left:1px solid var(--line); }
+  .col > .head {
+    padding:12px 14px 10px; border-bottom:1px solid var(--line);
+    background:#171a20; flex:none;
+  }
+  .col > .body { overflow:auto; flex:1; }
+  .col > .foot {
+    padding:9px 14px; border-top:1px solid var(--line); background:#171a20;
+    flex:none; display:flex; gap:7px;
+  }
+  .cats { background:var(--panel); }
+  .items { background:var(--bg); }
+  .detail { background:var(--panel); }
+
+  /* Category rows */
+  .cat {
+    display:flex; align-items:center; gap:9px; width:100%; text-align:left;
+    padding:6px 14px; background:none; border:0; border-left:2px solid transparent;
+    color:var(--dim); cursor:pointer; font-size:13px; transition:border-color .12s;
+  }
+  .cat:hover { color:var(--text); }
+  .cat.on { color:var(--text); border-left-color:var(--accent); background:rgba(200,161,90,.06); }
+  .cat .n { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; }
+  .cat .c { font:11px var(--mono); color:var(--faint); }
+  .cat.sub { padding-left:30px; font-size:12px; }
+  .cat.sub .n::before { content:"\21B3 "; color:var(--faint); }
+  .cat.queue { color:var(--accent); }
+  .cat.queue .c { color:var(--accent); }
+  .catsplit { height:1px; background:var(--line-soft); margin:9px 14px; }
+  .catadd { padding:10px 14px 4px; }
+  .catadd .btn { width:100%; margin-bottom:5px; }
+  .cat .edit {
+    opacity:0; border:0; background:none; color:var(--faint);
+    cursor:pointer; font-size:12px; padding:0 2px;
+  }
+  .cat:hover .edit, .cat.on .edit { opacity:1; }
+  .cat .edit:hover { color:var(--accent); }
+
+  /* Category editor, over everything. Open state is one checkbox. */
+  #m-cat { position:absolute; opacity:0; pointer-events:none; }
+  .scrim { display:none; }
+  #m-cat:checked ~ .scrim {
+    position:fixed; inset:0; background:rgba(6,7,9,.72);
+    display:flex; align-items:center; justify-content:center; z-index:40;
+  }
+  .modal {
+    width:560px; max-width:calc(100vw - 40px); max-height:calc(100vh - 80px);
+    display:flex; flex-direction:column;
+    background:var(--panel); border:1px solid var(--line); border-radius:6px;
+    box-shadow:0 18px 50px rgba(0,0,0,.55);
+  }
+  .modal > header {
+    display:flex; align-items:center; gap:10px; padding:13px 18px;
+    border-bottom:1px solid var(--line); background:#171a20; border-radius:6px 6px 0 0;
+  }
+  .modal > header h3 { font-size:15px; }
+  .modal > header .sp { flex:1; }
+  .modal > .mbody { overflow:auto; }
+  .modal > footer {
+    display:flex; gap:9px; justify-content:flex-end; padding:12px 18px;
+    border-top:1px solid var(--line); background:#171a20; border-radius:0 0 6px 6px;
+  }
+  .modal .fld { grid-template-columns:110px minmax(0,1fr); }
+
+  /* Item rows — one line, reading left to right */
+  .item {
+    display:flex; align-items:baseline; gap:12px;
+    padding:7px 16px; border-left:2px solid transparent; cursor:pointer;
+  }
+  .item:hover { background:rgba(255,255,255,.02); }
+  .item.on { border-left-color:var(--accent); background:rgba(200,161,90,.06); }
+  .item .name { font-size:14px; flex:none; }
+  .item .id {
+    font:10px var(--mono); color:var(--faint); direction:rtl; text-align:left;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1 1 auto; min-width:60px;
+  }
+  .item .flags { display:flex; gap:5px; align-items:center; flex:none; }
+  .flag {
+    font-size:10px; letter-spacing:.06em; text-transform:uppercase;
+    border:1px solid var(--line); border-radius:9px; padding:0 6px; color:var(--faint);
+  }
+  .flag.no { border-color:#5a3a33; color:var(--danger); }
+  .item .moved { color:var(--accent); font-size:11px; white-space:nowrap; }
+  /* Variant names hang under the item they belong to. */
+  .vars {
+    display:flex; flex-wrap:wrap; gap:6px;
+    padding:0 16px 8px 32px; cursor:pointer;
+  }
+  .item.on + .vars { background:rgba(200,161,90,.06); border-left:2px solid var(--accent); padding-left:30px; }
+  .vars .v {
+    font-size:12px; color:var(--dim); background:var(--ground);
+    border:1px solid var(--line-soft); border-radius:3px; padding:1px 8px;
+  }
+  .vars .v:hover { border-color:var(--line); color:var(--text); }
+  .vars .v .p { font:10px var(--mono); color:var(--faint); margin-left:6px; }
+
+  /* Detail pane */
+  .tabs { display:flex; background:#171a20; border-bottom:1px solid var(--line); flex:none; }
+  .detail > input[type=radio] { position:absolute; opacity:0; pointer-events:none; }
+  .tabs label {
+    flex:1 1 0; padding:9px 6px; text-align:center; border-bottom:2px solid transparent;
+    color:var(--dim); cursor:pointer; font-size:13px;
+  }
+  .tabs label:hover { color:var(--text); }
+  #t-cat:checked ~ .tabs label[for=t-cat],
+  #t-item:checked ~ .tabs label[for=t-item],
+  #t-var:checked ~ .tabs label[for=t-var] { color:var(--text); border-bottom-color:var(--accent); }
+  .panes > div { display:none; }
+  #t-cat:checked ~ .panes .pane-cat,
+  #t-item:checked ~ .panes .pane-item,
+  #t-var:checked ~ .panes .pane-var { display:block; }
+  .panes { overflow:auto; flex:1; }
+
+  .grp { padding:14px 16px; border-bottom:1px solid var(--line-soft); }
+  .grp:last-child { border-bottom:0; }
+  .grp h4 {
+    font-size:11px; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--faint); margin-bottom:11px; font-weight:600;
+  }
+  .subhead { padding:12px 16px 0; }
+  .subhead .title { font-weight:600; font-size:14px; }
+  .subhead .id { font:10px var(--mono); color:var(--faint); margin-top:3px; word-break:break-all; }
+  .fld { display:grid; grid-template-columns:74px minmax(0,1fr); gap:9px; align-items:center; margin-bottom:9px; }
+  .fld > label { color:var(--dim); font-size:13px; }
+  select, input[type=text], textarea {
+    background:var(--ground); border:1px solid var(--line); color:var(--text);
+    border-radius:3px; padding:3px 7px; font:13px var(--ui); width:100%; min-width:0;
+    resize:vertical;
+  }
+  select:focus, input[type=text]:focus, textarea:focus { border-color:var(--accent); outline:none; }
+  select[disabled] { color:var(--faint); }
+
+  /* A condition whose value is a list of names. */
+  .listval {
+    display:flex; flex-wrap:wrap; gap:4px; align-items:center;
+    background:var(--ground); border:1px solid var(--line); border-radius:3px; padding:2px 4px;
+  }
+  .listval .tag {
+    display:inline-flex; align-items:center; gap:5px; font-size:12px; color:var(--text);
+    background:var(--panel-2); border:1px solid var(--line); border-radius:3px; padding:0 4px 0 7px;
+  }
+  .listval .x, .listval .addtag {
+    background:none; border:0; color:var(--faint); cursor:pointer; font-size:13px; padding:0 3px;
+  }
+  .listval .x:hover { color:var(--danger); }
+  .listval .addtag { color:var(--accent); }
+
+  /* Everything under here edits the highlighted variant. */
+  .vsel { border-left:2px solid var(--accent); background:rgba(200,161,90,.05); }
+  .vselcap {
+    display:flex; align-items:center; gap:8px; padding:8px 16px;
+    font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--faint);
+    border-bottom:1px solid var(--line-soft);
+  }
+  .vselcap b {
+    color:var(--accent); font-weight:400; letter-spacing:0; text-transform:none;
+    font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .vselcap .dot { width:5px; height:5px; border-radius:50%; background:var(--accent); flex:none; }
+
+  /* Search over every name PoeWatch lists. */
+  .combo { min-width:0; position:relative; }
+  .combo > input { margin-bottom:4px; padding-right:24px; }
+  .combo .caret {
+    position:absolute; top:5px; right:8px; color:var(--faint);
+    font-size:10px; pointer-events:none;
+  }
+  /* The list only exists while the field has focus. */
+  .combo .list {
+    display:none; position:absolute; left:0; right:0; top:28px; z-index:10;
+    background:var(--ground); border:1px solid var(--accent); border-radius:3px;
+    max-height:190px; overflow:auto; box-shadow:0 10px 24px rgba(0,0,0,.5);
+  }
+  .combo > input:focus ~ .list, .combo .list:hover { display:block; }
+  .combo > input:focus ~ .caret { color:var(--accent); }
+  .combo .opt {
+    padding:5px 8px; font-size:12px; line-height:1.35; color:var(--dim);
+    border-bottom:1px solid var(--line-soft); cursor:pointer;
+  }
+  .combo .opt:last-child { border-bottom:0; }
+  .combo .opt:hover { color:var(--text); background:rgba(255,255,255,.03); }
+  .combo .opt b { color:var(--accent); font-weight:400; }
+  .combo .opt.on { color:var(--text); box-shadow:inset 2px 0 0 var(--accent); background:rgba(200,161,90,.06); }
+  .combo .opt.none { color:var(--faint); font-style:italic; }
+  .swrow { display:flex; align-items:center; gap:9px; margin-bottom:9px; font-size:13px; color:var(--dim); }
+  /* Three switches read across, not down. */
+  .swset { display:flex; flex-wrap:wrap; gap:8px 22px; }
+  .swset .swrow { margin-bottom:0; }
+  .sw {
+    width:30px; height:17px; border-radius:9px; background:var(--panel-2);
+    border:1px solid var(--line); position:relative; cursor:pointer; flex:none;
+  }
+  .sw::after { content:""; position:absolute; top:2px; left:2px; width:11px; height:11px;
+    border-radius:50%; background:var(--faint); transition:.12s; }
+  .sw.on { background:rgba(200,161,90,.22); border-color:var(--accent); }
+  .sw.on::after { left:15px; background:var(--accent); }
+
+  /* Conditions editor */
+  .clevel { margin-bottom:12px; }
+  .clevel > .cap {
+    display:flex; align-items:center; gap:7px; margin-bottom:6px;
+    font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--faint);
+  }
+  .clevel > .cap .sp { flex:1; }
+  .crow {
+    display:grid; grid-template-columns:minmax(0,1fr) 46px minmax(0,1.15fr) 26px;
+    gap:5px; align-items:center; margin-bottom:5px;
+  }
+  .crow select, .crow input[type=text] { font-size:12px; padding:2px 6px; }
+  .crow.inherited { opacity:.62; }
+  .crow.inherited .frozen {
+    grid-column:1 / 4; font:11px var(--mono); color:var(--dim);
+    background:var(--ground); border:1px solid var(--line-soft); border-radius:3px;
+    padding:4px 8px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .crow.removed .frozen { text-decoration:line-through; color:var(--faint); }
+  .fromtag {
+    grid-column:1 / 5; margin:-2px 0 6px; font-size:11px; color:var(--faint);
+  }
+  .fromtag b { color:var(--check); font-weight:400; }
+  .resolved {
+    font:11px var(--mono); color:var(--dim); background:var(--ground);
+    border:1px solid var(--line-soft); border-left:2px solid var(--accent-dim);
+    border-radius:0 3px 3px 0; padding:6px 9px; margin-top:4px; line-height:1.6;
+  }
+  .note { color:var(--faint); font-size:12px; margin:9px 0 0; }
+  .err { color:var(--danger); font-size:12px; margin:6px 0 0; }
+  .variant {
+    display:flex; align-items:center; gap:8px; padding:6px 8px; margin-bottom:5px;
+    background:var(--ground); border:1px solid var(--line-soft); border-radius:4px;
+  }
+  .variant.on { border-color:var(--accent); }
+  .variant .vn { flex:1; min-width:0; font-size:13px; overflow:hidden; text-overflow:ellipsis; }
+  .variant .vp { font:11px var(--mono); color:var(--faint); }
+  .actions { display:flex; flex-direction:column; gap:7px; }
+</style>
+</head>
+<body>
+
+<input type="checkbox" id="m-cat">
+
+<div class="bar">
+  <span class="ver mono">3.29.13</span>
+  <span class="pill draft">draft</span>
+  <span class="from">from 3.29.12</span>
+  <div class="sep"></div>
+  <button class="btn tiny">Switch version</button>
+  <button class="btn tiny">New draft from&hellip;</button>
+  <span class="sp"></span>
+  <span class="from">unsaved edits</span>
+  <button class="btn">Validate</button>
+  <button class="btn primary">Publish 3.29.13</button>
+  <div class="sep"></div>
+  <button class="btn">Build catalog</button>
+</div>
+
+<div class="cols">
+
+  <!-- Categories -->
+  <div class="col cats">
+    <div class="head"><p class="label" style="margin:0">Categories</p></div>
+    <div class="body">
+      <div class="cat queue"><span class="n">Uncategorised</span><label class="edit" for="m-cat" title="Edit">&#9998;</label><span class="c">412</span></div>
+      <div class="catsplit"></div>
+
+      <div class="cat"><span class="n">Artifact</span><label class="edit" for="m-cat" title="Edit">&#9998;</label><span class="c">14</span></div>
+      <div class="cat"><span class="n">Base Type</span><label class="edit" for="m-cat" title="Edit">&#9998;</label><span class="c">2841</span></div>
+      <div class="cat sub"><span class="n">Amulet</span><label class="edit" for="m-cat" title="Edit">&#9998;</label><span class="c">38</span></div>
+      <div class="cat sub"><span class="n">Body Armour</span><label class="edit" for="m-cat" title="Edit">&#9998;</label><span class="c">312</span></div>
+      <div class="cat sub"><span class="n">Bow</span><label class="edit" for="m-cat" title="Edit">&#9998;</label><span class="c">44</span></div>
+      <div class="cat sub on"><span class="n">Jewel</span><label class="edit" for="m-cat" title="Edit">&#9998;</label><span class="c">17</span></div>
+      <div class="cat sub"><span class="n">Ring</span><label class="edit" for="m-cat" title="Edit">&#9998;</label><span class="c">51</span></div>
+      <div class="cat sub"><span class="n">Wand</span><label class="edit" for="m-cat" title="Edit">&#9998;</label><span class="c">32</span></div>
+      <div class="cat"><span class="n">Currency</span><label class="edit" for="m-cat" title="Edit">&#9998;</label><span class="c">318</span></div>
+      <div class="cat sub"><span class="n">Catalysts</span><label class="edit" for="m-cat" title="Edit">&#9998;</label><span class="c">11</span></div>
+      <div class="cat"><span class="n">Divination Card</span><label class="edit" for="m-cat" title="Edit">&#9998;</label><span class="c">462</span></div>
+      <div class="cat"><span class="n">Map</span><label class="edit" for="m-cat" title="Edit">&#9998;</label><span class="c">1204</span></div>
+      <div class="cat"><span class="n">Skill Gem</span><label class="edit" for="m-cat" title="Edit">&#9998;</label><span class="c">446</span></div>
+      <div class="cat sub"><span class="n">Support</span><label class="edit" for="m-cat" title="Edit">&#9998;</label><span class="c">218</span></div>
+      <div class="cat"><span class="n">Unique</span><label class="edit" for="m-cat" title="Edit">&#9998;</label><span class="c">1876</span></div>
+      <div class="catsplit"></div>
+      <div class="cat"><span class="n">Excluded</span><label class="edit" for="m-cat" title="Edit">&#9998;</label><span class="c">2310</span></div>
+    </div>
+    <div class="foot">
+      <label class="btn tiny ghost" for="m-cat" style="flex:1; text-align:center">+ Category</label>
+      <label class="btn tiny ghost" for="m-cat" style="flex:1; text-align:center">+ Subcategory</label>
+    </div>
+  </div>
+
+  <!-- Items -->
+  <div class="col items">
+    <div class="head" style="display:flex; align-items:center; gap:10px;">
+      <p class="label" style="margin:0; flex:1">Base Type &rsaquo; Jewel</p>
+      <input type="text" placeholder="Filter&hellip;" style="width:180px">
+    </div>
+    <div class="body">
+
+      <div class="item on">
+        <span class="name">Large Cluster Jewel</span>
+        <span class="id">Metadata/Items/Jewels/JewelPassiveTreeExpansionLarge</span>
+        <span class="flags"></span>
+      </div>
+      <div class="vars">
+        <span class="v">Axe and Sword Damage, 8 passives, ilvl 1<span class="p">passives 8</span></span>
+        <span class="v">Axe and Sword Damage, 8 passives, ilvl 50<span class="p">passives 8</span></span>
+        <span class="v">Axe and Sword Damage, 8 passives, ilvl 68<span class="p">passives 8</span></span>
+        <span class="v">Cold Damage, 8 passives, ilvl 1<span class="p">passives 8</span></span>
+        <span class="v">Cold Damage, 8 passives, ilvl 50<span class="p">passives 8</span></span>
+        <span class="v">Minion Damage, 12 passives, ilvl 84<span class="p">passives 12</span></span>
+        <span class="v" style="color:var(--faint)">&hellip; and the rest</span>
+      </div>
+
+      <div class="item">
+        <span class="name">Medium Cluster Jewel</span>
+        <span class="id">Metadata/Items/Jewels/JewelPassiveTreeExpansionMedium</span>
+        <span class="flags"></span>
+      </div>
+      <div class="vars">
+        <span class="v">Area Damage, 4 passives, ilvl 1<span class="p">passives 4</span></span>
+        <span class="v">Area Damage, 5 passives, ilvl 1<span class="p">passives 5</span></span>
+        <span class="v">Damage over Time, 4 passives, ilvl 1<span class="p">passives 4</span></span>
+        <span class="v" style="color:var(--faint)">&hellip; and the rest</span>
+      </div>
+
+      <div class="item">
+        <span class="name">Small Cluster Jewel</span>
+        <span class="id">Metadata/Items/Jewels/JewelPassiveTreeExpansionSmall</span>
+        <span class="flags"></span>
+      </div>
+      <div class="vars">
+        <span class="v">Life Regeneration, 2 passives<span class="p">passives 2</span></span>
+        <span class="v">Armour, 3 passives<span class="p">passives 3</span></span>
+      </div>
+
+      <div class="item">
+        <span class="name">Cobalt Jewel</span>
+        <span class="id">Metadata/Items/Jewels/JewelInt</span>
+        <span class="flags"></span>
+      </div>
+
+      <div class="item">
+        <span class="name">Crimson Jewel</span>
+        <span class="id">Metadata/Items/Jewels/JewelStr</span>
+        <span class="flags"></span>
+      </div>
+
+      <div class="item">
+        <span class="name">Timeless Jewel</span>
+        <span class="id">Metadata/Items/Jewels/JewelTimeless</span>
+        <span class="flags"><span class="flag no">not filterable</span></span>
+      </div>
+
+      <div class="item">
+        <span class="name">Viridian Jewel</span>
+        <span class="id">Metadata/Items/Jewels/JewelDex</span>
+        <span class="flags"><span class="moved">moved from jewel</span></span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Detail -->
+  <div class="col detail">
+    <input type="radio" name="dtab" id="t-item">
+    <input type="radio" name="dtab" id="t-var" checked>
+
+    <div class="tabs">
+      <label for="t-item">Item</label>
+      <label for="t-var">Variants <span class="mono" style="color:var(--faint)">126</span></label>
+    </div>
+
+    <div class="panes">
+
+      <!-- Item mode -->
+      <div class="pane-item">
+        <div class="subhead">
+          <div class="title">Large Cluster Jewel</div>
+          <div class="id">Metadata/Items/Jewels/JewelPassiveTreeExpansionLarge</div>
+        </div>
+
+        <div class="grp">
+          <h4>Classification</h4>
+          <div class="fld">
+            <label>Category</label>
+            <select><option>Base Type</option><option>Currency</option><option>Excluded</option></select>
+          </div>
+          <div class="fld">
+            <label>Subcategory</label>
+            <select><option>Jewel</option><option>Ring</option><option>Wand</option></select>
+          </div>
+          <p class="note">Seed filed it under Jewel / Jewels.</p>
+        </div>
+
+        <div class="grp">
+          <h4>Overrides</h4>
+          <div class="swset">
+            <div class="swrow"><span class="sw on"></span> Filterable</div>
+            <div class="swrow"><span class="sw on"></span> Tradable</div>
+            <div class="swrow"><span class="sw"></span> Traded on exchange</div>
+          </div>
+        </div>
+
+        <div class="grp">
+          <h4>Conditions</h4>
+<!-- These are .filter conditions: the lines a generated block writes to match an
+     item on the ground. Class, BaseType, ItemLevel, EnchantmentPassiveNode and the
+     rest come from the filter grammar in docs/item-filter-syntax.md, shown here in
+     plain English. Nothing here is a database query. -->
+
+          <div class="clevel">
+            <div class="cap"><span>From Base Type / Jewel</span><span class="sp"></span></div>
+            <div class="crow inherited">
+              <span class="frozen">Base type is "Large Cluster Jewel"</span>
+              <button class="btn icon" title="Remove here">&#8856;</button>
+            </div>
+          </div>
+
+          <div class="clevel">
+            <div class="cap"><span>Added here</span><span class="sp"></span>
+              <button class="btn tiny ghost">+ Condition</button></div>
+
+            <div class="crow">
+              <select><option>Item level</option><option>Base type</option><option>Item class</option><option>Enchantment</option></select>
+              <select><option>at least</option><option>at most</option><option>is</option></select>
+              <input type="text" value="68">
+              <button class="btn icon" title="Delete">&times;</button>
+            </div>
+
+            <div class="crow">
+              <select><option>Enchantment</option><option>Item class</option><option>Base type</option></select>
+              <select disabled><option>is one of</option></select>
+              <div class="listval">
+                <span class="tag">Axe and Sword Damage <button class="x">&times;</button></span>
+                <span class="tag">Cold Damage <button class="x">&times;</button></span>
+                <button class="addtag">+</button>
+              </div>
+              <button class="btn icon" title="Delete">&times;</button>
+            </div>
+          </div>
+
+          <div class="cap" style="font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--faint); margin-top:12px;">This item matches</div>
+          <div class="resolved">
+            Base type is "Large Cluster Jewel"<br>
+            Item level at least 68<br>
+            Enchantment is one of "Axe and Sword Damage", "Cold Damage"
+          </div>
+          <p class="note">Worked out by the taxonomy. Shown, never decided here.</p>
+        </div>
+
+        <div class="grp">
+          <h4>Price</h4>
+          <div class="fld" style="align-items:start">
+            <label style="padding-top:4px">Listed as</label>
+            <div class="combo">
+              <input type="text" placeholder="Search PoeWatch&hellip;">
+              <span class="caret">&#9660;</span>
+              <div class="list">
+                <div class="opt">Large Cluster Jewel</div>
+                <div class="opt">Medium Cluster Jewel</div>
+                <div class="opt">Small Cluster Jewel</div>
+                <div class="opt">Cobalt Jewel</div>
+                <div class="opt">Crimson Jewel</div>
+                <div class="opt">Viridian Jewel</div>
+              </div>
+            </div>
+          </div>
+          <p class="note">Empty means the row's own name. Read only on a row without variants.</p>
+        </div>
+
+        <div class="grp">
+          <h4>Actions</h4>
+          <div class="actions">
+            <button class="btn">Move to category&hellip;</button>
+            <button class="btn">Author a replacement row&hellip;</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Variants mode -->
+      <div class="pane-var">
+        <div class="subhead">
+          <div class="title">Large Cluster Jewel</div>
+          <div class="id">one per enchantment, passive count and item level band</div>
+        </div>
+
+        <div class="grp">
+          <h4>Variants</h4>
+          <input type="text" placeholder="Filter&hellip;" style="margin-bottom:9px">
+          <div class="variant on">
+            <span class="vn">Axe and Sword Damage, 8 passives, ilvl 1</span>
+            <span class="vp">&le;49</span>
+            <button class="btn icon" title="Delete">&times;</button>
+          </div>
+          <div class="variant">
+            <span class="vn">Axe and Sword Damage, 8 passives, ilvl 50</span>
+            <span class="vp">50&ndash;67</span>
+            <button class="btn icon" title="Delete">&times;</button>
+          </div>
+          <div class="variant">
+            <span class="vn">Axe and Sword Damage, 8 passives, ilvl 68</span>
+            <span class="vp">68&ndash;83</span>
+            <button class="btn icon" title="Delete">&times;</button>
+          </div>
+          <div class="variant">
+            <span class="vn">Axe and Sword Damage, 8 passives, ilvl 84</span>
+            <span class="vp">&ge;84</span>
+            <button class="btn icon" title="Delete">&times;</button>
+          </div>
+          <button class="btn tiny ghost" style="width:100%; margin-top:9px">+ Variant</button>
+        </div>
+
+        <!-- Everything below belongs to the highlighted variant. -->
+        <div class="vsel">
+          <div class="vselcap">
+            <span class="dot"></span>Editing
+            <b>Axe and Sword Damage, 8 passives, ilvl 1</b>
+          </div>
+
+        <div class="grp">
+          <div class="fld">
+            <label>Name</label>
+            <input type="text" value="Axe and Sword Damage, 8 passives, ilvl 1">
+          </div>
+          <div class="fld" style="align-items:start">
+            <label style="padding-top:4px">Listed as</label>
+            <div class="combo">
+              <input type="text" value="Large Cluster Jewel (Axe Attacks deal 12%&hellip;" placeholder="Search PoeWatch&hellip;">
+              <span class="caret">&#9660;</span>
+              <div class="list">
+                <div class="opt on">
+                  Large Cluster Jewel (<b>Axe</b> Attacks deal 12% increased Damage with Hits and Ailments<br>
+                  Sword Attacks deal 12% increased Damage with Hits and Ailments)
+                </div>
+                <div class="opt">
+                  Large Cluster Jewel (Dagger Attacks deal 12% increased Damage with Hits and Ailments<br>
+                  Claw Attacks deal 12% increased Damage with Hits and Ailments)
+                </div>
+                <div class="opt">
+                  Medium Cluster Jewel (<b>Axe</b> and Sword Attacks deal 12% increased Damage with Hits and Ailments)
+                </div>
+                <div class="opt none">One-Handed <b>Axe</b> &mdash; not a cluster jewel</div>
+              </div>
+              <p class="note" style="margin:6px 0 0">Every name PoeWatch lists this league.</p>
+            </div>
+          </div>
+          <p class="note">PoeWatch lists a cluster jewel under its enchantment text, not its base name.</p>
+        </div>
+
+        <div class="grp">
+          <h4>Conditions</h4>
+<!-- These are .filter conditions: the lines a generated block writes to match an
+     item on the ground. Class, BaseType, ItemLevel, EnchantmentPassiveNode and the
+     rest come from the filter grammar in docs/item-filter-syntax.md, shown here in
+     plain English. Nothing here is a database query. -->
+
+          <div class="clevel">
+            <div class="cap"><span>From the item and above</span><span class="sp"></span></div>
+            <div class="crow inherited">
+              <span class="frozen">Base type is "Large Cluster Jewel"</span>
+              <button class="btn icon" title="Remove here">&#8856;</button>
+            </div>
+          </div>
+
+          <div class="clevel">
+            <div class="cap"><span>Added here</span><span class="sp"></span>
+              <button class="btn tiny ghost">+ Condition</button></div>
+
+            <div class="crow">
+              <select><option>Enchantment</option><option>Passive count</option><option>Item level</option></select>
+              <select disabled><option>is one of</option></select>
+              <div class="listval">
+                <span class="tag">Axe and Sword Damage <button class="x">&times;</button></span>
+                <button class="addtag">+</button>
+              </div>
+              <button class="btn icon" title="Delete">&times;</button>
+            </div>
+
+            <div class="crow">
+              <select><option>Passive count</option></select>
+              <select><option>is</option><option>at least</option><option>at most</option></select>
+              <input type="text" value="8">
+              <button class="btn icon" title="Delete">&times;</button>
+            </div>
+
+            <div class="crow">
+              <select><option>Item level</option></select>
+              <select><option>at most</option><option>at least</option><option>is</option></select>
+              <input type="text" value="49">
+              <button class="btn icon" title="Delete">&times;</button>
+            </div>
+          </div>
+
+          <div class="cap" style="font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--faint); margin-top:12px;">This variant matches</div>
+          <div class="resolved">
+            Base type is "Large Cluster Jewel"<br>
+            Enchantment is "Axe and Sword Damage"<br>
+            Passive count is 8<br>
+            Item level at most 49
+          </div>
+        </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="foot" style="justify-content:flex-end">
+      <button class="btn">Revert</button>
+      <button class="btn primary">Save</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Category editor -->
+<div class="scrim">
+  <div class="modal">
+    <header>
+      <h3>Edit category</h3>
+      <span class="sp"></span>
+      <label class="btn icon" for="m-cat" title="Close">&times;</label>
+    </header>
+
+    <div class="mbody">
+      <div class="grp">
+        <div class="fld">
+          <label>Category</label>
+          <select><option>Base Type</option><option>Currency</option><option>Map</option><option>Skill Gem</option></select>
+        </div>
+        <div class="fld">
+          <label>Subcategory</label>
+          <select><option>Jewel</option><option>Amulet</option><option>Body Armour</option><option>Bow</option><option>Ring</option><option>Wand</option></select>
+        </div>
+        <div class="fld">
+          <label>Friendly name</label>
+          <input type="text" value="Jewel" placeholder="how it reads in a picker">
+        </div>
+        <div class="fld">
+          <label>Tiering</label>
+          <select><option>By price</option><option>By stack size</option></select>
+        </div>
+      </div>
+
+      <div class="grp">
+        <h4>Conditions</h4>
+<!-- These are .filter conditions: the lines a generated block writes to match an
+     item on the ground. Class, BaseType, ItemLevel, EnchantmentPassiveNode and the
+     rest come from the filter grammar in docs/item-filter-syntax.md, shown here in
+     plain English. Nothing here is a database query. -->
+
+        <div class="clevel">
+          <div class="cap"><span>From Base Type</span><span class="sp"></span></div>
+          <div class="crow inherited">
+            <span class="frozen">Base type is the item's own name</span>
+            <button class="btn icon" title="Remove here">&#8856;</button>
+          </div>
+        </div>
+
+        <div class="clevel">
+          <div class="cap"><span>Added here</span><span class="sp"></span>
+            <button class="btn tiny ghost">+ Condition</button></div>
+          <div class="crow">
+            <select><option>Item class</option><option>Base type</option><option>Item level</option></select>
+            <select><option>is</option><option>is one of</option></select>
+            <input type="text" placeholder="value">
+            <button class="btn icon" title="Delete">&times;</button>
+          </div>
+        </div>
+
+        <div class="cap" style="font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--faint); margin-top:12px;">An item here matches</div>
+        <div class="resolved">
+          Base type is the item's own name
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <label class="btn" for="m-cat">Cancel</label>
+      <label class="btn primary" for="m-cat">Save</label>
+    </footer>
+  </div>
+</div>
+
+</body>
+</html>

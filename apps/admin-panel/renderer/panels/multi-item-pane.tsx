@@ -1,10 +1,15 @@
-import type { Item } from "../../api/taxonomy/types.ts";
+import type { Condition, Item } from "../../api/taxonomy/types.ts";
+import { ConditionsEditor } from "../components/conditions-editor.tsx";
+import { useConditionNames } from "../hooks/use-condition-names.ts";
+import { useValueOptions } from "../hooks/use-value-options.ts";
 import { useDraft } from "../hooks/use-draft.ts";
 import { useEditable } from "../hooks/use-editable.ts";
 import { useTopCategories } from "../hooks/use-top-categories.ts";
 import { useSession } from "../session-store.ts";
 import { pathOf } from "../utils/path-of.ts";
+import { sharedConditions } from "../utils/shared-conditions.ts";
 import { sharedValue } from "../utils/shared-value.ts";
+import { withSharedConditions } from "../utils/with-shared-conditions.ts";
 
 const MIXED = "*mixed*";
 
@@ -14,6 +19,8 @@ export function MultiItemPane() {
   const editItems = useSession((state) => state.editItems);
   const categories = useTopCategories();
   const editable = useEditable();
+  const names = useConditionNames();
+  const valueOptions = useValueOptions();
 
   const items = checked.flatMap((key): Item[] => {
     const item = draft?.items[key];
@@ -26,6 +33,12 @@ export function MultiItemPane() {
       ? undefined
       : sharedValue(items.map((item) => (item.classification.subcategory === null ? "" : pathOf(item.classification))));
   const top = categories.find((node) => node.path === category);
+
+  const shared = sharedConditions(items);
+  const withExtras = items.filter((item) => item.conditions.length > shared.length).length;
+
+  const setConditions = (next: readonly Condition[]) =>
+    editItems(items.map((item) => withSharedConditions(item, shared, next)));
 
   const moveTo = (path: string) =>
     editItems(items.map((item) => ({ ...item, classification: { category: path, subcategory: null } })));
@@ -97,6 +110,22 @@ export function MultiItemPane() {
           </select>
         </div>
         {category === undefined ? <p className="note">Pick one category before setting a subcategory.</p> : null}
+      </div>
+
+      <div className="grp">
+        <h4>Conditions</h4>
+        <ConditionsEditor
+          own={shared}
+          {...(editable ? { onChange: setConditions } : {})}
+          note={
+            withExtras === 0
+              ? "These are the conditions every checked item has. An edit here applies to all of them."
+              : `These are the conditions every checked item has. An edit here applies to all of them. ${withExtras} of them also have conditions of their own, which this leaves alone.`
+          }
+          names={names}
+          valueOptions={valueOptions}
+          level="item"
+        />
       </div>
     </div>
   );

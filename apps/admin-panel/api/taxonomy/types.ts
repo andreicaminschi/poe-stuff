@@ -7,6 +7,19 @@ import type {
 
 export type { Condition, ListingMatch };
 
+import type { RemovedCondition, ResolvedCondition } from "@poe/filter-compile/types";
+
+export type { Level, RemovedCondition, ResolvedCondition } from "@poe/filter-compile/types";
+
+/** What one form of a row resolves to: its conditions, what was removed, and anything wrong. */
+export type Resolution = {
+  readonly key: string;
+  readonly variant?: string;
+  readonly conditions: readonly ResolvedCondition[];
+  readonly removed: readonly RemovedCondition[];
+  readonly problems: readonly string[];
+};
+
 export type ConditionValue = Exclude<Condition["value"], undefined>;
 
 export type Classification = {
@@ -28,6 +41,8 @@ type ItemFields = {
 
 export type GggItem = ItemFields & {
   readonly source: "ggg";
+  /** The internal name the panel shows. `name` stays RePoE's. */
+  readonly displayName?: string;
   readonly filterable?: boolean;
   readonly tradable?: boolean;
   readonly tradedOnExchange?: boolean;
@@ -35,6 +50,7 @@ export type GggItem = ItemFields & {
 
 export type AuthoredItem = ItemFields & {
   readonly source: "authored";
+  readonly baseType: string;
   readonly reason: string;
   readonly replaces: readonly string[];
 };
@@ -63,6 +79,7 @@ export type DraftChanges = {
 
 export type ItemRow = {
   readonly name: string;
+  readonly displayName?: string;
   readonly category: string;
   readonly subcategory: string | null;
   readonly filterable?: boolean;
@@ -75,6 +92,7 @@ export type ItemRow = {
 
 export type AuthoredRow = {
   readonly name: string;
+  readonly baseType: string;
   readonly category: string;
   readonly subcategory: string | null;
   readonly replaces?: readonly string[];

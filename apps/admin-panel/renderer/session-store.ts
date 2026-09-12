@@ -1,7 +1,8 @@
 import { create } from "zustand";
-import type { Draft, Ledger, LedgerEntry, Validation, VersionList } from "../api/panel-api.ts";
+import type { CompiledFilter, Draft, Ledger, LedgerEntry, Validation, VersionList } from "../api/panel-api.ts";
 import type { Category, DraftChanges, Item } from "../api/taxonomy/types.ts";
-import type { Changes, Dialog, Tab, View } from "./types.ts";
+import type { BootState, BootStep, Changes, Dialog, Tab, ValueOption, View } from "./types.ts";
+import { mergePriceNames } from "./utils/merge-price-names.ts";
 import { changeCount } from "./utils/change-count.ts";
 import { NO_CHANGES } from "./utils/no-changes.ts";
 import { pathOf } from "./utils/path-of.ts";
@@ -23,10 +24,13 @@ export type Session = {
   readonly tab: Tab;
   readonly dialog?: Dialog;
   readonly validation?: Validation;
+  readonly compiled?: CompiledFilter;
   readonly status?: string;
   readonly error?: string;
   readonly busy: boolean;
-  readonly priceNames: readonly string[];
+  readonly booting: boolean;
+  readonly bootSteps: readonly BootStep[];
+  readonly priceOptions: readonly ValueOption[];
 
   boot(): Promise<void>;
   switchVersion(id: string): void;
@@ -50,11 +54,21 @@ export type Session = {
   revert(): void;
   save(): Promise<void>;
   validate(): Promise<void>;
+  compileFilter(): Promise<void>;
   publish(): Promise<void>;
   dismissError(): void;
 };
 
 const message = (reason: unknown): string => (reason instanceof Error ? reason.message : String(reason));
+
+const BOOT_STEPS: readonly BootStep[] = [
+  { id: "versions", label: "Reading taxonomy versions", state: "waiting" },
+  { id: "draft", label: "Loading the draft and its ledger", state: "waiting" },
+  { id: "listings", label: "Downloading PoeWatch listings", state: "waiting" },
+  { id: "exchange", label: "Downloading PoeWatch exchange", state: "waiting" },
+];
+
+const countOf = (count: number, noun: string): string => `${count.toLocaleString("en")} ${noun}`;
 
 export const useSession = create<Session>()((set, get) => {
   const run = async (task: () => Promise<void>): Promise<void> => {
@@ -100,6 +114,26 @@ export const useSession = create<Session>()((set, get) => {
   const checkedState = (checked: readonly string[]): Partial<Session> =>
     checked.length === 1 ? { checked, selectedKey: checked[0] } : { checked };
 
+  const mark = (id: string, state: BootState, detail?: string): void =>
+    set((current) => ({
+      bootSteps: current.bootSteps.map((step) =>
+        step.id === id ? { id: step.id, label: step.label, state, ...(detail === undefined ? {} : { detail }) } : step,
+      ),
+    }));
+
+  /** One boot step: running, then done with a detail, or failed with the reason. */
+  const bootStep = async <T>(id: string, work: () => Promise<T>, detail: (result: T) => string): Promise<T | undefined> => {
+    mark(id, "running");
+    try {
+      const result = await work();
+      mark(id, "done", detail(result));
+      return result;
+    } catch (reason) {
+      mark(id, "failed", message(reason));
+      return undefined;
+    }
+  };
+
   const discardConfirmed = (): boolean =>
     changeCount(get().changes) === 0 || window.confirm("Discard unsaved edits?");
 
@@ -116,17 +150,41 @@ export const useSession = create<Session>()((set, get) => {
     checked: [],
     tab: "item",
     busy: false,
-    priceNames: [],
+    booting: false,
+    bootSteps: [],
+    priceOptions: [],
 
-    boot: () =>
-      run(async () => {
-        if (get().versions !== undefined) return;
-        window.panel.getPriceNames().then((priceNames) => set({ priceNames }), () => {});
-        const list = await loadVersions();
-        const id = list.versions.find((version) => version.editable)?.id ?? list.current ?? list.versions[0]?.id;
-        set({ versionId: id });
-        if (id !== undefined) await loadVersion(id);
-      }),
+    async boot() {
+      if (get().versions !== undefined || get().booting) return;
+      set({ booting: true, bootSteps: BOOT_STEPS });
+
+      const list = await bootStep("versions", loadVersions, (versions) => countOf(versions.versions.length, "versions"));
+      if (list === undefined) return;
+
+      const id = list.versions.find((version) => version.editable)?.id ?? list.current ?? list.versions[0]?.id;
+      set({ versionId: id });
+
+      if (id === undefined) {
+        mark("draft", "done", "no version to open");
+      } else {
+        const loaded = await bootStep(
+          "draft",
+          async () => {
+            await loadVersion(id);
+            return get().ledger.length;
+          },
+          (saved) => `${id}, ${countOf(saved, "saved edits")}`,
+        );
+        if (loaded === undefined) return;
+      }
+
+      const [listings, exchange] = await Promise.all([
+        bootStep("listings", () => window.panel.getListingNames(), (names) => countOf(names.length, "names")),
+        bootStep("exchange", () => window.panel.getExchangeNames(), (names) => countOf(names.length, "names")),
+      ]);
+
+      set({ priceOptions: mergePriceNames(listings ?? [], exchange ?? []), booting: false });
+    },
 
     switchVersion(id) {
       if (!discardConfirmed()) return;
@@ -272,8 +330,21 @@ export const useSession = create<Session>()((set, get) => {
         const { versionId } = get();
         if (versionId === undefined) return;
         set({ status: "Validating…" });
-        const validation = await window.panel.validate(versionId);
+        const validation = await window.panel.validate(versionId, toDraftChanges(get().changes));
         set({ validation, status: undefined, dialog: { kind: "validation" } });
+      }),
+
+    compileFilter: () =>
+      run(async () => {
+        const { versionId } = get();
+        if (versionId === undefined) return;
+        set({ status: "Compiling…" });
+        const compiled = await window.panel.compileFilter(versionId, toDraftChanges(get().changes));
+        set({
+          compiled,
+          status: `Wrote ${compiled.blocks} blocks to ${compiled.path}. ${compiled.skipped.length} skipped.`,
+          ...(compiled.skipped.length > 0 ? { dialog: { kind: "compiled" as const } } : {}),
+        });
       }),
 
     publish: () =>
@@ -293,7 +364,7 @@ export const useSession = create<Session>()((set, get) => {
         await loadVersion(versionId);
 
         set({ status: "Validating…" });
-        const validation = await window.panel.validate(versionId);
+        const validation = await window.panel.validate(versionId, toDraftChanges(get().changes));
         set({ validation });
         if (validation.rows.length > 0) {
           set({ status: undefined, dialog: { kind: "validation" } });
