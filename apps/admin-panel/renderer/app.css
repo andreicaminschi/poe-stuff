@@ -111,6 +111,7 @@ input.filter { width:180px; }
 .item:hover { background:rgba(255,255,255,.02); }
 .item.on { border-left-color:var(--accent); background:rgba(200,161,90,.06); }
 .check { flex:none; margin:0; accent-color:var(--accent); cursor:pointer; align-self:center; }
+.check-hit { display:flex; align-items:center; align-self:center; flex:none; padding:6px; margin:-6px; cursor:pointer; }
 .item .name { font-size:14px; flex:none; }
 .item .id {
   font:10px var(--mono); color:var(--faint); direction:rtl; text-align:left;

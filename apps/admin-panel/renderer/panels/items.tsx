@@ -61,17 +61,19 @@ export function Items() {
   return (
     <div className="col items">
       <div className="head row">
-        <input
-          type="checkbox"
-          className="check"
-          aria-label="Select all"
-          checked={allChecked}
-          disabled={sorted.length === 0}
-          ref={(box) => {
-            if (box !== null) box.indeterminate = checkedHere > 0 && !allChecked;
-          }}
-          onChange={toggleAll}
-        />
+        <label className="check-hit">
+          <input
+            type="checkbox"
+            className="check"
+            aria-label="Select all"
+            checked={allChecked}
+            disabled={sorted.length === 0}
+            ref={(box) => {
+              if (box !== null) box.indeterminate = checkedHere > 0 && !allChecked;
+            }}
+            onChange={toggleAll}
+          />
+        </label>
         <p className="label grow">
           {title} <span className="mono faint">{sorted.length}</span>
         </p>
@@ -95,15 +97,17 @@ export function Items() {
                 if (event.key === "Enter") selectItem(row.key);
               }}
             >
-              <input
-                type="checkbox"
-                className="check"
-                aria-label={`Select ${displayName(row)}`}
-                checked={checkedKeys.has(row.key)}
-                onClick={(event) => event.stopPropagation()}
-                onKeyDown={(event) => event.stopPropagation()}
-                onChange={() => toggleChecked(row.key)}
-              />
+              <label className="check-hit" onClick={(event) => event.stopPropagation()}>
+                <input
+                  type="checkbox"
+                  className="check"
+                  aria-label={`Select ${displayName(row)}`}
+                  checked={checkedKeys.has(row.key)}
+                  onClick={(event) => event.stopPropagation()}
+                  onKeyDown={(event) => event.stopPropagation()}
+                  onChange={() => toggleChecked(row.key)}
+                />
+              </label>
               <span className="name">{displayName(row)}</span>
               <span className="id">
                 <bdi>{row.key}</bdi>
