@@ -44,6 +44,7 @@ export type TaxonomyEntry = {
   readonly tradedOnExchange?: boolean;
   readonly excluded?: boolean;
   readonly quest?: boolean;
+  readonly unpriceable?: boolean;
   readonly conditions?: readonly Condition[];
   readonly variants?: readonly TaxonomyVariant[];
   readonly listing?: Listing;
@@ -58,6 +59,7 @@ export type TaxonomyAuthored = {
   readonly reason: string;
   readonly excluded?: boolean;
   readonly quest?: boolean;
+  readonly unpriceable?: boolean;
   readonly conditions?: readonly Condition[];
   readonly variants?: readonly TaxonomyVariant[];
   readonly listing?: Listing;

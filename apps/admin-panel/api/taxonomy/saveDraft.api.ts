@@ -29,6 +29,7 @@ const toItemRow = (item: GggItem): ItemRow => ({
   ...(item.tradedOnExchange === undefined ? {} : { tradedOnExchange: item.tradedOnExchange }),
   ...(item.excluded === true ? { excluded: true } : {}),
   ...(item.quest === true ? { quest: true } : {}),
+  ...(item.unpriceable === true ? { unpriceable: true } : {}),
   ...(item.conditions.length === 0 ? {} : { conditions: item.conditions }),
   ...(item.listing === undefined ? {} : { listing: item.listing }),
 });
@@ -42,6 +43,7 @@ const toAuthoredRow = (item: AuthoredItem): AuthoredRow => ({
   reason: item.reason,
   ...(item.excluded === true ? { excluded: true } : {}),
   ...(item.quest === true ? { quest: true } : {}),
+  ...(item.unpriceable === true ? { unpriceable: true } : {}),
   ...(item.conditions.length === 0 ? {} : { conditions: item.conditions }),
   ...(item.listing === undefined ? {} : { listing: item.listing }),
 });

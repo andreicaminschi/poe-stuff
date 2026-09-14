@@ -17,6 +17,7 @@ import { withExcluded } from "../utils/with-excluded.ts";
 import { withFlag } from "../utils/with-flag.ts";
 import { withListing } from "../utils/with-listing.ts";
 import { withQuest } from "../utils/with-quest.ts";
+import { withUnpriceable } from "../utils/with-unpriceable.ts";
 
 type Tri = "sources" | "yes" | "no";
 
@@ -231,6 +232,15 @@ export function ItemPane({
             options={YES_NO}
             disabled={!editable}
             onChange={(value) => editItem(withQuest(item, value === "yes"))}
+          />
+        </div>
+        <div className="fld">
+          <label>Unpriceable</label>
+          <Segmented
+            value={item.unpriceable === true ? "yes" : "no"}
+            options={YES_NO}
+            disabled={!editable}
+            onChange={(value) => editItem(withUnpriceable(item, value === "yes"))}
           />
         </div>
         <div className="fld">

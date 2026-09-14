@@ -2,11 +2,18 @@ import type { Item } from "../../api/taxonomy/types.ts";
 
 export type PriceHint = { readonly placeholder: string; readonly note: string };
 
-export function priceHint(item: Pick<Item, "quest">, hasVariants: boolean): PriceHint {
+export function priceHint(item: Pick<Item, "quest" | "unpriceable">, hasVariants: boolean): PriceHint {
   if (item.quest === true) {
     return {
       placeholder: "Not needed: a quest item",
       note: "Not required. A quest item is published without a listing.",
+    };
+  }
+
+  if (item.unpriceable === true) {
+    return {
+      placeholder: "Not needed: unpriceable",
+      note: "Not required. An unpriceable item is published without a listing and still drawn.",
     };
   }
 

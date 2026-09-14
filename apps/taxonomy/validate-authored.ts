@@ -12,6 +12,7 @@ const FIELDS = [
   "reason",
   "excluded",
   "quest",
+  "unpriceable",
   "conditions",
   "listing",
 ];
@@ -64,6 +65,10 @@ function rowProblem(key: string, value: unknown): string | null {
 
   if (value.quest !== undefined && typeof value.quest !== "boolean") {
     return "quest must be a boolean when it is present";
+  }
+
+  if (value.unpriceable !== undefined && typeof value.unpriceable !== "boolean") {
+    return "unpriceable must be a boolean when it is present";
   }
 
   if (value.replaces !== undefined) {

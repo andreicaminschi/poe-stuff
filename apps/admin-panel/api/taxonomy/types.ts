@@ -39,6 +39,7 @@ type ItemFields = {
   readonly variants: readonly Variant[];
   readonly excluded?: boolean;
   readonly quest?: boolean;
+  readonly unpriceable?: boolean;
 };
 
 export type GggItem = ItemFields & {
@@ -89,6 +90,7 @@ export type ItemRow = {
   readonly tradedOnExchange?: boolean;
   readonly excluded?: boolean;
   readonly quest?: boolean;
+  readonly unpriceable?: boolean;
   readonly conditions?: readonly Condition[];
   readonly listing?: Listing;
 };
@@ -102,6 +104,7 @@ export type AuthoredRow = {
   readonly reason: string;
   readonly excluded?: boolean;
   readonly quest?: boolean;
+  readonly unpriceable?: boolean;
   readonly conditions?: readonly Condition[];
   readonly listing?: Listing;
 };

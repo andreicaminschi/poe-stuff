@@ -11,6 +11,7 @@ import { sharedConditions } from "../utils/shared-conditions.ts";
 import { sharedValue } from "../utils/shared-value.ts";
 import { withExcluded } from "../utils/with-excluded.ts";
 import { withQuest } from "../utils/with-quest.ts";
+import { withUnpriceable } from "../utils/with-unpriceable.ts";
 import { withSharedConditions } from "../utils/with-shared-conditions.ts";
 
 const MIXED = "*mixed*";
@@ -38,6 +39,7 @@ export function MultiItemPane() {
 
   const excludedCount = items.filter((item) => item.excluded === true).length;
   const questCount = items.filter((item) => item.quest === true).length;
+  const unpriceableCount = items.filter((item) => item.unpriceable === true).length;
   const shared = sharedConditions(items);
   const withExtras = items.filter((item) => item.conditions.length > shared.length).length;
 
@@ -163,6 +165,31 @@ export function MultiItemPane() {
         </div>
         <p className="note">
           {questCount} of {items.length} are quest items. A quest item needs no listing.
+        </p>
+      </div>
+
+      <div className="grp">
+        <h4>Unpriceable</h4>
+        <div className="row">
+          <button
+            type="button"
+            className="btn"
+            disabled={!editable || unpriceableCount === items.length}
+            onClick={() => editItems(items.map((item) => withUnpriceable(item, true)))}
+          >
+            Mark all
+          </button>
+          <button
+            type="button"
+            className="btn"
+            disabled={!editable || unpriceableCount === 0}
+            onClick={() => editItems(items.map((item) => withUnpriceable(item, false)))}
+          >
+            Unmark all
+          </button>
+        </div>
+        <p className="note">
+          {unpriceableCount} of {items.length} are unpriceable. An unpriceable item needs no listing and is still drawn.
         </p>
       </div>
 
