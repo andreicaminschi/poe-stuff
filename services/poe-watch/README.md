@@ -10,7 +10,7 @@ not what one sold for.** GGG's own Currency Exchange, which `@poe/ggg` reads, is
 kind of claim.
 
 Three endpoints, and each answers for a whole league in one request: `/compact` prices
-every item, `/corruptions` prices every corrupted-implicit outcome, and `/exchange/ratios`
+every item, `/corruptions` prices corrupted-implicit outcomes — `all=true` is the whole set, and it has none for unique flasks, unique maps or most jewels — and `/exchange/ratios`
 gives both sides of every item's currency market. PoeWatch publishes no rate limits and
 draws on no GGG budget, so there is no limiter — but the answers are tens of megabytes, so
 the cache is what makes a re-run affordable.

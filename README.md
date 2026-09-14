@@ -199,17 +199,19 @@ the promoted version, unless `--taxonomy-version` names another.
 
 ### Uniques
 
-A unique is not a row. On the ground, a unique is its base type with a rarity, and a filter
-selects the base type. So the catalog attaches every unique PoeWatch lists to the row of its
-base type, under `uniques`. GGG's trade item list says which base type each unique drops as.
+**A unique base is an authored row.** On the ground, a unique is its base type with a rarity,
+and a filter selects the base type. So the taxonomy authors one row per base under `unique`:
+`unique/regular` for plain uniques, `unique/foulborn` for foulborn ones, and
+`unique/fragments` for the Adorned and Utmost pieces. Each base row has a `normal` variant,
+priced off every uncorrupted form PoeWatch lists for its uniques, and a `corrupted` variant,
+priced off their corruption outcomes. [apps/taxonomy/README.md](apps/taxonomy/README.md)
+has the conditions and the rules.
 
-`uniques` is a list of groups. One group holds every listing filed under one category path:
-`unique` for plain uniques, `unique/foulborn` for foulborn ones. Each listing is one priced
-form, such as `Lightpoacher (2 Sockets)` and `Lightpoacher (1 Socket)`. A corrupted entry is
-one corruption outcome of the listing before it.
-
-The group's path is where the taxonomy authors the conditions that tell those uniques apart
-on the ground.
+The catalog also still attaches every unique PoeWatch lists to the row of its base type,
+under `uniques`, as it did before the unique rows existed. `uniques` is a list of groups, one
+per path: `unique` for plain uniques and `unique/foulborn` for foulborn ones. Each listing is
+one priced form, such as `Lightpoacher (2 Sockets)`, and a corrupted entry is one corruption
+outcome of the listing before it. **Which of the two a generator reads is not decided.**
 
 ### The row
 

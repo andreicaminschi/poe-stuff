@@ -10,6 +10,11 @@ exist.** The catalog invents no row and judges none. It takes the published taxo
 drawable rows, prices each off PoeWatch, hangs every unique off the base it rolls on, and
 gathers the result into one file for whatever writes a `.filter`.
 
+The taxonomy also authors a row per unique base, under `unique`. The catalog prices it like
+any other row, and a listing with `corruption` reads one corruption outcome from
+`/corruptions` instead of a listing. So a unique is priced twice for now: on its base row's
+`uniques`, and on its unique row.
+
 A drawable row is the taxonomy's own rule. An item is in when it is not `excluded`, not
 `filterable: false`, and not replaced by an authored row. An authored row is in when it is
 not `excluded`. Anything else nobody should draw, such as a quest item or a removed item,

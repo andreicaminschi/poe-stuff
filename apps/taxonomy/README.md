@@ -212,13 +212,36 @@ place or the other, never both, and a row with variants and no price is priced r
 missing. Empower Support is a level 1 at 320c and a level 4 corrupted at 4,500c, and no
 single number is the price of an Empower.
 
-**A unique is not a row, and has no variants here.** On the ground a unique is its base
-with a rarity, and a filter names the base; so the catalog hangs every unique PoeWatch lists
-off the base it rolls on, under `uniques`, one entry per listed form — `Lightpoacher (2
-Sockets)` at 140c and `(1 Socket)` at 1c are two entries on Great Crown. The items table
-still carries a unique's `base:Name` key under `unique-*`, and a variant keyed by one
-validates and lands on no row. How a person says which of a unique's forms a filter can
-name is an open question, in `TODO.md`.
+### Uniques
+
+**A unique row is keyed by its base, not by the unique.** On the ground a unique is its base
+with a rarity, and a filter names the base, so `authored/leather-belt` is every unique that
+rolls on Leather Belt. The rows sit under `unique`, which carries `Rarity == Unique`:
+
+| Path | Holds | Record |
+| --- | --- | --- |
+| `unique/regular` | a row per base that carries plain uniques | `Foulborn == false` |
+| `unique/foulborn` | a row per base that carries foulborn uniques, `authored/foulborn-<base>` | `Foulborn == true` |
+| `unique/fragments` | Adorned Pieces and Utmost Pieces, which replace the Vaal Aspect and Primordial Fragment ids | — |
+
+A base row carries `BaseType == from:baseTypes` and two variants:
+
+- **`normal`**, `Corrupted == false`, links every uncorrupted form PoeWatch's `/compact`
+  lists for a unique on that base, such as `Headhunter` or `Foulborn Headhunter (Culling)`.
+- **`corrupted`**, `Corrupted == true`, links every outcome `/corruptions` prices for them,
+  as `{ name, corruption }`.
+
+A variant with nothing to link is left off, and a row with neither is `unpriceable`. Several
+links price at the dearest, so one low-confidence listing can set a whole base's price.
+
+- **Which uniques exist** comes from RePoE's `uniques.json`, which has names and item
+  classes but **no base**. The base comes from GGG's trade item list, as it does for the
+  catalog's `with-uniques.ts`.
+- **`/corruptions` has gaps.** `all=true` is the whole set, and asking per id adds nothing.
+  It prices no outcomes for unique flasks, unique maps or most jewels, so those bases have no
+  `corrupted` variant.
+- **A unique that only drops corrupted** is still listed in `/compact` under its plain name,
+  so it lands in `normal`, whose `Corrupted == false` never matches it on the ground.
 
 ### Seeded and manual
 

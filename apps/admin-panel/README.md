@@ -65,14 +65,20 @@ adapters do and touches nothing in `renderer/`.
   lands in `Documents/My Games/Path of Exile/taxonomy-compiled.filter`, so the game client can
   say which lines it rejects. The real lake is only read.
 - **One league, Allflame. One catalog build at a time**, because GGG counts requests per IP.
+- **The category list has three tabs**: Included, Excluded, and Untouched. Untouched is the
+  work nobody has started: a row that is not excluded, quest or unpriceable, with no listing
+  on the row or on any variant. One rule, `row-in-view.ts`, decides all three, so the tree,
+  the list and the counts agree.
 
 ## Gotchas
 
 - **PoeWatch's names download when the panel opens**, behind the progress screen, through
-  `@poe/poe-watch` with the same hourly file cache under `.s3/.cache` every service uses. The
-  first open in an hour downloads tens of megabytes; later ones read from disk. A failed
-  download leaves "Listed as" typed by hand. `POE_USER_AGENT` in `apps/admin-panel/.env` is
-  optional and overrides PoeWatch's default user agent.
+  `@poe/poe-watch` with the same hourly file cache under `.s3/.cache` every service uses: the
+  listings, the exchange and the corruption outcomes. Each outcome is its own "Listed as"
+  option, `Headhunter · corrupted: …`, linking `{ name, corruption }`. The first open in an
+  hour downloads tens of megabytes; later ones read from disk. A failed download leaves
+  "Listed as" typed by hand. `POE_USER_AGENT` in `apps/admin-panel/.env` is optional and
+  overrides PoeWatch's default user agent.
 - **yarn needs a shell on Windows.** An argument holding `"`, `%`, `$` or a backtick is refused
   rather than passed through, since the shell would expand it.
 - **The repo is found two folders above the app.** A packaged build has no repo there and will
