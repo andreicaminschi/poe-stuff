@@ -32,6 +32,7 @@ const PRICE_KEYS: Readonly<Record<string, "number" | "boolean" | "string">> = {
   frame: "number",
   influences: "string",
   synthesised: "boolean",
+  corruption: "string",
 };
 
 const isObject = (value: unknown): value is Record<string, unknown> =>

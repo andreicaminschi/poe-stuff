@@ -26,6 +26,7 @@ export type ListingMatch = {
   readonly frame?: number;
   readonly influences?: string;
   readonly synthesised?: boolean;
+  readonly corruption?: string;
 };
 
 export type TaxonomyVariant = {

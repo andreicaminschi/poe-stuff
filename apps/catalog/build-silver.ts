@@ -39,7 +39,7 @@ export const buildSilver: Step = {
     ]);
 
     const rows = withUniques(
-      fromPoeWatch(fromTaxonomy(taxonomy), listings, ratios),
+      fromPoeWatch(fromTaxonomy(taxonomy), listings, ratios, corruptions),
       groups,
       listings,
       corruptions,

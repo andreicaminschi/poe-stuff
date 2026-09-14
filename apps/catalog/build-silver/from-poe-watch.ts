@@ -1,8 +1,12 @@
 import type { ItemData } from "@poe/poe-watch/get-compact-data.types";
+import type { ItemCorruptions } from "@poe/poe-watch/get-corruption-data.types";
 import type { ExchangeRatioItem } from "@poe/poe-watch/get-exchange-ratios.types";
+import type { CorruptionOutcome } from "@poe/poe-watch/types";
 import type { Listing, ListingMatch } from "@poe/taxonomy/types";
 import type { Item, PricedVariant } from "../item.ts";
 import { isSynthesised } from "./is-synthesised.ts";
+
+type Price = { readonly mean: number; readonly lowConfidence: boolean };
 
 /**
  * A listing name with the lines inside its parentheses in one order.
@@ -50,6 +54,18 @@ const field = (listing: ItemData, key: string): unknown =>
 const matches = (listing: ItemData, selector: ListingMatch): boolean =>
   Object.entries(selector).every(([key, value]) => field(listing, key) === value);
 
+/** The most listed, ties to the higher mean. */
+const mostListed = <T extends { readonly daily: number; readonly mean: number }>(
+  candidates: readonly T[],
+): T | undefined =>
+  candidates.reduce<T | undefined>(
+    (best, one) =>
+      best === undefined || one.daily > best.daily || (one.daily === best.daily && one.mean > best.mean)
+        ? one
+        : best,
+    undefined,
+  );
+
 /**
  * The one listing to read a price off.
  *
@@ -61,19 +77,26 @@ function pick(
   listings: readonly ItemData[],
   selector: ListingMatch | undefined,
 ): ItemData | undefined {
-  const kept =
-    selector === undefined
-      ? listings
-      : listings.filter((listing) => matches(listing, selector));
+  return mostListed(
+    selector === undefined ? listings : listings.filter((listing) => matches(listing, selector)),
+  );
+}
 
-  return kept.reduce<ItemData | undefined>(
-    (best, listing) =>
-      best === undefined ||
-      listing.daily > best.daily ||
-      (listing.daily === best.daily && listing.mean > best.mean)
-        ? listing
-        : best,
-    undefined,
+/**
+ * One corruption outcome of a unique, read off every listing of it.
+ *
+ * PoeWatch prices outcomes per listing id, and a unique listed at several forms carries the
+ * same outcome on more than one, so the most-listed of them is read.
+ */
+function pickOutcome(
+  listings: readonly ItemData[],
+  corruption: string,
+  outcomesById: ReadonlyMap<number, readonly CorruptionOutcome[]>,
+): CorruptionOutcome | undefined {
+  return mostListed(
+    listings
+      .flatMap((listing) => outcomesById.get(listing.id) ?? [])
+      .filter((outcome) => outcome.name === corruption),
   );
 }
 
@@ -95,6 +118,9 @@ const queriesOf = (listing: Listing | undefined): readonly (ListingMatch | undef
  * listings, and the second number is simply wrong. The exchange has no per-form rows, so a
  * variant always prices off the listings.
  *
+ * A selector with `corruption` reads that corruption outcome of the unique it names, not a
+ * listing.
+ *
  * A row with variants prices each variant and not itself, because a price attaches to a
  * variant. A row without prices itself, through its own selector when it has one. A
  * selector that matches no listing leaves the field absent rather than failing: a gem key on
@@ -104,8 +130,10 @@ export function fromPoeWatch(
   rows: readonly Item[],
   listings: readonly ItemData[],
   ratios: readonly ExchangeRatioItem[],
+  corruptions: readonly ItemCorruptions[],
 ): readonly Item[] {
   const index = byName(listings);
+  const outcomesById = new Map(corruptions.map((item) => [item.item_id, item.corruptions]));
   // A row with no trade in the window carries no price, and prices nothing here either.
   const exchange = new Map(
     ratios.flatMap((ratio) =>
@@ -121,10 +149,14 @@ export function fromPoeWatch(
     const rowName = queriesOf(item.listing)[0]?.name ?? item.name;
     const listed = (selector: ListingMatch | undefined): readonly ItemData[] =>
       index.get(listingKey(selector?.name ?? rowName)) ?? [];
+    const priceOf = (query: ListingMatch | undefined): Price | undefined =>
+      query?.corruption === undefined
+        ? pick(listed(query), query)
+        : pickOutcome(listed(query), query.corruption, outcomesById);
     // Several links price at the dearest.
-    const choose = (listing: Listing | undefined): ItemData | undefined =>
-      queriesOf(listing).reduce<ItemData | undefined>((best, query) => {
-        const chosen = pick(listed(query), query);
+    const choose = (listing: Listing | undefined): Price | undefined =>
+      queriesOf(listing).reduce<Price | undefined>((best, query) => {
+        const chosen = priceOf(query);
         if (chosen === undefined) return best;
         return best === undefined || chosen.mean > best.mean ? chosen : best;
       }, undefined);

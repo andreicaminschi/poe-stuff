@@ -280,6 +280,8 @@ it; among the matches, the most-listed one is read.
 The keys are `gemLevel`, `gemQuality`, `gemIsCorrupted`, `linkCount`, `itemLevel`, `mapTier`,
 `tier`, `passives`, `frame`, `influences`, `synthesised`, and `name` — the listing's own name, for a row PoeWatch lists under
 something other than its display name; a variant without one inherits its row's.
+`corruption` is a corruption outcome's text as PoeWatch's `/corruptions` writes it:
+`{ "name": "Headhunter", "corruption": "…" }` prices that outcome of that unique, not a listing.
 `listing` may also be a list of queries, to link one row to several listings — every unique
 Heavy Belt on Heavy Belt. An empty list is refused. The taxonomy only records the links; the
 catalog reads each and keeps the dearest as the row's price.
