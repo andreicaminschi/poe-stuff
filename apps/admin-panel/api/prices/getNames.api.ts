@@ -1,4 +1,5 @@
 import type { PoeWatchService } from "@poe/poe-watch/service";
+import type { CorruptionOutcome } from "@poe/poe-watch/types";
 import type { ListingMatch } from "../taxonomy/types.ts";
 import { listingQuery } from "./listing-query.ts";
 
@@ -21,4 +22,31 @@ export async function getExchangeNames(poeWatch: PoeWatchService, league: string
   const ratios = await poeWatch.getExchangeRatios(league, "poe1");
 
   return [...new Set(ratios.map((ratio) => ratio.name))].map((name) => ({ name, label: "exchange", listing: { name } }));
+}
+
+/** Every corruption outcome PoeWatch prices, once per unique and outcome, the most listed. */
+export async function getCorruptionNames(poeWatch: PoeWatchService, league: string): Promise<readonly PriceName[]> {
+  const [listings, corruptions] = await Promise.all([
+    poeWatch.getCompactData(league),
+    poeWatch.getCorruptionData(league),
+  ]);
+  const nameById = new Map(listings.map((listing) => [listing.id, listing.name]));
+  const best = new Map<string, { readonly name: string; readonly outcome: CorruptionOutcome }>();
+
+  for (const item of corruptions) {
+    const name = nameById.get(item.item_id);
+    if (name === undefined) continue;
+
+    for (const outcome of item.corruptions) {
+      const key = `${name}\n\n${outcome.name}`;
+      const seen = best.get(key);
+      if (seen === undefined || outcome.daily > seen.outcome.daily) best.set(key, { name, outcome });
+    }
+  }
+
+  return [...best.values()].map(({ name, outcome }) => ({
+    name: `${name} (${outcome.name})`,
+    label: `corruption · ${Math.round(outcome.mean)}c · ${outcome.daily}/d${outcome.lowConfidence ? " · low" : ""}`,
+    listing: { name, corruption: outcome.name },
+  }));
 }

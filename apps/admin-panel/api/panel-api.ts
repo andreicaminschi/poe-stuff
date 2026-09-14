@@ -22,6 +22,7 @@ export type PanelApi = {
   publishCatalog(league: string, hour: number): Promise<ActionResult>;
   getListingNames(): Promise<readonly PriceName[]>;
   getExchangeNames(): Promise<readonly PriceName[]>;
+  getCorruptionNames(): Promise<readonly PriceName[]>;
   getForms(name: string): Promise<readonly Form[]>;
   getLedger(id: string): Promise<Ledger>;
   appendLedger(id: string, entry: LedgerEntry): Promise<void>;
@@ -43,6 +44,7 @@ export const API_NAMES = [
   "publishCatalog",
   "getListingNames",
   "getExchangeNames",
+  "getCorruptionNames",
   "getForms",
   "getLedger",
   "appendLedger",

@@ -77,6 +77,7 @@ const BOOT_STEPS: readonly BootStep[] = [
   { id: "draft", label: "Loading the draft and its ledger", state: "waiting" },
   { id: "listings", label: "Downloading PoeWatch listings", state: "waiting" },
   { id: "exchange", label: "Downloading PoeWatch exchange", state: "waiting" },
+  { id: "corruptions", label: "Downloading PoeWatch corruptions", state: "waiting" },
 ];
 
 const countOf = (count: number, noun: string): string => `${count.toLocaleString("en")} ${noun}`;
@@ -203,12 +204,16 @@ export const useSession = create<Session>()((set, get) => {
         if (loaded === undefined) return;
       }
 
-      const [listings, exchange] = await Promise.all([
+      const [listings, exchange, corruptions] = await Promise.all([
         bootStep("listings", () => window.panel.getListingNames(), (names) => countOf(names.length, "names")),
         bootStep("exchange", () => window.panel.getExchangeNames(), (names) => countOf(names.length, "names")),
+        bootStep("corruptions", () => window.panel.getCorruptionNames(), (names) => countOf(names.length, "outcomes")),
       ]);
 
-      set({ priceOptions: mergePriceNames(listings ?? [], exchange ?? []), booting: false });
+      set({
+        priceOptions: mergePriceNames([...(listings ?? []), ...(corruptions ?? [])], exchange ?? []),
+        booting: false,
+      });
     },
 
     async switchVersion(id) {

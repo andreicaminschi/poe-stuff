@@ -20,6 +20,7 @@ export function describeListing(listing: ListingMatch): string {
     when(listing.passives, (passives) => `${passives} passives`),
     listing.influences,
     listing.synthesised === true ? "synth" : undefined,
+    when(listing.corruption, (corruption) => `corrupted: ${corruption.replaceAll("\n", " / ")}`),
   ];
 
   return parts.filter((part) => part !== undefined && part !== "").join(" · ");

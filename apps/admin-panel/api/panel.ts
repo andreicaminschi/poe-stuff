@@ -10,7 +10,7 @@ import { getLedger } from "./ledger/get.api.ts";
 import { popLedger } from "./ledger/pop.api.ts";
 import type { PanelApi } from "./panel-api.ts";
 import { getForms } from "./prices/getForms.api.ts";
-import { getExchangeNames, getListingNames } from "./prices/getNames.api.ts";
+import { getCorruptionNames, getExchangeNames, getListingNames } from "./prices/getNames.api.ts";
 import { createPoeWatchService } from "@poe/poe-watch/service";
 import type { CachedResponse } from "@poe/poe-watch/types";
 import { fileCache } from "@util/cache/file-cache";
@@ -56,6 +56,7 @@ export function createPanelService(repo: string, documents: string, userAgent?: 
     publishCatalog: (league, hour) => publishCatalog(repo, league, hour),
     getListingNames: () => getListingNames(poeWatch, LEAGUE),
     getExchangeNames: () => getExchangeNames(poeWatch, LEAGUE),
+    getCorruptionNames: () => getCorruptionNames(poeWatch, LEAGUE),
     getForms: (name) => getForms(poeWatch, LEAGUE, name),
     getLedger: (id) => getLedger(lake, id),
     appendLedger: (id, entry) => appendLedger(lake, id, entry),
