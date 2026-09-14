@@ -28,7 +28,7 @@ export async function publishTaxonomy(
   let rowsLeftOut = 0;
   let variantsLeftOut = 0;
 
-  const fold = <T extends { readonly listing?: unknown; readonly excluded?: boolean }>(
+  const fold = <T extends { readonly listing?: unknown; readonly excluded?: boolean; readonly quest?: boolean }>(
     rows: Readonly<Record<string, T>>,
   ) =>
     Object.fromEntries(
@@ -38,7 +38,7 @@ export async function publishTaxonomy(
         variantsLeftOut += all.length - variants.length;
 
         if (variants.length > 0) return [[id, { ...row, variants }]];
-        if (row.listing !== undefined || row.excluded === true) return [[id, row]];
+        if (row.listing !== undefined || row.excluded === true || row.quest === true) return [[id, row]];
 
         rowsLeftOut += 1;
         return [];

@@ -10,10 +10,12 @@ import { useSession } from "../session-store.ts";
 import type { Flag } from "../types.ts";
 import { fromValues } from "../utils/from-values.ts";
 import { pathOf } from "../utils/path-of.ts";
+import { priceHint } from "../utils/price-hint.ts";
 import { withDisplayName } from "../utils/with-display-name.ts";
 import { withExcluded } from "../utils/with-excluded.ts";
 import { withFlag } from "../utils/with-flag.ts";
 import { withListing } from "../utils/with-listing.ts";
+import { withQuest } from "../utils/with-quest.ts";
 
 type Tri = "sources" | "yes" | "no";
 
@@ -36,6 +38,13 @@ const FLAGS: readonly (readonly [Flag, string])[] = [
   ["tradedOnExchange", "Traded on exchange"],
 ];
 
+type YesNo = "yes" | "no";
+
+const YES_NO: readonly (readonly [YesNo, string])[] = [
+  ["no", "No"],
+  ["yes", "Yes"],
+];
+
 export function ItemPane({
   item,
   resolved,
@@ -56,6 +65,7 @@ export function ItemPane({
   const openDialog = useSession((state) => state.openDialog);
   const { classification } = item;
   const top = categories.find((node) => node.path === classification.category);
+  const hint = priceHint(item, hasVariants);
 
   return (
     <div className="pane">
@@ -206,10 +216,19 @@ export function ItemPane({
       <div className="grp">
         <h4>Price</h4>
         <div className="fld">
+          <label>Quest item</label>
+          <Segmented
+            value={item.quest === true ? "yes" : "no"}
+            options={YES_NO}
+            disabled={!editable}
+            onChange={(value) => editItem(withQuest(item, value === "yes"))}
+          />
+        </div>
+        <div className="fld">
           <label htmlFor="row-listed">Listed as</label>
           <ListingPicker
             id="row-listed"
-            placeholder={hasVariants ? "Not used: the variants are priced" : "Required: pick a PoeWatch listing"}
+            placeholder={hint.placeholder}
             listing={item.listing}
             options={priceOptions}
             disabled={!editable}
@@ -217,9 +236,7 @@ export function ItemPane({
           />
         </div>
         <p className="note">
-          {hasVariants
-            ? "Not required. This row has variants, so each variant's listing is read and this one is ignored."
-            : "Required. The exact listing this row prices off; without one the row is not published."}
+          {hint.note}
           {priceOptions.length === 0 ? " PoeWatch's listings did not download." : ""}
         </p>
       </div>

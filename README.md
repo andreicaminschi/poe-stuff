@@ -127,7 +127,7 @@ PoeWatch's own field names:
 
 The same fact is written twice on purpose. The condition is what the filter asks of an item
 on the ground. The `listing` is which market row gives the price. Publishing leaves out a
-row with no `listing`, unless the row is excluded or one of its variants has one.
+row with no `listing`, unless the row is excluded, is a quest item, or has a variant with one.
 
 ### Versions
 
@@ -212,6 +212,7 @@ on the ground.
 | `displayName` | Optional. The maintainer's internal name. Nothing prices or resolves by it. |
 | `category`, `subcategory` | The row's path. `subcategory` is `null` when the row sits directly in the category. |
 | `baseTypes` | What a filter writes for `BaseType`: the row's name, or an authored row's `baseType`. |
+| `quest` | Optional. `true` on a quest item. A quest item needs no listing, so it often has no price. |
 | `conditions` | Optional. The row's own conditions, copied from the taxonomy and **not resolved**. |
 | `variants` | Optional. Each has `name`, `conditions`, an optional `listing`, and its own `meanPrice` and `lowConfidence`. |
 | `listing` | Optional. The PoeWatch match that prices the row. |

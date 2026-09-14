@@ -279,7 +279,7 @@ PoeWatch field: the catalog reads it off the listing's icon.
 one, and `publish` leaves it out and says how many it left. A variant with no `listing` is
 left out the same way. A row with variants needs no `listing` of its own: it is published
 while at least one variant has one, and its own `listing` is ignored. An `excluded` row needs
-no `listing` either, and is published as it is. A row the Currency Exchange trades needs one too: `{ "name": … }`. **Absent
+no `listing` either, and is published as it is. Neither does a `quest` row. A row the Currency Exchange trades needs one too: `{ "name": … }`. **Absent
 means the most-listed row for the name**, which is what every row without variants gets. An item without variants may carry `listing` itself, for a base that
 should not price at whatever form is listed most. A selector that matches nothing — a gem
 key on a base — leaves the row unpriced, and is not an error.
@@ -300,6 +300,7 @@ Beside `category` and `subcategory`, an entry may state three things the sources
 | `tradedOnExchange` | The same, for the Currency Exchange. |
 | `displayName` | An internal name the admin panel shows and edits. `init` seeds it as the RePoE name. Nothing that resolves conditions, fills `from` or prices a row reads it — those read `name`. |
 | `excluded` | Nobody wants this row drawn. It is real and nameable, stays in its category's `.json`, and never reaches a `.filterable.json`. An authored row may carry it too. |
+| `quest` | A quest item. It is drawn, and it needs no `listing`: `publish` keeps it without one, and the catalog copies the flag onto its row. An authored row may carry it too. |
 
 ## Authored rows
 

@@ -11,6 +11,7 @@ const FIELDS = [
   "replaces",
   "reason",
   "excluded",
+  "quest",
   "conditions",
   "listing",
 ];
@@ -59,6 +60,10 @@ function rowProblem(key: string, value: unknown): string | null {
 
   if (value.excluded !== undefined && typeof value.excluded !== "boolean") {
     return "excluded must be a boolean when it is present";
+  }
+
+  if (value.quest !== undefined && typeof value.quest !== "boolean") {
+    return "quest must be a boolean when it is present";
   }
 
   if (value.replaces !== undefined) {

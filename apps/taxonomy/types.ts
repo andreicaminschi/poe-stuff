@@ -38,6 +38,7 @@ export type AuthoredRow = {
   readonly replaces?: readonly string[];
   readonly reason: string;
   readonly excluded?: boolean;
+  readonly quest?: boolean;
   readonly conditions?: readonly Condition[];
   readonly listing?: Listing;
 };
@@ -71,6 +72,7 @@ export type AuthoredEntry = {
   readonly tradable?: boolean;
   readonly tradedOnExchange?: boolean;
   readonly excluded?: boolean;
+  readonly quest?: boolean;
   readonly conditions?: readonly Condition[];
   readonly listing?: Listing;
 };

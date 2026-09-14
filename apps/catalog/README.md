@@ -26,7 +26,7 @@ is the taxonomy's to exclude.
 `pipeline.ts` holds the list of steps, and each step's doc comment says what it does.
 
 A catalog row is the taxonomy row's key, name, category, subcategory and base types, its
-copied conditions, variants and listing, and what the catalog adds: `meanPrice`,
+quest flag, its copied conditions, variants and listing, and what the catalog adds: `meanPrice`,
 `lowConfidence` and `uniques`. `baseTypes` is the row's name, or an authored row's
 `baseType`.
 

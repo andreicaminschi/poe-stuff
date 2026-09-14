@@ -10,6 +10,7 @@ import { pathOf } from "../utils/path-of.ts";
 import { sharedConditions } from "../utils/shared-conditions.ts";
 import { sharedValue } from "../utils/shared-value.ts";
 import { withExcluded } from "../utils/with-excluded.ts";
+import { withQuest } from "../utils/with-quest.ts";
 import { withSharedConditions } from "../utils/with-shared-conditions.ts";
 
 const MIXED = "*mixed*";
@@ -36,6 +37,7 @@ export function MultiItemPane() {
   const top = categories.find((node) => node.path === category);
 
   const excludedCount = items.filter((item) => item.excluded === true).length;
+  const questCount = items.filter((item) => item.quest === true).length;
   const shared = sharedConditions(items);
   const withExtras = items.filter((item) => item.conditions.length > shared.length).length;
 
@@ -136,6 +138,31 @@ export function MultiItemPane() {
         </div>
         <p className="note">
           {excludedCount} of {items.length} are excluded.
+        </p>
+      </div>
+
+      <div className="grp">
+        <h4>Quest items</h4>
+        <div className="row">
+          <button
+            type="button"
+            className="btn"
+            disabled={!editable || questCount === items.length}
+            onClick={() => editItems(items.map((item) => withQuest(item, true)))}
+          >
+            Mark all
+          </button>
+          <button
+            type="button"
+            className="btn"
+            disabled={!editable || questCount === 0}
+            onClick={() => editItems(items.map((item) => withQuest(item, false)))}
+          >
+            Unmark all
+          </button>
+        </div>
+        <p className="note">
+          {questCount} of {items.length} are quest items. A quest item needs no listing.
         </p>
       </div>
 

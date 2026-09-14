@@ -8,6 +8,7 @@ const rowOf = (key: string, entry: TaxonomyEntry | TaxonomyAuthored, baseType: s
   category: entry.category,
   subcategory: entry.subcategory,
   baseTypes: [baseType],
+  ...(entry.quest === true ? { quest: true } : {}),
   ...(entry.conditions === undefined ? {} : { conditions: entry.conditions }),
   ...(entry.variants === undefined ? {} : { variants: entry.variants }),
   ...(entry.listing === undefined ? {} : { listing: entry.listing }),
