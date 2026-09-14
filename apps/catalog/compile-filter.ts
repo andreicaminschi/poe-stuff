@@ -9,11 +9,12 @@ export type Skip = { readonly key: string; readonly variant?: string; readonly p
 
 export type Compiled = { readonly text: string; readonly blocks: number; readonly skipped: readonly Skip[] };
 
-type Block = { readonly text: string } | { readonly problem: string };
+type Block = { readonly text: string } | { readonly problem: string } | null;
 
 function blockOf(row: Item, form: Form): Block {
   const [first] = form.problems;
   if (first !== undefined) return { problem: first };
+  if (form.conditions.length === 0 && row.quest === true) return null;
   if (form.conditions.length === 0) return { problem: "has no conditions yet" };
 
   const written: string[] = [];
@@ -40,7 +41,8 @@ function blockOf(row: Item, form: Form): Block {
  *
  * **A row is drawn when any level has a condition**: its category, its subcategory, the row
  * itself or the variant. A row with none is skipped as "has no conditions yet", and so is one
- * with a resolution problem or a condition no line can hold, each with its reason.
+ * with a resolution problem or a condition no line can hold, each with its reason. A quest
+ * row with none is left out unreported: the game always shows quest items.
  * The text is read back with `parseFilter` before it is returned, so a grammar mistake fails
  * here and not in the game client.
  */
@@ -63,6 +65,8 @@ export function compileFilter(rows: readonly Item[], categories: TaxonomyCategor
 
     for (const form of forms) {
       const block = blockOf(row, form);
+
+      if (block === null) continue;
 
       if ("problem" in block) {
         skipped.push({ key: row.key, ...(form.variant === undefined ? {} : { variant: form.variant }), problem: block.problem });
