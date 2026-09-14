@@ -11,6 +11,7 @@ import type { Flag } from "../types.ts";
 import { fromValues } from "../utils/from-values.ts";
 import { pathOf } from "../utils/path-of.ts";
 import { priceHint } from "../utils/price-hint.ts";
+import { replacesNote } from "../utils/replaces-note.ts";
 import { withDisplayName } from "../utils/with-display-name.ts";
 import { withExcluded } from "../utils/with-excluded.ts";
 import { withFlag } from "../utils/with-flag.ts";
@@ -69,6 +70,14 @@ export function ItemPane({
 
   return (
     <div className="pane">
+      {item.source === "authored" ? (
+        <div className="subhead">
+          <div className="title">
+            <span className="flag authored">authored</span> Authored row
+          </div>
+          <div className="id">{replacesNote(item.replaces.length)}</div>
+        </div>
+      ) : null}
       <div className="grp">
         <div className="fld">
           <label htmlFor="row-name">Name</label>

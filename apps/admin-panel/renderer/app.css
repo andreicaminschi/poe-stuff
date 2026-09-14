@@ -119,6 +119,7 @@ input.filter { width:180px; }
 .item .flags { display:flex; gap:5px; align-items:center; flex:none; }
 .flag { font-size:10px; letter-spacing:.06em; text-transform:uppercase; border:1px solid var(--line); border-radius:9px; padding:0 6px; color:var(--faint); }
 .flag.no { border-color:#5a3a33; color:var(--danger); }
+.flag.authored { border-color:var(--accent); color:var(--accent); }
 .vars { display:flex; flex-wrap:wrap; gap:6px; padding:0 16px 8px 32px; cursor:pointer; }
 .vars.on { background:rgba(200,161,90,.06); border-left:2px solid var(--accent); padding-left:30px; }
 .vars .v { font-size:12px; color:var(--dim); background:var(--ground); border:1px solid var(--line-soft); border-radius:3px; padding:1px 8px; }
