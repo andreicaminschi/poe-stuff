@@ -153,3 +153,22 @@ Icon and beam colours: Red, Green, Blue, Brown, White, Yellow, Cyan, Grey, Orang
 Purple.
 Icon shapes: Circle, Diamond, Hexagon, Square, Star, Triangle, Cross, Moon, Raindrop,
 Kite, Pentagon, UpsideDownHouse.
+
+## Verified in game: maps
+
+Checked in the client with a test filter in September 2026. GGG's page says none of this.
+
+| Map | Conditions that pick it out |
+| --- | --- |
+| Shaper-influenced | `HasInfluence Shaper` |
+| Elder-influenced | `HasInfluence Elder` |
+| Conqueror-influenced | `HasInfluence Crusader Hunter Redeemer Warlord` |
+| Originator | `HasImplicitMod True`, `HasInfluence None`, `CorruptedMods 0` |
+| Vaal Orb implicit | `CorruptedMods >= 1` |
+
+- `HasInfluence` works on maps at every tier, not only on T16 guardian and conqueror maps.
+- A map's influence is an implicit. `HasImplicitMod True` alone therefore catches every
+  influenced map and every map a Vaal Orb gave an implicit. Originator needs the other two
+  conditions to stand apart.
+- An originator map that is also influenced, or that a Vaal Orb gave an implicit, fails the
+  originator conditions. Nothing found so far picks it out.
