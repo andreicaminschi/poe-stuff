@@ -3,6 +3,7 @@ import type { Condition, Variant } from "../../api/taxonomy/types.ts";
 import { titleCase } from "./title-case.ts";
 
 const RARITIES = ["Normal", "Magic", "Rare", "Unique"];
+const UNIQUE = 3;
 
 type Key = "itemLevel" | "linkCount" | "gemLevel" | "gemQuality" | "gemIsCorrupted" | "mapTier";
 
@@ -30,11 +31,23 @@ const nextLevelUp = (form: Form, siblings: readonly Form[]): number | undefined 
   return above.length === 0 ? undefined : Math.min(...above);
 };
 
+const rarityConditions = (form: Form, siblings: readonly Form[]): Condition[] => {
+  const rarity = RARITIES[form.frame];
+  if (rarity === undefined) return [];
+  if (form.frame === UNIQUE) return [{ condition: "Rarity", operator: "==", value: [rarity] }];
+  if (siblings.some((other) => other.frame !== form.frame && other.frame < UNIQUE)) {
+    return [{ condition: "Rarity", operator: "==", value: [rarity] }];
+  }
+
+  return [{ condition: "Rarity", operator: "==", value: RARITIES.slice(0, UNIQUE) }];
+};
+
 /**
  * One form as a variant, told apart from its siblings.
  *
  * The listing is the form's whole query. A condition is only written for what the siblings
- * disagree on, and Rarity is always one.
+ * disagree on, and Rarity is always one: every rarity short of Unique, unless the siblings are
+ * told apart by rarity.
  */
 export function formToVariant(form: Form, siblings: readonly Form[]): Variant {
   const differs = (read: (other: Form) => unknown): boolean =>
@@ -43,7 +56,7 @@ export function formToVariant(form: Form, siblings: readonly Form[]): Variant {
 
   const rarity = RARITIES[form.frame];
   const conditions: Condition[] = [
-    ...(rarity === undefined ? [] : [{ condition: "Rarity", operator: "==", value: [rarity] }]),
+    ...rarityConditions(form, siblings),
     ...keys.flatMap(({ key, condition, operator }): Condition[] => {
       const value = form[key] as number | boolean;
       const ceiling = key === "itemLevel" ? nextLevelUp(form, siblings) : undefined;
