@@ -15,6 +15,7 @@ import { categoryDeleteProblem } from "../utils/category-delete-problem.ts";
 import { conditionOrigins } from "../utils/condition-origins.ts";
 import { categoryDialogTitle } from "../utils/category-dialog-title.ts";
 import { categoryPath } from "../utils/category-path.ts";
+import { initialParent } from "../utils/initial-parent.ts";
 import { newCategoryProblem } from "../utils/new-category-problem.ts";
 
 const TIERING: readonly (readonly [Tiering, string])[] = [
@@ -36,7 +37,8 @@ export function CategoryModal({ target }: { readonly target: CategoryTarget }) {
   const moveTo = useSession((state) => state.moveSubcategory);
 
   const existing = target.kind === "edit" ? draft?.categories[target.path] : undefined;
-  const [parent, setParent] = useState(target.kind === "edit" ? (target.path.split("/")[0] ?? "") : (tops[0]?.path ?? ""));
+  const selection = useSession((state) => state.selection);
+  const [parent, setParent] = useState(() => initialParent(target, selection, tops));
   const [slug, setSlug] = useState(target.kind === "edit" ? (target.path.split("/").at(-1) ?? "") : "");
   const [name, setName] = useState(existing?.name ?? "");
   const [tiering, setTiering] = useState<Tiering>(existing?.tiering ?? "chaos");
