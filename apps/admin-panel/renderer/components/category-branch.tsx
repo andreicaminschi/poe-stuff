@@ -13,7 +13,7 @@ export function CategoryBranch({
   readonly onSelect: (path: string) => void;
   readonly onEdit: (path: string) => void;
 }) {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
 
   return (
     <>
