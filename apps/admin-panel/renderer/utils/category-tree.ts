@@ -1,14 +1,13 @@
 import type { Draft } from "../../api/taxonomy/types.ts";
 import type { CategoryNode, CategoryTree, View } from "../types.ts";
 import { pathOf } from "./path-of.ts";
+import { rowInView } from "./row-in-view.ts";
 import { titleCase } from "./title-case.ts";
 
 export function categoryTree(draft: Draft, view?: View): CategoryTree {
   const counts = new Map<string, number>();
   const bump = (path: string) => counts.set(path, (counts.get(path) ?? 0) + 1);
-  const rows = Object.values(draft.items).filter(
-    (row) => view === undefined || (row.excluded === true) === (view === "excluded"),
-  );
+  const rows = Object.values(draft.items).filter((row) => view === undefined || rowInView(row, view));
 
   for (const row of rows) {
     bump(row.classification.category);
@@ -16,7 +15,9 @@ export function categoryTree(draft: Draft, view?: View): CategoryTree {
   }
 
   const paths =
-    view === "excluded" ? [...counts.keys()] : [...new Set([...Object.keys(draft.categories), ...counts.keys()])];
+    view === "excluded" || view === "untouched"
+      ? [...counts.keys()]
+      : [...new Set([...Object.keys(draft.categories), ...counts.keys()])];
   const tops = [...new Set(paths.map((path) => path.split("/")[0] ?? path))];
 
   const node = (path: string, children: readonly CategoryNode[] = []): CategoryNode => ({

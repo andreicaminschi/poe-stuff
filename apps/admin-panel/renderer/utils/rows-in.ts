@@ -1,9 +1,9 @@
 import type { Draft, Item } from "../../api/taxonomy/types.ts";
 import type { View } from "../types.ts";
+import { rowInView } from "./row-in-view.ts";
 
 export function rowsIn(draft: Draft, path: string | undefined, view: View): readonly Item[] {
-  const excluded = view === "excluded";
-  const inView = Object.values(draft.items).filter((row) => (row.excluded === true) === excluded);
+  const inView = Object.values(draft.items).filter((row) => rowInView(row, view));
 
   if (path === undefined) return inView;
 

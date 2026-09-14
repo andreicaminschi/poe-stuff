@@ -21,7 +21,7 @@ export type Flag = "filterable" | "tradable" | "tradedOnExchange";
 
 export type Tab = "item" | "variants";
 
-export type View = "included" | "excluded";
+export type View = "included" | "excluded" | "untouched";
 
 export type BootState = "waiting" | "running" | "done" | "failed";
 

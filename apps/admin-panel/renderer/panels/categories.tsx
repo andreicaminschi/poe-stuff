@@ -5,10 +5,12 @@ import { useDraft } from "../hooks/use-draft.ts";
 import { useEditable } from "../hooks/use-editable.ts";
 import { useSession } from "../session-store.ts";
 import type { View } from "../types.ts";
+import { rowInView } from "../utils/row-in-view.ts";
 
 const VIEWS: readonly (readonly [View, string])[] = [
   ["included", "Included"],
   ["excluded", "Excluded"],
+  ["untouched", "Untouched"],
 ];
 
 export function Categories() {
@@ -23,8 +25,8 @@ export function Categories() {
 
   const counts = useMemo(() => {
     const rows = Object.values(draft?.items ?? {});
-    const excluded = rows.filter((row) => row.excluded === true).length;
-    return { included: rows.length - excluded, excluded };
+    const count = (view: View) => rows.filter((row) => rowInView(row, view)).length;
+    return { included: count("included"), excluded: count("excluded"), untouched: count("untouched") };
   }, [draft]);
 
   if (tree === undefined) return null;
