@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { resolvePath } from "@poe/filter-compile/resolve-row";
-import type { Condition, Tiering } from "../../api/taxonomy/types.ts";
+import type { Category, Condition, Tiering } from "../../api/taxonomy/types.ts";
 import { ConditionsEditor } from "../components/conditions-editor.tsx";
 import { Modal } from "../components/modal.tsx";
 import { Segmented } from "../components/segmented.tsx";
@@ -15,6 +15,7 @@ import { categoryDeleteProblem } from "../utils/category-delete-problem.ts";
 import { conditionOrigins } from "../utils/condition-origins.ts";
 import { categoryDialogTitle } from "../utils/category-dialog-title.ts";
 import { categoryPath } from "../utils/category-path.ts";
+import { categorySaveNote } from "../utils/category-save-note.ts";
 import { initialParent } from "../utils/initial-parent.ts";
 import { newCategoryProblem } from "../utils/new-category-problem.ts";
 
@@ -35,6 +36,7 @@ export function CategoryModal({ target }: { readonly target: CategoryTarget }) {
   const closeDialog = useSession((state) => state.closeDialog);
   const confirm = useSession((state) => state.confirm);
   const moveTo = useSession((state) => state.moveSubcategory);
+  const renameTo = useSession((state) => state.renameCategory);
 
   const existing = target.kind === "edit" ? draft?.categories[target.path] : undefined;
   const selection = useSession((state) => state.selection);
@@ -52,16 +54,43 @@ export function CategoryModal({ target }: { readonly target: CategoryTarget }) {
     [draft, path, conditions],
   );
 
+  const oldSlug = target.kind === "edit" ? (target.path.split("/").at(-1) ?? "") : "";
   const moving = target.kind === "edit" && isSub && parent !== (target.path.split("/")[0] ?? "");
-  const movedPath = `${parent}/${slug}`;
+  const renaming = target.kind === "edit" && slug !== oldSlug;
+  const movedPath = `${parent}/${oldSlug}`;
+  const renamedPath = isSub ? `${parent}/${slug}` : slug;
 
   const problem =
     target.kind === "edit" ? undefined : newCategoryProblem(slug, path, draft?.categories[path] !== undefined);
   const moveProblem = moving && draft?.categories[movedPath] !== undefined ? `${movedPath} already exists.` : undefined;
+  const renameProblem = renaming
+    ? newCategoryProblem(slug, renamedPath, draft?.categories[renamedPath] !== undefined)
+    : undefined;
+  const note =
+    moveProblem === undefined && renameProblem === undefined
+      ? categorySaveNote(path, moving ? movedPath : undefined, renaming ? renamedPath : undefined)
+      : undefined;
 
   const title = categoryDialogTitle(target, existing !== undefined);
   const deletable = target.kind === "edit" && existing !== undefined && editable;
   const deleteProblem = deletable && draft !== undefined ? categoryDeleteProblem(draft, path) : undefined;
+
+  const record = (at: string): Category => ({
+    path: at,
+    ...(name.trim() === "" ? {} : { name: name.trim() }),
+    tiering,
+    conditions,
+  });
+
+  const submit = async () => {
+    if (moving) {
+      await moveTo(path, record(movedPath));
+      if (useSession.getState().error !== undefined) return;
+    }
+    if (renaming) await renameTo(moving ? movedPath : path, record(renamedPath));
+    if (!moving && !renaming) await saveCategory(record(path));
+    if (useSession.getState().error === undefined) closeDialog();
+  };
 
   const remove = async () => {
     if (!(await confirm(`Delete ${path}? Undo brings it back.`))) return;
@@ -93,19 +122,10 @@ export function CategoryModal({ target }: { readonly target: CategoryTarget }) {
           <button
             type="button"
             className="btn primary"
-            disabled={!editable || busy || problem !== undefined || moveProblem !== undefined}
-            onClick={() => {
-              const record = {
-                path: moving ? movedPath : path,
-                ...(name.trim() === "" ? {} : { name: name.trim() }),
-                tiering,
-                conditions,
-              };
-              const done = moving ? moveTo(path, record) : saveCategory(record);
-              void done.then(() => {
-                if (useSession.getState().error === undefined) closeDialog();
-              });
-            }}
+            disabled={
+              !editable || busy || problem !== undefined || moveProblem !== undefined || renameProblem !== undefined
+            }
+            onClick={() => void submit()}
           >
             Save
           </button>
@@ -137,16 +157,15 @@ export function CategoryModal({ target }: { readonly target: CategoryTarget }) {
             type="text"
             className="mono"
             value={slug}
-            disabled={target.kind === "edit"}
+            disabled={!editable}
             placeholder="lowercase-with-hyphens"
             onChange={(event) => setSlug(event.target.value)}
           />
         </div>
         {problem === undefined ? null : <p className="err">{problem}</p>}
         {moveProblem === undefined ? null : <p className="err">{moveProblem}</p>}
-        {moving && moveProblem === undefined ? (
-          <p className="note">Saving moves this subcategory and every row filed in it to {movedPath}.</p>
-        ) : null}
+        {renameProblem === undefined ? null : <p className="err">{renameProblem}</p>}
+        {note === undefined ? null : <p className="note">{note}</p>}
         {deleteProblem === undefined ? null : <p className="note">Cannot delete: {deleteProblem}</p>}
         {target.kind === "edit" && existing === undefined ? (
           <p className="note">Rows are filed here but it has no record. Saving writes one.</p>

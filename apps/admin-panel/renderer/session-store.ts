@@ -5,6 +5,7 @@ import type { BootState, BootStep, Changes, Dialog, PriceOption, Tab, ValueOptio
 import { mergePriceNames } from "./utils/merge-price-names.ts";
 import { missingListings } from "./utils/missing-listings.ts";
 import { moveSubcategory } from "./utils/move-subcategory.ts";
+import { renameCategory } from "./utils/rename-category.ts";
 import { changeCount } from "./utils/change-count.ts";
 import { NO_CHANGES } from "./utils/no-changes.ts";
 import { pathOf } from "./utils/path-of.ts";
@@ -58,6 +59,7 @@ export type Session = {
   saveCategory(category: Category): Promise<void>;
   deleteCategory(path: string): Promise<void>;
   moveSubcategory(from: string, to: Category): Promise<void>;
+  renameCategory(from: string, to: Category): Promise<void>;
   undo(): Promise<void>;
   revert(): void;
   save(): Promise<void>;
@@ -348,6 +350,31 @@ export const useSession = create<Session>()((set, get) => {
         set((state) => ({
           status: `Moved ${from} to ${to.path}, ${rows} row${rows === 1 ? "" : "s"}.`,
           ...(state.selection === from ? { selection: to.path } : {}),
+        }));
+      }),
+
+    renameCategory: (from, to) =>
+      run(async () => {
+        const { saved, changes } = get();
+        if (saved === undefined) return;
+        if (changeCount(changes) > 0) {
+          set({ error: "Save or revert your edits before renaming a category." });
+          return;
+        }
+
+        const rename = renameCategory(saved, from, to);
+        if ("problem" in rename) {
+          set({ error: rename.problem });
+          return;
+        }
+
+        await append("rename-category", rename.changes);
+        const rows = Object.keys(rename.changes.items ?? {}).length;
+        set((state) => ({
+          status: `Renamed ${from} to ${to.path}, ${rows} row${rows === 1 ? "" : "s"}.`,
+          ...(state.selection === from || state.selection?.startsWith(`${from}/`) === true
+            ? { selection: `${to.path}${state.selection.slice(from.length)}` }
+            : {}),
         }));
       }),
 

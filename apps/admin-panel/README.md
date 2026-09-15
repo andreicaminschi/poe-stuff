@@ -59,6 +59,10 @@ adapters do and touches nothing in `renderer/`.
   preview are worked out in the window with `@poe/filter-compile`, the same resolver the
   taxonomy validates with and the catalog compiles with, so they follow every edit at once.
   Validate and Compile stage the working version in a throwaway lake and run there.
+- **A category or subcategory is renamed by editing its slug.** The rename is one ledger
+  entry: the record, its subcategories and every row filed there move to the new path, and the
+  old paths are deleted. Changing a subcategory's parent and slug together saves two entries,
+  a move then a rename, and undo reverts one at a time.
 - **Publish validates, publishes and promotes**, in that order, after a confirm.
 - **Compile filter is temporary.** It stages the working version in a throwaway lake, publishes
   the copy there, and runs `yarn catalog:compile` against it. The result
