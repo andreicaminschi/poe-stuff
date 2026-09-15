@@ -214,34 +214,52 @@ single number is the price of an Empower.
 
 ### Uniques
 
-**A unique row is keyed by its base, not by the unique.** On the ground a unique is its base
-with a rarity, and a filter names the base, so `authored/leather-belt` is every unique that
-rolls on Leather Belt. The rows sit under `unique`, which carries `Rarity == Unique`:
+**A unique row stands for a base, not for one unique.** On the ground a unique is its base
+with a rarity, and a filter names the base, so `authored/leather-belt` ("Leather Belt
+Uniques") is every unique that rolls on Leather Belt. The rows sit under `unique`, which
+carries `Rarity == Unique`:
 
-| Path | Holds | Record |
+| Path | Record | Holds |
 | --- | --- | --- |
-| `unique/regular` | a row per base that carries plain uniques | `Foulborn == false` |
-| `unique/foulborn` | a row per base that carries foulborn uniques, `authored/foulborn-<base>` | `Foulborn == true` |
-| `unique/fragments` | Adorned Pieces and Utmost Pieces, which replace the Vaal Aspect and Primordial Fragment ids | — |
+| `unique/regular` | `Foulborn == false` | a row per base that carries plain uniques, `authored/<base>` |
+| `unique/foulborn` | `Foulborn == true` | a row per base that carries foulborn uniques, `authored/foulborn-<base>` |
+| `unique/fragments` | — | Adorned Pieces and Utmost Pieces, which replace the `UniqueFragment` ids |
 
-A base row carries `BaseType == from:baseTypes` and two variants:
+**A base row** carries `BaseType == from:baseTypes` and two variants:
 
-- **`normal`**, `Corrupted == false`, links every uncorrupted form PoeWatch's `/compact`
-  lists for a unique on that base, such as `Headhunter` or `Foulborn Headhunter (Culling)`.
-- **`corrupted`**, `Corrupted == true`, links every outcome `/corruptions` prices for them,
-  as `{ name, corruption }`.
+- **`normal`**, `Corrupted == false`, links every uncorrupted PoeWatch listing of every
+  unique on the base: Headhunter, Gluttony and Replica Headhunter on Leather Belt, or
+  `Foulborn Headhunter (Culling)` on its foulborn row.
+- **`corrupted`**, `Corrupted == true`, links every priced corruption outcome of those
+  uniques, as `{ name, corruption }`.
 
-A variant with nothing to link is left off, and a row with neither is `unpriceable`. Several
-links price at the dearest, so one low-confidence listing can set a whole base's price.
+A variant with nothing to link is left off, and a row with neither is `unpriceable` and still
+drawn. A variant prices at its dearest source, so one low-confidence listing can set a whole
+base's price.
 
-- **Which uniques exist** comes from RePoE's `uniques.json`, which has names and item
-  classes but **no base**. The base comes from GGG's trade item list, as it does for the
-  catalog's `with-uniques.ts`.
+**A fragment row** has no variants. Adorned Pieces sits on Vaal Aspect and links Beauty,
+Ambition, Cooperation and Curiosity; Utmost Pieces sits on Primordial Fragment and links the
+four Curios. Each prices at its dearest piece, because no condition tells one piece from
+another on the ground.
+
+**Where each part comes from:**
+
+| Part | Source |
+| --- | --- |
+| Which uniques exist | RePoE's `uniques.json`: names and item classes, **no base** |
+| Which base each rolls on | GGG's trade item list, as the catalog's `with-uniques.ts` reads it |
+| `normal` prices | PoeWatch `/compact` |
+| `corrupted` prices | PoeWatch `/corruptions` |
+
 - **`/corruptions` has gaps.** `all=true` is the whole set, and asking per id adds nothing.
   It prices no outcomes for unique flasks, unique maps or most jewels, so those bases have no
   `corrupted` variant.
 - **A unique that only drops corrupted** is still listed in `/compact` under its plain name,
   so it lands in `normal`, whose `Corrupted == false` never matches it on the ground.
+- **Uniques are priced twice for now.** The catalog still hangs every unique off its base row
+  under `uniques`, beside these rows. Which of the two a generator reads is undecided.
+- **Nothing rebuilds these rows.** A one-off script built them from the sources above, so a
+  unique a new league adds needs its row added by hand.
 
 ### Seeded and manual
 
