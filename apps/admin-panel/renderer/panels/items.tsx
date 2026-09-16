@@ -3,7 +3,9 @@ import { ItemFlags } from "../components/item-flags.tsx";
 import { useDraft } from "../hooks/use-draft.ts";
 import { useRows } from "../hooks/use-rows.ts";
 import { useSession } from "../session-store.ts";
+import { categoryLabel } from "../utils/category-label.ts";
 import { displayName } from "../utils/display-name.ts";
+import { pathOf } from "../utils/path-of.ts";
 import { titleCase } from "../utils/title-case.ts";
 
 const LIMIT = 400;
@@ -112,6 +114,7 @@ export function Items() {
               <span className="id">
                 <bdi>{row.key}</bdi>
               </span>
+              <span className="cat-of">{categoryLabel(draft?.categories ?? {}, pathOf(row.classification))}</span>
               <span className="flags">
                 <ItemFlags row={row} />
               </span>
