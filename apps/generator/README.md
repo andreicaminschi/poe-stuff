@@ -1,67 +1,68 @@
 # @poe/generator
 
-Turns the published catalog into a styled `.filter`. **Only the first phase is written**:
-the condition domains, and the normalizer that uses them.
+Turns the published catalog into a styled `.filter`. **Only the bucketing is written.**
 
-`plan.md` holds the bucketing design, which is not built.
+`plan.md` holds the rest of the design.
 
-## Why domains exist
+## What a bucket is
 
-A `.filter` is an ordered list of blocks and the first match wins, so a block that leaves a
-condition out beats every block below it that names one. Order becomes load-bearing, and the
-generator has to know which blocks are more specific than which.
+A bucket is one tier of the ladder: a floor, a ceiling, and whether an item may reach it by
+corrupting. The ceiling is exclusive, and the top bucket leaves it out and takes everything
+above its floor.
 
-Naming every condition on every block removes that. Two blocks then overlap only if they
-share an item, and a cover of distinct forms never does — so the blocks can be written in any
-order.
+```ts
+{ name: "T3", floor: 20, ceiling: 30, gamble: true }
+```
 
-To name a condition you have to know the values it takes. That is a domain.
+## The three prices
 
-## The two functions
+Every row is worth three numbers, and all three come off the row's own forms:
 
-`collectDomains(forms)` walks every resolved form in the catalog and returns one domain per
-condition name. `normalizeConditions(forms, domains)` takes one group's forms and writes the
-missing conditions out as their whole domain.
+| | |
+| --- | --- |
+| `take` | its cheapest form — what it is worth as it lies |
+| `check` | its dearest form — what it could be worth once you look |
+| `gamble` | the dearest form that has to be corrupted first |
 
-A form is a row or one of its variants, resolved: category over subcategory over row over
-variant, with every `from` filled. `@poe/filter-compile` does that, and the domain code never
-sees an unresolved condition.
+A form whose conditions ask for `Corrupted True` is the gambled one. That is structural: no
+variant name is read, so a taxonomy that writes the condition differently still works.
 
-Conditions fold into one clause per name first. `ItemLevel >= 85` and `ItemLevel <= 85` are
-two lines and one clause, which is what makes two forms comparable.
+**A unique hanging off a base is not the base.** A unique is its own row, in its own category,
+told apart on the ground by `Rarity`. A base is never worth what a unique that drops on it is
+worth, so `row.uniques` is not read.
 
-## Two kinds of domain
+**A form PoeWatch flagged `lowConfidence` is not read at all.** Those prices stand on a handful
+of listings — one corruption outcome reached 2.5e13 Chaos — and a single one would carry a
+whole bucket. Dropping them costs coverage: it leaves several hundred rows with no usable
+price, which is reported rather than hidden.
 
-A domain is `registry` or `observed`, and the difference matters.
+## How a row is placed
 
-`registry` comes from `@poe/filter-eval`'s condition table, which publishes the closed value
-set for every boolean, enum and ordered condition. `HasInfluence` holds all seven influences
-whether the catalog carried them or not, so the domain is the same next run. A value outside
-it is reported rather than added.
+Buckets are tried richest-first, so an item reaches the highest tier any of its three prices
+earns. Inside one bucket the surest verb wins: `take`, then `check`, then `gamble`.
 
-`observed` is the union of what this catalog happened to carry. `BaseType` and `Class` have
-no published set, so there is nothing else to build them from. **That makes them data
-dependent**: a base missing from one run's pricing drops out of the domain, and every block
-that would have listed it silently narrows. That is why the table is written to the lake per
-run — diff two runs and a domain that moved is visible.
+**A bucket that refuses gambling never reads the corruption price.** That is the rule that
+sends a cheap base with a spectacular corruption outcome to the tier its aspirational price
+earns instead of the one its corruption would.
 
-## What does not normalize
+A row no bucket wanted is returned in `unplaced` with the reason, because "nothing took it" is
+a finding and not a failure. The reasons are distinct on purpose — a row falling in a hole
+between two buckets and a row whose only good price is a corruption no gambling bucket reaches
+are different problems with different fixes.
 
-`Sockets`, `SocketGroup`, `HasEnchantment`, `HasExplicitMod` and `TransfiguredGem` compare as
-neither a set nor a range. They are left alone and named in `problems`.
+## Call it per category
 
-A numeric domain can end up open at one or both ends, because the catalog only ever says
-`>= 84` or `<= 83` and never the bounds themselves. `ItemLevel` is open today. An open domain
-cannot be written out as a condition line, so item level is the one axis that still needs
-either a declared range or a specificity rule.
+A category whose rungs are stack sizes and one whose rungs are Chaos do not share a ladder.
+`bucketItems` takes one category's rows and one ladder, and nothing here tries to reconcile
+two.
 
-## Running it
+## The report
 
-Reads `catalog/latest/<league>.catalog.json` and its categories, writes
-`generator/domains/<league>.json`.
+Runs the bucketing category by category, then shows each rule and each edge case with real
+rows from the catalog.
 
 ```bash
-node --env-file=apps/generator/.env apps/generator/domains-cli.ts
+node --env-file=apps/generator/.env apps/generator/bucket-report-cli.ts
 ```
 
 | Var | Holds |

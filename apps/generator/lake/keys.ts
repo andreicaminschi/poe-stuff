@@ -9,6 +9,3 @@ export const catalogKey = (league: string): string =>
 
 export const categoriesKey = (league: string): string =>
   `catalog/latest/${slug(league)}.catalog.categories.json`;
-
-export const domainsKey = (league: string): string =>
-  `generator/domains/${slug(league)}.json`;

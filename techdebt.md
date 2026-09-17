@@ -119,21 +119,27 @@ written last that a reader checks — both change what a consumer reads.
 #### The published catalog's keys and row shape
 
 `apps/generator/lake/keys.ts` rebuilds `catalog/latest/<league>.*.json`, which
-`apps/catalog/lake/keys.ts` already owns, and `domains-cli.ts` restates the fields of `Item`
-from `apps/catalog/item.ts`. An app never imports an app, so there is nowhere shared to put
-either. A renamed key or a renamed field breaks the generator at runtime with no type error.
-Undoing it means the published catalog's contract moves into a service or a lib, the way the
-taxonomy's did.
+`apps/catalog/lake/keys.ts` already owns, and `PricedRow` in `bucket-items/types.ts` restates
+the fields of `Item` from `apps/catalog/item.ts`. An app never imports an app, so there is
+nowhere shared to put either. A renamed key or a renamed field breaks the generator at runtime
+with no type error. Undoing it means the published catalog's contract moves into a service or a
+lib, the way the taxonomy's did.
 
 ### Not done
 
-#### An open numeric domain cannot be written out
+#### A unique row carries one price for every unique on its base
 
-`ItemLevel` resolves to a domain with no bounds, because the catalog only ever says `>= 84` or
-`<= 83` and never the range itself. A condition with no domain cannot be filled in, so item
-level stays a wildcard and the blocks that leave it out still depend on their order. Either
-the taxonomy declares the range, or the generator keeps a specificity rule for numeric axes
-alone.
+`authored/heavy-belt` prices its uncorrupted form off twelve listings and keeps one number,
+the most-listed. So `take` and `check` are always equal on a unique row and the `check` verb
+can never fire there — no unique row in the catalog has two uncorrupted forms. Telling
+Mageblood apart from Bisco's Leash inside one block needs per-listing prices the row does not
+carry, and the filter cannot separate them on the ground anyway.
+
+#### Dropping low-confidence prices leaves rows with nothing
+
+Skipping every `lowConfidence` form is right — one corruption outcome read 2.5e13 Chaos — but
+it takes several hundred rows from "cheap" to "unpriced", and an unpriced row is not drawn at
+all. A second opinion, poe.ninja or a longer window, is what would fill them back in.
 
 ## `apps/admin-panel`
 
