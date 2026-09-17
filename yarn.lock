@@ -1903,6 +1903,17 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@poe/generator@workspace:apps/generator":
+  version: 0.0.0-use.local
+  resolution: "@poe/generator@workspace:apps/generator"
+  dependencies:
+    "@poe/filter-compile": "workspace:^"
+    "@poe/filter-eval": "workspace:^"
+    "@poe/lake": "workspace:^"
+    "@util/env": "workspace:^"
+  languageName: unknown
+  linkType: soft
+
 "@poe/ggg@workspace:^, @poe/ggg@workspace:services/ggg":
   version: 0.0.0-use.local
   resolution: "@poe/ggg@workspace:services/ggg"

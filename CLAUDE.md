@@ -14,10 +14,12 @@ second reads the filter language: `@poe/item-parser` turns one item's copied tex
 shape the language can be asked about, and `@poe/filter-eval` parses a `.filter` and decides
 which block takes an item.
 
-**Nothing writes a styled `.filter` today.** `apps/generator` did, as a proof of concept, and
-was deleted rather than reworked: it read tier floors in Chaos and nothing else, and a category
-whose rungs are stack sizes rather than prices does not fit that shape. The catalog still
-produces everything such a tool needs, so what replaces it starts from `catalog.json`.
+**Nothing writes a styled `.filter` today.** An earlier `apps/generator` did, as a proof of
+concept, and was deleted rather than reworked: it read tier floors in Chaos and nothing else,
+and a category whose rungs are stack sizes rather than prices does not fit that shape. The
+catalog still produces everything such a tool needs, so its replacement starts from
+`catalog.json`. `apps/generator` is that replacement, and only its first phase is written —
+the condition domains.
 `yarn catalog:compile` writes an unstyled `.filter`, one `Show` block per row or variant, so
 the game client can say which condition lines it rejects. It checks the taxonomy and is not
 the product.
@@ -71,6 +73,7 @@ apps/item-inspect/     # @poe/item-inspect — paste an item, see how the parser
 apps/collector/        # README only. Replaces @poe/workers
 apps/catalog/          # the bronze/silver/gold pipeline. Replaces @poe/filterv2. Has a README.md
 apps/taxonomy/         # the hand-maintained classification table and the filter conditions. Has a README.md
+apps/generator/        # the styled .filter. Only the condition domains are written. Has a README.md
 apps/admin-panel/      # Electron + React panel over the taxonomy and the catalog. The one build. Has a README.md
 packages/workers/      # DEPRECATED @poe/workers. Does not compile
 packages/filterv2/     # DEPRECATED @poe/filterv2
@@ -135,15 +138,16 @@ never learns where the input came from. The moment a lib names a service in its
 
 ## Apps
 
-Four are written. `apps/collector` holds a `README.md`
+Four are written, and `apps/generator` is written in part. `apps/collector` holds a `README.md`
 naming what it will own, which POC it replaces, and what has to be decided first.
 
 | App | Replaces | Owns |
 | --- | --- | --- |
 | [`apps/item-inspect`](apps/item-inspect/README.md) | — | **Written.** Paste an item copied out of the game, see how the parser read it. The one consumer of `@poe/item-parser` today, and where its CLI lives now that `lib/` is pure. |
 | [`apps/collector`](apps/collector/README.md) | `@poe/workers` | The worker loop, the job handlers, the record of outstanding work, the writes into `.s3`, and `queries.json`. |
-| [`apps/catalog`](apps/catalog/README.md) | `@poe/filterv2` | **Written.** The bronze/silver/gold pipeline over the taxonomy. **Its rows are the published taxonomy's drawable rows** — nothing `excluded`, nothing `filterable: false`, nothing an authored row replaces — and it invents or judges none. It collects PoeWatch and GGG's trade item list for one league-hour, writes a file per category, then gathers every row into `catalog.json` and `catalog.categories.json`. It carries the conditions the taxonomy authored and resolves none of them. It prices every row and variant off PoeWatch — the exchange first, listings second — and still hangs every unique off the base it rolls on under `uniques` — one group per path (`unique`, `unique/foulborn`), one listing per priced form inside it. The taxonomy now also authors one row per unique base (`unique/regular`, `unique/foulborn`, `unique/fragments`), which the catalog prices like any row, so a unique is priced in both places; which one a generator reads is undecided. `--force=taxonomy,poewatch` refetches only the named sources. `catalog:publish` copies one run's gold into `catalog/latest/`, and a run's manifest records the taxonomy version it used. Also `find-duplicates-cli.ts`, which reports the display names more than one metadata id carries. |
+| [`apps/catalog`](apps/catalog/README.md) | `@poe/filterv2` | **Written.** The bronze/silver/gold pipeline over the taxonomy. **Its rows are the published taxonomy's drawable rows** — nothing `excluded`, nothing `quest`, nothing `filterable: false`, nothing an authored row replaces — and it invents or judges none. It collects PoeWatch and GGG's trade item list for one league-hour, writes a file per category, then gathers every row into `catalog.json` and `catalog.categories.json`. It carries the conditions the taxonomy authored and resolves none of them. It prices every row and variant off PoeWatch — the exchange first, listings second — and still hangs every unique off the base it rolls on under `uniques` — one group per path (`unique`, `unique/foulborn`), one listing per priced form inside it. The taxonomy now also authors one row per unique base (`unique/regular`, `unique/foulborn`, `unique/fragments`), which the catalog prices like any row, so a unique is priced in both places; which one a generator reads is undecided. `--force=taxonomy,poewatch` refetches only the named sources. `catalog:publish` copies one run's gold into `catalog/latest/`, and a run's manifest records the taxonomy version it used. Also `find-duplicates-cli.ts`, which reports the display names more than one metadata id carries. |
 | [`apps/taxonomy`](apps/taxonomy/README.md) | — | **Written.** The hand-maintained tables: six JSON files per version under `.s3/taxonomy/versions/<v>/`, never in git. A version is `3.29.4` — created from a published parent, never overwritten, and only the newest can be published, while it is still a draft. `validate` and `resolve` answer in JSON for the admin panel. Nothing imports it — the catalog reads what it published through `@poe/taxonomy`. |
+| [`apps/generator`](apps/generator/README.md) | — | **Part written.** The styled `.filter`, off the published catalog. Only the first phase exists: `collectDomains` reads every resolved form and returns the values each condition takes, and `normalizeConditions` writes a group's missing conditions out as their whole domain — which is what makes the emitted blocks mutually exclusive, so their order stops mattering. A domain is `registry` (closed, from `@poe/filter-eval`) or `observed` (the union this catalog carried, so it moves between runs), and `domains-cli.ts` writes the table to `generator/domains/<league>.json` for exactly that reason. The bucketing in `plan.md` is not built. |
 | [`apps/admin-panel`](apps/admin-panel/README.md) | — | **Written.** The desktop panel: browse and edit the newest draft, validate, publish, build and publish a catalog. Every call is an `.api.ts` adapter that reads the lake or runs a yarn command. Imports no other app. |
 
 ## Deprecated
@@ -183,6 +187,7 @@ would not grow the repository forever. Back it up; nothing else does.
 .s3/taxonomy/latest/categories.json the promoted categories, a real copy
 .s3/catalog/run=<id>/               one run's bronze, silver, gold and manifest
 .s3/catalog/latest/<league>.*.json  the published catalog, a real copy
+.s3/generator/domains/<league>.json the values each condition takes, per league
 ```
 
 `apps/taxonomy`, `apps/catalog` and `apps/admin-panel` write here through `@poe/lake`, and
@@ -268,7 +273,10 @@ reads the environment either — `@util/env` exists to be imported by apps.
 | Var | Holds | Read by |
 | --- | --- | --- |
 | `POE_USER_AGENT` | `user-agent` sent on every outbound request. Must name the app and a real contact address. No service reads it — they take `userAgent` as an option, and GGG refuses to default it, because a default would send a contact that does not exist | [apps/item-inspect/item-cli.ts](apps/item-inspect/item-cli.ts), [apps/catalog/catalog-cli.ts](apps/catalog/catalog-cli.ts), [apps/admin-panel/main.ts](apps/admin-panel/main.ts) (optional there, from `apps/admin-panel/.env`), and the deprecated `@poe/filterv2` |
-That is the whole live surface: **one variable**. `apps/taxonomy`
+| `POE_LEAGUE` | Which league's published catalog to read. No default | [apps/generator/domains-cli.ts](apps/generator/domains-cli.ts) |
+| `LAKE_ROOT` | Where the lake lives. Optional — `@poe/lake` defaults to `.s3` | [apps/generator/domains-cli.ts](apps/generator/domains-cli.ts) |
+That is the whole live surface: **three variables**, and only the first is read by more than
+one app. `apps/taxonomy`
 reads none — it only ever touches files under the lake. Every other name still read anywhere
 in the tree belongs to `packages/workers`, which does not compile, and its `.env` names
 things whose packages were deleted.

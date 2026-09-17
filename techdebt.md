@@ -112,6 +112,29 @@ write is atomic, so no reader sees half a file. A failure between the two leaves
 beside one old one, and nothing detects the mismatch. Fixing it means one file, or a manifest
 written last that a reader checks — both change what a consumer reads.
 
+## `apps/generator`
+
+### Duplicated
+
+#### The published catalog's keys and row shape
+
+`apps/generator/lake/keys.ts` rebuilds `catalog/latest/<league>.*.json`, which
+`apps/catalog/lake/keys.ts` already owns, and `domains-cli.ts` restates the fields of `Item`
+from `apps/catalog/item.ts`. An app never imports an app, so there is nowhere shared to put
+either. A renamed key or a renamed field breaks the generator at runtime with no type error.
+Undoing it means the published catalog's contract moves into a service or a lib, the way the
+taxonomy's did.
+
+### Not done
+
+#### An open numeric domain cannot be written out
+
+`ItemLevel` resolves to a domain with no bounds, because the catalog only ever says `>= 84` or
+`<= 83` and never the range itself. A condition with no domain cannot be filled in, so item
+level stays a wildcard and the blocks that leave it out still depend on their order. Either
+the taxonomy declares the range, or the generator keeps a specificity rule for numeric axes
+alone.
+
 ## `apps/admin-panel`
 
 ### Duplicated
