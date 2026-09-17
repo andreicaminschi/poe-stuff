@@ -16,9 +16,12 @@ any other row, and a listing with `corruption` reads one corruption outcome from
 `uniques`, and on its unique row.
 
 A drawable row is the taxonomy's own rule. An item is in when it is not `excluded`, not
-`filterable: false`, and not replaced by an authored row. An authored row is in when it is
-not `excluded`. Anything else nobody should draw, such as a quest item or a removed item,
-is the taxonomy's to exclude.
+`quest`, not `filterable: false`, and not replaced by an authored row. An authored row is in
+when it is not `excluded` and not `quest`. Anything else nobody should draw, such as a removed
+item, is the taxonomy's to exclude.
+
+A `quest` row is out because the game always shows quest items. No block a filter writes can
+hide one, so pricing it styles nothing.
 
 ## Stages
 
@@ -31,7 +34,7 @@ is the taxonomy's to exclude.
 `pipeline.ts` holds the list of steps, and each step's doc comment says what it does.
 
 A catalog row is the taxonomy row's key, name, category, subcategory and base types, its
-quest and unpriceable flags, its copied conditions, variants and listing, and what the catalog adds: `meanPrice`,
+unpriceable flag, its copied conditions, variants and listing, and what the catalog adds: `meanPrice`,
 `lowConfidence` and `uniques`. `baseTypes` is the row's name, or an authored row's
 `baseType`.
 

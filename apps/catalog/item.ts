@@ -56,7 +56,6 @@ export type Item = {
   readonly subcategory: string | null;
   /** What a filter writes: the row's name, or an authored row's `baseType`. */
   readonly baseTypes: readonly string[];
-  readonly quest?: boolean;
   readonly unpriceable?: boolean;
   /**
    * The conditions the taxonomy authored for this row alone, **copied and not resolved**.

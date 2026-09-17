@@ -14,7 +14,6 @@ type Block = { readonly text: string } | { readonly problem: string } | null;
 function blockOf(row: Item, form: Form): Block {
   const [first] = form.problems;
   if (first !== undefined) return { problem: first };
-  if (form.conditions.length === 0 && row.quest === true) return null;
   if (form.conditions.length === 0) return { problem: "has no conditions yet" };
 
   const written: string[] = [];
@@ -41,8 +40,7 @@ function blockOf(row: Item, form: Form): Block {
  *
  * **A row is drawn when any level has a condition**: its category, its subcategory, the row
  * itself or the variant. A row with none is skipped as "has no conditions yet", and so is one
- * with a resolution problem or a condition no line can hold, each with its reason. A quest
- * row with none is left out unreported: the game always shows quest items.
+ * with a resolution problem or a condition no line can hold, each with its reason.
  * The text is read back with `parseFilter` before it is returned, so a grammar mistake fails
  * here and not in the game client.
  */
