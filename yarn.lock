@@ -1892,6 +1892,14 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@poe/filter-style@workspace:lib/filter-style":
+  version: 0.0.0-use.local
+  resolution: "@poe/filter-style@workspace:lib/filter-style"
+  dependencies:
+    "@poe/filter-compile": "workspace:^"
+  languageName: unknown
+  linkType: soft
+
 "@poe/filterv2@workspace:packages/filterv2":
   version: 0.0.0-use.local
   resolution: "@poe/filterv2@workspace:packages/filterv2"

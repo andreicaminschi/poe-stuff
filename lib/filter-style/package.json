@@ -1,0 +1,16 @@
+{
+  "name": "@poe/filter-style",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./items-of": "./items-of.ts",
+    "./place": "./place.ts",
+    "./tier-style": "./tier-style.ts",
+    "./types": "./types.ts"
+  },
+  "dependencies": {
+    "@poe/filter-compile": "workspace:^"
+  }
+}
