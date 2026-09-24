@@ -210,7 +210,7 @@ export const CONDITIONS_BY_LOWER: ReadonlyMap<string, ConditionName> = new Map(
  * meant to stay clear of. Adding a key is one line here.
  */
 export const APPLY_KEYS = {
-  tier: ["T0", "T1", "T2", "T3", "T4", "T5", "T6", "varies", "hidden"],
+  tier: ["T0", "T1", "T2", "T3", "T4", "T5", "T6", "varies", "hidden", "want"],
   /**
    * The rung a block's items could turn out to belong to, where that is louder than the one
    * they are drawn at. Written only when it differs from `tier`.

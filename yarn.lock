@@ -1897,6 +1897,7 @@ __metadata:
   resolution: "@poe/filter-style@workspace:lib/filter-style"
   dependencies:
     "@poe/filter-compile": "workspace:^"
+    "@poe/filter-eval": "workspace:^"
   languageName: unknown
   linkType: soft
 

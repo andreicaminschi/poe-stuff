@@ -8,9 +8,11 @@
     "./items-of": "./items-of.ts",
     "./place": "./place.ts",
     "./tier-style": "./tier-style.ts",
-    "./types": "./types.ts"
+    "./types": "./types.ts",
+    "./write-filter": "./write-filter.ts"
   },
   "dependencies": {
-    "@poe/filter-compile": "workspace:^"
+    "@poe/filter-compile": "workspace:^",
+    "@poe/filter-eval": "workspace:^"
   }
 }

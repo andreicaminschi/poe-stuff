@@ -1,6 +1,6 @@
 import { ICON_COLOURS, type IconColour } from "../types.ts";
 
-const rgbOf = (hex: string): readonly number[] => [1, 3, 5].map((at) => parseInt(hex.slice(at, at + 2), 16));
+export const rgbOf = (hex: string): readonly number[] => [1, 3, 5].map((at) => parseInt(hex.slice(at, at + 2), 16));
 
 const hexOf = (rgb: readonly number[]): string =>
   `#${rgb.map((value) => Math.round(value).toString(16).padStart(2, "0")).join("")}`;

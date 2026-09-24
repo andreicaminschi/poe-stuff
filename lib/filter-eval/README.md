@@ -57,7 +57,7 @@ ordinary comment and is ignored — there is no fuzzy prefix matching.
 
 | Key | Required | Values |
 | --- | --- | --- |
-| `tier` | yes | `T0` `T1` `T2` `T3` `T4` `T5` `varies` `hidden` |
+| `tier` | yes | `T0` `T1` `T2` `T3` `T4` `T5` `varies` `hidden` `want` |
 | `verb` | yes | `take` `check` `gamble` |
 | `family` | no | `bases` `corruptible-uniques` `div-cards` `foulborn` `fragments` `gems` `maps` `misc` `stackables` `unique-maps` `uniques-by-base` |
 
