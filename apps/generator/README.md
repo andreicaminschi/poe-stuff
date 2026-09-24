@@ -32,8 +32,8 @@ and never learns where a file is stored.
   global, and any tier can be switched off per category. A disabled tier's range falls to
   the tier below.
 - **Take, Check, Gamble.** Three preview columns show where each item lands and how it is
-  drawn. Check and gamble come from the taxonomy's `hints` on the category. Nothing prices a
-  gamble yet.
+  drawn. Check and gamble come from the taxonomy's `hints` on the category. An uncorrupted
+  unique's gamble price is the dearest corruption outcome on its base.
 - **Palette.** Each category has a primary colour, a secondary colour and an icon shape.
   Every tier's look follows from those.
 - **Gold** is tiered by stack size. Each tier is a `StackSize` range.

@@ -25,9 +25,6 @@ export function VerbColumn({ copy, placements, hinted }: Props) {
     if (!hinted) {
       return <VerbOff head={`${copy.head} is off for ${category.name}.`} use={copy.use} note={`The taxonomy lists no ${copy.verb} hint for this category.`} />;
     }
-    if (copy.verb === "gamble") {
-      return <VerbOff head={`${copy.head} is on, but nothing prices a gamble yet.`} use={copy.use} note="The taxonomy carries no corruption outcomes to read." />;
-    }
     if (mine.length === 0) {
       return <VerbOff head={`No ${copy.head} blocks for ${category.name}.`} use={copy.use} note="No item in this category reaches a tier this way." />;
     }

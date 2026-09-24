@@ -88,10 +88,28 @@ describe("itemsOf", () => {
     expect(byName([gem], "Absolution (1/0)")?.prices).toEqual({});
   });
 
-  it("joins a unique row to its base's listings: take the cheapest, check the dearest", () => {
+  it("joins a unique row to its base's listings: take the cheapest, check the dearest, gamble the dearest corruption", () => {
     const item = byName([heavyBeltBase, heavyBeltUniques], "Heavy Belt Uniques (normal)");
 
-    expect(item?.prices).toEqual({ take: 1, check: 80000 });
+    expect(item?.prices).toEqual({ take: 1, check: 80000, gamble: 90000 });
+  });
+
+  it("gives no gamble when no corruption beats the take", () => {
+    const cheap: CatalogRow = {
+      ...heavyBeltBase,
+      uniques: [
+        {
+          category: "unique",
+          subcategory: null,
+          listings: [
+            { name: "Siegebreaker", meanPrice: 10, corrupted: false },
+            { name: "Siegebreaker", meanPrice: 4, corrupted: true },
+          ],
+        },
+      ],
+    };
+
+    expect(byName([cheap, heavyBeltUniques], "Heavy Belt Uniques (normal)")?.prices).toEqual({ take: 10 });
   });
 
   it("prices a corrupted unique as a check only, off the corrupted listings", () => {
@@ -123,7 +141,7 @@ describe("itemsOf", () => {
     const item = byName([heavyBeltBase, jewel], "Heavy Belt (unique)");
 
     expect(item?.category).toBe("unique");
-    expect(item?.prices).toEqual({ take: 1, check: 80000 });
+    expect(item?.prices).toEqual({ take: 1, check: 80000, gamble: 90000 });
   });
 
   it("gives an unpriced row no prices", () => {

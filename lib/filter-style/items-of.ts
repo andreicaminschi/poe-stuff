@@ -51,6 +51,7 @@ function itemOf(
   const own = variant ?? row;
   const price = usable(own.meanPrice, own.lowConfidence);
   const list = unique ? listFor(lists, row, stray, corrupted) : undefined;
+  const outcomes = unique && !corrupted ? listFor(lists, row, stray, true) : undefined;
 
   return {
     name: variant === undefined ? row.name : `${row.name} (${variant.name})`,
@@ -60,6 +61,7 @@ function itemOf(
     prices: pricesOf({
       ...(price === undefined ? {} : { price }),
       ...(list === undefined ? {} : { list }),
+      ...(outcomes === undefined ? {} : { outcomes }),
       unique,
       corrupted,
     }),
