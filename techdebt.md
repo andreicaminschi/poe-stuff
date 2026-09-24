@@ -127,13 +127,23 @@ lib, the way the taxonomy's did.
 
 ### Not done
 
-#### A unique row carries one price for every unique on its base
+#### A unique row with no base row to join is priced as a take
 
-`authored/heavy-belt` prices its uncorrupted form off twelve listings and keeps one number,
-the most-listed. So `take` and `check` are always equal on a unique row and the `check` verb
-can never fire there — no unique row in the catalog has two uncorrupted forms. Telling
-Mageblood apart from Bisco's Leash inside one block needs per-listing prices the row does not
-carry, and the filter cannot separate them on the ground anyway.
+A unique row carries one price for all its listings: the catalog keeps the dearest. So
+`itemsOf` joins the row to its base row's `uniques` for per-listing prices: the take is the
+cheapest listing and the check is the dearest. When an authored row replaces the base row,
+nothing carries those `uniques`. The join finds nothing, and the item falls back to the row's
+one price as a take.
+
+49 of 769 unique rows have no base row. For 8 of them the fallback is wrong, because they
+cover several uniques. Those 8 are Carved, Engraved and Imbued Wand, both Foulborn wands,
+Large and Small Cluster Jewel, and Map Uniques. "Large Cluster Jewel Uniques (normal)" lands
+in T0 as a take at 368,793c. It should be a check.
+
+One fix is in the generator: a unique row with no join and more than one unique in its
+`listing` becomes check-only at its row price, with no take. The better fix is in the catalog:
+attach the base's `uniques` to the unique row itself, so the join never depends on the base
+row.
 
 #### Dropping low-confidence prices leaves rows with nothing
 
