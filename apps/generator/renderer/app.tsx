@@ -4,7 +4,6 @@ import { FloorEditor } from "./panels/floor-editor.tsx";
 import { Ladder } from "./panels/ladder.tsx";
 import { PaletteEditor } from "./panels/palette-editor.tsx";
 import { Preview } from "./panels/preview.tsx";
-import { SearchResults } from "./panels/search-results.tsx";
 import { SimulateScreen } from "./panels/simulate-screen.tsx";
 import { TopBar } from "./panels/top-bar.tsx";
 import { WantedEditor } from "./panels/wanted-editor.tsx";
@@ -17,7 +16,6 @@ export function App() {
   const screen = useSession((state) => state.screen);
   const error = useSession((state) => state.error);
   const status = useSession((state) => state.status);
-  const query = useSession((state) => state.query);
   const dismissError = useSession((state) => state.dismissError);
 
   useEffect(() => {
@@ -46,7 +44,7 @@ export function App() {
           <FloorEditor />
           <PaletteEditor />
         </div>
-        {query.trim() === "" ? <Preview /> : <SearchResults />}
+        <Preview />
       </div>
     </div>
   );

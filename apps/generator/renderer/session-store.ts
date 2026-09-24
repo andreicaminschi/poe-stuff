@@ -22,13 +22,11 @@ export type Session = {
   readonly category?: string;
   readonly bucket: BucketName | null;
   readonly screen: Screen;
-  readonly query: string;
 
   boot(): Promise<void>;
   selectCategory(key: string): void;
   selectBucket(bucket: BucketName | null): void;
   setScreen(screen: Screen): void;
-  setQuery(query: string): void;
   editCategory(change: (config: GeneratorConfig, key: string) => GeneratorConfig): void;
   toggleTier(tier: TierName): void;
   setPalette(palette: Palette): void;
@@ -48,7 +46,6 @@ export const useSession = create<Session>((set, get) => ({
   items: [],
   bucket: null,
   screen: "tiers",
-  query: "",
 
   async boot() {
     try {
@@ -64,7 +61,6 @@ export const useSession = create<Session>((set, get) => ({
   selectCategory: (category) => set({ category, bucket: null }),
   selectBucket: (bucket) => set({ bucket }),
   setScreen: (screen) => set({ screen }),
-  setQuery: (query) => set({ query }),
 
   editCategory(change) {
     const { config, category } = get();

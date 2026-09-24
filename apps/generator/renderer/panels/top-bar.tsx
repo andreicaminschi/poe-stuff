@@ -10,8 +10,6 @@ export function TopBar() {
   const busy = useSession((state) => state.busy);
   const selectCategory = useSession((state) => state.selectCategory);
   const setScreen = useSession((state) => state.setScreen);
-  const query = useSession((state) => state.query);
-  const setQuery = useSession((state) => state.setQuery);
   const saveConfig = useSession((state) => state.saveConfig);
   const writeFilter = useSession((state) => state.writeFilter);
 
@@ -32,14 +30,6 @@ export function TopBar() {
         </button>
       ))}
       <span className="sp" />
-      <input
-        type="search"
-        className="search"
-        placeholder="Search items"
-        aria-label="Search items"
-        value={query}
-        onChange={(event) => setQuery(event.target.value)}
-      />
       <button type="button" className="btn" disabled={!dirty || busy} onClick={() => void saveConfig()}>
         Save config
       </button>
