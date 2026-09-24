@@ -37,6 +37,11 @@ and never learns where a file is stored.
 - **Palette.** Each category has a primary colour, a secondary colour and an icon shape.
   Every tier's look follows from those.
 - **Gold** is tiered by stack size. Each tier is a `StackSize` range.
+- **Floors.** The side panel edits the global Chaos floors, or a stack-size category's own.
+- **Want to see.** Add any item of the category by name. It is shown whatever it is worth.
+- **Simulate** drops ten items and piles their labels the way the client does, with beams
+  and icons. Drops weigh 1 / worth, so cheap items fall far more often. "Generate valuable
+  loot" makes sure of one T0 and two T1.
 - **Save config** writes `.s3/generator/config.json`. **Write filter** writes the whole
   `.filter` and asks where to put it.
 

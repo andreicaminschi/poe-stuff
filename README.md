@@ -30,7 +30,7 @@ Three rules decide what goes into the taxonomy, and so what the filter can show:
 | Taxonomy | Built. The maintainer edits and publishes it in the admin panel. |
 | Catalog | Built. A person starts each build, for one league and one hour. Nothing schedules it yet. |
 | Admin panel | Built. The maintainer's desktop tool for the taxonomy and the catalog. |
-| Generator | Partly built. The player's Electron app tiers, styles and writes the `.filter`. Simulate is not built. |
+| Generator | Built. The player's Electron app tiers, styles, simulates and writes the `.filter`. |
 | Collector | Not started. It needs a job queue and a record of outstanding work first. |
 | AWS | Not started. Everything runs on one local machine. |
 

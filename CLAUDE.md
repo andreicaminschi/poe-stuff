@@ -140,7 +140,7 @@ never learns where the input came from. The moment a lib names a service in its
 
 ## Apps
 
-Four are written, and `apps/generator` is written in part. `apps/collector` holds a `README.md`
+Five are written. `apps/collector` holds a `README.md`
 naming what it will own, which POC it replaces, and what has to be decided first.
 
 | App | Replaces | Owns |
@@ -149,7 +149,7 @@ naming what it will own, which POC it replaces, and what has to be decided first
 | [`apps/collector`](apps/collector/README.md) | `@poe/workers` | The worker loop, the job handlers, the record of outstanding work, the writes into `.s3`, and `queries.json`. |
 | [`apps/catalog`](apps/catalog/README.md) | `@poe/filterv2` | **Written.** The bronze/silver/gold pipeline over the taxonomy. **Its rows are the published taxonomy's drawable rows** — nothing `excluded`, nothing `quest`, nothing `filterable: false`, nothing an authored row replaces — and it invents or judges none. It collects PoeWatch and GGG's trade item list for one league-hour, writes a file per category, then gathers every row into `catalog.json` and `catalog.categories.json`. It carries the conditions the taxonomy authored and resolves none of them. It prices every row and variant off PoeWatch — the exchange first, listings second — and still hangs every unique off the base it rolls on under `uniques` — one group per path (`unique`, `unique/foulborn`), one listing per priced form inside it. The taxonomy now also authors one row per unique base (`unique/regular`, `unique/foulborn`, `unique/fragments`), which the catalog prices like any row, so a unique is priced in both places; which one a generator reads is undecided. `--force=taxonomy,poewatch` refetches only the named sources. `catalog:publish` copies one run's gold into `catalog/latest/`, and a run's manifest records the taxonomy version it used. Also `find-duplicates-cli.ts`, which reports the display names more than one metadata id carries. |
 | [`apps/taxonomy`](apps/taxonomy/README.md) | — | **Written.** The hand-maintained tables: six JSON files per version under `.s3/taxonomy/versions/<v>/`, never in git. A version is `3.29.4` — created from a published parent, never overwritten, and only the newest can be published, while it is still a draft. `validate` and `resolve` answer in JSON for the admin panel. Nothing imports it — the catalog reads what it published through `@poe/taxonomy`. |
-| [`apps/generator`](apps/generator/README.md) | — | **Part written.** The player's Electron app, shaped like the admin panel. It reads the published catalog and `.s3/generator/config.json`, shows each category's ladder and palette with a Take, Check and Gamble preview, and writes the `.filter` to a path the player picks. The model is `@poe/filter-style`. Simulate is not written. |
+| [`apps/generator`](apps/generator/README.md) | — | **Written.** The player's Electron app, shaped like the admin panel. It reads the published catalog and `.s3/generator/config.json`, shows each category's ladder, floors, want-to-see list and palette with a Take, Check and Gamble preview, drops simulated loot weighted toward cheap items, and writes the `.filter` to a path the player picks. The model is `@poe/filter-style`. |
 | [`apps/admin-panel`](apps/admin-panel/README.md) | — | **Written.** The desktop panel: browse and edit the newest draft, validate, publish, build and publish a catalog. Every call is an `.api.ts` adapter that reads the lake or runs a yarn command. Imports no other app. |
 
 ## Deprecated

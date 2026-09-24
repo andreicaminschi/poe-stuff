@@ -1,15 +1,19 @@
 import { useEffect } from "react";
 import { BootScreen } from "./panels/boot-screen.tsx";
+import { FloorEditor } from "./panels/floor-editor.tsx";
 import { Ladder } from "./panels/ladder.tsx";
 import { PaletteEditor } from "./panels/palette-editor.tsx";
 import { Preview } from "./panels/preview.tsx";
+import { SimulateScreen } from "./panels/simulate-screen.tsx";
 import { TopBar } from "./panels/top-bar.tsx";
+import { WantedEditor } from "./panels/wanted-editor.tsx";
 import { useSession } from "./session-store.ts";
 import "./app.css";
 
 export function App() {
   const boot = useSession((state) => state.boot);
   const booting = useSession((state) => state.booting);
+  const screen = useSession((state) => state.screen);
   const error = useSession((state) => state.error);
   const status = useSession((state) => state.status);
   const dismissError = useSession((state) => state.dismissError);
@@ -19,6 +23,7 @@ export function App() {
   }, [boot]);
 
   if (booting) return <BootScreen />;
+  if (screen === "simulate") return <SimulateScreen />;
 
   return (
     <div className="app">
@@ -35,6 +40,8 @@ export function App() {
       <div className="cols">
         <div className="side">
           <Ladder />
+          <WantedEditor />
+          <FloorEditor />
           <PaletteEditor />
         </div>
         <Preview />

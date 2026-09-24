@@ -9,11 +9,15 @@ export function TopBar() {
   const dirty = useSession((state) => state.config !== state.saved);
   const busy = useSession((state) => state.busy);
   const selectCategory = useSession((state) => state.selectCategory);
+  const setScreen = useSession((state) => state.setScreen);
   const saveConfig = useSession((state) => state.saveConfig);
   const writeFilter = useSession((state) => state.writeFilter);
 
   return (
     <div className="bar">
+      <button type="button" className="btn primary" onClick={() => setScreen("simulate")}>
+        Simulate
+      </button>
       <span className="label">Categories</span>
       {topCategories(items).map((key) => (
         <button
