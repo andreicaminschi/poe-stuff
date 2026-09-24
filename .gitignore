@@ -20,6 +20,7 @@ logs/
 # The admin panel's build output and packaged app.
 apps/admin-panel/out/
 apps/admin-panel/release/
+apps/generator/out/
 
 # Feature plans. Written before the work, kept locally, never pushed.
 docs/plans/

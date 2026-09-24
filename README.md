@@ -30,7 +30,7 @@ Three rules decide what goes into the taxonomy, and so what the filter can show:
 | Taxonomy | Built. The maintainer edits and publishes it in the admin panel. |
 | Catalog | Built. A person starts each build, for one league and one hour. Nothing schedules it yet. |
 | Admin panel | Built. The maintainer's desktop tool for the taxonomy and the catalog. |
-| Generator | Not started. The design is only partly decided. |
+| Generator | Partly built. The player's Electron app tiers, styles and writes the `.filter`. Simulate is not built. |
 | Collector | Not started. It needs a job queue and a record of outstanding work first. |
 | AWS | Not started. Everything runs on one local machine. |
 
@@ -211,7 +211,7 @@ The catalog also still attaches every unique PoeWatch lists to the row of its ba
 under `uniques`, as it did before the unique rows existed. `uniques` is a list of groups, one
 per path: `unique` for plain uniques and `unique/foulborn` for foulborn ones. Each listing is
 one priced form, such as `Lightpoacher (2 Sockets)`, and a corrupted entry is one corruption
-outcome of the listing before it. **Which of the two a generator reads is not decided.**
+outcome of the listing before it. **The generator reads both**: an authored unique row takes its price list from its base row's `uniques`.
 
 ### The row
 
@@ -263,8 +263,10 @@ Code: `apps/catalog`.
 
 ## Generator
 
-The generator is the player's Electron app, in `apps/generator`. **It does not exist yet**,
-and its design is only partly decided.
+The generator is the player's Electron app, in `apps/generator`. It puts every item in a tier,
+styles each tier from a per-category palette, and writes the `.filter`. The model is
+`lib/filter-style`, so the window recomputes it on every edit.
+[apps/generator/README.md](apps/generator/README.md) has the detail.
 
 An earlier proof of concept lived in the same folder and was deleted. It compared tier
 floors in chaos only, so a category whose tiers count stack sizes did not fit. Its decisions
@@ -339,8 +341,6 @@ is the full contract.
 ### What is not decided
 
 - Rule types beyond a chaos price threshold.
-- How a `stack-size` category, such as gold, gets its buckets.
-- Which price puts a unique group, with one price per form, into a bucket.
 - Where the generator finds a new catalog, and how it tells that one is new. The published
   files carry no league, hour or taxonomy version. The manifest has them, and publishing
   does not copy it.
@@ -410,8 +410,9 @@ never imported. [CLAUDE.md](CLAUDE.md) has the full rule.
 | `apps/admin-panel` | The maintainer's Electron app over the taxonomy and the catalog. |
 | `apps/item-inspect` | Takes an item's copied text and shows how the parser read it. |
 | `apps/collector` | Planned. A README only. |
-| `apps/generator` | Planned. Does not exist. |
+| `apps/generator` | The player's Electron app. Tiers, styles and writes the `.filter`. |
 | `lib/filter-compile` | Resolves a row's conditions and writes them as `.filter` lines. |
+| `lib/filter-style` | The generator's model: items, placement, tier styles and the styled `.filter`. |
 | `lib/filter-eval` | Parses a `.filter` and says which block takes an item. |
 | `lib/item-parser` | Reads one item's copied text into the shape `@poe/filter-eval` asks about. |
 | `lib/cache` | Cache keys, and a JSON file cache every service uses. |
