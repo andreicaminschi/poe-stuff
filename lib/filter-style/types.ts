@@ -11,7 +11,8 @@ export type TierName = (typeof TIERS)[number];
 
 export const WANT = "Want to see";
 export const HIDDEN = "Hidden";
-export type BucketName = TierName | typeof WANT | typeof HIDDEN;
+export const UNPRICED = "Unpriced";
+export type BucketName = TierName | typeof WANT | typeof UNPRICED | typeof HIDDEN;
 
 /** One unique form on a base row, as the catalog lists it. */
 export type UniqueListing = {
@@ -45,6 +46,7 @@ export type CatalogRow = {
   readonly variants?: readonly CatalogVariant[];
   readonly meanPrice?: number;
   readonly lowConfidence?: boolean;
+  readonly unpriceable?: boolean;
   readonly uniques?: readonly UniqueGroup[];
 };
 
@@ -66,6 +68,7 @@ export type Item = {
   readonly variant?: string;
   readonly category: string;
   readonly prices: Prices;
+  readonly unpriceable?: boolean;
 };
 
 /** A floor, and the exclusive ceiling the next enabled tier above sets. */

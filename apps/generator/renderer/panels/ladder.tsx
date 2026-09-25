@@ -1,5 +1,5 @@
 import { tierStyle } from "@poe/filter-style/tier-style";
-import { HIDDEN, TIERS, WANT, type BucketName } from "@poe/filter-style/types";
+import { HIDDEN, TIERS, UNPRICED, WANT, type BucketName } from "@poe/filter-style/types";
 import { Rung } from "../components/rung.tsx";
 import { useCategory } from "../hooks/use-category.ts";
 import { usePlaced } from "../hooks/use-placed.ts";
@@ -48,6 +48,7 @@ export function Ladder() {
         );
       })}
       <Rung name={WANT} range="manual list" size="S" count={counts.get(WANT) ?? 0} selected={selected === WANT} onSelect={() => selectBucket(WANT)} />
+      <Rung name={UNPRICED} range="flagged in taxonomy" size={tierStyle(palette, UNPRICED).size} count={counts.get(UNPRICED) ?? 0} selected={selected === UNPRICED} onSelect={() => selectBucket(UNPRICED)} />
       <Rung name={HIDDEN} range={rangeOf(HIDDEN)} size="XS" count={counts.get(HIDDEN) ?? 0} selected={selected === HIDDEN} onSelect={() => selectBucket(HIDDEN)} />
     </div>
   );

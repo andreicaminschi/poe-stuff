@@ -28,7 +28,7 @@ and never learns where a file is stored.
 
 ## What it does
 
-- **Tiers.** One ladder per category: T0 to T5, then Want to see, then Hidden. The floors are
+- **Tiers.** One ladder per category: T0 to T5, then Want to see, Unpriced and Hidden. The floors are
   global, and any tier can be switched off per category. A disabled tier's range falls to
   the tier below.
 - **Take, Check, Gamble.** Three preview columns show where each item lands and how it is
@@ -39,6 +39,8 @@ and never learns where a file is stored.
 - **Gold** is tiered by stack size. Each tier is a `StackSize` range.
 - **Floors.** The side panel edits the global Chaos floors, or a stack-size category's own.
 - **Want to see.** Add any item of the category by name. It is shown whatever it is worth.
+- **Unpriced.** A row the taxonomy flags `unpriceable` goes to its category's Unpriced tier,
+  never the ladder. Want to see still wins. A row the market failed to price stays unplaced.
 - **Simulate** drops ten items and piles their labels the way the client does, with beams
   and icons. Drops weigh 1 / worth, so cheap items fall far more often. "Generate valuable
   loot" makes sure of one T0 and two T1.

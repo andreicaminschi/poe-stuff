@@ -1,6 +1,7 @@
 import { holds, ladderOf, span } from "./place/ladder.ts";
 import {
   VERBS,
+  UNPRICED,
   WANT,
   type Bucket,
   type Hint,
@@ -29,6 +30,10 @@ const allowed = (prices: Prices, hints: readonly Hint[]): Prices => ({
 function wantedPlacement(item: Item): Placement {
   const verb = VERBS.find((one) => item.prices[one] !== undefined) ?? "take";
   return { item, bucket: WANT, verb, reason: "on the want-to-see list, shown whatever it is worth", won: true };
+}
+
+function unpricedPlacement(item: Item): Placement {
+  return { item, bucket: UNPRICED, verb: "take", reason: "flagged unpriceable in the taxonomy", won: true };
 }
 
 function qualifications(ladder: readonly Bucket[], item: Item): readonly Placement[] {
@@ -64,6 +69,11 @@ function byPrice(ladder: readonly Bucket[], items: readonly Item[], options: Pla
       continue;
     }
 
+    if (item.unpriceable === true) {
+      placed.push(unpricedPlacement(item));
+      continue;
+    }
+
     const found = qualifications(ladder, item);
     if (found.length === 0) {
       unplaced.push({ item, reason: "nothing priced it" });
@@ -90,6 +100,7 @@ function stackPlacement(item: Item, bucket: Bucket): Placement {
 function byStack(ladder: readonly Bucket[], items: readonly Item[], options: PlaceOptions): Placed {
   const placed = items.flatMap((item) => {
     if (options.wanted.includes(item.name)) return [wantedPlacement(item)];
+    if (item.unpriceable === true) return [unpricedPlacement(item)];
 
     return ladder.map((bucket) => stackPlacement(item, bucket));
   });
@@ -101,7 +112,8 @@ function byStack(ladder: readonly Bucket[], items: readonly Item[], options: Pla
  * One category's items, placed on its ladder.
  *
  * An item qualifies for every bucket one of its prices reaches, and only one qualification
- * wins the block. A want-to-see item goes there and nowhere else. In a stack-size category
+ * wins the block. A want-to-see item goes there and nowhere else, and an unpriceable one goes
+ * to Unpriced. In a stack-size category
  * the floors count `StackSize`, so every item gets one block per bucket.
  */
 export function place(items: readonly Item[], options: PlaceOptions): Placed {

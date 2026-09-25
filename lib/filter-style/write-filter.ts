@@ -3,7 +3,7 @@ import { resolveForms } from "@poe/filter-compile/resolve-row";
 import type { Condition } from "@poe/filter-compile/types";
 import { formatNote } from "@poe/filter-eval/format-note";
 import { tierStyle } from "./tier-style.ts";
-import { HIDDEN, TIERS, VERBS, WANT } from "./types.ts";
+import { HIDDEN, TIERS, UNPRICED, VERBS, WANT } from "./types.ts";
 import type { BucketName, CatalogRow, CategoryRecord, Item, Palette, Placed, Placement, Verb } from "./types.ts";
 import { actionLines } from "./write-filter/actions.ts";
 
@@ -32,11 +32,12 @@ export type Written = {
   readonly skipped: readonly Skip[];
 };
 
-const ORDER: readonly BucketName[] = [WANT, ...TIERS, HIDDEN];
+const ORDER: readonly BucketName[] = [WANT, UNPRICED, ...TIERS, HIDDEN];
 
 const NOTE_TIER: Readonly<Record<BucketName, string>> = {
   ...Object.fromEntries(TIERS.map((name) => [name, name])),
   [WANT]: "want",
+  [UNPRICED]: "unpriced",
   [HIDDEN]: "hidden",
 } as Record<BucketName, string>;
 
@@ -105,7 +106,7 @@ const rank = (drawn: Drawn): number =>
 /**
  * Every winning placement as a styled `.filter` block.
  *
- * Want to see comes first, then T0 to T5, then Hidden as `Hide` blocks, and inside one
+ * Want to see comes first, then Unpriced, then T0 to T5, then Hidden as `Hide` blocks, and inside one
  * bucket take before check before gamble, because the first block that matches wins. The
  * conditions come from `@poe/filter-compile`, plus a stack-size placement's `StackSize` range.
  * A placement whose conditions cannot be written is skipped with its reason.

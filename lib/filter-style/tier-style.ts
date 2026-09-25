@@ -2,6 +2,7 @@ import { mix, nearestNamed, readable } from "./tier-style/colour.ts";
 import {
   FONT_SIZES,
   HIDDEN,
+  UNPRICED,
   WANT,
   type BucketName,
   type Palette,
@@ -54,6 +55,7 @@ function bucket(palette: Palette, name: BucketName): Style {
     const beam = { colour: nearestNamed(palette.primary) };
     return { ...base("S"), background: palette.primary, text: palette.secondary, border: palette.secondary, icon: null, beam };
   }
+  if (name === UNPRICED) return faded(palette, "M", 0.5);
   if (name === HIDDEN) return { ...tier(palette, "T5"), opacity: HIDDEN_OPACITY };
 
   return tier(palette, name);
