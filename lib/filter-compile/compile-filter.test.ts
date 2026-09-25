@@ -1,9 +1,8 @@
 import { describe, it, expect } from "@jest/globals";
 import { parseFilter } from "@poe/filter-eval/parse-filter";
-import { compileFilter } from "./compile-filter.ts";
-import type { Item } from "./item.ts";
+import { compileFilter, type CompileRow } from "./compile-filter.ts";
 
-const row = (key: string, name: string, category: string, extra: Partial<Item> = {}): Item => ({
+const row = (key: string, name: string, category: string, extra: Partial<CompileRow> = {}): CompileRow => ({
   key,
   name,
   category,

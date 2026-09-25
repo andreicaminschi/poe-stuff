@@ -3,10 +3,10 @@ import type { ItemCorruptions } from "@poe/poe-watch/get-corruption-data.types";
 import type { ExchangeRatioItem } from "@poe/poe-watch/get-exchange-ratios.types";
 import type { CorruptionOutcome } from "@poe/poe-watch/types";
 import type { Listing, ListingMatch } from "@poe/taxonomy/types";
-import type { Item, PricedVariant } from "../item.ts";
+import type { Item, PoeWatchLink, PricedVariant } from "../item.ts";
 import { isSynthesised } from "./is-synthesised.ts";
 
-type Price = { readonly mean: number; readonly lowConfidence: boolean };
+type Price = { readonly mean: number; readonly lowConfidence: boolean; readonly poeWatch: PoeWatchLink };
 
 /**
  * A listing name with the lines inside its parentheses in one order.
@@ -92,12 +92,26 @@ function pickOutcome(
   listings: readonly ItemData[],
   corruption: string,
   outcomesById: ReadonlyMap<number, readonly CorruptionOutcome[]>,
-): CorruptionOutcome | undefined {
-  return mostListed(
-    listings
-      .flatMap((listing) => outcomesById.get(listing.id) ?? [])
-      .filter((outcome) => outcome.name === corruption),
+): Price | undefined {
+  const outcome = mostListed(
+    listings.flatMap((listing) =>
+      (outcomesById.get(listing.id) ?? [])
+        .filter((one) => one.name === corruption)
+        .map((one) => ({ ...one, listingId: listing.id })),
+    ),
   );
+  if (outcome === undefined) return undefined;
+  return {
+    mean: outcome.mean,
+    lowConfidence: outcome.lowConfidence,
+    poeWatch: { source: "poeWatch:items", id: outcome.listingId, name: outcome.name },
+  };
+}
+
+function pickListing(listings: readonly ItemData[], selector: ListingMatch | undefined): Price | undefined {
+  const listing = pick(listings, selector);
+  if (listing === undefined) return undefined;
+  return { mean: listing.mean, lowConfidence: listing.lowConfidence, poeWatch: { source: "poeWatch:items", id: listing.id, name: listing.name } };
 }
 
 const queriesOf = (listing: Listing | undefined): readonly (ListingMatch | undefined)[] => {
@@ -139,7 +153,7 @@ export function fromPoeWatch(
     ratios.flatMap((ratio) =>
       ratio.price === undefined
         ? []
-        : [[ratio.name, { chaos: ratio.price.chaos, lowConfidence: ratio.price.lowConfidence }] as const],
+        : [[ratio.name, { id: ratio.id, chaos: ratio.price.chaos, lowConfidence: ratio.price.lowConfidence }] as const],
     ),
   );
 
@@ -151,7 +165,7 @@ export function fromPoeWatch(
       index.get(listingKey(selector?.name ?? rowName)) ?? [];
     const priceOf = (query: ListingMatch | undefined): Price | undefined =>
       query?.corruption === undefined
-        ? pick(listed(query), query)
+        ? pickListing(listed(query), query)
         : pickOutcome(listed(query), query.corruption, outcomesById);
     // Several links price at the dearest.
     const choose = (listing: Listing | undefined): Price | undefined =>
@@ -164,20 +178,30 @@ export function fromPoeWatch(
     if (item.variants === undefined) {
       const sale = exchange.get(rowName);
       if (sale !== undefined) {
-        return { ...item, meanPrice: sale.chaos, lowConfidence: sale.lowConfidence };
+        return {
+          ...item,
+          meanPrice: sale.chaos,
+          lowConfidence: sale.lowConfidence,
+          poeWatch: { source: "poeWatch:exchange", id: sale.id, name: rowName },
+        };
       }
 
       const chosen = choose(item.listing);
       return chosen === undefined
         ? item
-        : { ...item, meanPrice: chosen.mean, lowConfidence: chosen.lowConfidence };
+        : { ...item, meanPrice: chosen.mean, lowConfidence: chosen.lowConfidence, poeWatch: chosen.poeWatch };
     }
 
     const variants: PricedVariant[] = item.variants.map((variant) => {
       const chosen = choose(variant.listing);
       return chosen === undefined
         ? variant
-        : { ...variant, meanPrice: chosen.mean, lowConfidence: chosen.lowConfidence };
+        : {
+            ...variant,
+            meanPrice: chosen.mean,
+            lowConfidence: chosen.lowConfidence,
+            poeWatch: chosen.poeWatch,
+          };
     });
 
     return { ...item, variants };

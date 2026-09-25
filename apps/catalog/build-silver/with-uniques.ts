@@ -98,11 +98,13 @@ function listedUniques(
       corrupted: false,
       subcategory,
       lowConfidence: chosen.lowConfidence,
+      poeWatch: { source: "poeWatch:items", id: chosen.id, name },
     });
 
-    const outcomes = new Map<string, CorruptionOutcome[]>();
+    const outcomes = new Map<string, (CorruptionOutcome & { readonly listingId: number })[]>();
     for (const listing of same) {
-      for (const outcome of outcomesById.get(listing.id) ?? []) {
+      for (const found of outcomesById.get(listing.id) ?? []) {
+        const outcome = { ...found, listingId: listing.id };
         const seen = outcomes.get(outcome.name);
         if (seen === undefined) outcomes.set(outcome.name, [outcome]);
         else seen.push(outcome);
@@ -119,6 +121,7 @@ function listedUniques(
         corrupted: true,
         subcategory,
         lowConfidence: best.lowConfidence,
+        poeWatch: { source: "poeWatch:items", id: best.listingId, name: implicit },
       });
     }
   }

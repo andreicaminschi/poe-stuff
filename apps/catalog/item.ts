@@ -5,6 +5,14 @@ export type PricedVariant = TaxonomyVariant & {
   readonly meanPrice?: number;
   /** PoeWatch's own flag on that listing: a small sample or high variance stands behind it. */
   readonly lowConfidence?: boolean;
+  readonly poeWatch?: PoeWatchLink;
+};
+
+/** The PoeWatch entry a price was read off. */
+export type PoeWatchLink = {
+  readonly source: "poeWatch:items" | "poeWatch:exchange";
+  readonly id: number | null;
+  readonly name: string;
 };
 
 /**
@@ -22,6 +30,7 @@ export type UniqueListing = {
   readonly corrupted: boolean;
   /** PoeWatch's own flag on this listing: a small sample or high variance stands behind it. */
   readonly lowConfidence?: boolean;
+  readonly poeWatch: PoeWatchLink;
 };
 
 /**
@@ -73,6 +82,7 @@ export type Item = {
   readonly meanPrice?: number;
   /** PoeWatch's own flag on the listing `meanPrice` came from. Absent wherever `meanPrice` is. */
   readonly lowConfidence?: boolean;
+  readonly poeWatch?: PoeWatchLink;
   /**
    * Every unique PoeWatch lists on this base, each form of each one, priced, grouped by the
    * category path that says how a filter tells the group apart. **A unique is not a row.**

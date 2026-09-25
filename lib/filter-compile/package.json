@@ -5,6 +5,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./compile-filter": "./compile-filter.ts",
     "./compose": "./compose.ts",
     "./condition-line": "./condition-line.ts",
     "./fill-from": "./fill-from.ts",

@@ -12,7 +12,7 @@
 import { writeFileSync } from "node:fs";
 import { createTaxonomyService } from "@poe/taxonomy/service";
 import { fromTaxonomy } from "./build-silver/from-taxonomy.ts";
-import { compileFilter } from "./compile-filter.ts";
+import { compileFilter } from "@poe/filter-compile/compile-filter";
 
 const flag = (args: readonly string[], name: string): string | undefined =>
   args.find((arg) => arg.startsWith(`--${name}=`))?.slice(name.length + 3);

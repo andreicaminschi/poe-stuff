@@ -35,8 +35,13 @@ hide one, so pricing it styles nothing.
 
 A catalog row is the taxonomy row's key, name, category, subcategory and base types, its
 unpriceable flag, its copied conditions, variants and listing, and what the catalog adds: `meanPrice`,
-`lowConfidence` and `uniques`. `baseTypes` is the row's name, or an authored row's
+`lowConfidence`, `poeWatch` and `uniques`. `baseTypes` is the row's name, or an authored row's
 `baseType`.
+
+`poeWatch` is the entry a price was read off, on the row, each variant and each unique
+listing: `{ source, id, name }`. `source` is `poeWatch:items` for a listing or
+`poeWatch:exchange` for the Currency Exchange. A corruption outcome carries its listing's
+`id` and the outcome's `name`. The taxonomy's eval cases read it as the answer key.
 
 ## Layout
 

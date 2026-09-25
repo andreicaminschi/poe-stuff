@@ -233,6 +233,9 @@ all.
 An item can carry several priced variants. **A price attaches to a variant, not to an item**,
 so an item with variants resolves once per variant and not once for itself.
 
+**A variant is an item.** Anything that asks "which item is this" — a filter block, a price,
+an eval case — answers with the variant, never with the row that holds it.
+
 They are keyed by the same metadata id the items file uses, or by an authored row's key.
 Every key must name a row in the version, and a list may not be empty.
 
@@ -512,3 +515,22 @@ yarn taxonomy:publish 3.29.4
 ```bash
 yarn taxonomy:promote 3.29.4
 ```
+
+Write classifier eval cases off a league's published catalog, into
+`.s3/taxonomy/evals/<promoted version>/cases.json`:
+
+```bash
+yarn taxonomy:eval-cases --league=Allflame
+```
+
+It takes the first 3 rows by key per category path, and every distinct sample item
+`samplesOf` builds for them, with Rarity cut to one non-unique value and `Unique`. A case is
+`{ item, matches }`: `item` is the `FilterItem` the classifier gets, and `matches` is every
+PoeWatch entry it is, as the catalog's `{ source, id, name }` links.
+
+The answer comes from the compiled taxonomy, not from the row the sample was built off. The
+catalog's rows compile into one block per row or variant, and the first block that takes the
+sample names the item. A variant is an item, so a variant's block answers with the variant's
+link. A unique answers with every unique listing its base carries in the same form — foulborn
+or not, corrupted or not — because the item alone cannot say which unique it is. No block, or
+no price, is `[]`.

@@ -23,6 +23,7 @@
     "taxonomy:create": "node apps/taxonomy/taxonomy-cli.ts create",
     "taxonomy:promote": "node apps/taxonomy/taxonomy-cli.ts promote",
     "taxonomy:seed": "node apps/taxonomy/seed-taxonomy-cli.ts",
+    "taxonomy:eval-cases": "node apps/taxonomy/eval-cases-cli.ts",
     "typecheck": "tsc",
     "typecheck:watch": "tsc --watch",
     "lint": "eslint .",

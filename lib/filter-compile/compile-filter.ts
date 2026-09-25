@@ -1,9 +1,19 @@
-import { conditionLine } from "@poe/filter-compile/condition-line";
-import { resolveForms, type Form } from "@poe/filter-compile/resolve-row";
 import { formatNote } from "@poe/filter-eval/format-note";
 import { parseFilter } from "@poe/filter-eval/parse-filter";
-import type { TaxonomyCategories } from "@poe/taxonomy/get-categories.types";
-import type { Item } from "./item.ts";
+import { conditionLine } from "./condition-line.ts";
+import { resolveForms, type CategoryRecords, type Form } from "./resolve-row.ts";
+import type { Condition } from "./types.ts";
+
+/** What compile reads off a row. */
+export type CompileRow = {
+  readonly key: string;
+  readonly name: string;
+  readonly category: string;
+  readonly subcategory: string | null;
+  readonly baseTypes: readonly string[];
+  readonly conditions?: readonly Condition[];
+  readonly variants?: readonly { readonly name: string; readonly conditions: readonly Condition[] }[];
+};
 
 export type Skip = { readonly key: string; readonly variant?: string; readonly problem: string };
 
@@ -11,7 +21,7 @@ export type Compiled = { readonly text: string; readonly blocks: number; readonl
 
 type Block = { readonly text: string } | { readonly problem: string } | null;
 
-function blockOf(row: Item, form: Form): Block {
+function blockOf(row: CompileRow, form: Form): Block {
   const [first] = form.problems;
   if (first !== undefined) return { problem: first };
   if (form.conditions.length === 0) return { problem: "has no conditions yet" };
@@ -44,7 +54,7 @@ function blockOf(row: Item, form: Form): Block {
  * The text is read back with `parseFilter` before it is returned, so a grammar mistake fails
  * here and not in the game client.
  */
-export function compileFilter(rows: readonly Item[], categories: TaxonomyCategories["categories"]): Compiled {
+export function compileFilter(rows: readonly CompileRow[], categories: CategoryRecords): Compiled {
   const texts: string[] = [];
   const skipped: Skip[] = [];
 
