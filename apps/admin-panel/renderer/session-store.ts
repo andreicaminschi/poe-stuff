@@ -466,7 +466,7 @@ export const useSession = create<Session>()((set, get) => {
         const { report } = get();
         if (report === undefined) return;
         const saved = await window.panel.saveReport(report);
-        if ("path" in saved) set({ status: `Saved report to ${saved.path}` });
+        if ("path" in saved) set({ status: `Saved report to ${saved.path} and queries to ${saved.queries}` });
       }),
 
     publish: () =>

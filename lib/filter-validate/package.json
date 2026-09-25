@@ -9,6 +9,7 @@
     "./find-unfiltered": "./find-unfiltered.ts",
     "./group-unfiltered": "./group-unfiltered.ts",
     "./report-csv": "./report-csv.ts",
+    "./sample-query": "./sample-query.ts",
     "./samples-of": "./samples-of.ts",
     "./types": "./types.ts"
   },

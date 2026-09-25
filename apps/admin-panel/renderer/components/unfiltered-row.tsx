@@ -1,4 +1,4 @@
-import { describeSample } from "@poe/filter-validate/describe-sample";
+import { sampleQuery } from "@poe/filter-validate/sample-query";
 import { useState } from "react";
 import type { UnfilteredRow as Row } from "../../api/panel-api.ts";
 
@@ -20,11 +20,14 @@ export function UnfilteredRow({ row, onOpen }: { readonly row: Row; readonly onO
       </div>
       {open ? (
         <ul className="samples">
-          {row.samples.map((item, at) => (
-            <li key={at} className="mono">
-              {describeSample(item)}
-            </li>
-          ))}
+          {row.samples.map((item, at) => {
+            const query = sampleQuery(row.name, item);
+            return (
+              <li key={at} className="mono" title="Click to copy" onClick={() => void navigator.clipboard.writeText(query)}>
+                {query}
+              </li>
+            );
+          })}
         </ul>
       ) : null}
     </div>
