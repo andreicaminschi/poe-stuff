@@ -9,6 +9,7 @@
     "./filter-ast": "./filter-ast.ts",
     "./filter-classes": "./filter-classes.ts",
     "./format-note": "./format-note.ts",
+    "./match-filter": "./match-filter.ts",
     "./parse-filter": "./parse-filter.ts"
   }
 }

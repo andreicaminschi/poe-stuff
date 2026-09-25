@@ -100,3 +100,11 @@ or one that cannot be written, is skipped and listed in the printed JSON with it
 ```bash
 yarn catalog:compile --taxonomy-version=3.29.1 --out=data/compiled.filter
 ```
+
+Check that compiled filter against the taxonomy's own sample items. It builds every sample the
+categories' `samples` sets describe and writes the ones no block takes to `--out` as JSON.
+It prints `{ version, sampled, unfiltered }`:
+
+```bash
+yarn catalog:validate --taxonomy-version=3.29.8 --out=data/unfiltered.json
+```

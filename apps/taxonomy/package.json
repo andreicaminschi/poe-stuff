@@ -6,6 +6,7 @@
   "type": "module",
   "dependencies": {
     "@poe/filter-compile": "workspace:^",
+    "@poe/filter-eval": "workspace:^",
     "@poe/lake": "workspace:^",
     "@poe/repoe": "workspace:^"
   }

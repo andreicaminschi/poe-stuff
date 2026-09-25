@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { optionalEnv } from "@util/env";
-import { app, BrowserWindow, ipcMain } from "electron";
+import { app, BrowserWindow, dialog, ipcMain } from "electron";
 import { repoRoot } from "./api/util/lake.ts";
 import { API_NAMES } from "./api/panel-api.ts";
 import { createPanelService } from "./api/panel.ts";
@@ -9,9 +9,22 @@ import { createPanelService } from "./api/panel.ts";
 const envFile = join(app.getAppPath(), ".env");
 if (existsSync(envFile)) process.loadEnvFile(envFile);
 
+async function chooseReportPath(): Promise<string | undefined> {
+  const options = {
+    title: "Save the validation report",
+    defaultPath: join(app.getPath("documents"), "taxonomy-unfiltered.csv"),
+    filters: [{ name: "CSV", extensions: ["csv"] }],
+  };
+  const window = BrowserWindow.getFocusedWindow();
+  const result = window === null ? await dialog.showSaveDialog(options) : await dialog.showSaveDialog(window, options);
+
+  return result.canceled ? undefined : result.filePath;
+}
+
 const service = createPanelService(
   repoRoot(app.getAppPath()),
   app.getPath("documents"),
+  chooseReportPath,
   optionalEnv("POE_USER_AGENT"),
 );
 

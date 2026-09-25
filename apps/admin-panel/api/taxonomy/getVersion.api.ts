@@ -81,6 +81,8 @@ export async function getVersion(lake: Lake, id: string): Promise<Draft> {
         path,
         ...(record.name === undefined ? {} : { name: record.name }),
         tiering: record.tiering ?? "chaos",
+        ...(record.hints === undefined || record.hints.length === 0 ? {} : { hints: record.hints }),
+        ...(record.samples === undefined || record.samples.length === 0 ? {} : { samples: record.samples }),
         conditions: record.conditions,
       }),
     ),

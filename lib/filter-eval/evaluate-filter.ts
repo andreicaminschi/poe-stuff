@@ -193,7 +193,7 @@ const matchGem = (condition: FilterCondition, value: unknown): boolean => {
   return negated(condition.operator) ? !same : same;
 };
 
-const matchCondition = (condition: FilterCondition, item: FilterItem): boolean => {
+export const matchCondition = (condition: FilterCondition, item: FilterItem): boolean => {
   const value = item[condition.name];
 
   switch (condition.kind) {

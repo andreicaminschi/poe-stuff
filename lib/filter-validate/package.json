@@ -1,0 +1,19 @@
+{
+  "name": "@poe/filter-validate",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./describe-sample": "./describe-sample.ts",
+    "./find-unfiltered": "./find-unfiltered.ts",
+    "./group-unfiltered": "./group-unfiltered.ts",
+    "./report-csv": "./report-csv.ts",
+    "./samples-of": "./samples-of.ts",
+    "./types": "./types.ts"
+  },
+  "dependencies": {
+    "@poe/filter-compile": "workspace:^",
+    "@poe/filter-eval": "workspace:^"
+  }
+}

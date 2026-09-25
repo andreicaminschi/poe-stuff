@@ -3,6 +3,7 @@ import { AuthorModal } from "./dialogs/author-modal.tsx";
 import { CategoryModal } from "./dialogs/category-modal.tsx";
 import { ChangesPanel } from "./dialogs/changes-panel.tsx";
 import { CompiledPanel } from "./dialogs/compiled-panel.tsx";
+import { UnfilteredPanel } from "./dialogs/unfiltered-panel.tsx";
 import { ConfirmDialog } from "./dialogs/confirm-dialog.tsx";
 import { DiscoverVariants } from "./dialogs/discover-variants.tsx";
 import { RunsPanel } from "./dialogs/runs-panel.tsx";
@@ -80,6 +81,7 @@ export function App() {
       {dialog?.kind === "runs" ? <RunsPanel /> : null}
       {dialog?.kind === "changes" ? <ChangesPanel /> : null}
       {dialog?.kind === "compiled" ? <CompiledPanel /> : null}
+      {dialog?.kind === "unfiltered" ? <UnfilteredPanel /> : null}
       {dialog?.kind === "category" ? <CategoryModal target={dialog.target} /> : null}
       {dialog?.kind === "author" ? <AuthorModal replaces={dialog.replaces} /> : null}
       {dialog?.kind === "discover" ? <DiscoverVariants /> : null}

@@ -11,6 +11,7 @@ export function VersionBar() {
   const validate = useSession((state) => state.validate);
   const publish = useSession((state) => state.publish);
   const compileFilter = useSession((state) => state.compileFilter);
+  const validateFilter = useSession((state) => state.validateFilter);
   const openDialog = useSession((state) => state.openDialog);
   const ledgerSize = useSession((state) => state.ledger.length);
   const current = useCurrentVersion();
@@ -75,6 +76,14 @@ export function VersionBar() {
         onClick={() => void compileFilter()}
       >
         Compile filter
+      </button>
+      <button
+        type="button"
+        className="btn"
+        disabled={busy || current?.editable !== true}
+        onClick={() => void validateFilter()}
+      >
+        Validate filter
       </button>
       <button
         type="button"

@@ -1,0 +1,833 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Generator prototype</title>
+<link rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600&family=Gelasio:wght@400;500;600&family=IBM+Plex+Mono:wght@400&display=swap">
+<style>
+  :root {
+    --ground:#0e1013; --bg:#14161a; --panel:#1b1e24; --panel-2:#22262e;
+    --line:#2f3540; --line-soft:#242932;
+    --text:#dde1e7; --dim:#8d96a4; --faint:#5e6674;
+    --accent:#c8a15a; --accent-dim:#6d5a33;
+    --take:#74c882; --check:#5fb4d9; --gamble:#a85ae6; --danger:#e2735d;
+    --ui:"Barlow Semi Condensed","Segoe UI",system-ui,sans-serif;
+    --loot:Gelasio,Georgia,"Times New Roman",serif;
+    --mono:"IBM Plex Mono",Consolas,monospace;
+  }
+
+  * { box-sizing:border-box; }
+  html, body { height:100%; }
+  body {
+    margin:0; background:var(--bg); color:var(--text);
+    font:400 15px/1.5 var(--ui); -webkit-font-smoothing:antialiased;
+  }
+  h1, h2, h3, h4 { margin:0; font-weight:600; }
+  button { font-family:inherit; }
+  :focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  @media (prefers-reduced-motion:reduce) { * { transition:none !important; } }
+
+  .mono { font-family:var(--mono); font-variant-numeric:tabular-nums; }
+  .label { font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--faint); margin:0; font-weight:500; }
+  .pill { border:1px solid var(--line); border-radius:11px; padding:1px 10px; font-size:12px; color:var(--dim); white-space:nowrap; }
+  .pill.won { border-color:var(--accent-dim); color:var(--accent); }
+  .note { color:var(--faint); font-size:12px; margin:0; }
+
+  #app {
+    height:100%; display:grid;
+    grid-template-columns:270px minmax(0,1fr);
+    grid-template-rows:auto minmax(0,1fr);
+    grid-template-areas:"bar bar" "side preview";
+  }
+
+  .bar {
+    grid-area:bar; display:flex; align-items:center; flex-wrap:wrap; gap:2px 6px; padding:9px 20px;
+    background:var(--ground); border-bottom:1px solid var(--line);
+  }
+  .bar > .label { margin:0 6px 0 4px; }
+  .btn {
+    border:1px solid var(--line); background:var(--panel-2); color:var(--text);
+    padding:5px 12px; border-radius:4px; font-size:13px; cursor:pointer; transition:border-color .12s;
+  }
+  .btn:hover { border-color:#4c5460; }
+  .btn.primary { border-color:var(--accent-dim); color:var(--accent); }
+  .btn.primary:hover { border-color:var(--accent); }
+
+  #simulate { height:100%; display:flex; flex-direction:column; }
+  #simulate[hidden], #app[hidden] { display:none; }
+  .simbar {
+    display:flex; align-items:center; gap:10px; padding:11px 20px; flex:none;
+    background:var(--ground); border-bottom:1px solid var(--line);
+  }
+  .simbar .sp { flex:1; }
+  .simbar .count { font:12px var(--mono); color:var(--faint); }
+  #floor {
+    position:relative; flex:1; min-height:0; overflow:hidden;
+    background:
+      radial-gradient(ellipse at 30% 40%, rgba(90,80,60,.35), transparent 60%),
+      radial-gradient(ellipse at 75% 70%, rgba(60,70,60,.3), transparent 55%),
+      #16140f;
+  }
+  #floor .hint { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:var(--faint); font-size:13px; }
+  .ground {
+    position:absolute; display:flex; align-items:center; justify-content:center; box-sizing:border-box;
+    font-family:var(--loot); font-variant-caps:small-caps; white-space:nowrap; border:1px solid; z-index:2;
+  }
+  .ground svg { flex:none; }
+  .shaft { position:absolute; width:8px; border-radius:4px; z-index:1; filter:blur(2px); opacity:.7; }
+  .ctab {
+    border:0; border-bottom:2px solid transparent; background:none; color:var(--dim);
+    font-size:13px; padding:3px 8px; cursor:pointer; transition:border-color .12s; white-space:nowrap;
+  }
+  .ctab:hover { color:var(--text); }
+  .ctab.on { color:var(--text); border-bottom-color:var(--accent); }
+
+  #side { grid-area:side; display:flex; flex-direction:column; min-height:0; background:var(--panel); border-right:1px solid var(--line); }
+  #ladder { flex:1; min-height:0; overflow:auto; }
+  .rung {
+    display:flex; align-items:center; gap:9px; padding:9px 14px; cursor:pointer;
+    border-left:2px solid transparent; border-bottom:1px solid var(--line-soft);
+    color:var(--dim); transition:border-color .12s;
+  }
+  .rung:hover { color:var(--text); }
+  .rung.on { color:var(--text); border-left-color:var(--accent); background:rgba(200,161,90,.06); }
+  .rung .n { font-size:14px; min-width:26px; }
+  .rung .sp { flex:1; min-width:0; }
+  .rung .range { font:11px var(--mono); color:var(--faint); display:block; }
+  .rung .c { font:11px var(--mono); color:var(--faint); min-width:16px; text-align:right; }
+  .rung .sz { font:11px var(--mono); color:var(--faint); width:18px; text-align:right; }
+  .rung.idle .n, .rung.idle .range { opacity:.4; text-decoration:line-through; }
+
+  #palette { flex:none; border-top:1px solid var(--line); padding:12px 14px 14px; background:#171a20; }
+  #palette .label { margin-bottom:10px; }
+  .swatch { display:grid; grid-template-columns:70px 38px minmax(0,1fr); gap:9px; align-items:center; margin-bottom:8px; }
+  .swatch > label { color:var(--dim); font-size:13px; }
+  .swatch .hex { font:11px var(--mono); color:var(--faint); }
+  .swatch .named { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--faint); }
+  .swatch .named svg { width:16px; height:16px; }
+
+  #preview {
+    grid-area:preview; background:var(--ground); overflow:auto;
+    display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); align-content:start;
+  }
+  .grp { min-width:0; padding:14px 16px; border-right:1px solid var(--line-soft); }
+  .grp:nth-child(3) { border-right:0; }
+  .grp.missed { grid-column:1 / -1; border-right:0; border-top:1px solid var(--line-soft); }
+  @media (max-width:900px) {
+    #preview { grid-template-columns:minmax(0,1fr); }
+    .grp { border-right:0; border-bottom:1px solid var(--line-soft); }
+  }
+  .grp h4 { font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--faint); margin-bottom:11px; display:flex; align-items:center; gap:7px; }
+  .grp h4 .dot { width:5px; height:5px; border-radius:50%; flex:none; }
+  .grp h4 .what { text-transform:none; letter-spacing:0; font-weight:400; font-size:12px; }
+  .grp.take h4 .dot { background:var(--take); }
+  .grp.take h4 b { color:var(--take); font-weight:600; }
+  .grp.check h4 .dot { background:var(--check); }
+  .grp.check h4 b { color:var(--check); font-weight:600; }
+  .grp.missed h4 .dot { background:var(--danger); }
+  .grp.missed h4 b { color:var(--danger); font-weight:600; }
+
+  .drop { padding:7px 0; }
+  .drop + .drop { border-top:1px solid var(--line-soft); }
+  .line { display:flex; align-items:center; gap:10px; min-width:0; }
+  .meta { display:flex; align-items:baseline; gap:8px; margin-top:5px; padding-left:42px; }
+  .beam { width:12px; height:34px; border-radius:6px; flex:none; opacity:.85; }
+  .beam.none { visibility:hidden; }
+  .icon { width:20px; height:20px; flex:none; }
+  .icon.none { visibility:hidden; }
+  .loot {
+    font-family:var(--loot); font-variant-caps:small-caps; padding:1px 10px;
+    border:1px solid; white-space:nowrap; min-width:0;
+    overflow:hidden; text-overflow:ellipsis;
+  }
+  .tbl { width:100%; border-collapse:collapse; table-layout:auto; }
+  .tbl th {
+    font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--faint);
+    font-weight:500; text-align:left; padding:0 8px 6px; border-bottom:1px solid var(--line);
+  }
+  .tbl td { padding:6px 8px; border-bottom:1px solid var(--line-soft); vertical-align:middle; }
+  .tbl .ic { width:1%; white-space:nowrap; }
+  .tbl .ic > * { display:inline-block; vertical-align:middle; margin-right:6px; }
+  .tbl .it { max-width:0; width:100%; }
+  .tbl .it .loot { display:inline-block; max-width:100%; vertical-align:middle; }
+  .tbl .pr { text-align:right; white-space:nowrap; font:12px var(--mono); font-variant-numeric:tabular-nums; color:var(--dim); }
+  .tbl th.pr { font:500 11px var(--ui); }
+  .tbl tr.vacant td { opacity:.45; }
+  .empty { color:var(--faint); font-size:12px; font-style:italic; margin:0; }
+  .off { border:1px dashed var(--line); border-radius:4px; padding:11px 13px; background:rgba(255,255,255,.015); }
+  .offhead { margin:0 0 7px; font-size:13px; color:var(--dim); }
+  .use { margin:0 0 9px; font-size:12px; color:var(--faint); }
+  .grp.dark h4 { opacity:.55; }
+
+  select {
+    background:var(--ground); border:1px solid var(--line); color:var(--text);
+    border-radius:3px; padding:2px 6px; font:12px var(--ui); width:100%; min-width:0;
+  }
+  select:focus { border-color:var(--accent); outline:none; }
+  input[type=color] {
+    width:38px; height:22px; padding:0; border:1px solid var(--line); border-radius:3px;
+    background:var(--ground); cursor:pointer;
+  }
+  input[type=checkbox] { accent-color:var(--accent); margin:0; cursor:pointer; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="bar"><button class="btn primary" id="to-simulate">Simulate</button><div id="categories" style="display:contents"></div></div>
+  <div id="side">
+    <div id="ladder"></div>
+    <div id="palette"></div>
+  </div>
+  <div id="preview"></div>
+</div>
+
+<div id="simulate" hidden>
+  <div class="simbar">
+    <button class="btn" id="to-tiers">&larr; Tiers</button>
+    <span class="label">Simulate</span>
+    <span class="sp"></span>
+    <span class="count" id="drop-count"></span>
+    <button class="btn" id="gen-loot">Generate loot</button>
+    <button class="btn primary" id="gen-valuable">Generate valuable loot</button>
+  </div>
+  <div id="floor"><div class="hint">Generate some loot to see how it drops.</div></div>
+</div>
+
+<script src="prototype-data.js"></script>
+<script>
+const ICON_COLORS = {
+  Red: "#e02020", Green: "#1fbf1f", Blue: "#4560ff", Brown: "#a05a2c",
+  White: "#ffffff", Yellow: "#ffe000", Cyan: "#40e0e0", Grey: "#a0a0a0",
+  Orange: "#ff9020", Pink: "#ff80c0", Purple: "#a040f0",
+};
+
+const SHAPES = {
+  Circle: '<circle cx="12" cy="12" r="9"/>',
+  Diamond: '<polygon points="12,2 22,12 12,22 2,12"/>',
+  Hexagon: '<polygon points="12,2 21,7 21,17 12,22 3,17 3,7"/>',
+  Square: '<rect x="3" y="3" width="18" height="18"/>',
+  Star: '<polygon points="12,2 14.6,9.1 22,9.1 16,13.6 18.3,21 12,16.5 5.7,21 8,13.6 2,9.1 9.4,9.1"/>',
+  Triangle: '<polygon points="12,3 22,20 2,20"/>',
+  Cross: '<polygon points="9,2 15,2 15,9 22,9 22,15 15,15 15,22 9,22 9,15 2,15 2,9 9,9"/>',
+  Moon: '<path d="M16 3 A9 9 0 1 0 16 21 A7.5 9 0 1 1 16 3Z"/>',
+  Raindrop: '<path d="M12 2 C17 9 20 12 20 15 A8 8 0 0 1 4 15 C4 12 7 9 12 2Z"/>',
+  Kite: '<polygon points="12,2 20,10 12,22 4,10"/>',
+  Pentagon: '<polygon points="12,2 22,9.5 18,21 6,21 2,9.5"/>',
+  UpsideDownHouse: '<polygon points="2,2 22,2 22,14 12,22 2,14"/>',
+};
+
+const SIZES = { XL: 45, L: 38, M: 32, S: 25, XS: 18 };
+
+/**
+ * How each tier is drawn from a category's two colours and its icon.
+ *
+ * `mix` is the share of secondary in the background — primary(40% secondary) is 60% primary
+ * and 40% secondary. A mixed tier writes its text in black or primary, whichever reads better
+ * on that background.
+ */
+const TEMPLATE = [
+  { size: "XL", white: true, text: "primary", border: "primary", icon: 0 },
+  { size: "XL", bg: "primary", text: "secondary", border: "secondary", icon: 1 },
+  { size: "L", mix: 0.2, text: "secondary", border: "secondary" },
+  { size: "M", mix: 0.4 },
+  { size: "S", mix: 0.7 },
+  { size: "XS", mix: 0.8 },
+];
+
+const hexToRgb = (hex) => [1, 3, 5].map((at) => parseInt(hex.slice(at, at + 2), 16));
+const rgbToHex = (rgb) => `#${rgb.map((value) => Math.round(value).toString(16).padStart(2, "0")).join("")}`;
+
+const mix = (primary, secondary, share) => {
+  const from = hexToRgb(primary);
+  const to = hexToRgb(secondary);
+  return rgbToHex(from.map((value, at) => value * (1 - share) + to[at] * share));
+};
+
+const channel = (value) => {
+  const unit = value / 255;
+  return unit <= 0.03928 ? unit / 12.92 : ((unit + 0.055) / 1.055) ** 2.4;
+};
+
+const luminance = (hex) => {
+  const [r, g, b] = hexToRgb(hex).map(channel);
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+
+/** WCAG contrast ratio, 1 to 21. */
+const contrast = (one, other) => {
+  const [light, dark] = [luminance(one), luminance(other)].sort((a, b) => b - a);
+  return (light + 0.05) / (dark + 0.05);
+};
+
+const readable = (bg, primary) => (contrast(bg, "#000000") >= contrast(bg, primary) ? "#000000" : primary);
+
+/** The game only draws icons and beams in its own eleven colours. */
+function nearestNamed(hex) {
+  const [r, g, b] = hexToRgb(hex);
+  const distance = (value) => {
+    const [R, G, B] = hexToRgb(value);
+    return (r - R) ** 2 + (g - G) ** 2 + (b - B) ** 2;
+  };
+  return Object.keys(ICON_COLORS).sort((a, b) => distance(ICON_COLORS[a]) - distance(ICON_COLORS[b]))[0];
+}
+
+function tierStyle(palette, at) {
+  const rule = TEMPLATE[at];
+  const named = nearestNamed(palette.primary);
+  const icon = rule.icon === undefined ? null : { size: rule.icon, color: named, shape: palette.icon };
+  const beam = icon === null ? null : { color: named };
+  const fontSize = SIZES[rule.size];
+
+  if (rule.white) {
+    return { size: rule.size, fontSize, bg: "#ffffff", text: palette[rule.text], border: palette[rule.border], icon, beam };
+  }
+
+  if (rule.mix !== undefined && rule.text !== undefined) {
+    const bg = mix(palette.primary, palette.secondary, rule.mix);
+    return { size: rule.size, fontSize, bg, text: palette[rule.text], border: palette[rule.border], icon, beam };
+  }
+
+  if (rule.mix !== undefined) {
+    const bg = mix(palette.primary, palette.secondary, rule.mix);
+    const text = readable(bg, palette.primary);
+    return { size: rule.size, fontSize, bg, text, border: text, icon, beam };
+  }
+
+  return {
+    size: rule.size, fontSize,
+    bg: palette[rule.bg], text: palette[rule.text], border: palette[rule.border],
+    icon, beam,
+  };
+}
+
+const indexOf = (name) => Number(name.slice(1));
+
+/** Enabled tiers only, each capped by the next enabled tier above it. */
+function effective(tiers) {
+  const on = tiers.filter((tier) => tier.enabled);
+  return on.map((tier, at) => (at === 0 ? { ...tier } : { ...tier, ceiling: on[at - 1].floor }));
+}
+
+const WANT = "Want to see";
+const HIDDEN = "Hidden";
+
+/** The enabled tiers, then Hidden for everything under the lowest of them. */
+function ladderOf(tiers) {
+  const on = effective(tiers);
+  const lowest = on.length === 0 ? undefined : on[on.length - 1].floor;
+  return [...on, { name: HIDDEN, floor: 0, ...(lowest === undefined ? {} : { ceiling: lowest }) }];
+}
+
+const rank = (name) => {
+  if (name === WANT) return 6;
+  if (name === HIDDEN) return 7;
+  return indexOf(name);
+};
+
+function styleFor(palette, name) {
+  if (name === WANT) {
+    return {
+      size: "S", fontSize: SIZES.S, bg: palette.primary, text: palette.secondary, border: palette.secondary,
+      icon: null, beam: { color: nearestNamed(palette.primary) },
+    };
+  }
+  if (name === HIDDEN) {
+    return { ...tierStyle(palette, 5), opacity: 0.4 };
+  }
+  return tierStyle(palette, indexOf(name));
+}
+
+const holds = (bucket, price) =>
+  price >= bucket.floor && (bucket.ceiling === undefined || price < bucket.ceiling);
+
+function span(bucket) {
+  if (bucket.ceiling === undefined) return `${bucket.floor}c and up`;
+  if (bucket.floor === 0) return `under ${bucket.ceiling}c`;
+  return `${bucket.floor}-${bucket.ceiling}c`;
+}
+
+function place(buckets, prices) {
+  const richestFirst = [...buckets].sort((a, b) => b.floor - a.floor);
+
+  for (const bucket of richestFirst) {
+    const { take, check } = prices;
+
+    if (take !== undefined && holds(bucket, take)) {
+      return { bucket, verb: "take" };
+    }
+    if (check !== undefined && holds(bucket, check)) {
+      return { bucket, verb: "check" };
+    }
+  }
+
+  return undefined;
+}
+
+const bucketFor = (buckets, price) =>
+  price === undefined ? undefined : [...buckets].sort((a, b) => b.floor - a.floor).find((one) => holds(one, price));
+
+/** Every sub-bucket an item reaches, not only the one that wins the block. */
+function qualifications(buckets, prices) {
+  const { take, check } = prices;
+  const found = [];
+
+  const onTake = bucketFor(buckets, take);
+  if (onTake !== undefined) {
+    found.push({ bucket: onTake, verb: "take", reason: `worth ${take}c as it lies, inside ${span(onTake)}` });
+  }
+
+  const onCheck = check === undefined ? undefined : bucketFor(buckets, check);
+  if (onCheck !== undefined) {
+    found.push({ bucket: onCheck, verb: "check", reason: `identifying it could reach ${check}c, inside ${span(onCheck)}` });
+  }
+
+  return found;
+}
+
+function why(prices, buckets) {
+  const { take, check } = prices;
+  if (take === undefined && check === undefined) return "nothing priced it";
+  if (buckets.length === 0) return "every tier is off";
+
+  const lowest = Math.min(...buckets.map((bucket) => bucket.floor));
+  const best = Math.max(take ?? 0, check ?? 0);
+
+  if (best < lowest) return `worth ${best}c at best, under the ${lowest}c floor of every enabled tier`;
+  return `worth ${best}c at best, which falls in a gap between tiers`;
+}
+
+/** A category without the check hint never reads a check price. */
+const allowed = (prices, hints) => (hints.includes("check") ? prices : { take: prices.take });
+
+function bucketItems(buckets, all, wanted, hints) {
+  const rows = all.map((row) => ({ ...row, prices: allowed(row.prices, hints) }));
+  const placed = [];
+  const unplaced = [];
+
+  for (const row of rows) {
+    if (wanted.includes(row.name)) {
+      const verb = row.prices.take === undefined ? "check" : "take";
+      placed.push({ ...row, bucket: WANT, verb, reason: "on the want-to-see list, shown whatever it is worth", won: true });
+      continue;
+    }
+
+    const found = qualifications(buckets, row.prices);
+    if (found.length === 0) {
+      unplaced.push({ ...row, reason: why(row.prices, buckets) });
+      continue;
+    }
+
+    const winner = place(buckets, row.prices);
+    for (const one of found) {
+      placed.push({
+        ...row,
+        bucket: one.bucket.name,
+        verb: one.verb,
+        reason: one.reason,
+        won: winner !== undefined && winner.bucket.name === one.bucket.name && winner.verb === one.verb,
+      });
+    }
+  }
+
+  return { placed, unplaced };
+}
+
+const VERBS = [
+  {
+    key: "take", head: "Take", what: "worth the tier as it lies",
+    use: "The filter can describe the item on the ground, so its worth is settled before the player touches it. A 20/20 Animate Guardian drops that way — level, quality and corruption are all conditions.",
+  },
+  {
+    key: "check", head: "Check", what: "identifying it could reach the tier",
+    use: "The item is one thing on the floor and several after identification, and no condition separates them. A unique on a Heavy Belt lies at 1c and could be a Mageblood — the filter cannot know which, so this is a hint to pick it up and look.",
+  },
+  {
+    key: "gamble", head: "Gamble", what: "corrupting it could reach the tier",
+    use: "The item is worth the tier only after a Vaal Orb, and the outcome is up to the player. Auxium lies at 1c and its rarity corruption is worth 25c — a hint to pick it up and corrupt it.",
+  },
+];
+
+const BORDERS = { check: "#3c8cff", gamble: "#ff2d2d" };
+
+/** A hint's label wears its hint's border, whatever the tier says. */
+const hinted = (style, verb) => (BORDERS[verb] === undefined ? style : { ...style, border: BORDERS[verb] });
+
+const state = { category: 0, bucket: null };
+
+const current = () => CATEGORIES[state.category];
+
+function iconSvg(icon) {
+  if (icon === null) return '<svg class="icon none" viewBox="0 0 24 24"></svg>';
+  const scale = [1, 0.8, 0.6][icon.size];
+  return `<svg class="icon" viewBox="0 0 24 24" style="transform:scale(${scale})" fill="${ICON_COLORS[icon.color]}">${SHAPES[icon.shape]}</svg>`;
+}
+
+function beamDiv(beam) {
+  if (beam === null) return '<div class="beam none"></div>';
+  return `<div class="beam" style="background:linear-gradient(to top, ${ICON_COLORS[beam.color]}, transparent)"></div>`;
+}
+
+const chaos = (value) =>
+  value === undefined ? "-" : `${value.toLocaleString("en-US", { maximumFractionDigits: 2 })}c`;
+
+function drop(item, tier) {
+  const style = hinted(tier, item.verb);
+  const size = Math.round(style.fontSize * 0.44) + 5;
+  return `
+    <tr title="${item.reason}">
+      <td><span class="pill ${item.won ? "won" : ""}">${item.bucket}</span></td>
+      <td class="ic">${beamDiv(style.beam)}${iconSvg(style.icon)}</td>
+      <td class="it"><span class="loot" style="background:${style.bg};color:${style.text};border-color:${style.border};font-size:${size}px;opacity:${style.opacity ?? 1}">${item.name}</span></td>
+      <td class="pr">${chaos(item.prices[item.verb])}</td>
+    </tr>`;
+}
+
+function vacant(name, style) {
+  return `
+    <tr class="vacant">
+      <td><span class="pill">${name}</span></td>
+      <td class="ic">${beamDiv(style.beam)}${iconSvg(style.icon)}</td>
+      <td class="it"><span class="empty">no item in this tier</span></td>
+      <td class="pr"></td>
+    </tr>`;
+}
+
+const table = (rows) => `
+  <table class="tbl">
+    <thead><tr><th>Tier</th><th>Icon</th><th>Item</th><th class="pr">Price</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+
+function renderCategories() {
+  const tabs = CATEGORIES.map((category, at) =>
+    `<button class="ctab ${at === state.category ? "on" : ""}" data-cat="${at}">${category.name}</button>`).join("");
+  document.getElementById("categories").innerHTML = `<span class="label">Categories</span>${tabs}`;
+}
+
+function rangeOf(tier, buckets) {
+  if (!tier.enabled) return `off &middot; ${tier.floor}c`;
+  return span(buckets.find((bucket) => bucket.name === tier.name));
+}
+
+function renderLadder(bucketed, buckets) {
+  const counts = new Map();
+  for (const item of bucketed.placed) counts.set(item.bucket, (counts.get(item.bucket) ?? 0) + 1);
+
+  const all = `
+    <div class="rung ${state.bucket === null ? "on" : ""}" data-bucket="">
+      <span class="n">All</span>
+      <span class="sp"><span class="range">every tier</span></span>
+      <span class="c">${bucketed.placed.length}</span>
+    </div>`;
+
+  const rungs = current().tiers.map((tier, at) => `
+    <div class="rung ${state.bucket === tier.name ? "on" : ""} ${tier.enabled ? "" : "idle"}" data-bucket="${tier.name}">
+      <input type="checkbox" data-toggle="${at}" ${tier.enabled ? "checked" : ""} title="${tier.enabled ? "Disable" : "Enable"} ${tier.name}">
+      <span class="n">${tier.name}</span>
+      <span class="sp"><span class="range">${rangeOf(tier, buckets)}</span></span>
+      <span class="sz">${TEMPLATE[at].size}</span>
+      <span class="c">${counts.get(tier.name) ?? 0}</span>
+    </div>`).join("");
+
+  const hidden = buckets.find((bucket) => bucket.name === HIDDEN);
+  const extra = [[WANT, "manual list", "S"], [HIDDEN, span(hidden), "XS"]].map(([name, range, size]) => `
+    <div class="rung ${state.bucket === name ? "on" : ""}" data-bucket="${name}">
+      <span class="n">${name}</span>
+      <span class="sp"><span class="range">${range}</span></span>
+      <span class="sz">${size}</span>
+      <span class="c">${counts.get(name) ?? 0}</span>
+    </div>`).join("");
+
+  document.getElementById("ladder").innerHTML = all + rungs + extra;
+}
+
+function body(key, head, use, items, scope, inCategory) {
+  if (key !== "take" && !current().hints.includes(key)) {
+    return `
+      <div class="off">
+        <p class="offhead">${head} is off for ${current().name}.</p>
+        <p class="use">${use}</p>
+        <p class="note">The taxonomy lists no ${key} hint for this category.</p>
+      </div>`;
+  }
+
+  if (key === "gamble") {
+    return `
+      <div class="off">
+        <p class="offhead">${head} is on, but nothing prices a gamble yet.</p>
+        <p class="use">${use}</p>
+        <p class="note">The taxonomy carries no corruption outcomes to read.</p>
+      </div>`;
+  }
+
+  if (inCategory === 0) {
+    return `
+      <div class="off">
+        <p class="offhead">${head} is off for ${current().name}.</p>
+        <p class="use">${use}</p>
+        <p class="note">No row in this category reaches a tier this way, so the generator writes no ${head} block.</p>
+      </div>`;
+  }
+
+  const { palette, tiers } = current();
+
+  if (state.bucket === null) {
+    const names = [...tiers.filter((tier) => tier.enabled).map((tier) => tier.name), WANT, HIDDEN];
+    const rows = names.map((name) => {
+      const item = items.find((one) => one.bucket === name);
+      return item === undefined ? vacant(name, styleFor(palette, name)) : drop(item, styleFor(palette, name));
+    });
+    return table(rows.join(""));
+  }
+
+  if (items.length === 0) {
+    return `<p class="empty">Nothing in ${scope} lands here, though ${inCategory} row${inCategory === 1 ? "" : "s"} elsewhere in this category do.</p>`;
+  }
+
+  const ordered = [...items].sort((a, b) =>
+    rank(a.bucket) - rank(b.bucket) || (b.prices[b.verb] ?? 0) - (a.prices[a.verb] ?? 0));
+  return table(ordered.map((item) => drop(item, styleFor(palette, item.bucket))).join(""));
+}
+
+const onePerTier = (items) => {
+  const dearest = [...items].sort((a, b) => (b.prices[b.verb] ?? 0) - (a.prices[a.verb] ?? 0));
+  return dearest.filter((item, at) => dearest.findIndex((one) => one.bucket === item.bucket) === at);
+};
+
+function renderPreview(bucketed) {
+  const scope = state.bucket === null ? "this category" : state.bucket;
+  const shown = (item) => state.bucket === null || item.bucket === state.bucket;
+
+  const groups = VERBS.map(({ key, head, what, use }) => {
+    const inCategory = bucketed.placed.filter((item) => item.verb === key).length;
+    const matching = bucketed.placed.filter((item) => item.verb === key && shown(item));
+    const items = state.bucket === null ? onePerTier(matching) : matching;
+    return `
+      <div class="grp ${key} ${inCategory === 0 ? "dark" : ""}">
+        <h4><span class="dot"></span><b>${head}</b><span class="what">${what}</span></h4>
+        ${body(key, head, use, items, scope, inCategory)}
+      </div>`;
+  }).join("");
+
+  const missed = bucketed.unplaced.length === 0 ? "" : `
+    <div class="grp missed">
+      <h4><span class="dot"></span><b>Unplaced</b><span class="what">no tier wanted it</span></h4>
+      ${bucketed.unplaced.map((item) => `<div class="drop"><span class="note">${item.name} &mdash; ${item.reason}</span></div>`).join("")}
+    </div>`;
+
+  document.getElementById("preview").innerHTML = groups + (state.bucket === null ? missed : "");
+}
+
+function namedIcon(palette) {
+  const named = nearestNamed(palette.primary);
+  return `<svg viewBox="0 0 24 24" fill="${ICON_COLORS[named]}">${SHAPES[palette.icon]}</svg>${named}`;
+}
+
+function renderPalette() {
+  const { name, palette } = current();
+  const shapes = Object.keys(SHAPES)
+    .map((shape) => `<option ${shape === palette.icon ? "selected" : ""}>${shape}</option>`).join("");
+
+  document.getElementById("palette").innerHTML = `
+    <p class="label">${name} &middot; colours</p>
+    <div class="swatch">
+      <label>primary</label>
+      <input type="color" data-palette="primary" value="${palette.primary}">
+      <span class="hex" data-hex="primary">${palette.primary}</span>
+    </div>
+    <div class="swatch">
+      <label>secondary</label>
+      <input type="color" data-palette="secondary" value="${palette.secondary}">
+      <span class="hex" data-hex="secondary">${palette.secondary}</span>
+    </div>
+    <div class="swatch">
+      <label>icon</label>
+      <span></span>
+      <select data-palette="icon">${shapes}</select>
+    </div>
+    <div class="swatch">
+      <label>icon, beam</label>
+      <span></span>
+      <span class="named" data-named>${namedIcon(palette)}</span>
+    </div>`;
+}
+
+function draw() {
+  const category = current();
+  const buckets = ladderOf(category.tiers);
+  const bucketed = bucketItems(buckets, category.rows, category.wanted, category.hints);
+
+  renderLadder(bucketed, buckets);
+  renderPreview(bucketed);
+}
+
+function render() {
+  renderCategories();
+  renderPalette();
+  draw();
+}
+
+document.getElementById("categories").addEventListener("click", (event) => {
+  const tab = event.target.closest(".ctab");
+  if (tab === null) return;
+  state.category = Number(tab.dataset.cat);
+  state.bucket = null;
+  render();
+});
+
+document.getElementById("ladder").addEventListener("click", (event) => {
+  if (event.target.dataset.toggle !== undefined) return;
+  const rung = event.target.closest(".rung");
+  if (rung === null) return;
+  state.bucket = rung.dataset.bucket === "" ? null : rung.dataset.bucket;
+  draw();
+});
+
+document.getElementById("ladder").addEventListener("change", (event) => {
+  const at = event.target.dataset.toggle;
+  if (at === undefined) return;
+  current().tiers[Number(at)].enabled = event.target.checked;
+  draw();
+});
+
+document.getElementById("palette").addEventListener("input", (event) => {
+  const key = event.target.dataset.palette;
+  if (key === undefined) return;
+
+  const { palette } = current();
+  palette[key] = event.target.value;
+
+  const hex = document.querySelector(`[data-hex="${key}"]`);
+  if (hex !== null) hex.textContent = event.target.value;
+  document.querySelector("[data-named]").innerHTML = namedIcon(palette);
+  draw();
+});
+
+/** Every priced row of every category, as the block it wins. */
+function lootPool() {
+  const pool = [];
+  for (const category of CATEGORIES) {
+    const bucketed = bucketItems(ladderOf(category.tiers), category.rows, category.wanted, category.hints);
+    for (const item of bucketed.placed.filter((one) => one.won)) {
+      pool.push({ name: item.name, bucket: item.bucket, style: hinted(styleFor(category.palette, item.bucket), item.verb) });
+    }
+  }
+  return pool;
+}
+
+const pick = (list) => list[Math.floor(Math.random() * list.length)];
+
+const shuffle = (list) => {
+  const copy = [...list];
+  for (let at = copy.length - 1; at > 0; at -= 1) {
+    const other = Math.floor(Math.random() * (at + 1));
+    [copy[at], copy[other]] = [copy[other], copy[at]];
+  }
+  return copy;
+};
+
+const LOOT = 10;
+
+function randomLoot() {
+  const pool = lootPool();
+  return Array.from({ length: LOOT }, () => pick(pool));
+}
+
+function valuableLoot() {
+  const pool = lootPool();
+  const of = (name) => pool.filter((one) => one.bucket === name);
+  const sure = [pick(of("T0")), pick(of("T1")), pick(of("T1"))].filter((one) => one !== undefined);
+  const rest = Array.from({ length: LOOT - sure.length }, () => pick(pool));
+  return shuffle([...sure, ...rest]);
+}
+
+/** Label font pixels per filter size point, read off FilterBlade's preview. */
+const PIXELS_PER_POINT = 1;
+const LINE = 1.2;
+const PAD = 0.28;
+const ICON = 0.62;
+
+const ruler = typeof document.createElement === "function" ? document.createElement("canvas").getContext("2d") : null;
+
+function measure(text, px) {
+  if (ruler === null) return text.length * px * 0.62;
+  ruler.font = `small-caps ${px}px Gelasio, Georgia, serif`;
+  return ruler.measureText(text).width;
+}
+
+const hits = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+
+/**
+ * Stacks labels the way the client does: each wants to sit over the spot its item fell on,
+ * and one that collides slides beside a neighbour or steps up or down until it is clear.
+ */
+function pile(drops, width, height) {
+  const placed = [];
+
+  for (const drop of drops) {
+    const px = drop.style.fontSize * PIXELS_PER_POINT;
+    const h = Math.round(px * LINE) + 2;
+    const w = Math.round(measure(drop.name, px) + px * PAD * 2 + (drop.style.icon === null ? 0 : px * (ICON + 0.3)) + 2);
+    const gx = width / 2 + (Math.random() - 0.5) * 240;
+    const gy = height / 2 + (Math.random() - 0.5) * 120;
+
+    let spot;
+    for (let step = 0; step < 600 && spot === undefined; step += 1) {
+      const y = gy - h / 2 + (step % 2 === 0 ? 1 : -1) * Math.ceil(step / 2) * 2;
+      const row = placed.filter((one) => one.y < y + h && y < one.y + one.h);
+      const xs = [gx - w / 2, ...row.flatMap((one) => [one.x + one.w, one.x - w])];
+      const free = xs
+        .filter((x) => Math.abs(x + w / 2 - gx) < 260)
+        .map((x) => ({ x, y, w, h }))
+        .find((box) => !placed.some((one) => hits(one, box)));
+      spot = free;
+    }
+
+    placed.push({ ...drop, ...(spot ?? { x: gx - w / 2, y: gy, w, h }), px, gx, gy });
+  }
+
+  return placed;
+}
+
+function labelIcon(icon, px) {
+  if (icon === null) return "";
+  const size = Math.round(px * ICON);
+  return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="${ICON_COLORS[icon.color]}" style="margin-right:${Math.round(px * 0.3)}px">${SHAPES[icon.shape]}</svg>`;
+}
+
+function groundLabel(drop) {
+  const { bg, text, border, opacity, icon } = drop.style;
+  return `<span class="ground" style="left:${drop.x}px;top:${drop.y}px;width:${drop.w}px;height:${drop.h}px;font-size:${drop.px}px;padding:0 ${drop.px * PAD}px;background:${bg};color:${text};border-color:${border};opacity:${opacity ?? 1}">${labelIcon(icon, drop.px)}${drop.name}</span>`;
+}
+
+function groundBeam(drop) {
+  if (drop.style.beam === null) return "";
+  const color = ICON_COLORS[drop.style.beam.color];
+  return `<div class="shaft" style="left:${drop.gx - 4}px;top:${drop.gy - 260}px;height:280px;background:linear-gradient(to top, ${color}, transparent)"></div>`;
+}
+
+function dropLoot(drops) {
+  const floor = document.getElementById("floor");
+  const placed = pile(drops, floor.clientWidth, floor.clientHeight);
+  const hidden = drops.filter((drop) => drop.bucket === HIDDEN).length;
+
+  floor.innerHTML = placed.map(groundBeam).join("") + placed.map(groundLabel).join("");
+  document.getElementById("drop-count").textContent = `${drops.length} dropped · ${hidden} hidden`;
+}
+
+const showScreen = (simulate) => {
+  document.getElementById("app").hidden = simulate;
+  document.getElementById("simulate").hidden = !simulate;
+};
+
+document.getElementById("to-simulate").addEventListener("click", () => showScreen(true));
+document.getElementById("to-tiers").addEventListener("click", () => showScreen(false));
+const loaded = document.fonts?.load("small-caps 20px Gelasio") ?? Promise.resolve();
+document.getElementById("gen-loot").addEventListener("click", () => loaded.then(() => dropLoot(randomLoot())));
+document.getElementById("gen-valuable").addEventListener("click", () => loaded.then(() => dropLoot(valuableLoot())));
+
+render();
+</script>
+</body>
+</html>

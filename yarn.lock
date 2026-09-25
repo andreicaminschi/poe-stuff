@@ -1843,6 +1843,7 @@ __metadata:
   dependencies:
     "@poe/filter-compile": "workspace:^"
     "@poe/filter-eval": "workspace:^"
+    "@poe/filter-validate": "workspace:^"
     "@poe/lake": "workspace:^"
     "@poe/poe-watch": "workspace:^"
     "@poe/taxonomy": "workspace:^"
@@ -1869,6 +1870,7 @@ __metadata:
   dependencies:
     "@poe/filter-compile": "workspace:^"
     "@poe/filter-eval": "workspace:^"
+    "@poe/filter-validate": "workspace:^"
     "@poe/ggg": "workspace:^"
     "@poe/lake": "workspace:^"
     "@poe/poe-watch": "workspace:^"
@@ -1895,6 +1897,15 @@ __metadata:
 "@poe/filter-style@workspace:^, @poe/filter-style@workspace:lib/filter-style":
   version: 0.0.0-use.local
   resolution: "@poe/filter-style@workspace:lib/filter-style"
+  dependencies:
+    "@poe/filter-compile": "workspace:^"
+    "@poe/filter-eval": "workspace:^"
+  languageName: unknown
+  linkType: soft
+
+"@poe/filter-validate@workspace:^, @poe/filter-validate@workspace:lib/filter-validate":
+  version: 0.0.0-use.local
+  resolution: "@poe/filter-validate@workspace:lib/filter-validate"
   dependencies:
     "@poe/filter-compile": "workspace:^"
     "@poe/filter-eval": "workspace:^"
@@ -1993,6 +2004,7 @@ __metadata:
   resolution: "@poe/taxonomy-app@workspace:apps/taxonomy"
   dependencies:
     "@poe/filter-compile": "workspace:^"
+    "@poe/filter-eval": "workspace:^"
     "@poe/lake": "workspace:^"
     "@poe/repoe": "workspace:^"
   languageName: unknown

@@ -7,6 +7,7 @@
   "dependencies": {
     "@poe/filter-compile": "workspace:^",
     "@poe/filter-eval": "workspace:^",
+    "@poe/filter-validate": "workspace:^",
     "@poe/ggg": "workspace:^",
     "@poe/lake": "workspace:^",
     "@poe/poe-watch": "workspace:^",

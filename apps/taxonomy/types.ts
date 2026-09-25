@@ -49,10 +49,25 @@ export type AuthoredTable = Readonly<Record<string, AuthoredRow>>;
 
 export type TieringMethod = "chaos" | "stack-size";
 
+/** A sub-bucket beyond take that a category allows. Top-level categories only. */
+export type Hint = "check" | "gamble";
+
+export type SampleValue = string | number | boolean;
+
+/** One sample per value, or the value read off the row. */
+export type SampleProperty =
+  | { readonly values: readonly SampleValue[] }
+  | { readonly from: "name" | "baseTypes" | "conditions" };
+
+/** Keyed by filter condition name. Its samples are the cartesian product. */
+export type SampleSet = Readonly<Record<string, SampleProperty>>;
+
 export type AuthoredCategory = {
   readonly conditions: readonly Condition[];
   readonly name?: string;
   readonly tiering?: TieringMethod;
+  readonly hints?: readonly Hint[];
+  readonly samples?: readonly SampleSet[];
 };
 
 export type CategoryTable = Readonly<Record<string, AuthoredCategory>>;

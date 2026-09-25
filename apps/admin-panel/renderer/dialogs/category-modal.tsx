@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { resolvePath } from "@poe/filter-compile/resolve-row";
-import type { Category, Condition, Tiering } from "../../api/taxonomy/types.ts";
+import type { Category, Condition, Hint, Tiering } from "../../api/taxonomy/types.ts";
 import { ConditionsEditor } from "../components/conditions-editor.tsx";
 import { Modal } from "../components/modal.tsx";
 import { Segmented } from "../components/segmented.tsx";
@@ -18,10 +18,16 @@ import { categoryPath } from "../utils/category-path.ts";
 import { categorySaveNote } from "../utils/category-save-note.ts";
 import { initialParent } from "../utils/initial-parent.ts";
 import { newCategoryProblem } from "../utils/new-category-problem.ts";
+import { parseSamples } from "../utils/parse-samples.ts";
 
 const TIERING: readonly (readonly [Tiering, string])[] = [
   ["chaos", "By price"],
   ["stack-size", "By stack size"],
+];
+
+const HINTS: readonly (readonly [Hint, string])[] = [
+  ["check", "Check"],
+  ["gamble", "Gamble"],
 ];
 
 export function CategoryModal({ target }: { readonly target: CategoryTarget }) {
@@ -44,7 +50,13 @@ export function CategoryModal({ target }: { readonly target: CategoryTarget }) {
   const [slug, setSlug] = useState(target.kind === "edit" ? (target.path.split("/").at(-1) ?? "") : "");
   const [name, setName] = useState(existing?.name ?? "");
   const [tiering, setTiering] = useState<Tiering>(existing?.tiering ?? "chaos");
+  const [hints, setHints] = useState<readonly Hint[]>(existing?.hints ?? []);
   const [conditions, setConditions] = useState<readonly Condition[]>(existing?.conditions ?? []);
+  const [samplesText, setSamplesText] = useState(() =>
+    existing?.samples === undefined ? "" : JSON.stringify(existing.samples, null, 2),
+  );
+  const parsedSamples = parseSamples(samplesText);
+  const samplesProblem = "problem" in parsedSamples ? parsedSamples.problem : undefined;
 
   const isSub = target.kind === "new-subcategory" || (target.kind === "edit" && target.path.includes("/"));
   const path = categoryPath(target, parent, slug);
@@ -79,6 +91,8 @@ export function CategoryModal({ target }: { readonly target: CategoryTarget }) {
     path: at,
     ...(name.trim() === "" ? {} : { name: name.trim() }),
     tiering,
+    ...(isSub || hints.length === 0 ? {} : { hints }),
+    ...("samples" in parsedSamples && parsedSamples.samples.length > 0 ? { samples: parsedSamples.samples } : {}),
     conditions,
   });
 
@@ -123,7 +137,12 @@ export function CategoryModal({ target }: { readonly target: CategoryTarget }) {
             type="button"
             className="btn primary"
             disabled={
-              !editable || busy || problem !== undefined || moveProblem !== undefined || renameProblem !== undefined
+              !editable ||
+              busy ||
+              problem !== undefined ||
+              moveProblem !== undefined ||
+              renameProblem !== undefined ||
+              samplesProblem !== undefined
             }
             onClick={() => void submit()}
           >
@@ -185,6 +204,30 @@ export function CategoryModal({ target }: { readonly target: CategoryTarget }) {
           <label>Tiering</label>
           <Segmented value={tiering} options={TIERING} disabled={!editable} onChange={setTiering} />
         </div>
+        {isSub ? null : (
+          <div className="fld">
+            <label>Hints</label>
+            <div className="rarities">
+              {HINTS.map(([hint, label]) => (
+                <label key={hint} className="check">
+                  <input
+                    type="checkbox"
+                    checked={hints.includes(hint)}
+                    disabled={!editable}
+                    onChange={(event) =>
+                      setHints(
+                        HINTS.map(([one]) => one).filter((one) =>
+                          one === hint ? event.target.checked : hints.includes(one),
+                        ),
+                      )
+                    }
+                  />
+                  {label}
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
       <div className="grp">
         <h4>Conditions</h4>
@@ -209,6 +252,20 @@ export function CategoryModal({ target }: { readonly target: CategoryTarget }) {
           names={names}
           valueOptions={valueOptions}
         />
+      </div>
+      <div className="grp">
+        <h4>Samples</h4>
+        <p className="note">Sample items the filter validator builds for rows here. A subcategory's list replaces its category's.</p>
+        <textarea
+          id="cat-samples"
+          className="mono"
+          rows={8}
+          value={samplesText}
+          disabled={!editable}
+          placeholder='[{ "BaseType": { "from": "baseTypes" }, "Rarity": { "values": ["Normal", "Magic"] } }]'
+          onChange={(event) => setSamplesText(event.target.value)}
+        />
+        {samplesProblem === undefined ? null : <p className="err">{samplesProblem}</p>}
       </div>
     </Modal>
   );

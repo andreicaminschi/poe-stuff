@@ -244,5 +244,16 @@ input.filter { width:180px; }
   background:none; border:0; border-bottom:1px solid var(--line-soft); color:var(--text); padding:6px 0; cursor:pointer; font-size:12px;
 }
 .problem:hover { background:rgba(255,255,255,.02); }
+.unfiltered-head { display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--line-soft); }
+.unfiltered-fold {
+  display:flex; align-items:center; gap:8px; flex:1; padding:5px 0; text-align:left;
+  border:0; background:none; color:var(--dim); font-size:13px; cursor:pointer;
+}
+.unfiltered-fold:hover { color:var(--text); }
+.unfiltered-fold .name { flex:1; }
+.unfiltered-fold .caret { width:10px; color:var(--faint); }
+.unfiltered-fold .c { font-size:11px; color:var(--faint); }
+.samples { margin:4px 0 8px 18px; padding:0; list-style:none; font-size:11px; color:var(--faint); }
+.samples li { padding:1px 0; }
 .check { display:inline-flex; align-items:center; gap:5px; font-size:13px; color:var(--dim); }
 .log { font:11px var(--mono); color:var(--dim); background:var(--ground); border:1px solid var(--line-soft); padding:8px; max-height:260px; overflow:auto; white-space:pre-wrap; }

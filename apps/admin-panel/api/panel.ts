@@ -2,6 +2,8 @@ import { buildCatalog } from "./catalog/build.api.ts";
 import { getRuns } from "./catalog/getRuns.api.ts";
 import { publishCatalog } from "./catalog/publish.api.ts";
 import { compileFilter } from "./filter/compile.api.ts";
+import { saveReport } from "./filter/saveReport.api.ts";
+import { validateFilter } from "./filter/validateFilter.api.ts";
 import { join } from "node:path";
 import { createLakeService } from "@poe/lake/service";
 import { appendLedger } from "./ledger/append.api.ts";
@@ -24,7 +26,12 @@ import { saveDraft } from "./taxonomy/saveDraft.api.ts";
 import { validate } from "./taxonomy/validate.api.ts";
 import type { ActionResult } from "./util/yarn.ts";
 
-export function createPanelService(repo: string, documents: string, userAgent?: string): PanelApi {
+export function createPanelService(
+  repo: string,
+  documents: string,
+  chooseReportPath: () => Promise<string | undefined>,
+  userAgent?: string,
+): PanelApi {
   const lake = createLakeService({ root: join(repo, ".s3") });
   const poeWatch = createPoeWatchService({
     ...(userAgent === undefined ? {} : { userAgent }),
@@ -63,5 +70,7 @@ export function createPanelService(repo: string, documents: string, userAgent?: 
     popLedger: (id, seq) => popLedger(lake, id, seq),
     commitLedger: (id) => commitLedger(lake, id),
     compileFilter: (id, changes) => compileFilter(repo, lake, id, documents, changes),
+    validateFilter: (id, changes) => validateFilter(repo, lake, id, changes),
+    saveReport: (report) => saveReport(report, chooseReportPath),
   };
 }

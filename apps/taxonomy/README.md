@@ -134,6 +134,36 @@ nobody wants to maintain, so its rungs count the size of the stack on the floor 
 The difference is not the unit. A Chaos floor is a number something compares a price
 against; a stack-size floor is a `StackSize` line something writes into the block.
 
+**A category opts into hints.** `hints` lists which of `check` and `gamble` it allows, and
+absent means neither. It lives on a top-level category and covers every subcategory under it,
+so validation refuses `hints` on a subcategory, an unknown hint, and a hint listed twice.
+
+**A category says how to build sample items.** The filter validator (`yarn catalog:validate`,
+and Validate filter in the admin panel) builds sample items for every drawable row. It runs
+them through the compiled filter and reports the samples that no block takes. `samples` decides which properties those samples vary. It is a list of sets,
+each keyed by a filter condition name:
+
+```json
+"samples": [
+  { "BaseType": { "from": "baseTypes" }, "GemLevel": { "values": [1, 20] }, "Corrupted": { "values": [false] } },
+  { "BaseType": { "from": "baseTypes" }, "GemLevel": { "values": [21] }, "Corrupted": { "values": [true] } }
+]
+```
+
+- A set is the cartesian product of its properties, and the sets are unioned.
+- `values` gives one sample per value.
+- `from: "baseTypes"` gives one sample per base type of the row.
+- `from: "name"` is the row's name.
+- `from: "conditions"` gives each value the row's resolved conditions hold for that name. A
+  row with no such condition leaves the property out.
+- A subcategory's `samples` replaces its category's. A path with none at either level builds
+  no samples.
+
+A property left out is missing on the sample, and a missing property fails every condition
+on it. So a set has to carry every property its rows' blocks test. Validation refuses a name
+that is not a filter condition, a value of the wrong kind for that condition, an empty
+`values`, and an unknown `from`.
+
 ## The condition language
 
 A condition is structured. Nothing anywhere holds a line of filter text.

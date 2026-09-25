@@ -1,7 +1,8 @@
 # poe-stuff
 
-Yarn 4 workspace monorepo of TypeScript packages for Path of Exile item filters. No build
-step — Node runs the `.ts` files directly.
+Yarn 4 workspace monorepo of TypeScript packages for Path of Exile item filters. Node runs
+the `.ts` files directly, so most packages need no build step. This is a fact about Node 26,
+not a rule against building — `apps/admin-panel` builds, and anything else may.
 
 ## Purpose
 
@@ -67,6 +68,7 @@ services/lake/         # @poe/lake — JSON files under .s3, addressed by key. H
 lib/filter-eval/       # @poe/filter-eval — parse and run a .filter. Depends on nothing. Has a README.md
 lib/filter-compile/    # @poe/filter-compile — compose a row's conditions and write them as .filter lines
 lib/filter-style/      # @poe/filter-style — items, placement, tier styles and the styled .filter
+lib/filter-validate/   # @poe/filter-validate — sample items off the taxonomy, and what a filter misses
 lib/item-parser/       # @poe/item-parser — one item's copied text, parsed and matched
 lib/cache/             # @util/cache — cache-key, file-cache, sleep
 lib/env/               # @util/env — requireEnv / optionalEnv. The only reader of process.env
@@ -120,9 +122,10 @@ filesystem and no environment, because a desktop client is the plan.
 
 | Library | Import as | Owns |
 | --- | --- | --- |
-| `@poe/filter-eval` | `@poe/filter-eval/parse-filter`, `/evaluate-filter`, `/filter-ast`, `/format-note` | The `.filter` grammar as code: a parser, an evaluator that decides which block takes an item, and the `#@` note a generated block carries its bucket in. **Depends on nothing, on purpose** — it is the independent reader that checks whatever wrote a filter, and sharing a types file with the writer would end that. See [lib/filter-eval/README.md](lib/filter-eval/README.md). |
+| `@poe/filter-eval` | `@poe/filter-eval/parse-filter`, `/evaluate-filter`, `/match-filter`, `/filter-ast`, `/format-note` | The `.filter` grammar as code: a parser, an evaluator that decides which block takes an item, and the `#@` note a generated block carries its bucket in. `compileFilter` answers the same question for bulk runs: it compiles the blocks once and indexes them by `BaseType ==`, so a million items cost seconds rather than hours. **Depends on nothing, on purpose** — it is the independent reader that checks whatever wrote a filter, and sharing a types file with the writer would end that. See [lib/filter-eval/README.md](lib/filter-eval/README.md). |
 | `@poe/filter-compile` | `@poe/filter-compile/compose`, `/fill-from`, `/condition-line`, `/resolve-row`, `/types` | The one copy of how a row's conditions resolve: category, subcategory, item and variant laid over each other, `from: "name"` and `from: "baseTypes"` filled off the row, and a resolved condition written as a `.filter` line from `@poe/filter-eval`'s registry. `apps/taxonomy` validates with it, so what it reports and what compiles cannot disagree. |
-| `@poe/filter-style` | `@poe/filter-style/items-of`, `/place`, `/tier-style`, `/write-filter`, `/types` | The generator's model, pure so the window can recompute it on every edit. `itemsOf` reads catalog rows as the items a filter can tell apart; a unique row's price list is joined from its base row's `uniques`. `place` puts one category's items on its ladder: global floors, disabled tiers, Want to see, Hidden, and the check and gamble hints. A `stack-size` category gets one block per tier with a `StackSize` range. `tierStyle` turns a palette and a tier into a label. `writeFilter` writes the styled `.filter`, and its test proves with `@poe/filter-eval` that every item lands in the block it was placed in. |
+| `@poe/filter-style` | `@poe/filter-style/items-of`, `/place`, `/tier-style`, `/write-filter`, `/types` | The generator's model, pure so the window can recompute it on every edit. `itemsOf` reads catalog rows as the items a filter can tell apart; a unique row's price list is joined from its base row's `uniques`. `place` puts one category's items on its ladder: global floors, disabled tiers, Want to see, Unpriced (rows flagged `unpriceable`), Hidden, and the check and gamble hints. A `stack-size` category gets one block per tier with a `StackSize` range. `tierStyle` turns a palette and a tier into a label. `writeFilter` writes the styled `.filter`, and its test proves with `@poe/filter-eval` that every item lands in the block it was placed in. |
+| `@poe/filter-validate` | `@poe/filter-validate/samples-of`, `/find-unfiltered`, `/group-unfiltered`, `/describe-sample`, `/report-csv`, `/types` | The filter validator, run by `yarn catalog:validate` and the admin panel's Validate filter. `samplesOf` yields, one at a time, the sample items a category's `samples` sets build for every catalog row. A subcategory's sets replace its category's. `findUnfiltered` runs them through `@poe/filter-eval`'s `compileFilter` and reports the samples no block takes, grouped by row, plus the paths that have no sets. What to sample lives in the taxonomy, never here. |
 | `@poe/item-parser` | `@poe/item-parser/parse-item`, `/resolve-item`, `/to-filter-item`, `/match-mods`, `/mod-text`, `/parse-header`, `/parse-mods`, `/parse-properties`, `/sections`, `/types` | One item's copied text, read back. `parseItem` is pure and needs nothing; `resolveItem` looks each modifier up in GGG's published stat list to get the ids the trade site knows it by; `toFilterItem` turns the result into the shape `@poe/filter-eval` asks conditions about. Nothing about any modifier is written down — matching is against published text, so a modifier that ships next league matches the day it appears. |
 | `@util/cache` | `@util/cache/cache-key`, `/file-cache`, `/sleep` | `cacheKey` for stable file and map keys. `fileCache<T>` — JSON on disk, one file per key, backing every service's response cache. `sleep` is a promise around `setTimeout`. |
 | `@util/env` | `@util/env` | `requireEnv` / `optionalEnv` — the only place `process.env` is read, so a missing variable fails with one message that names it. **The exception to the purity rule, and app-only**: no other library may import it. |
@@ -150,7 +153,7 @@ naming what it will own, which POC it replaces, and what has to be decided first
 | [`apps/catalog`](apps/catalog/README.md) | `@poe/filterv2` | **Written.** The bronze/silver/gold pipeline over the taxonomy. **Its rows are the published taxonomy's drawable rows** — nothing `excluded`, nothing `quest`, nothing `filterable: false`, nothing an authored row replaces — and it invents or judges none. It collects PoeWatch and GGG's trade item list for one league-hour, writes a file per category, then gathers every row into `catalog.json` and `catalog.categories.json`. It carries the conditions the taxonomy authored and resolves none of them. It prices every row and variant off PoeWatch — the exchange first, listings second — and still hangs every unique off the base it rolls on under `uniques` — one group per path (`unique`, `unique/foulborn`), one listing per priced form inside it. The taxonomy now also authors one row per unique base (`unique/regular`, `unique/foulborn`, `unique/fragments`), which the catalog prices like any row, so a unique is priced in both places; which one a generator reads is undecided. `--force=taxonomy,poewatch` refetches only the named sources. `catalog:publish` copies one run's gold into `catalog/latest/`, and a run's manifest records the taxonomy version it used. Also `find-duplicates-cli.ts`, which reports the display names more than one metadata id carries. |
 | [`apps/taxonomy`](apps/taxonomy/README.md) | — | **Written.** The hand-maintained tables: six JSON files per version under `.s3/taxonomy/versions/<v>/`, never in git. A version is `3.29.4` — created from a published parent, never overwritten, and only the newest can be published, while it is still a draft. `validate` and `resolve` answer in JSON for the admin panel. Nothing imports it — the catalog reads what it published through `@poe/taxonomy`. |
 | [`apps/generator`](apps/generator/README.md) | — | **Written.** The player's Electron app, shaped like the admin panel. It reads the published catalog and `.s3/generator/config.json`, shows each category's ladder, floors, want-to-see list and palette with a Take, Check and Gamble preview, drops simulated loot weighted toward cheap items, and writes the `.filter` to a path the player picks. The model is `@poe/filter-style`. |
-| [`apps/admin-panel`](apps/admin-panel/README.md) | — | **Written.** The desktop panel: browse and edit the newest draft, validate, publish, build and publish a catalog. Every call is an `.api.ts` adapter that reads the lake or runs a yarn command. Imports no other app. |
+| [`apps/admin-panel`](apps/admin-panel/README.md) | — | **Written.** The desktop panel: browse and edit the newest draft, validate, publish, check what the compiled filter misses, build and publish a catalog. Every call is an `.api.ts` adapter that reads the lake or runs a yarn command. Imports no other app. |
 
 ## Deprecated
 
@@ -370,7 +373,7 @@ Package READMEs describe their own package.
 Every service has a `README.md`; `services/ggg` also has Mermaid `.mmd` diagrams in
 `services/ggg/docs/`. `lib/filter-eval` has a `README.md`.
 
-`lib/filter-compile`, `lib/filter-style`, `lib/item-parser`, `lib/cache` and `lib/env` have none. Write one with the `/document`
+`lib/filter-compile`, `lib/filter-style`, `lib/filter-validate`, `lib/item-parser`, `lib/cache` and `lib/env` have none. Write one with the `/document`
 command.
 
 `apps/item-inspect`, `apps/taxonomy` and `apps/collector` have a `README.md`. The taxonomy's

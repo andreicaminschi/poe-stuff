@@ -1,5 +1,13 @@
 import { create } from "zustand";
-import type { CompiledFilter, Draft, Ledger, LedgerEntry, Validation, VersionList } from "../api/panel-api.ts";
+import type {
+  CompiledFilter,
+  Draft,
+  Ledger,
+  LedgerEntry,
+  UnfilteredReport,
+  Validation,
+  VersionList,
+} from "../api/panel-api.ts";
 import type { Category, DraftChanges, Item } from "../api/taxonomy/types.ts";
 import type { BootState, BootStep, Changes, Dialog, PriceOption, Tab, ValueOption, View } from "./types.ts";
 import { mergePriceNames } from "./utils/merge-price-names.ts";
@@ -30,6 +38,7 @@ export type Session = {
   readonly confirmation?: Confirmation;
   readonly validation?: Validation;
   readonly compiled?: CompiledFilter;
+  readonly report?: UnfilteredReport;
   readonly status?: string;
   readonly error?: string;
   readonly busy: boolean;
@@ -65,6 +74,8 @@ export type Session = {
   save(): Promise<void>;
   validate(): Promise<void>;
   compileFilter(): Promise<void>;
+  validateFilter(): Promise<void>;
+  saveReport(): Promise<void>;
   publish(): Promise<void>;
   dismissError(): void;
 };
@@ -439,6 +450,23 @@ export const useSession = create<Session>()((set, get) => {
           status: `Wrote ${compiled.blocks} blocks to ${compiled.path}. ${compiled.skipped.length} skipped.`,
           ...(compiled.skipped.length > 0 ? { dialog: { kind: "compiled" as const } } : {}),
         });
+      }),
+
+    validateFilter: () =>
+      run(async () => {
+        const { versionId } = get();
+        if (versionId === undefined) return;
+        set({ status: "Validating the filter…" });
+        const report = await window.panel.validateFilter(versionId, toDraftChanges(get().changes));
+        set({ report, status: undefined, dialog: { kind: "unfiltered" } });
+      }),
+
+    saveReport: () =>
+      run(async () => {
+        const { report } = get();
+        if (report === undefined) return;
+        const saved = await window.panel.saveReport(report);
+        if ("path" in saved) set({ status: `Saved report to ${saved.path}` });
       }),
 
     publish: () =>

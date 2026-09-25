@@ -1,5 +1,7 @@
 import type { RunSummary } from "./catalog/getRuns.api.ts";
 import type { CompiledFilter, CompileSkip } from "./filter/compile.api.ts";
+import type { SavedReport } from "./filter/saveReport.api.ts";
+import type { UnfilteredReport, UnfilteredRow } from "@poe/filter-validate/types";
 import type { Form } from "./prices/getForms.api.ts";
 import type { PriceName } from "./prices/getNames.api.ts";
 import type { Ledger, LedgerEntry } from "./ledger/types.ts";
@@ -29,6 +31,8 @@ export type PanelApi = {
   popLedger(id: string, seq: number): Promise<void>;
   commitLedger(id: string): Promise<void>;
   compileFilter(id: string, changes: DraftChanges): Promise<CompiledFilter>;
+  validateFilter(id: string, changes: DraftChanges): Promise<UnfilteredReport>;
+  saveReport(report: UnfilteredReport): Promise<SavedReport>;
 };
 
 export const API_NAMES = [
@@ -51,6 +55,8 @@ export const API_NAMES = [
   "popLedger",
   "commitLedger",
   "compileFilter",
+  "validateFilter",
+  "saveReport",
 ] as const satisfies readonly (keyof PanelApi)[];
 
 export const LEAGUE = "Allflame";
@@ -71,6 +77,9 @@ export type {
   PriceName,
   Resolution,
   RunSummary,
+  SavedReport,
+  UnfilteredReport,
+  UnfilteredRow,
   Validation,
   VersionList,
 };

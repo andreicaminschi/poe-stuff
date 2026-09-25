@@ -58,6 +58,7 @@ export type Dialog =
   | { readonly kind: "runs" }
   | { readonly kind: "changes" }
   | { readonly kind: "compiled" }
+  | { readonly kind: "unfiltered" }
   | { readonly kind: "category"; readonly target: CategoryTarget }
   | { readonly kind: "author"; readonly replaces: string }
   | { readonly kind: "discover" };

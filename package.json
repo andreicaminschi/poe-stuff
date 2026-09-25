@@ -16,6 +16,7 @@
     "catalog": "node --env-file=apps/catalog/.env apps/catalog/catalog-cli.ts",
     "catalog:publish": "node apps/catalog/publish-catalog-cli.ts",
     "catalog:compile": "node apps/catalog/compile-cli.ts",
+    "catalog:validate": "node apps/catalog/validate-cli.ts",
     "taxonomy": "node apps/taxonomy/taxonomy-cli.ts",
     "taxonomy:publish": "node apps/taxonomy/taxonomy-cli.ts publish",
     "taxonomy:init": "node apps/taxonomy/taxonomy-cli.ts init",

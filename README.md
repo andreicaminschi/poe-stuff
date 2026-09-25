@@ -95,11 +95,16 @@ below it. The tree is one level deep, category and subcategory, and never deeper
 | `conditions` | The conditions every row under this path shares. |
 | `name` | Optional. A display name for the path. |
 | `tiering` | Optional. `chaos` or `stack-size`. Absent means `chaos`. |
+| `hints` | Optional, top-level categories only. Which of `check` and `gamble` the category allows. Absent means neither. |
 
 `tiering` says what a category's tier floors count. In a `chaos` category, a floor is a
 price, and the generator compares a row's price against it. In a `stack-size` category, a
 floor is a `StackSize` line written into the block. Gold uses `stack-size`, because nothing
 publishes a chaos value for gold.
+
+`hints` says which sub-buckets beyond take a category allows. Check is a hint to pick an item
+up and identify it; gamble is a hint to pick it up and corrupt it. Both need the player to act,
+so each category opts in. A subcategory carries none of its own and follows its parent.
 
 A category path with no record adds no conditions. Conditions are written by hand, so many
 categories start with none.

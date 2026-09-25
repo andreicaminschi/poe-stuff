@@ -68,6 +68,12 @@ adapters do and touches nothing in `renderer/`.
   the copy there, and runs `yarn catalog:compile` against it. The result
   lands in `Documents/My Games/Path of Exile/taxonomy-compiled.filter`, so the game client can
   say which lines it rejects. The real lake is only read.
+- **Validate filter checks what the compiled filter misses.** It stages the working version the
+  same way and runs `yarn catalog:validate`. That command builds sample items from the
+  categories' `samples` sets and runs them through the compiled filter. A modal lists every
+  sample no block takes, grouped by category path and row. **Open** jumps to the row, and
+  **Save CSV** writes the report to a path you pick. A path with no sample sets is named, not
+  sampled.
 - **One league, Allflame. One catalog build at a time**, because GGG counts requests per IP.
 - **The category list has three tabs**: Included, Excluded, and Untouched. Untouched is the
   work nobody has started: a row that is not excluded, quest or unpriceable, with no listing

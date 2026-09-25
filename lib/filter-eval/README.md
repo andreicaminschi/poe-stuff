@@ -237,12 +237,32 @@ const result = evaluateFilter(blocks, { Rarity: "Unique", BaseType: "Heavy Belt"
 `contributions` and `matched` are what a failing assertion should print: they name the block
 that set a value, rather than only the value that came out wrong.
 
+### Many items against one filter
+
+`compileFilter` does the same matching for bulk runs. It compiles the blocks once and
+returns a function to call per item:
+
+```ts
+import { compileFilter } from "@poe/filter-eval/match-filter";
+
+const match = compileFilter(parseFilter(text));
+const { winner, matched } = match({ Rarity: "Magic", BaseType: "Heavy Belt", ItemLevel: 86 });
+```
+
+`winner` is the block that stopped the walk, and it is absent when nothing did. `matched` is
+every block that matched, `Continue` blocks included. The compile step parses numbers,
+lowercases values and turns `==` lists into sets. It also indexes blocks by their
+`BaseType ==` names, so an item walks only the blocks its base type can match, plus the
+blocks that name no base type. It reports no notes. Use `evaluateFilter` when the notes
+matter.
+
 ## Entry points
 
 | Import | Gives |
 | --- | --- |
 | `@poe/filter-eval/parse-filter` | `parseFilter` |
-| `@poe/filter-eval/evaluate-filter` | `evaluateFilter` |
+| `@poe/filter-eval/evaluate-filter` | `evaluateFilter`, `matchCondition` |
+| `@poe/filter-eval/match-filter` | `compileFilter` |
 | `@poe/filter-eval/format-note` | `formatNote`, `formatCondition` |
 | `@poe/filter-eval/filter-ast` | `CONDITIONS`, `APPLY_KEYS`, `REQUIRED_KEYS`, `FilterItem` and the rest of the types |
 

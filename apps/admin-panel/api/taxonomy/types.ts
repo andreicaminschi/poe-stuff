@@ -1,12 +1,14 @@
 import type {
   Condition,
+  Hint,
   Listing,
   ListingMatch,
+  SampleSet,
   TaxonomyVariant,
   TieringMethod,
 } from "@poe/taxonomy/types";
 
-export type { Condition, Listing, ListingMatch };
+export type { Condition, Hint, Listing, ListingMatch, SampleSet };
 
 import type { RemovedCondition, ResolvedCondition } from "@poe/filter-compile/types";
 
@@ -66,6 +68,8 @@ export type Category = {
   readonly path: string;
   readonly name?: string;
   readonly tiering: Tiering;
+  readonly hints?: readonly Hint[];
+  readonly samples?: readonly SampleSet[];
   readonly conditions: readonly Condition[];
 };
 
@@ -113,6 +117,8 @@ export type CategoryRecord = {
   readonly conditions: readonly Condition[];
   readonly name?: string;
   readonly tiering?: Tiering;
+  readonly hints?: readonly Hint[];
+  readonly samples?: readonly SampleSet[];
 };
 
 export type ItemsFile = Readonly<Record<string, ItemRow>>;
