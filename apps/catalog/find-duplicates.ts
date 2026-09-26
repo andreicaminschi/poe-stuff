@@ -61,25 +61,15 @@ export function findDuplicates(
   known: readonly KnownDuplicate[],
 ): DuplicateReport {
   const recorded = new Map(known.map((entry) => [entry.name, entry]));
-  const byName = new Map<string, Item[]>();
+  const byName = Map.groupBy(rows, (row) => row.name);
 
-  for (const row of rows) {
-    const seen = byName.get(row.name);
-    if (seen === undefined) byName.set(row.name, [row]);
-    else seen.push(row);
-  }
-
-  const clashes: DuplicateName[] = [];
-
-  for (const [name, group] of byName) {
-    if (group.length < 2) continue;
-
-    clashes.push({
+  const clashes: DuplicateName[] = [...byName]
+    .filter(([, group]) => group.length >= 2)
+    .map(([name, group]) => ({
       name,
       ids: unique(group.map((row) => row.key)),
       categories: unique(group.map((row) => row.category)),
-    });
-  }
+    }));
 
   const order = (a: DuplicateName, b: DuplicateName) =>
     b.ids.length - a.ids.length || a.name.localeCompare(b.name);

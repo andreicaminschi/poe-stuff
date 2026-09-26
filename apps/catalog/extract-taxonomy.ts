@@ -9,14 +9,12 @@ export const extractTaxonomy: Step = {
   async run({ lake, runId, taxonomy, taxonomyVersion }) {
     const published = await taxonomy.getTaxonomy(taxonomyVersion);
     const categories = await taxonomy.getCategories(published.version);
-    const keys = [
-      bronzeKey(runId, BRONZE_FILES.taxonomy),
-      bronzeKey(runId, BRONZE_FILES.taxonomyCategories),
-    ];
+    const itemsKey = bronzeKey(runId, BRONZE_FILES.taxonomy);
+    const categoriesKey = bronzeKey(runId, BRONZE_FILES.taxonomyCategories);
 
-    await lake.writeJson(keys[0] as string, published);
-    await lake.writeJson(keys[1] as string, categories);
+    await lake.writeJson(itemsKey, published);
+    await lake.writeJson(categoriesKey, categories);
 
-    return { keys, rows: Object.keys(published.items).length };
+    return { keys: [itemsKey, categoriesKey], rows: Object.keys(published.items).length };
   },
 };

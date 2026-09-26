@@ -1,6 +1,5 @@
 import type { GGGItemGroup } from "@poe/ggg/get-item-data.types";
 import type { ItemData } from "@poe/poe-watch/get-compact-data.types";
-import type { CorruptionOutcome } from "@poe/poe-watch/types";
 import type { ItemCorruptions } from "@poe/poe-watch/get-corruption-data.types";
 import type { Item, UniqueGroup, UniqueListing } from "../item.ts";
 import { mostListed } from "./most-listed.ts";
@@ -60,14 +59,8 @@ function listedUniques(
   listings: readonly ItemData[],
   corruptions: readonly ItemCorruptions[],
 ): readonly FiledListing[] {
-  const byName = new Map<string, ItemData[]>();
-  for (const listing of listings) {
-    if (listing.frame !== UNIQUE_FRAME) continue;
-
-    const seen = byName.get(listing.name);
-    if (seen === undefined) byName.set(listing.name, [listing]);
-    else seen.push(listing);
-  }
+  const uniques = listings.filter((listing) => listing.frame === UNIQUE_FRAME);
+  const byName = Map.groupBy(uniques, (listing) => listing.name);
 
   const outcomesById = new Map(corruptions.map((item) => [item.item_id, item.corruptions]));
 
@@ -88,18 +81,12 @@ function listedUniques(
       poeWatch: { source: "poeWatch:items", id: chosen.id, name },
     });
 
-    const outcomes = new Map<string, (CorruptionOutcome & { readonly listingId: number })[]>();
-    for (const listing of same) {
-      for (const found of outcomesById.get(listing.id) ?? []) {
-        const outcome = { ...found, listingId: listing.id };
-        const seen = outcomes.get(outcome.name);
-        if (seen === undefined) outcomes.set(outcome.name, [outcome]);
-        else seen.push(outcome);
-      }
-    }
+    const everyOutcome = same.flatMap((listing) =>
+      (outcomesById.get(listing.id) ?? []).map((found) => ({ ...found, listingId: listing.id })),
+    );
 
-    for (const [implicit, same] of outcomes) {
-      const best = mostListed(same);
+    for (const [implicit, sameOutcome] of Map.groupBy(everyOutcome, (outcome) => outcome.name)) {
+      const best = mostListed(sameOutcome);
       if (best === undefined) continue;
 
       entries.push({
@@ -118,20 +105,14 @@ function listedUniques(
 
 /** One base's listings, split into a group per path. Plain first, each sorted by name. */
 function groupListings(filed: readonly FiledListing[]): readonly UniqueGroup[] {
-  const bySubcategory = new Map<string | null, UniqueListing[]>();
+  const withoutPath = ({ subcategory: _path, ...listing }: FiledListing): UniqueListing => listing;
 
-  for (const { subcategory, ...listing } of filed) {
-    const seen = bySubcategory.get(subcategory);
-    if (seen === undefined) bySubcategory.set(subcategory, [listing]);
-    else seen.push(listing);
-  }
-
-  return [...bySubcategory]
+  return [...Map.groupBy(filed, (listing) => listing.subcategory)]
     .sort(([a], [b]) => (a ?? "").localeCompare(b ?? ""))
     .map(([subcategory, listings]) => ({
       category: UNIQUE_CATEGORY,
       subcategory,
-      listings: [...listings].sort((a, b) => a.name.localeCompare(b.name)),
+      listings: listings.map(withoutPath).sort((a, b) => a.name.localeCompare(b.name)),
     }));
 }
 
@@ -156,20 +137,15 @@ export function withUniques(
   corruptions: readonly ItemCorruptions[],
 ): readonly Item[] {
   const bases = basesByUnique(groups);
-  const perBase = new Map<string, FiledListing[]>();
-
-  for (const entry of listedUniques(listings, corruptions)) {
-    for (const base of bases.get(uniqueOf(entry.name)) ?? []) {
-      const seen = perBase.get(base);
-      if (seen === undefined) perBase.set(base, [entry]);
-      else seen.push(entry);
-    }
-  }
+  const onBases = listedUniques(listings, corruptions).flatMap((entry) =>
+    (bases.get(uniqueOf(entry.name)) ?? []).map((base) => ({ base, entry })),
+  );
+  const perBase = Map.groupBy(onBases, ({ base }) => base);
 
   return rows.map((item) => {
     const filed = perBase.get(item.name);
     if (filed === undefined) return item;
 
-    return { ...item, uniques: groupListings(filed) };
+    return { ...item, uniques: groupListings(filed.map(({ entry }) => entry)) };
   });
 }
