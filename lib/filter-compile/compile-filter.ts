@@ -19,6 +19,29 @@ export type Skip = { readonly key: string; readonly variant?: string; readonly p
 
 export type Compiled = { readonly text: string; readonly blocks: number; readonly skipped: readonly Skip[] };
 
+/** Subcategories by `order`, unordered next, the catch-all last. */
+function rankOf(categories: CategoryRecords, row: CompileRow): number {
+  const record = row.subcategory === null ? undefined : categories[`${row.category}/${row.subcategory}`];
+  if (record?.catchAll === true) return Number.MAX_VALUE;
+  return record?.order ?? Number.MAX_SAFE_INTEGER;
+}
+
+/** Rows in category order, each category's subcategories ranked, every catch-all last. */
+function orderRows(rows: readonly CompileRow[], categories: CategoryRecords): readonly CompileRow[] {
+  const firstSeen = new Map<string, number>();
+  rows.forEach((row, index) => {
+    if (!firstSeen.has(row.category)) firstSeen.set(row.category, index);
+  });
+  return rows
+    .map((row, index) => {
+      const rank = rankOf(categories, row);
+      const category = rank === Number.MAX_VALUE ? Number.MAX_VALUE : (firstSeen.get(row.category) ?? 0);
+      return { row, index, category, rank };
+    })
+    .sort((a, b) => a.category - b.category || a.rank - b.rank || a.index - b.index)
+    .map(({ row }) => row);
+}
+
 type Block = { readonly text: string } | { readonly problem: string } | null;
 
 function blockOf(row: CompileRow, form: Form): Block {
@@ -46,7 +69,9 @@ function blockOf(row: CompileRow, form: Form): Block {
 
 /**
  * The catalog's rows as a `.filter`: one `Show` block per row, or per variant when a row has
- * any, holding the conditions the shared resolver gives it and nothing else.
+ * any, holding the conditions the shared resolver gives it and nothing else. Within a
+ * category, subcategories compile in `order`. A `catchAll` subcategory compiles after
+ * every other block in the filter.
  *
  * **A row is drawn when any level has a condition**: its category, its subcategory, the row
  * itself or the variant. A row with none is skipped as "has no conditions yet", and so is one
@@ -58,7 +83,7 @@ export function compileFilter(rows: readonly CompileRow[], categories: CategoryR
   const texts: string[] = [];
   const skipped: Skip[] = [];
 
-  for (const row of rows) {
+  for (const row of orderRows(rows, categories)) {
     const forms = resolveForms(
       categories,
       {

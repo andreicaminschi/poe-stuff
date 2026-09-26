@@ -188,14 +188,7 @@ const merge = (a: readonly number[], b: readonly number[]): number[] => {
   return out;
 };
 
-/**
- * Compile a parsed filter once into a matcher for many items. It answers what
- * `evaluateFilter` answers, and precomputes everything that does not depend on the item.
- *
- * Blocks with a `BaseType ==` line are indexed by those names, so an item only walks the
- * blocks its base type can match plus the blocks that name no base type.
- */
-export function compileFilter(blocks: readonly FilterBlock[]): FilterMatcher {
+function compileWalk(blocks: readonly FilterBlock[]): (item: FilterItem, every: boolean) => FilterMatch {
   const slotOf = new Map<ConditionName, number>();
   const slotConditions: FilterCondition[] = [];
 
@@ -240,7 +233,7 @@ export function compileFilter(blocks: readonly FilterBlock[]): FilterMatcher {
 
   const baseTypeSlot = slotOf.get("BaseType");
 
-  return (item) => {
+  return (item, every) => {
     const slots: Slots = new Array(slotConditions.length);
     for (let i = 0; i < slotConditions.length; i++) {
       const condition = slotConditions[i]!;
@@ -251,6 +244,7 @@ export function compileFilter(blocks: readonly FilterBlock[]): FilterMatcher {
     const order = candidatesOf(typeof baseType === "string" ? baseType : undefined);
 
     const matched: FilterBlock[] = [];
+    let winner: FilterBlock | undefined;
     for (const index of order) {
       const { block, tests } = compiled[index]!;
       let pass = true;
@@ -262,8 +256,28 @@ export function compileFilter(blocks: readonly FilterBlock[]): FilterMatcher {
       }
       if (!pass) continue;
       matched.push(block);
-      if (!block.continues) return { winner: block, matched };
+      if (block.continues || winner !== undefined) continue;
+      winner = block;
+      if (!every) return { winner, matched };
     }
-    return { matched };
+    return winner === undefined ? { matched } : { winner, matched };
   };
+}
+
+/**
+ * Compile a parsed filter once into a matcher for many items. It answers what
+ * `evaluateFilter` answers, and precomputes everything that does not depend on the item.
+ *
+ * Blocks with a `BaseType ==` line are indexed by those names, so an item only walks the
+ * blocks its base type can match plus the blocks that name no base type.
+ */
+export function compileFilter(blocks: readonly FilterBlock[]): FilterMatcher {
+  const walk = compileWalk(blocks);
+  return (item) => walk(item, false);
+}
+
+/** Like `compileFilter`, but `matched` holds every block that matches, past the winner too. */
+export function compileFilterEvery(blocks: readonly FilterBlock[]): FilterMatcher {
+  const walk = compileWalk(blocks);
+  return (item) => walk(item, true);
 }

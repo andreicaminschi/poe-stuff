@@ -119,6 +119,10 @@ function sampleValueProblem(name: string, value: unknown): string | null {
   const entry = CONDITIONS[name as keyof typeof CONDITIONS];
 
   switch (entry.kind) {
+    case "counted":
+      return typeof value === "string" || (Array.isArray(value) && value.length > 0 && value.every((one) => typeof one === "string"))
+        ? null
+        : `${name} takes text or a list of text, not ${JSON.stringify(value)}`;
     case "boolean":
       return typeof value === "boolean" ? null : `${name} takes true or false, not ${JSON.stringify(value)}`;
     case "numeric":
@@ -132,44 +136,44 @@ function sampleValueProblem(name: string, value: unknown): string | null {
   }
 }
 
-function samplePropertyProblem(name: string, property: unknown): string | null {
+function samplePropertyProblem(field: string, name: string, property: unknown): string | null {
   if (CONDITIONS_BY_LOWER.get(name.toLowerCase()) !== name) {
-    return `samples names "${name}", which is not a filter condition`;
+    return `${field} names "${name}", which is not a filter condition`;
   }
 
-  if (!isObject(property)) return `samples ${name} is not an object`;
+  if (!isObject(property)) return `${field} ${name} is not an object`;
 
   const extra = unknownFields(property, ["values", "from"]);
-  if (extra.length > 0) return `samples ${name} has unknown fields: ${extra.join(", ")}`;
+  if (extra.length > 0) return `${field} ${name} has unknown fields: ${extra.join(", ")}`;
 
   if (property.from !== undefined) {
-    if (property.values !== undefined) return `samples ${name} has both values and from`;
+    if (property.values !== undefined) return `${field} ${name} has both values and from`;
     return SAMPLE_FROM.includes(String(property.from))
       ? null
-      : `samples ${name} reads from "${String(property.from)}". Known: ${SAMPLE_FROM.join(", ")}`;
+      : `${field} ${name} reads from "${String(property.from)}". Known: ${SAMPLE_FROM.join(", ")}`;
   }
 
   if (!Array.isArray(property.values) || property.values.length === 0) {
-    return `samples ${name} needs a non-empty values list or a from`;
+    return `${field} ${name} needs a non-empty values list or a from`;
   }
 
   for (const value of property.values) {
     const problem = sampleValueProblem(name, value);
-    if (problem !== null) return `samples ${problem}`;
+    if (problem !== null) return `${field} ${problem}`;
   }
 
   return null;
 }
 
-function samplesProblem(samples: unknown): string | null {
+function samplesProblem(field: string, samples: unknown): string | null {
   if (samples === undefined) return null;
-  if (!Array.isArray(samples)) return "samples must be a list of sample sets";
+  if (!Array.isArray(samples)) return `${field} must be a list of sample sets`;
 
   for (const set of samples) {
-    if (!isObject(set) || Object.keys(set).length === 0) return "each sample set must be a non-empty object";
+    if (!isObject(set) || Object.keys(set).length === 0) return `each ${field} set must be a non-empty object`;
 
     for (const [name, property] of Object.entries(set)) {
-      const problem = samplePropertyProblem(name, property);
+      const problem = samplePropertyProblem(field, name, property);
       if (problem !== null) return problem;
     }
   }
@@ -187,7 +191,7 @@ function categoryProblem(path: string, record: unknown): string | null {
 
   if (!isObject(record)) return "is not an object";
 
-  const extra = unknownFields(record, ["conditions", "name", "tiering", "hints", "samples"]);
+  const extra = unknownFields(record, ["conditions", "name", "tiering", "hints", "samples", "rejects", "catchAll", "order"]);
 
   if (extra.length > 0) return `has unknown fields: ${extra.join(", ")}`;
 
@@ -199,11 +203,27 @@ function categoryProblem(path: string, record: unknown): string | null {
     return `tiering must be one of ${TIERING.join(", ")} when it is present`;
   }
 
+  if (record.catchAll !== undefined && typeof record.catchAll !== "boolean") {
+    return "catchAll must be a boolean when it is present";
+  }
+
+  if (record.order !== undefined) {
+    if (!path.includes("/")) return "order belongs on a subcategory";
+    if (record.catchAll === true) return "a catchAll subcategory always compiles last, so it takes no order";
+    if (typeof record.order !== "number" || !Number.isFinite(record.order)) return "order must be a number when it is present";
+  }
+
   const hints = hintsProblem(path, record.hints);
   if (hints !== null) return hints;
 
-  const samples = samplesProblem(record.samples);
+  if (!path.includes("/") && record.samples !== undefined) return "samples belong on a subcategory";
+  if (!path.includes("/") && record.rejects !== undefined) return "rejects belong on a subcategory";
+
+  const samples = samplesProblem("samples", record.samples);
   if (samples !== null) return samples;
+
+  const rejects = samplesProblem("rejects", record.rejects);
+  if (rejects !== null) return rejects;
 
   return conditionsProblem(record.conditions);
 }

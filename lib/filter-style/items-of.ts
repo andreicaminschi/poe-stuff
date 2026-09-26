@@ -65,7 +65,7 @@ function itemOf(
       unique,
       corrupted,
     }),
-    ...(row.unpriceable === true ? { unpriceable: true } : {}),
+    ...(row.unpriceable === true || variant?.unpriceable === true ? { unpriceable: true } : {}),
   };
 }
 

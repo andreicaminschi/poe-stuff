@@ -164,13 +164,9 @@ const matchCounted = (condition: FilterCondition, value: unknown): boolean => {
   const mods = asList(value);
   if (mods === undefined) return false;
 
-  const have = mods.map((mod) => mod.toLowerCase());
-  // How many of the listed names are present, not how many of the item's mods matched. The
-  // sample writes `"Elevated "` with a trailing space, which only works if this is a
-  // substring test.
-  const hits = condition.values.filter((wanted) =>
-    have.some((mod) => mod.includes(wanted.toLowerCase())),
-  ).length;
+  const wanted = condition.values.map((one) => one.toLowerCase());
+  // Counts item mods, not names.
+  const hits = mods.filter((mod) => wanted.some((one) => mod.toLowerCase().includes(one))).length;
 
   return compare(hits, condition.count ?? 1, condition.operator);
 };

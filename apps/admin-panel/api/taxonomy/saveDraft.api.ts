@@ -54,6 +54,9 @@ const toCategoryRecord = (category: Category): CategoryRecord => ({
   ...(category.tiering === "chaos" ? {} : { tiering: category.tiering }),
   ...(category.hints === undefined || category.hints.length === 0 ? {} : { hints: category.hints }),
   ...(category.samples === undefined || category.samples.length === 0 ? {} : { samples: category.samples }),
+  ...(category.rejects === undefined || category.rejects.length === 0 ? {} : { rejects: category.rejects }),
+  ...(category.catchAll === true ? { catchAll: true } : {}),
+  ...(category.order === undefined ? {} : { order: category.order }),
 });
 
 function patch<T, U>(

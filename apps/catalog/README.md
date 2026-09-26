@@ -108,8 +108,14 @@ yarn catalog:compile --taxonomy-version=3.29.1 --out=data/compiled.filter
 
 Check that compiled filter against the taxonomy's own sample items. It builds every sample the
 categories' `samples` sets describe and writes the ones no block takes to `--out` as JSON.
-It prints `{ version, sampled, unfiltered }`:
+It prints the counts of every check:
 
 ```bash
 yarn catalog:validate --taxonomy-version=3.29.8 --out=data/unfiltered.json
 ```
+
+The same run also checks which row takes each sample, under `fallThrough` in the report. Each
+sample that its own row does not cleanly take is reported in one bucket: own-miss (its own row
+doesn't match it), fall-through (another row wins) or overlap (another row also matches). Each
+bucket is grouped by own path → other path, with one example each. A `catchAll` category may
+overlap its category's other rows, but it may not win over them.

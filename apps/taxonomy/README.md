@@ -138,7 +138,19 @@ against; a stack-size floor is a `StackSize` line something writes into the bloc
 absent means neither. It lives on a top-level category and covers every subcategory under it,
 so validation refuses `hints` on a subcategory, an unknown hint, and a hint listed twice.
 
-**A category says how to build sample items.** The filter validator (`yarn catalog:validate`,
+**`catchAll: true` marks a category as a catch-all**, like `maps/other`. The fall-through
+check (part of `yarn catalog:validate`) lets it overlap the other rows of its top-level
+category, and it doesn't judge the catch-all's own samples. It still reports a catch-all
+that wins over another row. A catch-all compiles after every other block in the filter, and
+validation refuses `order` on one.
+
+**`order` sets where a subcategory compiles within its category.** Lower numbers compile
+first, and a subcategory with no `order` comes after every one that has it. The first block
+that takes an item wins, so a narrow subcategory like `maps/eight-mod` needs a low number.
+Validation refuses `order` on a top-level category.
+
+**A subcategory says how to build sample items.** A top-level category holds no samples, and
+validation refuses them there, so the instructions for a path live in one place. The filter validator (`yarn catalog:validate`,
 and Validate filter in the admin panel) builds sample items for every drawable row. It runs
 them through the compiled filter and reports the samples that no block takes. `samples` decides which properties those samples vary. It is a list of sets,
 each keyed by a filter condition name:
@@ -151,13 +163,19 @@ each keyed by a filter condition name:
 ```
 
 - A set is the cartesian product of its properties, and the sets are unioned.
-- `values` gives one sample per value.
+- `values` gives one sample per value. For a mod condition like `HasExplicitMod`, a value
+  may be a list of names, which is one item's mods.
 - `from: "baseTypes"` gives one sample per base type of the row.
 - `from: "name"` is the row's name.
 - `from: "conditions"` gives each value the row's resolved conditions hold for that name. A
   row with no such condition leaves the property out.
-- A subcategory's `samples` replaces its category's. A path with none at either level builds
-  no samples.
+- A row with no subcategory, or a subcategory with no `samples`, builds no samples.
+
+**`rejects` lists items a subcategory must never take.** It is a list of sets in the same shape
+as `samples`. Each set is laid over every sample, and if a block of the same path takes the
+result, validate reports it as rejected. `[{ "Rarity": { "values": ["Unique"] } }]` on a
+bases subcategory says that uniques belong somewhere else. Validation refuses `rejects` on a
+top-level category too.
 
 A property left out is missing on the sample, and a missing property fails every condition
 on it. So a set has to carry every property its rows' blocks test. Validation refuses a name
@@ -364,7 +382,8 @@ PoeWatch field: the catalog reads it off the listing's icon.
 
 **A row with no `listing` is not published.** It stays in the draft until someone gives it
 one, and `publish` leaves it out and says how many it left. A variant with no `listing` is
-left out the same way. A row with variants needs no `listing` of its own: it is published
+left out the same way, unless it is `unpriceable: true`. That variant is published without a
+price and drawn as Unpriced, and validation refuses one that also has a `listing`. A row with variants needs no `listing` of its own: it is published
 while at least one variant has one, and its own `listing` is ignored. An `excluded` row needs
 no `listing` either, and is published as it is. Neither does a `quest` or an `unpriceable` row. A row the Currency Exchange trades needs one too: `{ "name": … }`. **Absent
 means the most-listed row for the name**, which is what every row without variants gets. An item without variants may carry `listing` itself, for a base that

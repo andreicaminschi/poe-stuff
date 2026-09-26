@@ -3,7 +3,7 @@ import { collect, throwFirst, type RowProblem } from "./validate.ts";
 import { conditionsProblem } from "./validate-conditions.ts";
 import { listingProblem } from "./validate-table.ts";
 
-const FIELDS = ["name", "conditions", "listing"];
+const FIELDS = ["name", "conditions", "listing", "unpriceable"];
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -34,6 +34,14 @@ function variantsProblem(value: unknown): string | null {
     const problem = conditionsProblem(variant.conditions);
 
     if (problem !== null) return `variant "${variant.name}" ${problem}`;
+
+    if (variant.unpriceable !== undefined && typeof variant.unpriceable !== "boolean") {
+      return `variant "${variant.name}" unpriceable must be a boolean when it is present`;
+    }
+
+    if (variant.unpriceable === true && variant.listing !== undefined) {
+      return `variant "${variant.name}" is unpriceable and has a listing`;
+    }
 
     if (variant.listing !== undefined) {
       const bad = listingProblem(variant.listing);

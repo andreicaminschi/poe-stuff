@@ -6,6 +6,7 @@
   "type": "module",
   "exports": {
     "./describe-sample": "./describe-sample.ts",
+    "./find-fall-through": "./find-fall-through.ts",
     "./find-unfiltered": "./find-unfiltered.ts",
     "./group-unfiltered": "./group-unfiltered.ts",
     "./report-csv": "./report-csv.ts",

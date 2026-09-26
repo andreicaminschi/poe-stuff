@@ -33,6 +33,7 @@ export type TaxonomyVariant = {
   readonly name: string;
   readonly conditions: readonly Condition[];
   readonly listing?: Listing;
+  readonly unpriceable?: boolean;
 };
 
 export type TaxonomyEntry = {
@@ -87,4 +88,6 @@ export type TaxonomyCategory = {
   readonly tiering?: TieringMethod;
   readonly hints?: readonly Hint[];
   readonly samples?: readonly SampleSet[];
+  /** Overrides on each sample; its own path must not take the result. */
+  readonly rejects?: readonly SampleSet[];
 };

@@ -27,6 +27,8 @@ export type AuthoredVariant = {
   readonly name: string;
   readonly conditions: readonly Condition[];
   readonly listing?: Listing;
+  /** Drawn with no price. */
+  readonly unpriceable?: boolean;
 };
 
 export type VariantTable = Readonly<Record<string, readonly AuthoredVariant[]>>;
@@ -52,7 +54,7 @@ export type TieringMethod = "chaos" | "stack-size";
 /** A sub-bucket beyond take that a category allows. Top-level categories only. */
 export type Hint = "check" | "gamble";
 
-export type SampleValue = string | number | boolean;
+export type SampleValue = string | number | boolean | readonly string[];
 
 /** One sample per value, or the value read off the row. */
 export type SampleProperty =
@@ -68,6 +70,10 @@ export type AuthoredCategory = {
   readonly tiering?: TieringMethod;
   readonly hints?: readonly Hint[];
   readonly samples?: readonly SampleSet[];
+  /** Overrides on each sample; its own path must not take the result. */
+  readonly rejects?: readonly SampleSet[];
+  readonly catchAll?: boolean;
+  readonly order?: number;
 };
 
 export type CategoryTable = Readonly<Record<string, AuthoredCategory>>;

@@ -70,6 +70,10 @@ export type Category = {
   readonly tiering: Tiering;
   readonly hints?: readonly Hint[];
   readonly samples?: readonly SampleSet[];
+  /** Overrides on each sample; its own path must not take the result. */
+  readonly rejects?: readonly SampleSet[];
+  readonly catchAll?: boolean;
+  readonly order?: number;
   readonly conditions: readonly Condition[];
 };
 
@@ -119,6 +123,10 @@ export type CategoryRecord = {
   readonly tiering?: Tiering;
   readonly hints?: readonly Hint[];
   readonly samples?: readonly SampleSet[];
+  /** Overrides on each sample; its own path must not take the result. */
+  readonly rejects?: readonly SampleSet[];
+  readonly catchAll?: boolean;
+  readonly order?: number;
 };
 
 export type ItemsFile = Readonly<Record<string, ItemRow>>;

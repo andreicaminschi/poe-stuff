@@ -57,6 +57,11 @@ export function CategoryModal({ target }: { readonly target: CategoryTarget }) {
   );
   const parsedSamples = parseSamples(samplesText);
   const samplesProblem = "problem" in parsedSamples ? parsedSamples.problem : undefined;
+  const [rejectsText, setRejectsText] = useState(() =>
+    existing?.rejects === undefined ? "" : JSON.stringify(existing.rejects, null, 2),
+  );
+  const parsedRejects = parseSamples(rejectsText, "Rejects");
+  const rejectsProblem = "problem" in parsedRejects ? parsedRejects.problem : undefined;
 
   const isSub = target.kind === "new-subcategory" || (target.kind === "edit" && target.path.includes("/"));
   const path = categoryPath(target, parent, slug);
@@ -92,7 +97,10 @@ export function CategoryModal({ target }: { readonly target: CategoryTarget }) {
     ...(name.trim() === "" ? {} : { name: name.trim() }),
     tiering,
     ...(isSub || hints.length === 0 ? {} : { hints }),
-    ...("samples" in parsedSamples && parsedSamples.samples.length > 0 ? { samples: parsedSamples.samples } : {}),
+    ...(isSub && "samples" in parsedSamples && parsedSamples.samples.length > 0 ? { samples: parsedSamples.samples } : {}),
+    ...(isSub && "samples" in parsedRejects && parsedRejects.samples.length > 0 ? { rejects: parsedRejects.samples } : {}),
+    ...(existing?.catchAll === true ? { catchAll: true } : {}),
+    ...(existing?.order === undefined ? {} : { order: existing.order }),
     conditions,
   });
 
@@ -142,7 +150,8 @@ export function CategoryModal({ target }: { readonly target: CategoryTarget }) {
               problem !== undefined ||
               moveProblem !== undefined ||
               renameProblem !== undefined ||
-              samplesProblem !== undefined
+              samplesProblem !== undefined ||
+              rejectsProblem !== undefined
             }
             onClick={() => void submit()}
           >
@@ -253,20 +262,34 @@ export function CategoryModal({ target }: { readonly target: CategoryTarget }) {
           valueOptions={valueOptions}
         />
       </div>
-      <div className="grp">
-        <h4>Samples</h4>
-        <p className="note">Sample items the filter validator builds for rows here. A subcategory's list replaces its category's.</p>
-        <textarea
-          id="cat-samples"
-          className="mono"
-          rows={8}
-          value={samplesText}
-          disabled={!editable}
-          placeholder='[{ "BaseType": { "from": "baseTypes" }, "Rarity": { "values": ["Normal", "Magic"] } }]'
-          onChange={(event) => setSamplesText(event.target.value)}
-        />
-        {samplesProblem === undefined ? null : <p className="err">{samplesProblem}</p>}
-      </div>
+      {isSub ? (
+        <div className="grp">
+          <h4>Samples</h4>
+          <p className="note">Sample items the filter validator builds for rows here.</p>
+          <textarea
+            id="cat-samples"
+            className="mono"
+            rows={8}
+            value={samplesText}
+            disabled={!editable}
+            placeholder='[{ "BaseType": { "from": "baseTypes" }, "Rarity": { "values": ["Normal", "Magic"] } }]'
+            onChange={(event) => setSamplesText(event.target.value)}
+          />
+          {samplesProblem === undefined ? null : <p className="err">{samplesProblem}</p>}
+          <h4>Rejects</h4>
+          <p className="note">Laid over each sample. No row here may take the result.</p>
+          <textarea
+            id="cat-rejects"
+            className="mono"
+            rows={4}
+            value={rejectsText}
+            disabled={!editable}
+            placeholder='[{ "Rarity": { "values": ["Unique"] } }]'
+            onChange={(event) => setRejectsText(event.target.value)}
+          />
+          {rejectsProblem === undefined ? null : <p className="err">{rejectsProblem}</p>}
+        </div>
+      ) : null}
     </Modal>
   );
 }

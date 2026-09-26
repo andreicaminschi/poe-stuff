@@ -33,6 +33,7 @@ export type CatalogVariant = {
   readonly conditions?: readonly Condition[];
   readonly meanPrice?: number;
   readonly lowConfidence?: boolean;
+  readonly unpriceable?: boolean;
 };
 
 /** One row of `catalog.json`, as far as the generator reads it. */

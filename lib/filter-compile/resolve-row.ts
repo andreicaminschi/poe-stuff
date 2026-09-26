@@ -2,7 +2,9 @@ import { composeTrace, type Composed } from "./compose.ts";
 import { fillFrom } from "./fill-from.ts";
 import type { Condition, FromSource, Layer, RemovedCondition, ResolvedCondition } from "./types.ts";
 
-export type CategoryRecords = Readonly<Record<string, { readonly conditions: readonly Condition[] }>>;
+export type CategoryRecords = Readonly<
+  Record<string, { readonly conditions: readonly Condition[]; readonly order?: number; readonly catchAll?: boolean }>
+>;
 
 export type ResolvableRow = FromSource & {
   readonly category: string;

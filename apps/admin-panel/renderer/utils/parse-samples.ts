@@ -4,17 +4,17 @@ export type ParsedSamples = { readonly samples: readonly SampleSet[] } | { reado
 
 const isSet = (value: unknown): boolean => typeof value === "object" && value !== null && !Array.isArray(value);
 
-/** The Samples box as sample sets. Empty text is no sets. */
-export function parseSamples(text: string): ParsedSamples {
+/** A sample-set box as sample sets. Empty text is no sets. */
+export function parseSamples(text: string, label = "Samples"): ParsedSamples {
   if (text.trim() === "") return { samples: [] };
 
   let value: unknown;
   try {
     value = JSON.parse(text);
   } catch (error) {
-    return { problem: `Samples is not JSON: ${error instanceof Error ? error.message : String(error)}` };
+    return { problem: `${label} is not JSON: ${error instanceof Error ? error.message : String(error)}` };
   }
 
-  if (!Array.isArray(value) || !value.every(isSet)) return { problem: "Samples must be a list of objects." };
+  if (!Array.isArray(value) || !value.every(isSet)) return { problem: `${label} must be a list of objects.` };
   return { samples: value as readonly SampleSet[] };
 }

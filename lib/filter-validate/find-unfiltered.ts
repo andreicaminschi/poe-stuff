@@ -19,7 +19,8 @@ export function findUnfiltered(
   let sampled = 0;
   let unfiltered = 0;
 
-  for (const { row, item } of samplesOf(rows, categories)) {
+  for (const { row, item, reject } of samplesOf(rows, categories)) {
+    if (reject !== undefined) continue;
     sampled++;
     if (match(item).winner !== undefined) continue;
     unfiltered++;

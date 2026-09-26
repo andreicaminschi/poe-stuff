@@ -41,7 +41,7 @@ export async function publishTaxonomy(
     Object.fromEntries(
       Object.entries(rows).flatMap(([id, row]) => {
         const all = table.variants[id] ?? [];
-        const variants = all.filter((variant) => variant.listing !== undefined);
+        const variants = all.filter((variant) => variant.listing !== undefined || variant.unpriceable === true);
         variantsLeftOut += all.length - variants.length;
 
         if (variants.length > 0) return [[id, { ...row, variants }]];

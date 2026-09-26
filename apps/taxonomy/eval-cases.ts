@@ -46,7 +46,8 @@ export function evalCases(
 
   const seen = new Set<string>();
   const cases: EvalCase[] = [];
-  for (const { item } of samplesOf(pickRows(rows), collapseRarity(categories))) {
+  for (const { item, reject } of samplesOf(pickRows(rows), collapseRarity(categories))) {
+    if (reject !== undefined) continue;
     const key = JSON.stringify(item);
     if (seen.has(key)) continue;
     seen.add(key);
