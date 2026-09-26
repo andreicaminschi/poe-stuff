@@ -1,4 +1,5 @@
 import type { Condition, Item } from "../../api/taxonomy/types.ts";
+import { BulkFlagGroup } from "../components/bulk-flag-group.tsx";
 import { ConditionsEditor } from "../components/conditions-editor.tsx";
 import { useConditionNames } from "../hooks/use-condition-names.ts";
 import { useValueOptions } from "../hooks/use-value-options.ts";
@@ -118,80 +119,38 @@ export function MultiItemPane() {
         {category === undefined ? <p className="note">Pick one category before setting a subcategory.</p> : null}
       </div>
 
-      <div className="grp">
-        <h4>Excluded</h4>
-        <div className="row">
-          <button
-            type="button"
-            className="btn"
-            disabled={!editable || excludedCount === items.length}
-            onClick={() => editItems(items.map((item) => withExcluded(item, true)))}
-          >
-            Exclude all
-          </button>
-          <button
-            type="button"
-            className="btn"
-            disabled={!editable || excludedCount === 0}
-            onClick={() => editItems(items.map((item) => withExcluded(item, false)))}
-          >
-            Include all
-          </button>
-        </div>
-        <p className="note">
-          {excludedCount} of {items.length} are excluded.
-        </p>
-      </div>
+      <BulkFlagGroup
+        title="Excluded"
+        setLabel="Exclude all"
+        clearLabel="Include all"
+        count={excludedCount}
+        total={items.length}
+        note={`${excludedCount} of ${items.length} are excluded.`}
+        disabled={!editable}
+        apply={(on) => editItems(items.map((item) => withExcluded(item, on)))}
+      />
 
-      <div className="grp">
-        <h4>Quest items</h4>
-        <div className="row">
-          <button
-            type="button"
-            className="btn"
-            disabled={!editable || questCount === items.length}
-            onClick={() => editItems(items.map((item) => withQuest(item, true)))}
-          >
-            Mark all
-          </button>
-          <button
-            type="button"
-            className="btn"
-            disabled={!editable || questCount === 0}
-            onClick={() => editItems(items.map((item) => withQuest(item, false)))}
-          >
-            Unmark all
-          </button>
-        </div>
-        <p className="note">
-          {questCount} of {items.length} are quest items. A quest item needs no listing.
-        </p>
-      </div>
+      <BulkFlagGroup
+        title="Quest items"
+        setLabel="Mark all"
+        clearLabel="Unmark all"
+        count={questCount}
+        total={items.length}
+        note={`${questCount} of ${items.length} are quest items. A quest item needs no listing.`}
+        disabled={!editable}
+        apply={(on) => editItems(items.map((item) => withQuest(item, on)))}
+      />
 
-      <div className="grp">
-        <h4>Unpriceable</h4>
-        <div className="row">
-          <button
-            type="button"
-            className="btn"
-            disabled={!editable || unpriceableCount === items.length}
-            onClick={() => editItems(items.map((item) => withUnpriceable(item, true)))}
-          >
-            Mark all
-          </button>
-          <button
-            type="button"
-            className="btn"
-            disabled={!editable || unpriceableCount === 0}
-            onClick={() => editItems(items.map((item) => withUnpriceable(item, false)))}
-          >
-            Unmark all
-          </button>
-        </div>
-        <p className="note">
-          {unpriceableCount} of {items.length} are unpriceable. An unpriceable item needs no listing and is still drawn.
-        </p>
-      </div>
+      <BulkFlagGroup
+        title="Unpriceable"
+        setLabel="Mark all"
+        clearLabel="Unmark all"
+        count={unpriceableCount}
+        total={items.length}
+        note={`${unpriceableCount} of ${items.length} are unpriceable. An unpriceable item needs no listing and is still drawn.`}
+        disabled={!editable}
+        apply={(on) => editItems(items.map((item) => withUnpriceable(item, on)))}
+      />
 
       <div className="grp">
         <h4>Conditions</h4>
