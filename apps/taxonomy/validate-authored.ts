@@ -3,6 +3,7 @@ import { collect, throwFirst, type RowProblem } from "./validate.ts";
 import { conditionsProblem } from "./validate-conditions.ts";
 import { listingProblem } from "./validate-table.ts";
 import { isObject } from "./is-object.ts";
+import { slug } from "./slug.ts";
 
 const FIELDS = [
   "name",
@@ -18,11 +19,6 @@ const FIELDS = [
   "listing",
 ];
 
-const slug = (field: string): string =>
-  field
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
 
 const PREFIX = "authored/";
 

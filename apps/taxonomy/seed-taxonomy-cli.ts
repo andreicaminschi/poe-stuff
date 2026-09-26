@@ -7,9 +7,7 @@ import { seedTaxonomy } from "./seed-taxonomy.ts";
 import type { Lake } from "@poe/lake/types";
 import type { SourceFile } from "./types.ts";
 import { versionTable } from "./versions.ts";
-
-const flag = (args: readonly string[], name: string): string | undefined =>
-  args.find((arg) => arg.startsWith(`--${name}=`))?.slice(name.length + 3);
+import { flag } from "./cli-args.ts";
 
 async function draftVersion(lake: Lake): Promise<string> {
   const version = highestDraft(await readRegistry(lake));

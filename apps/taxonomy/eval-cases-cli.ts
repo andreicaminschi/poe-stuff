@@ -15,15 +15,8 @@ import type { CategoryRecords } from "@poe/filter-compile/resolve-row";
 import type { SampleCategories } from "@poe/filter-validate/types";
 import { evalCases, type EvalRow } from "./eval-cases.ts";
 import { latestKey, PREFIX } from "./lake.ts";
-
-const flag = (args: readonly string[], name: string): string | undefined =>
-  args.find((arg) => arg.startsWith(`--${name}=`))?.slice(name.length + 3);
-
-const slug = (field: string): string =>
-  field
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+import { flag } from "./cli-args.ts";
+import { slug } from "./slug.ts";
 
 async function main(): Promise<void> {
   const args = process.argv.slice(2);

@@ -5,11 +5,9 @@ import { requireEnv } from "@util/env";
 import { createLakeService } from "@poe/lake/service";
 import { manifestKey } from "./lake/keys.ts";
 import { runPipeline, SOURCES, type Force } from "./pipeline.ts";
-import { dateFromHour, hourFromDate, parseHour, previousHour, runId } from "./run-id.ts";
+import { chooseHour, flag } from "./cli-args.ts";
+import { dateFromHour, previousHour, runId } from "./run-id.ts";
 import type { PipelineEvent } from "./types.ts";
-
-const flag = (args: readonly string[], name: string): string | undefined =>
-  args.find((arg) => arg.startsWith(`--${name}=`))?.slice(name.length + 3);
 
 const report = (event: PipelineEvent): void => {
   if (event.type === "stage-skipped") {
@@ -49,19 +47,6 @@ function chooseForce(args: readonly string[]): Force {
   return new Set();
 }
 
-function chooseHour(args: readonly string[]): number {
-  const date = flag(args, "date");
-  const hour = flag(args, "hour");
-
-  if (date !== undefined && hour !== undefined) {
-    throw new Error("Pass --date or --hour, not both");
-  }
-  if (date !== undefined) return hourFromDate(date);
-  if (hour !== undefined) return parseHour(hour);
-
-  return previousHour();
-}
-
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
 
@@ -69,7 +54,7 @@ async function main(): Promise<void> {
   if (league === undefined) throw new Error("Pass --league=<name>");
 
   const force = chooseForce(args);
-  const hourId = chooseHour(args);
+  const hourId = chooseHour(args, previousHour);
   const id = runId(league, hourId);
   const userAgent = requireEnv("POE_USER_AGENT");
   const root = flag(args, "root");
