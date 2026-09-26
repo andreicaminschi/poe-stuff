@@ -136,12 +136,14 @@ const tokenize = (rest: string, line: number): string[] => {
   return tokens;
 };
 
+const isEquality = (operator: Operator): boolean => (EQUALITY_OPERATORS as readonly string[]).includes(operator);
+
 const requireEqualityOperator = (
   name: ConditionName,
   operator: Operator,
   line: number,
 ): void => {
-  if (!(EQUALITY_OPERATORS as readonly string[]).includes(operator)) {
+  if (!isEquality(operator)) {
     fail(line, `${name} does not take the operator "${operator}"`);
   }
 };
@@ -161,6 +163,19 @@ const requireOneValue = (
 /** Case-insensitive membership, since the game does not care how a value is spelled. */
 const listed = (allowed: readonly string[], value: string): boolean =>
   allowed.some((one) => one.toLowerCase() === value.toLowerCase());
+
+const requireListed = (
+  name: ConditionName,
+  allowed: readonly string[],
+  values: readonly string[],
+  line: number,
+): void => {
+  for (const value of values) {
+    if (!listed(allowed, value)) {
+      fail(line, `${name} takes one of ${allowed.join(", ")}, got ${JSON.stringify(value)}`);
+    }
+  }
+};
 
 /** A count glued to its operator, the way `HasExplicitMod >=2` writes it. */
 const GLUED_COUNT = /^(==|!=|>=|<=|=|!|<|>)(\d+)$/;
@@ -263,33 +278,13 @@ const parseCondition = (
       // Two forms. `Rarity > Magic` walks the ladder and needs one value to walk to;
       // `Rarity Normal Magic Rare` is any-of and takes as many as it likes. The NeverSink
       // sample uses the second form on 189 of its 454 Rarity lines.
-      if (!(EQUALITY_OPERATORS as readonly string[]).includes(operator)) {
-        requireOneValue(name, values, line);
-      }
-      if ("order" in entry) {
-        for (const value of values) {
-          if (!listed(entry.order, value)) {
-            fail(
-              line,
-              `${name} takes one of ${entry.order.join(", ")}, got ${JSON.stringify(value)}`,
-            );
-          }
-        }
-      }
+      if (!isEquality(operator)) requireOneValue(name, values, line);
+      if ("order" in entry) requireListed(name, entry.order, values, line);
       break;
     }
     case "enums": {
       requireEqualityOperator(name, operator, line);
-      if ("values" in entry) {
-        for (const value of values) {
-          if (!listed(entry.values, value)) {
-            fail(
-              line,
-              `${name} takes one of ${entry.values.join(", ")}, got ${JSON.stringify(value)}`,
-            );
-          }
-        }
-      }
+      if ("values" in entry) requireListed(name, entry.values, values, line);
       break;
     }
     case "strings": {
