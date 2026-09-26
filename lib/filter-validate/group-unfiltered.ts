@@ -8,11 +8,9 @@ export type UnfilteredGroup = {
 
 /** Unfiltered rows grouped by category path, the most samples first. */
 export function groupUnfiltered(rows: readonly UnfilteredRow[]): readonly UnfilteredGroup[] {
-  const groups = new Map<string, UnfilteredRow[]>();
-  for (const row of rows) {
-    const path = row.subcategory === null ? row.category : `${row.category}/${row.subcategory}`;
-    groups.set(path, [...(groups.get(path) ?? []), row]);
-  }
+  const groups = Map.groupBy(rows, (row) =>
+    row.subcategory === null ? row.category : `${row.category}/${row.subcategory}`,
+  );
 
   return [...groups]
     .map(([path, members]) => ({
