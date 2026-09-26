@@ -15,7 +15,7 @@ import type { ItemProperty } from "./types.ts";
  * of it is not mistaken for one — the game's help text has commas and digits in it and a
  * property key never does.
  */
-const PAIR = /^([A-Za-z][A-Za-z '-]*(?:\s*\([^)]*\))?):\s*(.*)$/;
+export const PAIR = /^([A-Za-z][A-Za-z '-]*(?:\s*\([^)]*\))?):\s*(.*)$/;
 
 /** The qualifier the game brackets onto a key: `Quality (Attribute Modifiers)`. */
 const QUALIFIER = /^(.*?)\s*\(([^)]*)\)$/;

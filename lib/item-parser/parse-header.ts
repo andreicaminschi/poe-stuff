@@ -7,14 +7,14 @@
  * `BaseType` against.
  */
 
+import { PAIR } from "./parse-properties.ts";
+
 export type ItemHeader = {
   readonly itemClass: string;
   readonly rarity: string;
   readonly name: string;
   readonly baseType: string;
 };
-
-const PAIR = /^([A-Za-z][A-Za-z '-]*(?:\s*\([^)]*\))?):\s*(.*)$/;
 
 /**
  * Reads the header out of the first section's lines.

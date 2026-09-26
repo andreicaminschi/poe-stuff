@@ -1,5 +1,5 @@
-import { matchCondition } from "./evaluate-filter.ts";
-import { CONDITIONS, NEGATING_OPERATORS } from "./filter-ast.ts";
+import { matchCondition, negated as isNegated } from "./evaluate-filter.ts";
+import { CONDITIONS } from "./filter-ast.ts";
 import type { ConditionName, FilterBlock, FilterCondition, FilterItem, Operator } from "./filter-ast.ts";
 
 /**
@@ -21,8 +21,6 @@ type Test = (slots: Slots, item: FilterItem) => boolean;
 type Compiled = { readonly block: FilterBlock; readonly tests: readonly Test[] };
 
 const SLOTTED_KINDS = new Set(["boolean", "numeric", "ordered", "strings", "enums", "gem"]);
-
-const isNegated = (operator: Operator): boolean => (NEGATING_OPERATORS as readonly string[]).includes(operator);
 
 const comparer = (operator: Operator): ((have: number, want: number) => boolean) => {
   switch (operator) {
