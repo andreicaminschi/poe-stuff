@@ -40,106 +40,111 @@ export type Session = {
 
 const message = (error: unknown): string => (error instanceof Error ? error.message : String(error));
 
-export const useSession = create<Session>((set, get) => ({
-  booting: true,
-  busy: false,
-  items: [],
-  bucket: null,
-  screen: "tiers",
-
-  async boot() {
-    try {
-      const [catalog, config] = await Promise.all([window.generator.getCatalog(), window.generator.getConfig()]);
-      const items = itemsOf(catalog.rows);
-      const [category] = topCategories(items);
-      set({ catalog, items, config, saved: config, booting: false, ...(category === undefined ? {} : { category }) });
-    } catch (error) {
-      set({ booting: false, error: message(error) });
-    }
-  },
-
-  selectCategory: (category) => set({ category, bucket: null }),
-  selectBucket: (bucket) => set({ bucket }),
-  setScreen: (screen) => set({ screen }),
-
-  editCategory(change) {
-    const { config, category } = get();
-    if (config === undefined || category === undefined) return;
-    set({ config: change(config, category), status: undefined });
-  },
-
-  toggleTier(tier) {
-    get().editCategory((config, key) =>
-      withCategory(config, key, (one) => ({
-        ...one,
-        disabled: one.disabled.includes(tier) ? one.disabled.filter((name) => name !== tier) : [...one.disabled, tier],
-      })),
-    );
-  },
-
-  setPalette(palette) {
-    get().editCategory((config, key) => withCategory(config, key, (one) => ({ ...one, palette })));
-  },
-
-  setFloor(tier, value) {
-    const { config, category, catalog } = get();
-    if (config === undefined || category === undefined || catalog === undefined) return;
-
-    const own = categoryConfig(config, category).floors !== undefined;
-    const stack = catalog.categories[category]?.tiering === "stack-size";
-    if (!own && !stack) {
-      set({ config: { ...config, floors: { ...config.floors, [tier]: value } }, status: undefined });
-      return;
-    }
-    set({
-      config: withCategory(config, category, (one) => ({ ...one, floors: { ...(one.floors ?? STACK_FLOORS), [tier]: value } })),
-      status: undefined,
-    });
-  },
-
-  addWanted(name) {
-    get().editCategory((config, key) =>
-      withCategory(config, key, (one) => (one.wanted.includes(name) ? one : { ...one, wanted: [...one.wanted, name] })),
-    );
-  },
-
-  removeWanted(name) {
-    get().editCategory((config, key) =>
-      withCategory(config, key, (one) => ({ ...one, wanted: one.wanted.filter((other) => other !== name) })),
-    );
-  },
-
-  async saveConfig() {
-    const { config } = get();
-    if (config === undefined) return;
-
+export const useSession = create<Session>((set, get) => {
+  /** Busy while it runs; a failure becomes the error banner. */
+  const run = async (task: () => Promise<void>): Promise<void> => {
     set({ busy: true });
     try {
-      await window.generator.saveConfig(config);
-      set({ saved: config, status: "Config saved." });
+      await task();
     } catch (error) {
       set({ error: message(error), status: undefined });
     } finally {
       set({ busy: false });
     }
-  },
+  };
 
-  async writeFilter() {
-    const { catalog, items, config } = get();
-    if (catalog === undefined || config === undefined) return;
+  return {
+    booting: true,
+    busy: false,
+    items: [],
+    bucket: null,
+    screen: "tiers",
 
-    set({ busy: true });
-    try {
-      const written = writeFilter({ rows: catalog.rows, categories: catalog.categories, plans: categoryPlans(items, catalog.categories, config) });
-      const saved = await window.generator.saveFilter(written.text);
-      const skipped = written.skipped.length === 0 ? "" : `, ${written.skipped.length} skipped`;
-      if ("path" in saved) set({ status: `Wrote ${written.blocks.length} blocks${skipped} to ${saved.path}` });
-    } catch (error) {
-      set({ error: message(error), status: undefined });
-    } finally {
-      set({ busy: false });
-    }
-  },
+    async boot() {
+      try {
+        const [catalog, config] = await Promise.all([window.generator.getCatalog(), window.generator.getConfig()]);
+        const items = itemsOf(catalog.rows);
+        const [category] = topCategories(items);
+        set({ catalog, items, config, saved: config, booting: false, ...(category === undefined ? {} : { category }) });
+      } catch (error) {
+        set({ booting: false, error: message(error) });
+      }
+    },
 
-  dismissError: () => set({ error: undefined }),
-}));
+    selectCategory: (category) => set({ category, bucket: null }),
+    selectBucket: (bucket) => set({ bucket }),
+    setScreen: (screen) => set({ screen }),
+
+    editCategory(change) {
+      const { config, category } = get();
+      if (config === undefined || category === undefined) return;
+      set({ config: change(config, category), status: undefined });
+    },
+
+    toggleTier(tier) {
+      get().editCategory((config, key) =>
+        withCategory(config, key, (one) => ({
+          ...one,
+          disabled: one.disabled.includes(tier) ? one.disabled.filter((name) => name !== tier) : [...one.disabled, tier],
+        })),
+      );
+    },
+
+    setPalette(palette) {
+      get().editCategory((config, key) => withCategory(config, key, (one) => ({ ...one, palette })));
+    },
+
+    setFloor(tier, value) {
+      const { config, category, catalog } = get();
+      if (config === undefined || category === undefined || catalog === undefined) return;
+
+      const own = categoryConfig(config, category).floors !== undefined;
+      const stack = catalog.categories[category]?.tiering === "stack-size";
+      if (!own && !stack) {
+        set({ config: { ...config, floors: { ...config.floors, [tier]: value } }, status: undefined });
+        return;
+      }
+      set({
+        config: withCategory(config, category, (one) => ({ ...one, floors: { ...(one.floors ?? STACK_FLOORS), [tier]: value } })),
+        status: undefined,
+      });
+    },
+
+    addWanted(name) {
+      get().editCategory((config, key) =>
+        withCategory(config, key, (one) => (one.wanted.includes(name) ? one : { ...one, wanted: [...one.wanted, name] })),
+      );
+    },
+
+    removeWanted(name) {
+      get().editCategory((config, key) =>
+        withCategory(config, key, (one) => ({ ...one, wanted: one.wanted.filter((other) => other !== name) })),
+      );
+    },
+
+    async saveConfig() {
+      const { config } = get();
+      if (config === undefined) return;
+
+      await run(async () => {
+        await window.generator.saveConfig(config);
+        set({ saved: config, status: "Config saved." });
+      });
+    },
+
+    async writeFilter() {
+      const { catalog, items, config } = get();
+      if (catalog === undefined || config === undefined) return;
+
+      await run(async () => {
+        const plans = categoryPlans(items, catalog.categories, config);
+        const written = writeFilter({ rows: catalog.rows, categories: catalog.categories, plans });
+        const saved = await window.generator.saveFilter(written.text);
+        const skipped = written.skipped.length === 0 ? "" : `, ${written.skipped.length} skipped`;
+        if ("path" in saved) set({ status: `Wrote ${written.blocks.length} blocks${skipped} to ${saved.path}` });
+      });
+    },
+
+    dismissError: () => set({ error: undefined }),
+  };
+});

@@ -20,8 +20,8 @@ export function Ladder() {
   const options = placeOptions(config, category.key, category.record);
   const unit = options.tiering === "stack-size" ? " stack" : "c";
   const { palette, disabled } = category.config;
-  const counts = new Map<BucketName, number>();
-  for (const one of placed.placed) counts.set(one.bucket, (counts.get(one.bucket) ?? 0) + 1);
+  const byBucket = Map.groupBy(placed.placed, (one) => one.bucket);
+  const countOf = (name: BucketName): number => byBucket.get(name)?.length ?? 0;
 
   const rangeOf = (name: BucketName): string => {
     const bucket = placed.ladder.find((one) => one.name === name);
@@ -39,7 +39,7 @@ export function Ladder() {
             name={name}
             range={enabled ? rangeOf(name) : `off · ${options.floors[name]}${unit}`}
             size={tierStyle(palette, name).size}
-            count={counts.get(name) ?? 0}
+            count={countOf(name)}
             selected={selected === name}
             enabled={enabled}
             onSelect={() => selectBucket(name)}
@@ -47,9 +47,9 @@ export function Ladder() {
           />
         );
       })}
-      <Rung name={WANT} range="manual list" size="S" count={counts.get(WANT) ?? 0} selected={selected === WANT} onSelect={() => selectBucket(WANT)} />
-      <Rung name={UNPRICED} range="flagged in taxonomy" size={tierStyle(palette, UNPRICED).size} count={counts.get(UNPRICED) ?? 0} selected={selected === UNPRICED} onSelect={() => selectBucket(UNPRICED)} />
-      <Rung name={HIDDEN} range={rangeOf(HIDDEN)} size="XS" count={counts.get(HIDDEN) ?? 0} selected={selected === HIDDEN} onSelect={() => selectBucket(HIDDEN)} />
+      <Rung name={WANT} range="manual list" size="S" count={countOf(WANT)} selected={selected === WANT} onSelect={() => selectBucket(WANT)} />
+      <Rung name={UNPRICED} range="flagged in taxonomy" size={tierStyle(palette, UNPRICED).size} count={countOf(UNPRICED)} selected={selected === UNPRICED} onSelect={() => selectBucket(UNPRICED)} />
+      <Rung name={HIDDEN} range={rangeOf(HIDDEN)} size="XS" count={countOf(HIDDEN)} selected={selected === HIDDEN} onSelect={() => selectBucket(HIDDEN)} />
     </div>
   );
 }
