@@ -71,3 +71,17 @@ export function conditionLine(condition: Condition): LineResult {
 
   return { line: `${name} ${operator}${text}` };
 }
+
+/** Every condition as a line, or the first reason one cannot be written. */
+export function conditionLines(
+  conditions: readonly Condition[],
+): { readonly lines: readonly string[] } | { readonly problem: string } {
+  const lines: string[] = [];
+  for (const result of conditions.map(conditionLine)) {
+    if ("problem" in result) return result;
+    lines.push(result.line);
+  }
+  if (lines.some((line) => line.includes("#"))) return { problem: "has a # in a value, which would start a comment" };
+
+  return { lines };
+}
