@@ -401,3 +401,52 @@ that is committed — a link into `docs/plans/` is a broken link for everybody e
 
 `research/` holds design notes written before the code — treat them as history, not as a
 description of what exists.
+
+## Working rules
+
+### Scope
+
+Do exactly what was asked. Nothing more.
+
+- No unrequested refactors, renames, cleanups, extra files, tests, docs, error handling,
+  config or dependencies.
+- "Fix this function" means that function. Not the file, not the pattern elsewhere.
+- Spot something worth doing? Name it in one line and stop.
+- Ambiguous scope: ask before acting.
+- Finish what was asked completely. Narrow scope, full depth.
+
+### Plan first
+
+Outline every feature before writing it, and wait for a yes. Reading and searching to build
+the plan is fine; edits are not.
+
+- Group the plan by need. Each group opens with one bold line: what is needed, why, and what
+  is missing now. Then one bullet per change, naming the file it touches.
+- Cap it at 7 steps. Longer means split into stages and plan stage one only.
+- Over 7 steps, over 5 files, or any schema/migration/delete: write `docs/plans/<feature>.md`.
+- State assumptions in the plan rather than stalling.
+
+Small and obvious — one file, one function, a typo, a named rename — skip the plan.
+
+### After a feature
+
+End with a flow summary: where the data enters, one line per hop (file, and what changes
+there), where it lands. Then say what changes visibly and how to check it.
+
+### Tools
+
+Write and edit files with the Write and Edit tools. **Never use a shell heredoc**, `printf`,
+`sed` or a `node -e` script to author file content. Bash is for running things: git, tests,
+builds, greps.
+
+### Code
+
+**A function never changes its parameters.** It reads them and returns something new.
+
+- No writing into an array, object, `Map` or `Set` the caller passed in.
+- A pipeline step returns the next value. It never takes an accumulator as an argument.
+- State the function created itself may be mutated freely.
+- A name starting with `add`, `apply`, `enrich` or `fill` that returns `void` is the smell.
+
+No counted-from-a-snapshot numbers in comments, docs or diagrams ("84 tests", "8 MB"). Keep a
+number only when it is fixed and load-bearing, such as a limit set in the code.
