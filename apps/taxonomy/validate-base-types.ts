@@ -1,5 +1,5 @@
 import type { RowProblem } from "./validate.ts";
-import { isObject } from "./is-object.ts";
+import { isObject } from "./checks.ts";
 
 /** Every seed row's name. A `BaseType` the client accepts is one of these. */
 export function seedNames(items: unknown): ReadonlySet<string> {

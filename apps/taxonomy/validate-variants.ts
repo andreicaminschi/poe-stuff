@@ -2,7 +2,7 @@ import type { AuthoredVariant, VariantTable } from "./types.ts";
 import { collect, throwFirst, type RowProblem } from "./validate.ts";
 import { conditionsProblem } from "./validate-conditions.ts";
 import { listingProblem } from "./validate-table.ts";
-import { isObject } from "./is-object.ts";
+import { isObject } from "./checks.ts";
 
 const FIELDS = ["name", "conditions", "listing", "unpriceable"];
 

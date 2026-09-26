@@ -1,4 +1,4 @@
-import { isObject } from "./is-object.ts";
+import { isObject } from "./checks.ts";
 
 export type RowProblem = {
   readonly key: string;

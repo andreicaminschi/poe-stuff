@@ -5,7 +5,7 @@ import { collectCategoryTable } from "./validate-conditions.ts";
 import { collectTaxonomyTable } from "./validate-table.ts";
 import { collectVariantTable } from "./validate-variants.ts";
 import { TableShapeError, type RowProblem } from "./validate.ts";
-import { isObject } from "./is-object.ts";
+import { isObject } from "./checks.ts";
 
 export type VersionProblem = RowProblem & {
   readonly file: SourceFile;
