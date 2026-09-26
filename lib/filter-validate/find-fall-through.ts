@@ -140,6 +140,7 @@ export function findFallThrough(
     const properties = varied.get(row.key) ?? variedProperties(categories, row);
     varied.set(row.key, properties);
     for (const property of properties) {
+      if (!(property in item)) continue;
       if (!winner.conditions.some((one) => one.name === property)) blinds.push({ row, block: winner, property, item });
     }
 
