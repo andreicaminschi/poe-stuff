@@ -1,9 +1,9 @@
-import { copyFile, mkdir, rm } from "node:fs/promises";
+import { copyFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import type { Lake } from "@poe/lake/types";
 import type { DraftChanges } from "../taxonomy/types.ts";
-import { stageWorking } from "../util/stage-working.ts";
-import { runAction, runQuery } from "../util/yarn.ts";
+import { withPublishedWorking } from "../util/stage-working.ts";
+import { runQuery } from "../util/yarn.ts";
 
 export type CompileSkip = { readonly key: string; readonly variant?: string; readonly problem: string };
 
@@ -31,12 +31,7 @@ export async function compileFilter(
   documents: string,
   changes: DraftChanges,
 ): Promise<CompiledFilter> {
-  const root = await stageWorking(lake, id, changes);
-
-  try {
-    const published = await runAction(repo, ["taxonomy", "publish", id, `--root=${root}`]);
-    if (!published.ok) throw new Error(published.log);
-
+  return withPublishedWorking(repo, lake, id, changes, async (root) => {
     const out = join(root, FILE_NAME);
     const result = await runQuery<CompileOutput>(repo, [
       "catalog:compile",
@@ -51,7 +46,5 @@ export async function compileFilter(
     await copyFile(out, path);
 
     return { path, blocks: result.blocks, skipped: result.skipped };
-  } finally {
-    await rm(root, { recursive: true, force: true });
-  }
+  });
 }

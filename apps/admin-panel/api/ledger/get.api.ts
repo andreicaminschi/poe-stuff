@@ -1,7 +1,6 @@
 import { ledgerKey } from "../util/keys.ts";
 import type { Lake } from "@poe/lake/types";
 import type { Ledger } from "./types.ts";
+import { readOr } from "../util/read-or.ts";
 
-export async function getLedger(lake: Lake, id: string): Promise<Ledger> {
-  return (await lake.exists(ledgerKey(id))) ? await lake.readJson<Ledger>(ledgerKey(id)) : [];
-}
+export const getLedger = (lake: Lake, id: string): Promise<Ledger> => readOr<Ledger>(lake, ledgerKey(id), []);

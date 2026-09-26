@@ -4,6 +4,7 @@ import { getLedger } from "./get.api.ts";
 import type { Ledger } from "./types.ts";
 import { saveDraft } from "../taxonomy/saveDraft.api.ts";
 import type { DraftChanges } from "../taxonomy/types.ts";
+import { readOr } from "../util/read-or.ts";
 
 const merged = (ledger: Ledger): DraftChanges =>
   ledger.reduce<DraftChanges>(
@@ -22,7 +23,7 @@ export async function commitLedger(lake: Lake, id: string): Promise<void> {
 
   await saveDraft(lake, id, merged(ledger));
 
-  const archived = (await lake.exists(ledgerArchiveKey(id))) ? await lake.readJson<Ledger>(ledgerArchiveKey(id)) : [];
+  const archived = await readOr<Ledger>(lake, ledgerArchiveKey(id), []);
   await lake.writeJsonAtomic(ledgerArchiveKey(id), [...archived, ...ledger]);
   await lake.writeJsonAtomic(ledgerKey(id), []);
 }

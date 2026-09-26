@@ -1,13 +1,11 @@
 import { registryKey } from "./keys.ts";
 import type { Lake } from "@poe/lake/types";
-import { toVersionList } from "../taxonomy/getVersions.api.ts";
-
-type Registry = Parameters<typeof toVersionList>[0];
+import { EMPTY_REGISTRY, toVersionList } from "../taxonomy/getVersions.api.ts";
+import { readOr } from "./read-or.ts";
 
 export async function assertEditable(lake: Lake, id: string): Promise<void> {
-  const registry = (await lake.exists(registryKey())) ? await lake.readJson<Registry>(registryKey()) : { next: 1, versions: {} };
-  const list = toVersionList(registry, undefined);
-  const version = list.versions.find((candidate) => candidate.id === id);
+  const registry = await readOr(lake, registryKey(), EMPTY_REGISTRY);
+  const version = toVersionList(registry, undefined).versions.find((candidate) => candidate.id === id);
 
   if (version?.editable !== true) {
     throw new Error(`${id} cannot be edited. Only the newest draft can.`);
