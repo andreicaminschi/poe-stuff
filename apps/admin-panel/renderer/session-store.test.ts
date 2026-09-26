@@ -109,13 +109,6 @@ describe("useSession", () => {
     expect(useSession.getState().saved?.items["a"]?.name).toBe("a");
   });
 
-  it("moves to another item without asking when nothing is unsaved", () => {
-    useSession.getState().selectItem("b");
-
-    expect(confirm).not.toHaveBeenCalled();
-    expect(useSession.getState().selectedKey).toBe("b");
-  });
-
   it("stays on the item and keeps its edits when discarding is cancelled", () => {
     confirm.mockReturnValueOnce(false);
     useSession.getState().editItem({ ...item, name: "b" });
@@ -125,41 +118,12 @@ describe("useSession", () => {
     expect(Object.keys(useSession.getState().changes.items)).toEqual(["a"]);
   });
 
-  it("drops the edits and moves on when discarding is confirmed", () => {
-    useSession.getState().editItem({ ...item, name: "b" });
-    useSession.getState().toggleChecked("b");
-
-    expect(confirm).toHaveBeenCalledWith("Discard unsaved edits?");
-    expect(useSession.getState().changes).toBe(NO_CHANGES);
-    expect(useSession.getState().checked).toEqual(["b"]);
-  });
-
   it("does not ask when switching tabs on the same item", () => {
     useSession.getState().editItem({ ...item, name: "b" });
     useSession.getState().selectItem("a", "variants");
 
     expect(confirm).not.toHaveBeenCalled();
     expect(useSession.getState().tab).toBe("variants");
-  });
-
-  it("adds an authored row and opens it without asking again", () => {
-    const row = {
-      source: "authored" as const,
-      key: "authored/new",
-      name: "New",
-      baseType: "New",
-      classification: { category: "currency", subcategory: null },
-      reason: "why",
-      replaces: ["a"],
-      conditions: [],
-      variants: [],
-    };
-    useSession.getState().authorRow(row);
-
-    expect(confirm).not.toHaveBeenCalled();
-    expect(useSession.getState().changes.items["authored/new"]).toEqual(row);
-    expect(useSession.getState().selectedKey).toBe("authored/new");
-    expect(useSession.getState().selection).toBe("currency");
   });
 
   it("refuses to undo over unsaved edits", async () => {

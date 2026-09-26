@@ -76,7 +76,7 @@ export function gemVariants(items: TaxonomyTable, gems: Gems): VariantTable {
   const table: Record<string, readonly AuthoredVariant[]> = {};
 
   for (const [id, entry] of Object.entries(items)) {
-    if (entry.category !== "skill-gem") continue;
+    if (entry.category !== "skill-gems") continue;
 
     const gem = gems[id] ?? byGameId.get(id);
     if (gem === undefined) continue;

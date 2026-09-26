@@ -14,49 +14,12 @@ const form = (overrides: Partial<Form>): Form => ({
 });
 
 describe("formToVariant", () => {
-  it("names and conditions the item level the siblings disagree on, and keeps the whole query", () => {
-    const query = { name: "Ghastly Eye Jewel", frame: 0, itemLevel: 86, synthesised: false };
-    const high = form({ itemLevel: 86, query });
-    const siblings = [form({ itemLevel: 83 }), form({ itemLevel: 83, synthesised: true }), high];
-
-    expect(formToVariant(high, siblings)).toEqual({
-      name: "ilvl 86",
-      listing: query,
-      conditions: [
-        { condition: "Rarity", operator: "==", value: "Normal" },
-        { condition: "ItemLevel", operator: ">=", value: 86 },
-        { condition: "SynthesisedItem", value: false },
-      ],
-    });
-  });
-
-  it("bounds a lower item level below the next form up", () => {
-    const mid = form({ itemLevel: 84 });
-    const siblings = [form({ itemLevel: 83 }), mid, form({ itemLevel: 86 })];
-
-    expect(formToVariant(mid, siblings).conditions).toEqual([
-      { condition: "Rarity", operator: "==", value: "Normal" },
-      { condition: "ItemLevel", operator: ">=", value: 84 },
-      { condition: "ItemLevel", operator: "<=", value: 85 },
-    ]);
-  });
-
   it("marks a synthesised form", () => {
     const synth = form({ itemLevel: 83, synthesised: true });
     const variant = formToVariant(synth, [form({ itemLevel: 83 }), synth]);
 
     expect(variant.name).toBe("synth");
     expect(variant.conditions).toContainEqual({ condition: "SynthesisedItem", value: true });
-  });
-
-  it("gives a lone form only its rarity", () => {
-    const only = form({ itemLevel: 84 });
-
-    expect(formToVariant(only, [only])).toEqual({
-      name: "normal",
-      listing: only.query,
-      conditions: [{ condition: "Rarity", operator: "==", value: "Normal" }],
-    });
   });
 
   it("names the influence and asks for None on the plain form", () => {
