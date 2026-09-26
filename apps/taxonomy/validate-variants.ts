@@ -6,7 +6,6 @@ import { isObject } from "./is-object.ts";
 
 const FIELDS = ["name", "conditions", "listing", "unpriceable"];
 
-
 function variantsProblem(value: unknown): string | null {
   if (!Array.isArray(value)) return "is not a list";
   if (value.length === 0) return "authors no variants; delete the key instead";

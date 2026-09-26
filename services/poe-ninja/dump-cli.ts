@@ -4,11 +4,7 @@ import { ITEM_TYPES, type ItemType, type CachedResponse } from "./types.ts";
 import type { NinjaExchangeItem } from "./get-exchange-ratios.types.ts";
 import type { NinjaItem } from "./get-league-items.types.ts";
 
-
-
-
 import { createPoeNinjaService } from "./service.ts";
-
 
 /**
  * Download one league's poe.ninja market and write it to a file.

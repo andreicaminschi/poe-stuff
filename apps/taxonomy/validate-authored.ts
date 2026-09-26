@@ -19,14 +19,12 @@ const FIELDS = [
   "listing",
 ];
 
-
 const PREFIX = "authored/";
 
 const isAuthoredKey = (key: string): boolean =>
   key.startsWith(PREFIX) &&
   key.length > PREFIX.length &&
   slug(key.slice(PREFIX.length)) === key.slice(PREFIX.length);
-
 
 const isText = (value: unknown): value is string =>
   typeof value === "string" && value.length > 0;

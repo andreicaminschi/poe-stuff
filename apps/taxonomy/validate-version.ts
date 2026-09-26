@@ -11,7 +11,6 @@ export type VersionProblem = RowProblem & {
   readonly file: SourceFile;
 };
 
-
 const keysOf = (value: unknown): readonly string[] =>
   isObject(value) ? Object.keys(value) : [];
 

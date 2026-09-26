@@ -10,7 +10,6 @@ const CONDITION_FIELDS = ["condition", "operator", "value", "from"];
 const CLASS = "Class";
 const BASE_TYPE = "BaseType";
 
-
 const isText = (value: unknown): boolean =>
   typeof value === "string" && value.length > 0;
 

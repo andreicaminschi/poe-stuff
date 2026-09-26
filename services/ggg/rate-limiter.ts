@@ -84,10 +84,14 @@ export function createLimiter(
   const longest = () =>
     rules.reduce((widest, r) => Math.max(widest, r.windowMs), 0);
 
+  /** Our hits inside the rule's window plus what the server counted that we did not. */
+  const spentIn = (rule: RateLimiterRule, tier: number, now: number): number =>
+    hits.filter((t) => now - t < rule.windowMs).length + unseenAt(tier, now);
+
   // NO_WAIT = slot available now, else ms until something frees one up
   function waitFor(rule: RateLimiterRule, tier: number, now: number): number {
     const inWindow = hits.filter((t) => now - t < rule.windowMs);
-    const spent = inWindow.length + unseenAt(tier, now);
+    const spent = spentIn(rule, tier, now);
 
     if (spent < rule.max) return NO_WAIT;
 
@@ -118,9 +122,7 @@ export function createLimiter(
   ): number {
     if (smoothAbove === undefined) return NO_WAIT;
 
-    const spent =
-      hits.filter((t) => now - t < rule.windowMs).length + unseenAt(tier, now);
-    if (spent < rule.max * smoothAbove) return NO_WAIT;
+    if (spentIn(rule, tier, now) < rule.max * smoothAbove) return NO_WAIT;
 
     const last = hits[hits.length - 1];
     if (last === undefined) return NO_WAIT;
@@ -160,9 +162,7 @@ export function createLimiter(
 
       for (const [tier, rule] of rules.entries()) {
         const window = Math.round(rule.windowMs / 1000);
-        const spent =
-          hits.filter((t) => now - t < rule.windowMs).length +
-          unseenAt(tier, now);
+        const spent = spentIn(rule, tier, now);
 
         const ruleWait = waitFor(rule, tier, now);
         if (ruleWait > wait) {

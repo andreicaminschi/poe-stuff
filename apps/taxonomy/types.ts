@@ -103,7 +103,6 @@ export type AuthoredEntry = {
 
 export type TaxonomyTable = Readonly<Record<string, AuthoredEntry>>;
 
-
 export type VersionState = "draft" | "published";
 
 export type RegistryEntry = {

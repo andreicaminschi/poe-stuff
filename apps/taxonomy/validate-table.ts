@@ -36,7 +36,6 @@ const PRICE_KEYS: Readonly<Record<string, "number" | "boolean" | "string">> = {
   corruption: "string",
 };
 
-
 const isCategory = (value: unknown): boolean =>
   typeof value === "string" && value.length > 0;
 

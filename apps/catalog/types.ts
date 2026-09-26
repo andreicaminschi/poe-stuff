@@ -3,7 +3,6 @@ import type { Lake } from "@poe/lake/types";
 import type { PoeWatchService } from "@poe/poe-watch/service";
 import type { TaxonomyService } from "@poe/taxonomy/service";
 
-
 export type StepContext = {
   readonly lake: Lake;
   readonly runId: string;
