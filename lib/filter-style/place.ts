@@ -1,4 +1,6 @@
 import { holds, ladderOf, span } from "./place/ladder.ts";
+
+export { span };
 import {
   VERBS,
   UNPRICED,
