@@ -1,8 +1,5 @@
 import type { Item } from "../../api/taxonomy/types.ts";
+import { withTrueFlag } from "./with-true-flag.ts";
 
-export function withUnpriceable(item: Item, unpriceable: boolean): Item {
-  if (unpriceable) return { ...item, unpriceable: true };
-
-  const { unpriceable: _dropped, ...rest } = item;
-  return rest;
-}
+export const withUnpriceable = (item: Item, unpriceable: boolean): Item =>
+  withTrueFlag(item, "unpriceable", unpriceable);

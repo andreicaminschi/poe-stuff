@@ -1,8 +1,4 @@
 import type { Item } from "../../api/taxonomy/types.ts";
+import { withTrueFlag } from "./with-true-flag.ts";
 
-export function withExcluded(item: Item, excluded: boolean): Item {
-  if (excluded) return { ...item, excluded: true };
-
-  const { excluded: _dropped, ...rest } = item;
-  return rest;
-}
+export const withExcluded = (item: Item, excluded: boolean): Item => withTrueFlag(item, "excluded", excluded);
