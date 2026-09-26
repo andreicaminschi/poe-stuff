@@ -4,25 +4,20 @@ import type { Registry, RegistryEntry } from "./types.ts";
 
 const PATTERN = /^(\d+\.\d+)\.(\d+)$/;
 
-export function versionNumber(version: string): number {
-  const parsed = PATTERN.exec(version);
+/** `3.29.7` is game `3.29`, number `7`. */
+function parseVersion(version: string): { readonly game: string; readonly number: number } {
+  const [, game, number] = PATTERN.exec(version) ?? [];
 
-  if (parsed === null) {
+  if (game === undefined || number === undefined) {
     throw new Error(`"${version}" is not a version. Expected <game>.<number>, e.g. 3.29.7.`);
   }
 
-  return Number(parsed[2]);
+  return { game, number: Number(number) };
 }
 
-export function gameVersion(version: string): string {
-  const parsed = PATTERN.exec(version);
+export const versionNumber = (version: string): number => parseVersion(version).number;
 
-  if (parsed === null) {
-    throw new Error(`"${version}" is not a version. Expected <game>.<number>, e.g. 3.29.7.`);
-  }
-
-  return parsed[1] as string;
-}
+export const gameVersion = (version: string): string => parseVersion(version).game;
 
 const EMPTY: Registry = { next: 1, versions: {} };
 

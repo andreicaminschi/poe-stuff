@@ -45,13 +45,7 @@ function gemForms(max: number, vaal: boolean): readonly AuthoredVariant[] {
         form(max + 1, 23, true),
       ];
 
-  const seen = new Set<string>();
-
-  return forms.filter((variant) => {
-    if (seen.has(variant.name)) return false;
-    seen.add(variant.name);
-    return true;
-  });
+  return [...new Map(forms.map((variant) => [variant.name, variant])).values()];
 }
 
 /**

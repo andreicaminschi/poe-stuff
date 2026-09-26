@@ -21,13 +21,10 @@ export type EvalCase = {
 const pathOf = (row: EvalRow): string =>
   row.subcategory === null ? row.category : `${row.category}/${row.subcategory}`;
 
+/** The first few rows of each path, by key. */
 function pickRows(rows: readonly EvalRow[]): readonly EvalRow[] {
-  const byPath = new Map<string, EvalRow[]>();
-  for (const row of [...rows].sort((a, b) => a.key.localeCompare(b.key))) {
-    const group = byPath.get(pathOf(row)) ?? [];
-    if (group.length < ROWS_PER_PATH) byPath.set(pathOf(row), [...group, row]);
-  }
-  return [...byPath.values()].flat();
+  const sorted = [...rows].sort((a, b) => a.key.localeCompare(b.key));
+  return [...Map.groupBy(sorted, pathOf).values()].flatMap((group) => group.slice(0, ROWS_PER_PATH));
 }
 
 /**

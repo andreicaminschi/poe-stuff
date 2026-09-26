@@ -9,6 +9,46 @@ export type Published = {
   readonly variantsLeftOut: number;
 };
 
+type Publishable = {
+  readonly listing?: unknown;
+  readonly excluded?: boolean;
+  readonly quest?: boolean;
+  readonly unpriceable?: boolean;
+};
+
+type Folded<T> = {
+  readonly rows: Readonly<Record<string, T>>;
+  readonly rowsLeftOut: number;
+  readonly variantsLeftOut: number;
+};
+
+/** A variant is published only when something prices it or it is flagged unpriceable. */
+const isPriced = (variant: { readonly listing?: unknown; readonly unpriceable?: boolean }): boolean =>
+  variant.listing !== undefined || variant.unpriceable === true;
+
+/** A row with no priced variant is published only when it says what to do with it. */
+const isDecided = (row: Publishable): boolean =>
+  row.listing !== undefined || row.excluded === true || row.quest === true || row.unpriceable === true;
+
+/** The rows that get published, each with its priced variants, and how many were left out. */
+function foldRows<T extends Publishable>(rows: Readonly<Record<string, T>>, table: Version): Folded<T> {
+  const kept: [string, T][] = [];
+  let rowsLeftOut = 0;
+  let variantsLeftOut = 0;
+
+  for (const [id, row] of Object.entries(rows)) {
+    const all = table.variants[id] ?? [];
+    const variants = all.filter(isPriced);
+    variantsLeftOut += all.length - variants.length;
+
+    if (variants.length > 0) kept.push([id, { ...row, variants }]);
+    else if (isDecided(row)) kept.push([id, row]);
+    else rowsLeftOut += 1;
+  }
+
+  return { rows: Object.fromEntries(kept), rowsLeftOut, variantsLeftOut };
+}
+
 export async function publishTaxonomy(
   lake: Lake,
   version: string,
@@ -18,43 +58,14 @@ export async function publishTaxonomy(
   assertPublishable(registry, version);
 
   // Draft registry: leftovers, overwrite.
-  const keys = [categoriesKey(version), versionKey(version)] as const;
+  const categoriesFile = categoriesKey(version);
+  const versionFile = versionKey(version);
 
-  let rowsLeftOut = 0;
-  let variantsLeftOut = 0;
+  const items = foldRows(table.items, table);
+  const authored = foldRows(table.authored, table);
 
-  const fold = <
-    T extends {
-      readonly listing?: unknown;
-      readonly excluded?: boolean;
-      readonly quest?: boolean;
-      readonly unpriceable?: boolean;
-    },
-  >(
-    rows: Readonly<Record<string, T>>,
-  ) =>
-    Object.fromEntries(
-      Object.entries(rows).flatMap(([id, row]) => {
-        const all = table.variants[id] ?? [];
-        const variants = all.filter((variant) => variant.listing !== undefined || variant.unpriceable === true);
-        variantsLeftOut += all.length - variants.length;
-
-        if (variants.length > 0) return [[id, { ...row, variants }]];
-        if (row.listing !== undefined || row.excluded === true || row.quest === true || row.unpriceable === true) {
-          return [[id, row]];
-        }
-
-        rowsLeftOut += 1;
-        return [];
-      }),
-    );
-
-  await lake.writeJsonAtomic(keys[0], { version, categories: table.categories });
-  await lake.writeJsonAtomic(keys[1], {
-    version,
-    items: fold(table.items),
-    authored: fold(table.authored),
-  });
+  await lake.writeJsonAtomic(categoriesFile, { version, categories: table.categories });
+  await lake.writeJsonAtomic(versionFile, { version, items: items.rows, authored: authored.rows });
 
   await writeRegistry(lake, {
     ...registry,
@@ -68,5 +79,9 @@ export async function publishTaxonomy(
     },
   });
 
-  return { keys, rowsLeftOut, variantsLeftOut };
+  return {
+    keys: [categoriesFile, versionFile],
+    rowsLeftOut: items.rowsLeftOut + authored.rowsLeftOut,
+    variantsLeftOut: items.variantsLeftOut + authored.variantsLeftOut,
+  };
 }
