@@ -35,11 +35,8 @@ function booleanText(value: Value): string | undefined {
   return value ? "True" : "False";
 }
 
-function gemText(value: Value): string | undefined {
-  if (typeof value === "boolean") return booleanText(value);
-
-  return listText(value);
-}
+const gemText = (value: Value): string | undefined =>
+  typeof value === "boolean" ? booleanText(value) : listText(value);
 
 function valueText(kind: ConditionKind, value: Value, order: readonly string[]): string | undefined {
   if (kind === "boolean") return booleanText(value);

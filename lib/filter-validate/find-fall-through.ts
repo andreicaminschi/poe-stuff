@@ -15,65 +15,60 @@ type Hit = {
   readonly item: FilterItem;
 };
 
-function group(hits: readonly Hit[], bucket: Bucket): readonly PathPair[] {
-  const pairs = new Map<string, PathPair>();
-  for (const { own, other, item } of hits.filter((hit) => hit.bucket === bucket)) {
-    const otherPath = other === undefined ? "" : pathOf(other);
-    const id = `${pathOf(own)}\n${otherPath}`;
-    const entry = pairs.get(id);
-    pairs.set(
-      id,
-      entry === undefined
-        ? { own: pathOf(own), other: otherPath, count: 1, example: { ownKey: own.key, otherKey: other?.key ?? "", item } }
-        : { ...entry, count: entry.count + 1 },
-    );
-  }
-  return [...pairs.values()].sort((a, b) => b.count - a.count);
-}
-
-type Blind = { readonly row: SampleRow; readonly block: FilterBlock; readonly property: string; readonly item: FilterItem };
-
-function groupBlind(blinds: readonly Blind[]): readonly BlindGroup[] {
-  const groups = new Map<string, BlindGroup>();
-  for (const { row, block, property, item } of blinds) {
-    const id = `${pathOf(row)}\n${property}`;
-    const entry = groups.get(id);
-    groups.set(
-      id,
-      entry === undefined
-        ? {
-            path: pathOf(row),
-            property,
-            count: 1,
-            example: { key: row.key, variant: block.freehand.split(" ").slice(1).join(" "), item },
-          }
-        : { ...entry, count: entry.count + 1 },
-    );
+/** One group per id, counted, the first entry's shape kept, most counted first. */
+function tally<T, G extends { readonly count: number }>(
+  entries: readonly T[],
+  idOf: (entry: T) => string,
+  groupOf: (entry: T) => G,
+): readonly G[] {
+  const groups = new Map<string, G>();
+  for (const entry of entries) {
+    const id = idOf(entry);
+    const earlier = groups.get(id);
+    groups.set(id, earlier === undefined ? groupOf(entry) : { ...earlier, count: earlier.count + 1 });
   }
   return [...groups.values()].sort((a, b) => b.count - a.count);
 }
 
-type Rejected = { readonly row: SampleRow; readonly block: FilterBlock; readonly reject: string; readonly item: FilterItem };
+const otherPathOf = (other: SampleRow | undefined): string => (other === undefined ? "" : pathOf(other));
 
-function groupRejected(rejected: readonly Rejected[]): readonly RejectedGroup[] {
-  const groups = new Map<string, RejectedGroup>();
-  for (const { row, block, reject, item } of rejected) {
-    const id = `${pathOf(row)}\n${reject}`;
-    const entry = groups.get(id);
-    groups.set(
-      id,
-      entry === undefined
-        ? {
-            path: pathOf(row),
-            reject,
-            count: 1,
-            example: { key: row.key, variant: block.freehand.split(" ").slice(1).join(" "), item },
-          }
-        : { ...entry, count: entry.count + 1 },
-    );
-  }
-  return [...groups.values()].sort((a, b) => b.count - a.count);
-}
+const group = (hits: readonly Hit[], bucket: Bucket): readonly PathPair[] =>
+  tally(
+    hits.filter((hit) => hit.bucket === bucket),
+    ({ own, other }) => `${pathOf(own)}\n${otherPathOf(other)}`,
+    ({ own, other, item }) => ({
+      own: pathOf(own),
+      other: otherPathOf(other),
+      count: 1,
+      example: { ownKey: own.key, otherKey: other?.key ?? "", item },
+    }),
+  );
+
+type Flagged = { readonly row: SampleRow; readonly block: FilterBlock; readonly item: FilterItem };
+
+const exampleOf = ({ row, block, item }: Flagged) => ({
+  key: row.key,
+  variant: block.freehand.split(" ").slice(1).join(" "),
+  item,
+});
+
+type Blind = Flagged & { readonly property: string };
+
+const groupBlind = (blinds: readonly Blind[]): readonly BlindGroup[] =>
+  tally(
+    blinds,
+    ({ row, property }) => `${pathOf(row)}\n${property}`,
+    (blind) => ({ path: pathOf(blind.row), property: blind.property, count: 1, example: exampleOf(blind) }),
+  );
+
+type Rejected = Flagged & { readonly reject: string };
+
+const groupRejected = (rejected: readonly Rejected[]): readonly RejectedGroup[] =>
+  tally(
+    rejected,
+    ({ row, reject }) => `${pathOf(row)}\n${reject}`,
+    (one) => ({ path: pathOf(one.row), reject: one.reject, count: 1, example: exampleOf(one) }),
+  );
 
 function isCatchAll(categories: SampleCategories, own: SampleRow, other: SampleRow): boolean {
   return other.category === own.category && categories[pathOf(other)]?.catchAll === true;

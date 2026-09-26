@@ -19,7 +19,6 @@ export type Skip = { readonly key: string; readonly variant?: string; readonly p
 
 export type Compiled = { readonly text: string; readonly blocks: number; readonly skipped: readonly Skip[] };
 
-/** Subcategories by `order`, unordered next, the catch-all last. */
 function recordOf(categories: CategoryRecords, row: CompileRow) {
   return row.subcategory === null ? undefined : categories[`${row.category}/${row.subcategory}`];
 }
