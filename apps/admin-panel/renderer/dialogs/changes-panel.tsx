@@ -1,25 +1,17 @@
 import { useMemo } from "react";
 import type { Draft } from "../../api/taxonomy/types.ts";
+import { FieldChanges } from "../components/field-changes.tsx";
 import { Modal } from "../components/modal.tsx";
 import { useSession } from "../session-store.ts";
 import { displayName } from "../utils/display-name.ts";
-import { fieldDiff, type FieldChange } from "../utils/field-diff.ts";
+import { fieldDiff } from "../utils/field-diff.ts";
 import { replayLedger } from "../utils/replay-ledger.ts";
 
-function Diff({ changes }: { readonly changes: readonly FieldChange[] }) {
-  if (changes.length === 0) return <p className="note">No field changed.</p>;
+/** What a ledger entry did to a category: deleted it, created it, or edited it. */
+function categoryChangeLabel(before: Draft | undefined, path: string, deleted: boolean): string {
+  if (deleted) return "deleted";
 
-  return (
-    <div className="diff">
-      {changes.map((change) => (
-        <div className="diff-row" key={change.field}>
-          <span className="faint">{change.field}</span>
-          <span className="mono old">{change.before}</span>
-          <span className="mono new">{change.after}</span>
-        </div>
-      ))}
-    </div>
-  );
+  return before?.categories[path] === undefined ? "new category" : "category";
 }
 
 export function ChangesPanel() {
@@ -50,7 +42,7 @@ export function ChangesPanel() {
                 <span>{displayName(item)}</span>
                 <span className="mono faint">{key}</span>
               </button>
-              <Diff changes={fieldDiff(before?.items[key], item)} />
+              <FieldChanges changes={fieldDiff(before?.items[key], item)} />
             </div>
           ))}
           {Object.entries(entry.changes.categories ?? {}).map(([path, category]) => (
@@ -64,19 +56,13 @@ export function ChangesPanel() {
                 }}
               >
                 <span className="mono">{path}</span>
-                <span className="faint">{categoryLabel(before, path, category === null)}</span>
+                <span className="faint">{categoryChangeLabel(before, path, category === null)}</span>
               </button>
-              <Diff changes={fieldDiff(before?.categories[path], category)} />
+              <FieldChanges changes={fieldDiff(before?.categories[path], category)} />
             </div>
           ))}
         </div>
       ))}
     </Modal>
   );
-}
-
-function categoryLabel(before: Draft | undefined, path: string, deleted: boolean): string {
-  if (deleted) return "deleted";
-
-  return before?.categories[path] === undefined ? "new category" : "category";
 }

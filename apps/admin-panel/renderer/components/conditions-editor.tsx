@@ -11,6 +11,7 @@ import { formatCondition } from "../utils/format-condition.ts";
 import { kindOf } from "../utils/kind-of.ts";
 import { originText } from "../utils/origin-text.ts";
 import { ComboBox } from "./combo-box.tsx";
+import { RemoveButton } from "./remove-button.tsx";
 import { ValueEditor } from "./value-editor.tsx";
 
 const OPERATORS = ["==", "=", "!=", "!", "<", "<=", ">", ">="];
@@ -115,11 +116,111 @@ export function ConditionsEditor({
   const disabled = onChange === undefined;
   const replace = (index: number, next: Condition) =>
     onChange?.(own.map((condition, at) => (at === index ? next : condition)));
+  const removeAt = (...indexes: readonly number[]) => () =>
+    onChange?.(own.filter((_, at) => !indexes.includes(at)));
   const allNames = conditionOptions(names, "").map((value) => ({ value }));
+
+  const nameBox = (value: string, rename: (name: string) => void) => (
+    <ComboBox
+      ariaLabel="Condition"
+      placeholder="Condition"
+      value={value}
+      options={allNames}
+      disabled={disabled}
+      onChange={rename}
+    />
+  );
+
+  /** A `>=` and `<=` pair on one number, edited as one "between" row. */
+  const betweenRow = ({ low, high, from, to }: { low: number; high: number; from: Condition; to: Condition }) => (
+    <div className="crow own" key={`between ${low} ${high}`}>
+      {nameBox(from.condition, (name) =>
+        onChange?.(own.map((condition, at) => (at === low || at === high ? { ...condition, condition: name } : condition))),
+      )}
+      <select
+        className="mono"
+        value={BETWEEN}
+        disabled={disabled}
+        onChange={(event) => onChange?.(fromBetween(own, low, high, event.target.value))}
+      >
+        {[...OPERATORS, BETWEEN].map((operator) => (
+          <option key={operator} value={operator}>
+            {operator}
+          </option>
+        ))}
+      </select>
+      <span className="faint">number</span>
+      <div className="between">
+        <ValueEditor condition={from} disabled={disabled} onChange={(next) => replace(low, next)} />
+        <span className="faint">to</span>
+        <ValueEditor condition={to} disabled={disabled} onChange={(next) => replace(high, next)} />
+      </div>
+      <RemoveButton disabled={disabled} onRemove={removeAt(low, high)} />
+    </div>
+  );
+
+  /** A Rarity condition, edited as one checkbox per rarity. */
+  const rarityRow = (index: number, condition: Condition) => (
+    <div className="crow own" key={index}>
+      {nameBox(condition.condition, (name) => replace(index, renamed(condition, name)))}
+      <span className="mono faint">==</span>
+      <span className="faint">rarity</span>
+      <RarityValue
+        value={raritySet(condition)}
+        disabled={disabled}
+        onChange={(value) => replace(index, { condition: condition.condition, operator: "==", value })}
+      />
+      <RemoveButton disabled={disabled} onRemove={removeAt(index)} />
+    </div>
+  );
+
+  /** Any other condition: name, operator, kind of value, value. */
+  const singleRow = (index: number, condition: Condition) => (
+    <div className={`crow own${kindOf(condition) === "remove" ? " removed" : ""}`} key={index}>
+      {nameBox(condition.condition, (name) => replace(index, renamed(condition, name)))}
+      <select
+        className="mono"
+        value={condition.operator ?? "=="}
+        disabled={disabled}
+        onChange={(event) =>
+          event.target.value === BETWEEN
+            ? onChange?.(toBetween(own, index))
+            : replace(index, { ...condition, operator: event.target.value })
+        }
+      >
+        {(numericCondition(condition.condition) ? [...OPERATORS, BETWEEN] : OPERATORS).map((operator) => (
+          <option key={operator} value={operator}>
+            {operator}
+          </option>
+        ))}
+      </select>
+      <select
+        value={kindOf(condition)}
+        title={HINTS[kindOf(condition)] ?? ""}
+        disabled={disabled}
+        onChange={(event) => replace(index, withKind(condition, event.target.value as Kind))}
+      >
+        {kindsFor(condition).map(([kind, label]) => (
+          <option key={kind} value={kind} title={HINTS[kind] ?? ""}>
+            {label}
+          </option>
+        ))}
+      </select>
+      <ValueEditor
+        condition={condition}
+        disabled={disabled}
+        onChange={(next) => replace(index, next)}
+        {...(row === undefined ? {} : { row })}
+        {...(valueOptions?.[condition.condition] === undefined
+          ? {}
+          : { options: valueOptions[condition.condition] as readonly ValueOption[] })}
+      />
+      <RemoveButton disabled={disabled} onRemove={removeAt(index)} />
+    </div>
+  );
 
   return (
     <div className="conditions">
-
       <div className="clevel">
         <div className="cap">
           <span>Added here</span>
@@ -136,151 +237,11 @@ export function ConditionsEditor({
         </div>
         {own.length === 0 ? <p className="note">None.</p> : null}
         {betweenRows(own).map((entry) => {
-          if (entry.kind === "between") {
-            const { low, high, from, to } = entry;
-            return (
-              <div className="crow own" key={`between ${low} ${high}`}>
-                <ComboBox
-                  ariaLabel="Condition"
-                  placeholder="Condition"
-                  value={from.condition}
-                  options={allNames}
-                  disabled={disabled}
-                  onChange={(name) =>
-                    onChange?.(own.map((condition, at) => (at === low || at === high ? { ...condition, condition: name } : condition)))
-                  }
-                />
-                <select
-                  className="mono"
-                  value={BETWEEN}
-                  disabled={disabled}
-                  onChange={(event) => onChange?.(fromBetween(own, low, high, event.target.value))}
-                >
-                  {[...OPERATORS, BETWEEN].map((operator) => (
-                    <option key={operator} value={operator}>
-                      {operator}
-                    </option>
-                  ))}
-                </select>
-                <span className="faint">number</span>
-                <div className="between">
-                  <ValueEditor condition={from} disabled={disabled} onChange={(next) => replace(low, next)} />
-                  <span className="faint">to</span>
-                  <ValueEditor condition={to} disabled={disabled} onChange={(next) => replace(high, next)} />
-                </div>
-                {disabled ? (
-                  <span />
-                ) : (
-                  <button
-                    type="button"
-                    className="btn icon"
-                    title="Delete"
-                    onClick={() => onChange(own.filter((_, at) => at !== low && at !== high))}
-                  >
-                    ×
-                  </button>
-                )}
-              </div>
-            );
+          if (entry.kind === "between") return betweenRow(entry);
+          if (isRarity(entry.condition.condition) && entry.condition.value !== null) {
+            return rarityRow(entry.index, entry.condition);
           }
-
-          const { index, condition } = entry;
-          if (isRarity(condition.condition) && condition.value !== null) {
-            return (
-              <div className="crow own" key={index}>
-                <ComboBox
-                  ariaLabel="Condition"
-                  placeholder="Condition"
-                  value={condition.condition}
-                  options={allNames}
-                  disabled={disabled}
-                  onChange={(name) => replace(index, renamed(condition, name))}
-                />
-                <span className="mono faint">==</span>
-                <span className="faint">rarity</span>
-                <RarityValue
-                  value={raritySet(condition)}
-                  disabled={disabled}
-                  onChange={(value) => replace(index, { condition: condition.condition, operator: "==", value })}
-                />
-                {disabled ? (
-                  <span />
-                ) : (
-                  <button
-                    type="button"
-                    className="btn icon"
-                    title="Delete"
-                    onClick={() => onChange(own.filter((_, at) => at !== index))}
-                  >
-                    ×
-                  </button>
-                )}
-              </div>
-            );
-          }
-
-          const numeric = numericCondition(condition.condition);
-          return (
-            <div className={`crow own${kindOf(condition) === "remove" ? " removed" : ""}`} key={index}>
-              <ComboBox
-                ariaLabel="Condition"
-                placeholder="Condition"
-                value={condition.condition}
-                options={allNames}
-                disabled={disabled}
-                onChange={(name) => replace(index, renamed(condition, name))}
-              />
-              <select
-                className="mono"
-                value={condition.operator ?? "=="}
-                disabled={disabled}
-                onChange={(event) =>
-                  event.target.value === BETWEEN
-                    ? onChange?.(toBetween(own, index))
-                    : replace(index, { ...condition, operator: event.target.value })
-                }
-              >
-                {(numeric ? [...OPERATORS, BETWEEN] : OPERATORS).map((operator) => (
-                  <option key={operator} value={operator}>
-                    {operator}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={kindOf(condition)}
-                title={HINTS[kindOf(condition)] ?? ""}
-                disabled={disabled}
-                onChange={(event) => replace(index, withKind(condition, event.target.value as Kind))}
-              >
-                {kindsFor(condition).map(([kind, label]) => (
-                  <option key={kind} value={kind} title={HINTS[kind] ?? ""}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-              <ValueEditor
-                condition={condition}
-                disabled={disabled}
-                onChange={(next) => replace(index, next)}
-                {...(row === undefined ? {} : { row })}
-                {...(valueOptions?.[condition.condition] === undefined
-                  ? {}
-                  : { options: valueOptions[condition.condition] as readonly ValueOption[] })}
-              />
-              {disabled ? (
-                <span />
-              ) : (
-                <button
-                  type="button"
-                  className="btn icon"
-                  title="Delete"
-                  onClick={() => onChange(own.filter((_, at) => at !== index))}
-                >
-                  ×
-                </button>
-              )}
-            </div>
-          );
+          return singleRow(entry.index, entry.condition);
         })}
       </div>
 
