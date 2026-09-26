@@ -80,7 +80,6 @@ export function VersionBar() {
       <button
         type="button"
         className="btn"
-        disabled={busy || current?.editable !== true}
         onClick={() => void validateFilter()}
       >
         Validate filter
