@@ -45,16 +45,16 @@ export function parseState(header: string | null): RateLimitState[] {
  * `retry-after` — RFC 7231 allows either a count of seconds or an HTTP date, so both are
  * accepted. `now` is passed in rather than read off the clock to keep this pure; the date
  * form is only ever as accurate as the agreement between our clock and theirs.
- * Returns 0 for anything unusable, which callers read as "no duration given".
+ * Returns undefined for anything unusable, which callers read as "no duration given".
  */
-export function parseRetryAfter(header: string | null, now: number): number {
-  if (header === null || header === "") return 0;
+export function parseRetryAfter(header: string | null, now: number): number | undefined {
+  if (header === null || header.trim() === "") return undefined;
 
   const seconds = Number(header);
   if (Number.isFinite(seconds)) return Math.max(0, seconds);
 
   const deadline = Date.parse(header);
-  if (Number.isNaN(deadline)) return 0;
+  if (Number.isNaN(deadline)) return undefined;
 
   // Round up: waking a fraction of a second early puts us back inside the ban.
   return Math.max(0, Math.ceil((deadline - now) / 1000));
@@ -64,9 +64,10 @@ function parseTriples(header: string | null): [number, number, number][] {
   if (header === null || header === "") return [];
 
   return header.split(",").flatMap((part) => {
-    const [a, b, c] = part.split(":").map(Number);
-    // Number("") is 0 rather than NaN, so a short triple has to be caught by arity
-    // before the finite check gets a say.
+    const fields = part.split(":");
+    // Number("") is 0, not NaN.
+    if (fields.length !== 3 || fields.some((field) => field.trim() === "")) return [];
+    const [a, b, c] = fields.map(Number);
     if (a === undefined || b === undefined || c === undefined) return [];
     if (!Number.isFinite(a) || !Number.isFinite(b) || !Number.isFinite(c)) {
       return [];

@@ -137,7 +137,7 @@ export const useSession = create<Session>()((set, get) => {
   };
 
   const checkedState = (checked: readonly string[]): Partial<Session> =>
-    checked.length === 1 ? { checked, selectedKey: checked[0] } : { checked };
+    checked.length <= 1 ? { checked, selectedKey: checked[0] } : { checked };
 
   const mark = (id: string, state: BootState, detail?: string): void =>
     set((current) => ({
@@ -198,7 +198,10 @@ export const useSession = create<Session>()((set, get) => {
       set({ booting: true, bootSteps: BOOT_STEPS });
 
       const list = await bootStep("versions", loadVersions, (versions) => countOf(versions.versions.length, "versions"));
-      if (list === undefined) return;
+      if (list === undefined) {
+        set({ booting: false });
+        return;
+      }
 
       const id = list.versions.find((version) => version.editable)?.id ?? list.current ?? list.versions[0]?.id;
       set({ versionId: id });
@@ -214,7 +217,10 @@ export const useSession = create<Session>()((set, get) => {
           },
           (saved) => `${id}, ${countOf(saved, "saved edits")}`,
         );
-        if (loaded === undefined) return;
+        if (loaded === undefined) {
+          set({ booting: false });
+          return;
+        }
       }
 
       const [listings, exchange, corruptions] = await Promise.all([
@@ -394,7 +400,9 @@ export const useSession = create<Session>()((set, get) => {
         await append("delete-category", { categories: { [path]: null } });
         set((state) => ({
           status: `Deleted ${path}.`,
-          ...(state.selection === path ? { selection: undefined, selectedKey: undefined, checked: [] } : {}),
+          ...(state.selection === path || state.selection?.startsWith(`${path}/`) === true
+            ? { selection: undefined, selectedKey: undefined, checked: [] }
+            : {}),
         }));
       }),
 

@@ -29,5 +29,5 @@ export async function getCompactData(
     context,
   );
 
-  return body.items;
+  return body.items ?? [];
 }

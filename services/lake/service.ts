@@ -1,12 +1,19 @@
 import { constants } from "node:fs";
 import { access, mkdir, readdir, readFile, rename, rm, writeFile } from "node:fs/promises";
-import { dirname, join } from "node:path";
+import { randomUUID } from "node:crypto";
+import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import type { Lake, LakeServiceOptions } from "./types.ts";
 
 const serialise = (value: unknown): string => `${JSON.stringify(value, undefined, 2)}\n`;
 
 export function createLakeService({ root = ".s3" }: LakeServiceOptions = {}): Lake {
-  const pathOf = (key: string) => join(root, ...key.split("/"));
+  const base = resolve(root);
+  const pathOf = (key: string) => {
+    const path = join(root, ...key.split("/"));
+    const rel = relative(base, resolve(path));
+    if (rel === ".." || rel.startsWith(`..${sep}`) || isAbsolute(rel)) throw new Error(`Lake key escapes root: ${key}`);
+    return path;
+  };
 
   const write = async (path: string, value: unknown): Promise<void> => {
     await mkdir(dirname(path), { recursive: true });
@@ -22,7 +29,7 @@ export function createLakeService({ root = ".s3" }: LakeServiceOptions = {}): La
 
     async writeJsonAtomic(key, value) {
       const path = pathOf(key);
-      const temp = `${path}.tmp-${process.pid}`;
+      const temp = `${path}.tmp-${process.pid}-${randomUUID()}`;
       await write(temp, value);
       await rename(temp, path);
     },
@@ -39,8 +46,10 @@ export function createLakeService({ root = ".s3" }: LakeServiceOptions = {}): La
     async list(prefix) {
       try {
         return await readdir(pathOf(prefix));
-      } catch {
-        return [];
+      } catch (error) {
+        const code = (error as NodeJS.ErrnoException).code;
+        if (code === "ENOENT" || code === "ENOTDIR") return [];
+        throw error;
       }
     },
 

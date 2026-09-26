@@ -19,6 +19,7 @@ function gambleOf(outcomes: readonly UniqueListing[] | undefined, take: number):
 }
 
 function fromList(worth: Worth, list: readonly UniqueListing[]): Prices {
+  if (list.length === 0) return {};
   const prices = list.map(priceOf);
   const take = Math.min(...prices);
   const check = Math.max(...prices);

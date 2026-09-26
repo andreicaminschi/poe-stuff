@@ -13,13 +13,21 @@ export async function publishCatalog(
     throw new Error(`Run ${runId} has no finished gold stage. Build it first.`);
   }
 
-  const keys: string[] = [];
-
-  for (const file of Object.values(GOLD_FILES)) {
-    const key = latestKey(league, file);
-    await lake.writeJsonAtomic(key, await lake.readJson<unknown>(goldKey(runId, file)));
-    keys.push(key);
+  if (manifest.league !== league) {
+    throw new Error(`Run ${runId} is for ${manifest.league}, not ${league}.`);
   }
+
+  const files = Object.values(GOLD_FILES);
+  const bodies = await Promise.all(
+    files.map(async (file) => {
+      const key = goldKey(runId, file);
+      if (!(await lake.exists(key))) throw new Error(`Run ${runId} is missing ${key}.`);
+      return lake.readJson<unknown>(key);
+    }),
+  );
+
+  const keys = files.map((file) => latestKey(league, file));
+  for (const [index, key] of keys.entries()) await lake.writeJsonAtomic(key, bodies[index]);
 
   return keys;
 }

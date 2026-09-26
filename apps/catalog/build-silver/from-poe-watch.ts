@@ -52,7 +52,11 @@ const field = (listing: ItemData, key: string): unknown =>
     : (listing as unknown as Readonly<Record<string, unknown>>)[key];
 
 const matches = (listing: ItemData, selector: ListingMatch): boolean =>
-  Object.entries(selector).every(([key, value]) => field(listing, key) === value);
+  Object.entries(selector).every(([key, value]) =>
+    key === "name" && typeof value === "string"
+      ? listingKey(listing.name) === listingKey(value)
+      : field(listing, key) === value,
+  );
 
 /** The most listed, ties to the higher mean. */
 const mostListed = <T extends { readonly daily: number; readonly mean: number }>(
@@ -175,14 +179,25 @@ export function fromPoeWatch(
         return best === undefined || chosen.mean > best.mean ? chosen : best;
       }, undefined);
 
+    const sale = queriesOf(item.listing)
+      .filter((query) => query === undefined || Object.keys(query).every((key) => key === "name"))
+      .flatMap((query) => {
+        const name = query?.name ?? item.name;
+        const found = exchange.get(name);
+        return found === undefined ? [] : [{ ...found, name }];
+      })
+      .reduce<{ id: number; chaos: number; lowConfidence: boolean; name: string } | undefined>(
+        (best, one) => (best === undefined || one.chaos > best.chaos ? one : best),
+        undefined,
+      );
+
     if (item.variants === undefined) {
-      const sale = exchange.get(rowName);
       if (sale !== undefined) {
         return {
           ...item,
           meanPrice: sale.chaos,
           lowConfidence: sale.lowConfidence,
-          poeWatch: { source: "poeWatch:exchange", id: sale.id, name: rowName },
+          poeWatch: { source: "poeWatch:exchange", id: sale.id, name: sale.name },
         };
       }
 

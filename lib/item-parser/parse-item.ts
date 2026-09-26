@@ -60,11 +60,13 @@ export function parseItem(text: string): ParsedItem {
     }
 
     if (lines[0] === REQUIREMENTS) {
+      const unread: string[] = [];
       for (const line of lines.slice(1)) {
         const property = parseProperty(line);
         if (property !== undefined) requirements.push(property);
-        else flags.push(line);
+        else unread.push(line);
       }
+      if (unread.length > 0) extraSections.push(unread);
       continue;
     }
 
@@ -79,6 +81,7 @@ export function parseItem(text: string): ParsedItem {
       }
     }
 
+    const prose: string[] = [];
     for (const line of lines) {
       const property = parseProperty(line);
 
@@ -90,8 +93,10 @@ export function parseItem(text: string): ParsedItem {
 
       const suffixed = suffixedMod(line);
       if (suffixed !== undefined) mods.push(suffixMod(suffixed.text, suffixed.kind));
-      else flags.push(line);
+      else if (isFlagLine(line)) flags.push(line);
+      else prose.push(line);
     }
+    if (prose.length > 0) extraSections.push(prose);
   }
 
   return { ...parseHeader(sections[0] ?? []), properties, requirements, sockets, mods, flags, extraSections, issues };

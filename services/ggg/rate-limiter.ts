@@ -1,4 +1,3 @@
-import { sleep } from "@util/cache/sleep";
 import type {
   RateLimiter,
   RateLimiterRule,
@@ -131,6 +130,20 @@ export function createLimiter(
     return Math.max(NO_WAIT, last + spacing - now);
   }
 
+  let wake: (() => void) | undefined;
+
+  function nap(ms: number): Promise<void> {
+    return new Promise<void>((resolve) => {
+      const done = () => {
+        clearTimeout(timer);
+        wake = undefined;
+        resolve();
+      };
+      const timer = setTimeout(done, ms);
+      wake = done;
+    });
+  }
+
   async function take(): Promise<void> {
     for (;;) {
       const now = Date.now();
@@ -165,7 +178,7 @@ export function createLimiter(
       }
 
       if (wait > NO_WAIT) {
-        await sleep(wait);
+        await nap(wait);
         continue;
       }
 
@@ -195,6 +208,7 @@ export function createLimiter(
     setRules(next: RateLimiterRule[]) {
       assertRules(next);
       rules = next;
+      wake?.();
     },
     observe(state: RateLimitState[]) {
       const now = Date.now();

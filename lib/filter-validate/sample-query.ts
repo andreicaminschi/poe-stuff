@@ -13,7 +13,7 @@ const WORDED: Readonly<Record<string, (value: unknown) => string | undefined>> =
 function part(rowName: string, name: string, value: unknown): string | undefined {
   const worded = WORDED[name];
   if (worded !== undefined) return worded(value);
-  if (name === "BaseType" && Array.isArray(value) && value.join(" ") === rowName) return undefined;
+  if (name === "BaseType" && (Array.isArray(value) ? value.join(" ") : value) === rowName) return undefined;
   if (Array.isArray(value)) return value.length === 0 ? undefined : `${name} ${value.join(" ")}`;
 
   return `${name} ${String(value)}`;

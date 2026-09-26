@@ -86,7 +86,7 @@ function nextManualVariants(
 
   for (const { key, variants } of items) {
     if (sameVariants(manual[key] ?? seeded[key], variants)) continue;
-    if (variants.length === 0 || sameVariants(seeded[key], variants)) delete next[key];
+    if (sameVariants(seeded[key], variants)) delete next[key];
     else next[key] = variants;
   }
 

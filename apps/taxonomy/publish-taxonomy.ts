@@ -17,13 +17,8 @@ export async function publishTaxonomy(
   const registry = await readRegistry(lake);
   assertPublishable(registry, version);
 
+  // Draft registry: leftovers, overwrite.
   const keys = [categoriesKey(version), versionKey(version)] as const;
-
-  for (const key of keys) {
-    if (await lake.exists(key)) {
-      throw new Error(`${key} already exists. A published version is never rewritten.`);
-    }
-  }
 
   let rowsLeftOut = 0;
   let variantsLeftOut = 0;

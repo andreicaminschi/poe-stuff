@@ -110,6 +110,11 @@ export async function runPipeline(
 ): Promise<Manifest> {
   const { lake, runId, league, hourId } = context;
 
+  const unknown = [...force].filter((source) => !SOURCES.includes(source));
+  if (unknown.length > 0) {
+    throw new Error(`Unknown source in force: ${unknown.join(", ")}. Known: ${SOURCES.join(", ")}`);
+  }
+
   let manifest = (await readManifest(lake, runId)) ?? {
     runId,
     league,

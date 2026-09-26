@@ -22,6 +22,15 @@ export type Form = {
 
 const number = (value: number | null | undefined): number | undefined => (value === null ? undefined : value);
 
+const gemKeys = (listing: ItemData): Pick<Form, "gemLevel" | "gemQuality" | "gemIsCorrupted"> =>
+  Object.fromEntries(
+    Object.entries({
+      gemLevel: "gemLevel" in listing ? listing.gemLevel : undefined,
+      gemQuality: "gemQuality" in listing ? listing.gemQuality : undefined,
+      gemIsCorrupted: "gemIsCorrupted" in listing ? listing.gemIsCorrupted : undefined,
+    }).filter(([, value]) => value !== undefined && value !== null),
+  );
+
 function toForm(listing: ItemData): Form {
   const query = listingQuery(listing);
   const itemLevel = number(listing.itemLevel);
@@ -33,9 +42,7 @@ function toForm(listing: ItemData): Form {
     frame: listing.frame,
     ...(itemLevel === undefined ? {} : { itemLevel }),
     ...(linkCount === undefined ? {} : { linkCount }),
-    ...(listing.category === "gem"
-      ? { gemLevel: listing.gemLevel, gemQuality: listing.gemQuality, gemIsCorrupted: listing.gemIsCorrupted }
-      : {}),
+    ...(listing.category === "gem" ? gemKeys(listing) : {}),
     ...(mapTier === undefined ? {} : { mapTier }),
     influences: listing.influences === "" ? [] : listing.influences.split(","),
     synthesised: query.synthesised === true,

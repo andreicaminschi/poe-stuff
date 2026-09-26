@@ -65,7 +65,7 @@ export const useSession = create<Session>((set, get) => ({
   editCategory(change) {
     const { config, category } = get();
     if (config === undefined || category === undefined) return;
-    set({ config: change(config, category) });
+    set({ config: change(config, category), status: undefined });
   },
 
   toggleTier(tier) {
@@ -88,11 +88,12 @@ export const useSession = create<Session>((set, get) => ({
     const own = categoryConfig(config, category).floors !== undefined;
     const stack = catalog.categories[category]?.tiering === "stack-size";
     if (!own && !stack) {
-      set({ config: { ...config, floors: { ...config.floors, [tier]: value } } });
+      set({ config: { ...config, floors: { ...config.floors, [tier]: value } }, status: undefined });
       return;
     }
     set({
       config: withCategory(config, category, (one) => ({ ...one, floors: { ...(one.floors ?? STACK_FLOORS), [tier]: value } })),
+      status: undefined,
     });
   },
 
@@ -117,7 +118,7 @@ export const useSession = create<Session>((set, get) => ({
       await window.generator.saveConfig(config);
       set({ saved: config, status: "Config saved." });
     } catch (error) {
-      set({ error: message(error) });
+      set({ error: message(error), status: undefined });
     } finally {
       set({ busy: false });
     }
@@ -134,7 +135,7 @@ export const useSession = create<Session>((set, get) => ({
       const skipped = written.skipped.length === 0 ? "" : `, ${written.skipped.length} skipped`;
       if ("path" in saved) set({ status: `Wrote ${written.blocks.length} blocks${skipped} to ${saved.path}` });
     } catch (error) {
-      set({ error: message(error) });
+      set({ error: message(error), status: undefined });
     } finally {
       set({ busy: false });
     }

@@ -36,11 +36,15 @@ function conditionProblem(value: unknown): string | null {
     return "condition must be a non-empty string";
   }
 
+  if (CONDITIONS_BY_LOWER.get(String(value.condition).toLowerCase()) !== value.condition) {
+    return `"${String(value.condition)}" is not a filter condition`;
+  }
+
   if (value.operator !== undefined && !isText(value.operator)) {
     return "operator must be a non-empty string when it is present";
   }
 
-  const hasValue = "value" in value;
+  const hasValue = value.value !== undefined;
   const hasFrom = value.from !== undefined;
 
   if (hasValue && hasFrom) {

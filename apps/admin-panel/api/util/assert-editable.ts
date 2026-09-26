@@ -5,7 +5,8 @@ import { toVersionList } from "../taxonomy/getVersions.api.ts";
 type Registry = Parameters<typeof toVersionList>[0];
 
 export async function assertEditable(lake: Lake, id: string): Promise<void> {
-  const list = toVersionList(await lake.readJson<Registry>(registryKey()), undefined);
+  const registry = (await lake.exists(registryKey())) ? await lake.readJson<Registry>(registryKey()) : { next: 1, versions: {} };
+  const list = toVersionList(registry, undefined);
   const version = list.versions.find((candidate) => candidate.id === id);
 
   if (version?.editable !== true) {

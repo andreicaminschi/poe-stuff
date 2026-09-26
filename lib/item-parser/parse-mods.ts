@@ -58,7 +58,8 @@ export function parseModHeader(line: string): ModHeader {
     .split(/\s+/)
     .filter((word) => word !== "" && word !== KIND_WORD);
 
-  const affix = words.map((word) => AFFIX_WORDS[word.toLowerCase()]).find((found) => found !== undefined);
+  const affixes = words.flatMap((word) => AFFIX_WORDS[word.toLowerCase()] ?? []);
+  const affix = new Set(affixes).size === 1 ? affixes[0] : undefined;
 
   return {
     raw,

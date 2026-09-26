@@ -20,10 +20,8 @@ export type Skip = { readonly key: string; readonly variant?: string; readonly p
 export type Compiled = { readonly text: string; readonly blocks: number; readonly skipped: readonly Skip[] };
 
 /** Subcategories by `order`, unordered next, the catch-all last. */
-function rankOf(categories: CategoryRecords, row: CompileRow): number {
-  const record = row.subcategory === null ? undefined : categories[`${row.category}/${row.subcategory}`];
-  if (record?.catchAll === true) return Number.MAX_VALUE;
-  return record?.order ?? Number.MAX_SAFE_INTEGER;
+function recordOf(categories: CategoryRecords, row: CompileRow) {
+  return row.subcategory === null ? undefined : categories[`${row.category}/${row.subcategory}`];
 }
 
 /** Rows in category order, each category's subcategories ranked, every catch-all last. */
@@ -34,15 +32,16 @@ function orderRows(rows: readonly CompileRow[], categories: CategoryRecords): re
   });
   return rows
     .map((row, index) => {
-      const rank = rankOf(categories, row);
-      const category = rank === Number.MAX_VALUE ? Number.MAX_VALUE : (firstSeen.get(row.category) ?? 0);
+      const record = recordOf(categories, row);
+      const rank = record?.order ?? Number.MAX_SAFE_INTEGER;
+      const category = record?.catchAll === true ? Number.MAX_VALUE : (firstSeen.get(row.category) ?? 0);
       return { row, index, category, rank };
     })
     .sort((a, b) => a.category - b.category || a.rank - b.rank || a.index - b.index)
     .map(({ row }) => row);
 }
 
-type Block = { readonly text: string } | { readonly problem: string } | null;
+type Block = { readonly text: string } | { readonly problem: string };
 
 function blockOf(row: CompileRow, form: Form): Block {
   const [first] = form.problems;
@@ -98,8 +97,6 @@ export function compileFilter(rows: readonly CompileRow[], categories: CategoryR
 
     for (const form of forms) {
       const block = blockOf(row, form);
-
-      if (block === null) continue;
 
       if ("problem" in block) {
         skipped.push({ key: row.key, ...(form.variant === undefined ? {} : { variant: form.variant }), problem: block.problem });

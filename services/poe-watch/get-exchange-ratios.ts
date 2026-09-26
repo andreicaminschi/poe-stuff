@@ -17,10 +17,10 @@ export async function getExchangeRatios(
   context: PoeWatchContext,
 ): Promise<readonly ExchangeRatioItem[]> {
   const body = await call<ExchangeRatiosResponse>(
-    `${context.baseUrl}/exchange/ratios?league=${encodeURIComponent(league)}&game=${game}`,
+    `${context.baseUrl}/exchange/ratios?league=${encodeURIComponent(league)}&game=${encodeURIComponent(game)}`,
     currentHour(),
     context,
   );
 
-  return body.items;
+  return body.items ?? [];
 }

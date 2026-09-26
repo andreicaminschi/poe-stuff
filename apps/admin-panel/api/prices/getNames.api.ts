@@ -38,7 +38,7 @@ export async function getCorruptionNames(poeWatch: PoeWatchService, league: stri
     if (name === undefined) continue;
 
     for (const outcome of item.corruptions) {
-      const key = `${name}\n\n${outcome.name}`;
+      const key = `${item.item_id}\n\n${outcome.name}`;
       const seen = best.get(key);
       if (seen === undefined || outcome.daily > seen.outcome.daily) best.set(key, { name, outcome });
     }

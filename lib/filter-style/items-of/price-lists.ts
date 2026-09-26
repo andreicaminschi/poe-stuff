@@ -9,7 +9,10 @@ export function priceLists(rows: readonly CatalogRow[]): ReadonlyMap<string, rea
   for (const row of rows) {
     for (const group of row.uniques ?? []) {
       const path = group.subcategory ?? "regular";
-      for (const baseType of row.baseTypes) lists.set(listKey(baseType, path), group.listings);
+      for (const baseType of row.baseTypes) {
+        const key = listKey(baseType, path);
+        lists.set(key, [...(lists.get(key) ?? []), ...group.listings]);
+      }
     }
   }
 

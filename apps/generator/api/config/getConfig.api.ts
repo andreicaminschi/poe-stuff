@@ -8,5 +8,13 @@ export async function getConfig(lake: Lake): Promise<GeneratorConfig> {
   if (!(await lake.exists(configKey()))) return DEFAULT_CONFIG;
 
   const saved = await lake.readJson<GeneratorConfig>(configKey());
-  return { ...saved, categories: { ...DEFAULT_CONFIG.categories, ...saved.categories } };
+  const categories = Object.fromEntries(
+    Object.entries(saved.categories ?? {}).map(([key, one]) => [key, { ...DEFAULT_CONFIG.categories[key], ...one }]),
+  );
+  return {
+    ...DEFAULT_CONFIG,
+    ...saved,
+    floors: { ...DEFAULT_CONFIG.floors, ...saved.floors },
+    categories: { ...DEFAULT_CONFIG.categories, ...categories },
+  };
 }

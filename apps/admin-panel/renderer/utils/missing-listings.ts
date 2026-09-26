@@ -9,6 +9,6 @@ export function missingListings(items: readonly Item[]): readonly string[] {
     .filter((item) => item.excluded !== true && item.quest !== true && item.unpriceable !== true)
     .flatMap((item) => [
       ...(unlisted(item) && item.variants.length === 0 ? [item.name] : []),
-      ...item.variants.filter(unlisted).map((variant) => `${item.name} / ${variant.name}`),
+      ...item.variants.filter((variant) => variant.unpriceable !== true && unlisted(variant)).map((variant) => `${item.name} / ${variant.name}`),
     ]);
 }

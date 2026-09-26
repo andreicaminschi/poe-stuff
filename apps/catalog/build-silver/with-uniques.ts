@@ -28,7 +28,7 @@ type FiledListing = UniqueListing & {
  * the tag, and the parentheses are the form.
  */
 const uniqueOf = (listing: string): string =>
-  listing.replace(/^Foulborn /, "").replace(/ \([^)]*\)$/, "");
+  listing.replace(/^Foulborn /, "").replace(/( \([^)]*\))+$/, "");
 
 /** The one with the most listings behind it, ties to the higher mean. */
 const mostListed = <T extends { readonly daily: number; readonly mean: number }>(

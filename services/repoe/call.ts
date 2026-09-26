@@ -1,5 +1,5 @@
 import { cacheKey } from "@util/cache/cache-key";
-import { RepoeHttpError } from "./errors.ts";
+import { RepoeHttpError, RepoeParseError } from "./errors.ts";
 import type { RepoeContext } from "./types.ts";
 
 /**
@@ -35,7 +35,9 @@ export async function call<T>(
 
   if (!response.ok) throw new RepoeHttpError(url, response.status);
 
-  const body = (await response.json()) as T;
+  const body = (await response.json().catch((cause: unknown) => {
+    throw new RepoeParseError(url, cause);
+  })) as T;
 
   if (cache && key) {
     await cache.set(key, {

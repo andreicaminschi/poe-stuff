@@ -17,7 +17,7 @@ export function toItemValue(name: ConditionName, value: unknown): unknown {
     return value.toLowerCase() === "none" ? [] : [value];
   }
   if (kind === "counted") return countedValue(value);
-  if (kind === "gem" && typeof value === "boolean") return value ? undefined : "";
+  if (kind === "gem" && typeof value === "boolean") return value ? "transfigured" : "";
   if (kind === "boolean") return typeof value === "boolean" ? value : undefined;
   if (kind === "numeric") return typeof value === "number" ? value : undefined;
   return typeof value === "string" ? value : undefined;

@@ -9,7 +9,12 @@ export function moveSubcategory(draft: Draft, from: string, to: Category): Subca
 
   if (category === undefined || subcategory === undefined) return { problem: `${from} is not a subcategory.` };
   if (nextCategory === undefined || nextSubcategory !== subcategory) return { problem: `${to.path} is not ${from} under another category.` };
-  if (draft.categories[to.path] !== undefined) return { problem: `${to.path} already exists.` };
+  const taken =
+    draft.categories[to.path] !== undefined ||
+    Object.values(draft.items).some(
+      (item) => item.classification.category === nextCategory && item.classification.subcategory === subcategory,
+    );
+  if (taken) return { problem: `${to.path} already exists.` };
 
   const items = Object.fromEntries(
     Object.values(draft.items)

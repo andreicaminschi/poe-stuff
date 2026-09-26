@@ -12,7 +12,7 @@ function reportQueries(report: UnfilteredReport): string {
   const lines = groupUnfiltered(report.rows).flatMap((group) =>
     group.rows.flatMap((row) => row.samples.map((item) => sampleQuery(row.name, item))),
   );
-  return `${lines.join("\r\n")}\r\n`;
+  return lines.map((line) => `${line}\r\n`).join("");
 }
 
 /** Writes the report as CSV, and one query per sample beside it. */

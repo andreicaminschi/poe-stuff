@@ -254,7 +254,7 @@ const parseCondition = (
     }
     case "numeric": {
       const value = requireOneValue(name, values, line);
-      if (value.trim() === "" || !Number.isFinite(Number(value))) {
+      if (!/^\d+$/.test(value)) {
         fail(line, `${name} takes a number, got ${JSON.stringify(value)}`);
       }
       break;
@@ -383,6 +383,8 @@ const parseNote = (
       fail(line, `${key} takes one of ${allowed.join(", ")}, got ${JSON.stringify(value)}`);
     }
 
+    if (pairs.some((pair) => pair.key === key)) fail(line, `note key ${JSON.stringify(key)} appears twice`);
+
     pairs.push({ key: key as ApplyKey, value, line });
   }
 
@@ -415,7 +417,8 @@ export function parseFilter(text: string): FilterBlock[] {
     if (!block.closed) {
       fail(at, `the block on line ${block.line} has no #@ note, and every block needs one`);
     }
-    blocks.push(block);
+    const { closed: _closed, ...done } = block;
+    blocks.push(done);
   };
 
   text.split(/\r?\n/).forEach((raw, index) => {

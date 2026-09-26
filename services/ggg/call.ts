@@ -228,12 +228,12 @@ function applyRateLimits(
       response.headers.get("retry-after"),
       Date.now(),
     );
-    const seconds = retryAfter || FALLBACK_BAN_SECONDS;
+    const seconds = retryAfter ?? FALLBACK_BAN_SECONDS;
     limiter.penalize(seconds);
     onEvent({
       type: "penalize",
       seconds,
-      source: retryAfter ? "retry-after" : "fallback",
+      source: retryAfter === undefined ? "fallback" : "retry-after",
     });
   }
 }

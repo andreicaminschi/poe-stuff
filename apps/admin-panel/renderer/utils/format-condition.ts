@@ -12,4 +12,4 @@ const showValue = (value: ConditionValue | undefined): string => {
 export const formatCondition = (condition: Condition): string =>
   `${condition.condition} ${condition.operator ?? "=="} ${
     condition.from === undefined ? showValue(condition.value) : `‹${condition.from}›`
-  }`;
+  }`.trimEnd();

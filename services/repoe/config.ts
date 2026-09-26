@@ -16,4 +16,4 @@ export const DEFAULT_BASE_URL = "https://repoe-fork.github.io";
 export const DEFAULT_USER_AGENT = "poe-stuff/1.0";
 
 /** Trailing slash stripped, so joins onto a base stay predictable. */
-export const trimUrl = (url: string): string => url.replace(/\/$/, "");
+export const trimUrl = (url: string): string => url.replace(/\/+$/, "");

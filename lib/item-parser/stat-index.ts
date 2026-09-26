@@ -31,11 +31,11 @@ const RANGE = /\([-\d.]+(?:\s*-\s*-?[\d.]+)?\)/g;
 const NUMBER = /-?\d+(?:\.\d+)?/g;
 
 /**
- * The article standing in for a count. The game writes `an additional Arrow` where the
+ * The article standing in for a count, only before `additional` or `extra`. The game writes `an additional Arrow` where the
  * search engine writes `# additional Arrows`, so the article is a number that happens to
  * be spelled.
  */
-const ARTICLE = /(?<=^|\s)an?(?=\s)/g;
+const ARTICLE = /(?<=^|\s)an?(?=\s(?:additional|extra)\b)/g;
 
 /**
  * The sign glued to a placeholder. GGG writes the sign into the stat text — \, \ — and searches the same stat with a negative
@@ -44,8 +44,8 @@ const ARTICLE = /(?<=^|\s)an?(?=\s)/g;
  */
 const SIGN = /[+-]#/g;
 
-/** A trailing plural `s`, but not the `s` of `less`, `Charges`' stem, or a bare `s`. */
-const PLURAL = /(?<=[a-z]{2})(?<![s])s(?=\s|$)/g;
+/** A trailing plural `s`, but not in `has`, `-ss`, `-us` or `-is`. */
+const PLURAL = /(?<=[a-z]{2})(?<![sui])(?<!\bha)s(?=\s|$)/g;
 
 /**
  * One line of item text as a key: whitespace collapsed, case dropped, every number a

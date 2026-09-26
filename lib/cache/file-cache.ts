@@ -11,7 +11,12 @@ export type FileCache<T> = {
   set(key: string, value: T): Promise<void>;
 };
 
-const filePath = (root: string, key: string) => join(root, `${key}.json`);
+function filePath(root: string, key: string): string {
+  if (key.length === 0 || key === "." || key === ".." || /[\\/\0]/.test(key)) {
+    throw new Error(`cache key "${key}" is not a single file name`);
+  }
+  return join(root, `${key}.json`);
+}
 
 /**
  * Values on disk, one file per key. A cache that exists to make a run repeatable on one
@@ -35,6 +40,7 @@ export function fileCache<T>(root: string): FileCache<T> {
 
     async set(key, value) {
       const path = filePath(root, key);
+      if (value === undefined) throw new Error(`cache value for "${key}" is undefined, which JSON cannot hold`);
 
       await mkdir(dirname(path), { recursive: true });
       await writeFile(path, JSON.stringify(value), "utf8");

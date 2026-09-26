@@ -1,3 +1,16 @@
+import type { Lake } from "@poe/lake/types";
+
+const NOT_FOUND = new Set(["ENOENT", "EISDIR", "ENOTDIR"]);
+
+export async function readOrNotFound<T>(lake: Lake, key: string): Promise<T> {
+  try {
+    return await lake.readJson<T>(key);
+  } catch (error) {
+    if (NOT_FOUND.has((error as NodeJS.ErrnoException).code ?? "")) throw new TaxonomyNotFoundError(key);
+    throw error;
+  }
+}
+
 /**
  * A version that is not there.
  *

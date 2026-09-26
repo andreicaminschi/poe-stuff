@@ -44,7 +44,9 @@ export function hourFromDate(date: string): number {
     Number(hour),
   );
 
-  if (Number.isNaN(ms)) throw new Error(`"${date}" is not a real date`);
+  if (Number.isNaN(ms) || dateFromHour(ms / 1_000) !== date) {
+    throw new Error(`"${date}" is not a real date`);
+  }
 
   return ms / 1_000;
 }
@@ -62,7 +64,7 @@ export const dateFromHour = (hourId: number): string =>
 export function parseHour(value: string): number {
   const hourId = Number(value);
 
-  if (!Number.isInteger(hourId) || hourId <= 0) {
+  if (!/^\d+$/.test(value) || hourId <= 0) {
     throw new Error(`Expected an hour id in unix seconds, got "${value}"`);
   }
   if (hourId % HOUR_SECONDS !== 0) {

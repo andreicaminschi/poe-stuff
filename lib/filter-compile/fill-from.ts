@@ -33,7 +33,7 @@ function baseTypeProblems(row: FromSource): readonly string[] {
 /**
  * Every `from` filled off the row: `name` with its name, `baseTypes` with its base types.
  *
- * A `from` naming anything else is left as it is and reported, so it can never reach a filter
+ * A `from` naming anything else is reported and dropped, so it can never reach a filter
  * line as a condition with no value.
  */
 export function fillFrom(conditions: readonly ResolvedCondition[], row: FromSource): Filled {
@@ -42,9 +42,12 @@ export function fillFrom(conditions: readonly ResolvedCondition[], row: FromSour
     (condition) => condition.from !== undefined && condition.from !== "name" && condition.from !== "baseTypes",
   );
 
+  const both = conditions.filter((condition) => condition.from !== undefined && condition.value !== undefined);
+
   return {
-    conditions: conditions.map((condition) => filled(condition, row)),
+    conditions: conditions.filter((condition) => !unknown.includes(condition)).map((condition) => filled(condition, row)),
     problems: [
+      ...both.map((condition) => `${condition.condition} has both a value and from "${String(condition.from)}"`),
       ...(reads("name") ? nameProblems(row) : []),
       ...(reads("baseTypes") ? baseTypeProblems(row) : []),
       ...unknown.map((condition) => `reads "${String(condition.from)}", which is not name or baseTypes`),

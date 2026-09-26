@@ -8,8 +8,10 @@ import type { DraftChanges } from "../taxonomy/types.ts";
 const merged = (ledger: Ledger): DraftChanges =>
   ledger.reduce<DraftChanges>(
     (all, { changes }) => ({
-      items: { ...all.items, ...changes.items },
-      categories: { ...all.categories, ...changes.categories },
+      ...(all.items === undefined && changes.items === undefined ? {} : { items: { ...all.items, ...changes.items } }),
+      ...(all.categories === undefined && changes.categories === undefined
+        ? {}
+        : { categories: { ...all.categories, ...changes.categories } }),
     }),
     {},
   );

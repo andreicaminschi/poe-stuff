@@ -23,4 +23,4 @@ export const DEFAULT_CURRENCY_API_URL =
   "https://web.poecdn.com/api/currency-exchange";
 
 /** Trailing slash stripped, so joins onto a base stay predictable. */
-export const trimUrl = (url: string): string => url.replace(/\/$/, "");
+export const trimUrl = (url: string): string => url.replace(/\/+$/, "");

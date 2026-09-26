@@ -17,3 +17,14 @@ export class RepoeHttpError extends Error {
     this.status = status;
   }
 }
+
+/** A 2xx answer from RePoE whose body is not JSON. */
+export class RepoeParseError extends Error {
+  readonly url: string;
+
+  constructor(url: string, cause: unknown) {
+    super(`repoe returned invalid JSON for ${url}`, { cause });
+    this.name = "RepoeParseError";
+    this.url = url;
+  }
+}

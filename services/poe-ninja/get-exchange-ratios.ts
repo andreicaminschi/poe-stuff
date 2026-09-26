@@ -138,6 +138,7 @@ function toExchangeItem(
   const chaos = line.primaryValue;
   const divine = divinePerChaos === 0 ? 0 : chaos * divinePerChaos;
   const change = line.sparkline?.totalChange ?? 0;
+  const divineValue = divinePerChaos === 0 ? {} : { divineValue: divine };
 
   return [
     {
@@ -149,7 +150,7 @@ function toExchangeItem(
         ...emptySide,
         value: chaos,
         chaosValue: chaos,
-        divineValue: divine,
+        ...divineValue,
         volume: line.volumePrimaryValue,
         change24H: change,
       },
@@ -160,7 +161,7 @@ function toExchangeItem(
         ...emptySide,
         value: divine,
         chaosValue: chaos,
-        divineValue: divine,
+        ...divineValue,
         volume: line.volumePrimaryValue,
         change24H: change,
       },

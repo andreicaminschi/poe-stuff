@@ -3,7 +3,7 @@ import type { Gems } from "@poe/repoe/get-gems.types";
 import type { AuthoredEntry, TaxonomyTable } from "./types.ts";
 
 const QUEST_ITEM = "QuestItem";
-const JUNK = ["[", "]", "WIP", "MTX"];
+const JUNK = /[[\]]|\bWIP\b|\bMTX\b/;
 
 const rowOf = (name: string, category: string): AuthoredEntry => ({
   name,
@@ -13,7 +13,7 @@ const rowOf = (name: string, category: string): AuthoredEntry => ({
 });
 
 const isSeeded = (name: string, itemClass: string): boolean =>
-  name !== "" && itemClass !== QUEST_ITEM && !JUNK.some((part) => name.includes(part));
+  name !== "" && itemClass !== QUEST_ITEM && !JUNK.test(name);
 
 export function seedItems(baseItems: BaseItems, gems: Gems): TaxonomyTable {
   const bases = Object.entries(baseItems)

@@ -33,6 +33,7 @@ export function composeTrace(layers: readonly Layer[]): Composed {
         continue;
       }
 
+      removed.delete(key);
       byKey.set(key, {
         ...condition,
         level,

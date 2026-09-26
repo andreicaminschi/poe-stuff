@@ -38,11 +38,13 @@ function uniqueMatches(item: FilterItem, basesByName: ReadonlyMap<string, LinkRo
 
 /** The block's row, or its variant: the freehand is `<key>` or `<key> <variant>`. */
 function blockMatches(freehand: string, rowsByKey: ReadonlyMap<string, LinkRow>): readonly PoeWatchLink[] {
-  const [key = "", ...rest] = freehand.split(" ");
+  const key = [...rowsByKey.keys()]
+    .filter((one) => freehand === one || freehand.startsWith(`${one} `))
+    .reduce((longest, one) => (one.length > longest.length ? one : longest), "");
   const row = rowsByKey.get(key);
   if (row === undefined) return [];
 
-  const variant = rest.join(" ");
+  const variant = freehand.slice(key.length + 1);
   const link = variant === "" ? row.poeWatch : row.variants?.find((one) => one.name === variant)?.poeWatch;
   return link === undefined ? [] : [link];
 }

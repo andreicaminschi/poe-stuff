@@ -4,7 +4,7 @@ import type { ListingMatch } from "../../api/taxonomy/types.ts";
 export function sameListing(a: ListingMatch | undefined, b: ListingMatch | undefined): boolean {
   const { name: _a, ...left } = a ?? {};
   const { name: _b, ...right } = b ?? {};
-  const keys = Object.keys(left) as (keyof typeof left)[];
+  const keys = new Set([...Object.keys(left), ...Object.keys(right)]) as Set<keyof typeof left>;
 
-  return keys.length === Object.keys(right).length && keys.every((key) => left[key] === right[key]);
+  return [...keys].every((key) => left[key] === right[key]);
 }

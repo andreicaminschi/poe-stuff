@@ -9,7 +9,7 @@ function listText(value: Value): string | undefined {
   if (typeof value === "number" || typeof value === "boolean") return undefined;
 
   const values = typeof value === "string" ? [value] : value;
-  if (values.length === 0 || values.some((one) => one.includes('"'))) return undefined;
+  if (values.length === 0 || values.some((one) => one === "" || one.includes('"'))) return undefined;
 
   return values.map((one) => `"${one}"`).join(" ");
 }
@@ -20,11 +20,13 @@ function bareText(value: Value): string | undefined {
   return undefined;
 }
 
-function orderedText(value: Value): string | undefined {
-  if (typeof value === "string") return value;
-  if (typeof value === "number" || typeof value === "boolean" || value.length === 0) return undefined;
+function orderedText(value: Value, order: readonly string[]): string | undefined {
+  if (typeof value === "number" || typeof value === "boolean") return undefined;
 
-  return value.join(" ");
+  const values = typeof value === "string" ? value.split(/\s+/) : value;
+  if (values.length === 0 || values.some((one) => !order.includes(one))) return undefined;
+
+  return values.join(" ");
 }
 
 function booleanText(value: Value): string | undefined {
@@ -39,10 +41,10 @@ function gemText(value: Value): string | undefined {
   return listText(value);
 }
 
-function valueText(kind: ConditionKind, value: Value): string | undefined {
+function valueText(kind: ConditionKind, value: Value, order: readonly string[]): string | undefined {
   if (kind === "boolean") return booleanText(value);
   if (kind === "numeric") return typeof value === "number" ? String(value) : undefined;
-  if (kind === "ordered") return orderedText(value);
+  if (kind === "ordered") return orderedText(value, order);
   if (kind === "sockets") return bareText(value);
   if (kind === "gem") return gemText(value);
 
@@ -63,7 +65,9 @@ export function conditionLine(condition: Condition): LineResult {
   const { value } = condition;
   if (value === undefined || value === null) return { problem: `${name} has no value` };
 
-  const text = valueText(CONDITIONS[name].kind, value);
+  const spec = CONDITIONS[name];
+  const order = "order" in spec ? spec.order : [];
+  const text = valueText(spec.kind, value, order);
   if (text === undefined) return { problem: `${name} cannot hold ${JSON.stringify(value)}` };
 
   const operator = condition.operator === undefined ? "" : `${condition.operator} `;

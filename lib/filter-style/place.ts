@@ -98,7 +98,8 @@ function stackPlacement(item: Item, bucket: Bucket): Placement {
 }
 
 function byStack(ladder: readonly Bucket[], items: readonly Item[], options: PlaceOptions): Placed {
-  const placed = items.flatMap((item) => {
+  const placed = items.flatMap((one) => {
+    const item = { ...one, prices: allowed(one.prices, options.hints) };
     if (options.wanted.includes(item.name)) return [wantedPlacement(item)];
     if (item.unpriceable === true) return [unpricedPlacement(item)];
 

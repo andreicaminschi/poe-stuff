@@ -5,7 +5,11 @@ import { sameCondition } from "./same-condition.ts";
 export const withSharedConditions = (item: Item, before: readonly Condition[], after: readonly Condition[]): Item => ({
   ...item,
   conditions: [
-    ...item.conditions.filter((condition) => !before.some((shared) => sameCondition(shared, condition))),
-    ...after,
+    ...item.conditions.filter(
+      (condition) =>
+        !before.some((shared) => sameCondition(shared, condition)) ||
+        after.some((shared) => sameCondition(shared, condition)),
+    ),
+    ...after.filter((shared) => !item.conditions.some((condition) => sameCondition(shared, condition))),
   ],
 });

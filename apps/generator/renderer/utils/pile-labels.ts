@@ -45,7 +45,7 @@ export function pileLabels(
     const w = Math.round(measure(drop.name, px) + px * PAD * 2 + (drop.style.icon === null ? 0 : px * (ICON + 0.3)) + 2);
     const gx = width / 2 + (Math.random() - 0.5) * 240;
     const gy = height / 2 + (Math.random() - 0.5) * 120;
-    const spot = spotFor(placed, w, h, gx, gy) ?? { x: gx - w / 2, y: gy, w, h };
+    const spot = spotFor(placed, w, h, gx, gy) ?? { x: gx - w / 2, y: gy - h / 2, w, h };
 
     placed.push({ ...drop, ...spot, px, gx, gy });
   }

@@ -41,7 +41,7 @@ export function parseHeader(lines: readonly string[]): ItemHeader {
   return {
     itemClass,
     rarity,
-    name: names.length > 1 ? (names[0] ?? "") : "",
+    name: names.slice(0, -1).join(" "),
     baseType: names[names.length - 1] ?? "",
   };
 }

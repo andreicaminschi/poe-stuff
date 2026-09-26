@@ -4,5 +4,5 @@ import type { Item } from "@poe/filter-style/types";
 export function topCategories(items: readonly Item[]): readonly string[] {
   const keys = [...new Set(items.map((item) => item.category))];
 
-  return keys.sort((a, b) => Number(b === "Currency") - Number(a === "Currency") || a.localeCompare(b));
+  return keys.sort((a, b) => Number(b === "Currency") - Number(a === "Currency") || a.localeCompare(b, "en"));
 }

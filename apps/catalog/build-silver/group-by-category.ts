@@ -16,9 +16,15 @@ export function groupByCategory(
   items: readonly Item[],
 ): ReadonlyMap<string, readonly Item[]> {
   const groups = new Map<string, Item[]>();
+  const named = new Map<string, string>();
 
   for (const item of items) {
     const category = slug(item.category);
+    const other = named.get(category);
+    if (other !== undefined && other !== item.category) {
+      throw new Error(`Categories "${other}" and "${item.category}" both slug to "${category}"`);
+    }
+    named.set(category, item.category);
     const rows = groups.get(category);
 
     if (rows === undefined) groups.set(category, [item]);

@@ -24,4 +24,4 @@ export const DEFAULT_USER_AGENT = "poe-stuff/1.0";
 export const GAME_PATH = "poe1";
 
 /** Trailing slash stripped, so joins onto a base stay predictable. */
-export const trimUrl = (url: string): string => url.replace(/\/$/, "");
+export const trimUrl = (url: string): string => url.replace(/\/+$/, "");
