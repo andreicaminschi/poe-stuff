@@ -9,7 +9,7 @@ import type {
   VersionList,
 } from "../api/panel-api.ts";
 import type { Category, DraftChanges, Item } from "../api/taxonomy/types.ts";
-import type { BootState, BootStep, Changes, Dialog, PriceOption, Tab, ValueOption, View } from "./types.ts";
+import type { BootState, BootStep, Changes, Dialog, PriceOption, Tab, View } from "./types.ts";
 import { mergePriceNames } from "./utils/merge-price-names.ts";
 import { missingListings } from "./utils/missing-listings.ts";
 import { moveSubcategory } from "./utils/move-subcategory.ts";
@@ -95,6 +95,13 @@ const BOOT_STEPS: readonly BootStep[] = [
 
 const countOf = (count: number, noun: string): string => `${count.toLocaleString("en")} ${noun}`;
 
+const plural = (count: number, noun: string): string => `${count} ${noun}${count === 1 ? "" : "s"}`;
+
+const isUnder = (selection: string | undefined, path: string): boolean =>
+  selection === path || selection?.startsWith(`${path}/`) === true;
+
+const NO_VERSION: Partial<Session> = { base: undefined, ledger: [], saved: undefined, selectedKey: undefined, checked: [] };
+
 export const useSession = create<Session>()((set, get) => {
   const run = async (task: () => Promise<void>): Promise<void> => {
     set({ busy: true, error: undefined });
@@ -176,6 +183,13 @@ export const useSession = create<Session>()((set, get) => {
   const discardConfirmed = async (): Promise<boolean> =>
     changeCount(get().changes) === 0 || (await ask("Discard unsaved edits?"));
 
+  /** True, with the error set, when unsaved edits stand in the way. */
+  const blockedByEdits = (doing: string): boolean => {
+    if (changeCount(get().changes) === 0) return false;
+    set({ error: `Save or revert your edits before ${doing}.` });
+    return true;
+  };
+
   const leaveEdits = async (): Promise<boolean> => {
     if (!(await discardConfirmed())) return false;
     if (changeCount(get().changes) > 0) set({ changes: NO_CHANGES });
@@ -237,7 +251,7 @@ export const useSession = create<Session>()((set, get) => {
 
     async switchVersion(id) {
       if (!(await discardConfirmed())) return;
-      set({ versionId: id, base: undefined, ledger: [], saved: undefined, selectedKey: undefined, checked: [] });
+      set({ versionId: id, ...NO_VERSION });
       void run(() => loadVersion(id));
     },
 
@@ -249,15 +263,7 @@ export const useSession = create<Session>()((set, get) => {
         if (!result.ok) throw new Error(result.log);
         const list = await loadVersions();
         const id = list.versions.find((version) => version.editable)?.id;
-        set({
-          versionId: id,
-          base: undefined,
-          ledger: [],
-          saved: undefined,
-          selectedKey: undefined,
-          checked: [],
-          status: result.log.trim(),
-        });
+        set({ versionId: id, ...NO_VERSION, status: result.log.trim() });
         if (id !== undefined) await loadVersion(id);
       }),
 
@@ -349,12 +355,8 @@ export const useSession = create<Session>()((set, get) => {
 
     moveSubcategory: (from, to) =>
       run(async () => {
-        const { saved, changes } = get();
-        if (saved === undefined) return;
-        if (changeCount(changes) > 0) {
-          set({ error: "Save or revert your edits before moving a subcategory." });
-          return;
-        }
+        const { saved } = get();
+        if (saved === undefined || blockedByEdits("moving a subcategory")) return;
 
         const move = moveSubcategory(saved, from, to);
         if ("problem" in move) {
@@ -365,19 +367,15 @@ export const useSession = create<Session>()((set, get) => {
         await append("move-subcategory", move.changes);
         const rows = Object.keys(move.changes.items ?? {}).length;
         set((state) => ({
-          status: `Moved ${from} to ${to.path}, ${rows} row${rows === 1 ? "" : "s"}.`,
+          status: `Moved ${from} to ${to.path}, ${plural(rows, "row")}.`,
           ...(state.selection === from ? { selection: to.path } : {}),
         }));
       }),
 
     renameCategory: (from, to) =>
       run(async () => {
-        const { saved, changes } = get();
-        if (saved === undefined) return;
-        if (changeCount(changes) > 0) {
-          set({ error: "Save or revert your edits before renaming a category." });
-          return;
-        }
+        const { saved } = get();
+        if (saved === undefined || blockedByEdits("renaming a category")) return;
 
         const rename = renameCategory(saved, from, to);
         if ("problem" in rename) {
@@ -388,8 +386,8 @@ export const useSession = create<Session>()((set, get) => {
         await append("rename-category", rename.changes);
         const rows = Object.keys(rename.changes.items ?? {}).length;
         set((state) => ({
-          status: `Renamed ${from} to ${to.path}, ${rows} row${rows === 1 ? "" : "s"}.`,
-          ...(state.selection === from || state.selection?.startsWith(`${from}/`) === true
+          status: `Renamed ${from} to ${to.path}, ${plural(rows, "row")}.`,
+          ...(state.selection !== undefined && isUnder(state.selection, from)
             ? { selection: `${to.path}${state.selection.slice(from.length)}` }
             : {}),
         }));
@@ -400,7 +398,7 @@ export const useSession = create<Session>()((set, get) => {
         await append("delete-category", { categories: { [path]: null } });
         set((state) => ({
           status: `Deleted ${path}.`,
-          ...(state.selection === path || state.selection?.startsWith(`${path}/`) === true
+          ...(isUnder(state.selection, path)
             ? { selection: undefined, selectedKey: undefined, checked: [] }
             : {}),
         }));
@@ -408,13 +406,10 @@ export const useSession = create<Session>()((set, get) => {
 
     undo: () =>
       run(async () => {
-        const { versionId, base, ledger, changes } = get();
+        const { versionId, base, ledger } = get();
         const last = ledger.at(-1);
         if (versionId === undefined || base === undefined || last === undefined || !isEditable()) return;
-        if (changeCount(changes) > 0) {
-          set({ error: "Save or revert your edits before undoing." });
-          return;
-        }
+        if (blockedByEdits("undoing")) return;
 
         await window.panel.popLedger(versionId, last.seq);
         const next = ledger.slice(0, -1);
@@ -435,7 +430,7 @@ export const useSession = create<Session>()((set, get) => {
           return;
         }
         await append("save-items", toDraftChanges(changes));
-        set({ changes: NO_CHANGES, status: `Saved ${count} edit${count === 1 ? "" : "s"}.` });
+        set({ changes: NO_CHANGES, status: `Saved ${plural(count, "edit")}.` });
       }),
 
     validate: () =>
@@ -479,12 +474,8 @@ export const useSession = create<Session>()((set, get) => {
 
     publish: () =>
       run(async () => {
-        const { versionId, changes } = get();
-        if (versionId === undefined) return;
-        if (changeCount(changes) > 0) {
-          set({ error: "Save or revert your edits before publishing." });
-          return;
-        }
+        const { versionId } = get();
+        if (versionId === undefined || blockedByEdits("publishing")) return;
         if (!(await ask(`Publish ${versionId} and make it current? A published version can never be changed.`))) {
           return;
         }
