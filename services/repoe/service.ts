@@ -9,6 +9,8 @@ import { getFoulbornMap } from "./get-foulborn-map.ts";
 import type { FoulbornMap } from "./get-foulborn-map.types.ts";
 import { getGems } from "./get-gems.ts";
 import type { Gems } from "./get-gems.types.ts";
+import { getMods } from "./get-mods.ts";
+import type { Mods } from "./get-mods.types.ts";
 import { getSpectres } from "./get-spectres.ts";
 import type { Spectres } from "./get-spectres.types.ts";
 import type { ResponseCache } from "./types.ts";
@@ -32,6 +34,7 @@ export type RepoeService = {
   getEssences(): Promise<Essences>;
   getClusterJewels(): Promise<ClusterJewels>;
   getFoulbornMap(): Promise<FoulbornMap>;
+  getMods(): Promise<Mods>;
 };
 
 /**
@@ -60,5 +63,6 @@ export function createRepoeService({
     getEssences: () => getEssences(context),
     getClusterJewels: () => getClusterJewels(context),
     getFoulbornMap: () => getFoulbornMap(context),
+    getMods: () => getMods(context),
   };
 }

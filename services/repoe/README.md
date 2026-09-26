@@ -25,8 +25,9 @@ published, so there is no limiter; the cache is what makes a re-run affordable.
 | `getEssences` | `/pob-data/poe1/Essence.min.json` | Every essence and the mod it forces per slot. |
 | `getClusterJewels` | `/cluster_jewels.json` | The three cluster jewel sizes and every passive each can be enchanted with. |
 | `getFoulbornMap` | `/pob-data/poe1/ModFoulbornMap.json` | Every unique that can drop foulborn, by name, and the mods it can roll. |
+| `getMods` | `/mods.json` | Every mod, with the item level it needs and the base tags it rolls on. |
 
-**The six are separate exports and share no vocabulary.** `base_items.json` keys on
+**The seven are separate exports and share no vocabulary.** `base_items.json` keys on
 `item_class` and metadata ids; `Gems.json` keys on gem variant ids; `Essence.json` names
 equipment slots as `Body Armour` and `Thrusting One Handed Sword`. Nothing here reconciles
 one with another — that is the catalog's job, not the service's.
@@ -55,7 +56,9 @@ services/repoe/
 ├── get-cluster-jewels.ts       # GET /cluster_jewels.json
 ├── get-cluster-jewels.types.ts # ClusterJewels, ClusterJewel, ClusterJewelPassive
 ├── get-foulborn-map.ts         # GET /pob-data/poe1/ModFoulbornMap.json
-└── get-foulborn-map.types.ts   # FoulbornMap
+├── get-foulborn-map.types.ts   # FoulbornMap
+├── get-mods.ts                 # GET /mods.json
+└── get-mods.types.ts           # Mods
 ```
 
 ## Public API
@@ -69,6 +72,7 @@ services/repoe/
 | `@poe/repoe/get-essences.types` | `Essences`, `Essence`, `EssenceMods` | `Essences` is a `Record` keyed by currency metadata id. Four fields, none of them optional. |
 | `@poe/repoe/get-foulborn-map.types` | `FoulbornMap` | A `Record` keyed by the unique's display name — Path of Building has no id for a unique — to the text of its foulborn mods. The only published list of which uniques go foulborn. |
 | `@poe/repoe/get-cluster-jewels.types` | `ClusterJewels`, `ClusterJewel`, `ClusterJewelPassive` | `ClusterJewels` is a `Record` keyed by the jewel's metadata id, three rows. A passive's `stat_text` is the mod text PoeWatch lists under; its `name` is what `EnchantmentPassiveNode` matches. Two-line enchants are not in PoeWatch's order — compare as a set. |
+| `@poe/repoe/get-mods.types` | `Mods`, `Mod`, `ModWeight`, `ModStat`, `ModGrantedEffect` | `Mods` is a `Record` keyed by mod id. `text` is the only nullable field. |
 | `@poe/repoe/errors` | `RepoeHttpError` | Carries `url`, `status`. |
 | `@poe/repoe/types` | `RepoeContext`, `ResponseCache`, `CachedResponse` | Types only. `ResponseCache` is what `RepoeServiceOptions.cache` takes. |
 
@@ -206,6 +210,11 @@ publishes no requirement about it.
 
 - **The whole export in one request, with no way to ask for less.** There is no query and
   no partial fetch. Hand the service a cache or pay for the whole file every time.
+- **A mod rolls on a base when the first `spawn_weights` tag the base carries has weight
+  above zero.** Read the list in order and stop at the first match, which is usually
+  `default: 0` at the end. The mod's `domain` must match the base's too. `required_level`
+  is the lowest item level the mod rolls at. Influence tags are absent from a plain base's
+  `tags`, and essence and veiled mods carry no spawn weight at all.
 - **Only two of the four take the `.min` variant, and the reason is per file.** `Gems` and
   `Essence` take it: it is the same export with the whitespace gone and parses to an equal
   object. `Spectres.min.json` is published empty — 200 with a zero-length body — so taking

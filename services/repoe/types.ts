@@ -333,3 +333,54 @@ export type Spectre = {
   /** A damage correction applied to a few rows. */
   damageFixup?: number;
 };
+
+/** One tag and the weight it gives. The first tag the base carries decides. */
+export type ModWeight = {
+  tag: string;
+  weight: number;
+};
+
+/** One stat a mod rolls, with its range. */
+export type ModStat = {
+  id: string;
+  min: number;
+  max: number;
+};
+
+/** A skill a mod grants, such as a trigger. */
+export type ModGrantedEffect = {
+  granted_effect_id: string;
+  level: number;
+};
+
+/**
+ * One mod, as `mods.json` records it.
+ *
+ * **Whether it rolls on a base** is `spawn_weights` read in order: the first entry whose
+ * tag the base carries wins, and a weight of zero means never. `domain` has to match the
+ * base's too. `required_level` is the lowest item level it rolls at.
+ */
+export type Mod = {
+  name: string;
+  /** Where the mod applies, e.g. `item`, `flask`, `abyss_jewel`, `crafted`. */
+  domain: string;
+  /** e.g. `prefix`, `suffix`, `unique`, `corrupted`, `essence`. */
+  generation_type: string;
+  required_level: number;
+  spawn_weights: readonly ModWeight[];
+  /** Multipliers on top of `spawn_weights`, keyed the same way. */
+  generation_weights: readonly ModWeight[];
+  stats: readonly ModStat[];
+  grants_effects: readonly ModGrantedEffect[];
+  /** Mods sharing a group cannot roll together. */
+  groups: readonly string[];
+  /** Tags the mod gives the item once rolled. */
+  adds_tags: readonly string[];
+  implicit_tags: readonly string[];
+  is_essence_only: boolean;
+  /** The text the client shows. Null for mods that show none. */
+  text: string | null;
+  type: string;
+  /** Null on every row today. */
+  gold_value: number | null;
+};
