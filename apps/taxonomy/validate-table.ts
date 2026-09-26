@@ -1,6 +1,7 @@
 import type { AuthoredEntry, TaxonomyTable } from "./types.ts";
 import { collect, throwFirst, type RowProblem } from "./validate.ts";
 import { conditionsProblem } from "./validate-conditions.ts";
+import { isObject } from "./is-object.ts";
 
 const FIELDS = [
   "name",
@@ -35,8 +36,6 @@ const PRICE_KEYS: Readonly<Record<string, "number" | "boolean" | "string">> = {
   corruption: "string",
 };
 
-const isObject = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
 
 const isCategory = (value: unknown): boolean =>
   typeof value === "string" && value.length > 0;

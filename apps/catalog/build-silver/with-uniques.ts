@@ -3,6 +3,7 @@ import type { ItemData } from "@poe/poe-watch/get-compact-data.types";
 import type { CorruptionOutcome } from "@poe/poe-watch/types";
 import type { ItemCorruptions } from "@poe/poe-watch/get-corruption-data.types";
 import type { Item, UniqueGroup, UniqueListing } from "../item.ts";
+import { mostListed } from "./most-listed.ts";
 
 /** PoeWatch's frame for a unique. */
 const UNIQUE_FRAME = 3;
@@ -29,20 +30,6 @@ type FiledListing = UniqueListing & {
  */
 const uniqueOf = (listing: string): string =>
   listing.replace(/^Foulborn /, "").replace(/( \([^)]*\))+$/, "");
-
-/** The one with the most listings behind it, ties to the higher mean. */
-const mostListed = <T extends { readonly daily: number; readonly mean: number }>(
-  candidates: readonly T[],
-): T | undefined =>
-  candidates.reduce<T | undefined>(
-    (best, one) =>
-      best === undefined ||
-      one.daily > best.daily ||
-      (one.daily === best.daily && one.mean > best.mean)
-        ? one
-        : best,
-    undefined,
-  );
 
 /** Which bases the trade list says each unique rolls on. Sixty roll on more than one. */
 function basesByUnique(groups: readonly GGGItemGroup[]): ReadonlyMap<string, string[]> {

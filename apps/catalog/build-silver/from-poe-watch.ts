@@ -5,6 +5,7 @@ import type { CorruptionOutcome } from "@poe/poe-watch/types";
 import type { Listing, ListingMatch } from "@poe/taxonomy/types";
 import type { Item, PoeWatchLink, PricedVariant } from "../item.ts";
 import { isSynthesised } from "./is-synthesised.ts";
+import { mostListed } from "./most-listed.ts";
 
 type Price = { readonly mean: number; readonly lowConfidence: boolean; readonly poeWatch: PoeWatchLink };
 
@@ -56,18 +57,6 @@ const matches = (listing: ItemData, selector: ListingMatch): boolean =>
     key === "name" && typeof value === "string"
       ? listingKey(listing.name) === listingKey(value)
       : field(listing, key) === value,
-  );
-
-/** The most listed, ties to the higher mean. */
-const mostListed = <T extends { readonly daily: number; readonly mean: number }>(
-  candidates: readonly T[],
-): T | undefined =>
-  candidates.reduce<T | undefined>(
-    (best, one) =>
-      best === undefined || one.daily > best.daily || (one.daily === best.daily && one.mean > best.mean)
-        ? one
-        : best,
-    undefined,
   );
 
 /**

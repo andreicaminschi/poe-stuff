@@ -2,6 +2,7 @@ import type { AuthoredRow, AuthoredTable } from "./types.ts";
 import { collect, throwFirst, type RowProblem } from "./validate.ts";
 import { conditionsProblem } from "./validate-conditions.ts";
 import { listingProblem } from "./validate-table.ts";
+import { isObject } from "./is-object.ts";
 
 const FIELDS = [
   "name",
@@ -30,8 +31,6 @@ const isAuthoredKey = (key: string): boolean =>
   key.length > PREFIX.length &&
   slug(key.slice(PREFIX.length)) === key.slice(PREFIX.length);
 
-const isObject = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
 
 const isText = (value: unknown): value is string =>
   typeof value === "string" && value.length > 0;

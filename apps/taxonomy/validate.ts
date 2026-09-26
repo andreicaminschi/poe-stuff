@@ -1,3 +1,5 @@
+import { isObject } from "./is-object.ts";
+
 export type RowProblem = {
   readonly key: string;
   readonly problem: string;
@@ -9,9 +11,6 @@ export class TableShapeError extends Error {
     this.name = "TableShapeError";
   }
 }
-
-const isObject = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
 
 export function collect(
   value: unknown,
