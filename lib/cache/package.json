@@ -1,0 +1,12 @@
+{
+  "name": "@util/cache",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./cache-key": "./cache-key.ts",
+    "./file-cache": "./file-cache.ts",
+    "./sleep": "./sleep.ts"
+  }
+}
