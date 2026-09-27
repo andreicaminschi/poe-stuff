@@ -5,6 +5,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./check-filter": "./check-filter.ts",
     "./describe-sample": "./describe-sample.ts",
     "./find-fall-through": "./find-fall-through.ts",
     "./find-unfiltered": "./find-unfiltered.ts",

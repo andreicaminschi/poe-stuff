@@ -1,5 +1,5 @@
 import type { FilterBlock, FilterItem } from "@poe/filter-eval/filter-ast";
-import type { FilterMatcher as Match } from "@poe/filter-eval/match-filter";
+import type { FilterMatch } from "@poe/filter-eval/match-filter";
 import { pathOf } from "../samples-of/path-of.ts";
 import type { SampleRow } from "../types.ts";
 import type { RowOf } from "./row-lookup.ts";
@@ -11,8 +11,7 @@ export type Placement =
   | { readonly kind: "won"; readonly winner: FilterBlock; readonly owners: readonly SampleRow[] };
 
 /** Whether a sample's own path won it, and if not, who did. */
-export function judgePlacement(row: SampleRow, item: FilterItem, match: Match, rowOf: RowOf): Placement {
-  const { winner, matched } = match(item);
+export function judgePlacement(row: SampleRow, item: FilterItem, { winner, matched }: FilterMatch, rowOf: RowOf): Placement {
   if (winner === undefined) return { kind: "unfiltered" };
 
   const owners = [...new Set(matched.map(rowOf))].filter((one) => one !== undefined);

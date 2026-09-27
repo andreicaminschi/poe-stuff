@@ -13,14 +13,13 @@
 
 import { writeFileSync } from "node:fs";
 import { parseFilter } from "@poe/filter-eval/parse-filter";
-import { findFallThrough } from "@poe/filter-validate/find-fall-through";
-import { findUnfiltered } from "@poe/filter-validate/find-unfiltered";
+import { checkFilter } from "@poe/filter-validate/check-filter";
 import { createTaxonomyService } from "@poe/taxonomy/service";
 import { fromTaxonomy } from "./build-silver/from-taxonomy.ts";
 import { compileFilter } from "@poe/filter-compile/compile-filter";
 import { flag } from "./cli-args.ts";
 
-const STEPS = ["Reading taxonomy", "Compiling filter", "Finding unfiltered samples", "Finding fall-through samples", "Writing report"];
+const STEPS = ["Reading taxonomy", "Compiling filter", "Checking samples", "Writing report"];
 
 const progress = (step: number): void => {
   process.stderr.write(`progress ${step}/${STEPS.length} ${STEPS[step - 1]}\n`);
@@ -43,11 +42,9 @@ async function main(): Promise<void> {
   const blocks = parseFilter(compileFilter(rows, categories).text);
 
   progress(3);
-  const unfiltered = findUnfiltered(blocks, rows, categories);
-  progress(4);
-  const fallThrough = findFallThrough(blocks, rows, categories);
+  const { unfiltered, fallThrough } = checkFilter(blocks, rows, categories);
 
-  progress(5);
+  progress(4);
   writeFileSync(out, JSON.stringify({ ...unfiltered, fallThrough }));
   process.stdout.write(
     `${JSON.stringify({

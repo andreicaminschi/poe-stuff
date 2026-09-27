@@ -17,17 +17,16 @@ flowchart LR
     C["filter-compile<br/>compileFilter()"]:::lib
     P["filter-eval<br/>parseFilter()"]:::eval
     S["samplesOf()<br/>fake items"]:::lib
-    U["findUnfiltered()"]:::lib
-    F["findFallThrough()"]:::lib
+    K["checkFilter()<br/>one walk, one matcher"]:::lib
     R1[/"unfiltered report"/]:::out
     R2[/"fall-through report"/]:::out
 
     T --> C --> P
     T --> S
-    P --> U
-    P --> F
-    S --> U --> R1
-    S --> F --> R2
+    P --> K
+    S --> K
+    K --> R1
+    K --> R2
 ```
 
 Two inputs come from the same taxonomy: the **filter** (what the rows say as `.filter` lines) and the **samples** (what the subcategories say items look like). The checkers compare the two.
@@ -114,7 +113,9 @@ flowchart TD
 
 ## Part 2: the checkers
 
-### `findUnfiltered`: did anything take it?
+`checkFilter` compiles the matcher once with `compileFilterEvery` and walks the samples once. Each sample is matched once, and that one result feeds both reports. `findUnfiltered` and `findFallThrough` are one-line wrappers that return one half each.
+
+### Unfiltered: did anything take it?
 
 The simple one. For each normal sample, ask the compiled filter for a winner. No winner means the item falls off the end of the filter and the game shows it with default styling.
 
@@ -122,9 +123,9 @@ The simple one. For each normal sample, ask the compiled filter for a winner. No
 - Reject samples are ignored here.
 - It also lists `unsampled`: paths that have rows but no sample sets, so nobody checks them.
 
-### `findFallThrough`: did the *right* thing take it?
+### Fall-through: did the *right* thing take it?
 
-This is the blind-spot checker. It uses `compileFilterEvery`, which returns the winner **and** every other block that matched.
+This is the blind-spot checker. It reads the same match result, which holds the winner **and** every other block that matched. Each question has its own judge in `find-fall-through/`: `judgeReject`, `judgePlacement`, `blindsOf` and `overlapsOf`.
 
 Every block's note names the row that wrote it (`#@ <key> <variant>`). `ownerOf` reads that key back, so a block can be traced to a row, and a row to a path.
 
@@ -202,14 +203,12 @@ flowchart LR
     API["admin-panel api<br/>validateFilter.api.ts"]:::app
     SAVE["admin-panel api<br/>saveReport.api.ts"]:::app
     UIP["renderer<br/>unfiltered-panel.tsx"]:::ui
-    FU["findUnfiltered"]:::lib
-    FF["findFallThrough"]:::lib
+    CF["checkFilter"]:::lib
     CSV["reportCsv / sampleQuery"]:::lib
     EV["apps/taxonomy<br/>eval-cases"]:::app
 
     API -- "runs yarn catalog:validate" --> CLI
-    CLI --> FU
-    CLI --> FF
+    CLI --> CF
     API --> UIP
     SAVE --> CSV
     UIP --> CSV
@@ -221,7 +220,7 @@ The panel runs the CLI in a throwaway lake and reads the JSON file back. Its Fil
 
 ## Structure review
 
-**Verdict: the sample generation is well built. The blind-spot checker works but is the weak spot.**
+**Verdict: the sample generation is well built. The checker is now one walk with small judges.**
 
 Good:
 - `samplesOf` and its helpers are small, pure and each testable alone. One job per file.
@@ -230,7 +229,6 @@ Good:
 - `conditionValues` reuses `filter-compile`'s `resolveForms`, so samples and the compiled filter cannot disagree about a row's conditions.
 
 Problems, most important first:
-1. **`findFallThrough` does five jobs in one loop.** Reject check, own-miss, fall-through, blind and overlap share one 60-line loop with three accumulators. Blind and reject are separate questions and would read better as separate passes.
-2. **Double work.** The CLI runs `samplesOf` twice and compiles the filter twice, once per checker. `findFallThrough` also counts `unfiltered`, which duplicates `findUnfiltered`.
-3. **Hidden string contract.** `ownerOf` parses the block note by splitting on a space. That format belongs to `filter-compile`/`format-note`, and nothing ties the two together except convention.
-4. **Small duplication.** `group-unfiltered.ts` re-implements `pathOf`. `report-csv.ts`'s `cellValue` copies `describe-sample.ts`'s `describeValue`. 5. **Silent drops.** An unknown condition name in a sample set, or a value of the wrong type, just disappears. A typo in the taxonomy yields fewer samples, not an error.
+1. **Hidden string contract.** `ownerOf` parses the block note by splitting on a space. That format belongs to `filter-compile`/`format-note`, and nothing ties the two together except convention.
+2. **Small duplication.** `group-unfiltered.ts` re-implements `pathOf`. `report-csv.ts`'s `cellValue` copies `describe-sample.ts`'s `describeValue`.
+3. **Silent drops.** An unknown condition name in a sample set, or a value of the wrong type, just disappears. A typo in the taxonomy yields fewer samples, not an error.
