@@ -1,4 +1,5 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
+import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 
 /**
@@ -42,8 +43,11 @@ export function fileCache<T>(root: string): FileCache<T> {
       const path = filePath(root, key);
       if (value === undefined) throw new Error(`cache value for "${key}" is undefined, which JSON cannot hold`);
 
+      // Rename is atomic: readers never see half a file.
+      const temp = `${path}.tmp-${process.pid}-${randomUUID()}`;
       await mkdir(dirname(path), { recursive: true });
-      await writeFile(path, JSON.stringify(value), "utf8");
+      await writeFile(temp, JSON.stringify(value), "utf8");
+      await rename(temp, path);
     },
   };
 }
