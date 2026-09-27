@@ -1,5 +1,6 @@
 import { latestTaxonomyKey, registryKey } from "../util/keys.ts";
 import type { Lake } from "@poe/lake/types";
+import { readOr } from "../util/read-or.ts";
 
 type RegistryFile = {
   readonly next: number;
@@ -59,13 +60,11 @@ export function toVersionList(registry: RegistryFile, current: string | undefine
   };
 }
 
-export async function getVersions(lake: Lake): Promise<VersionList> {
-  const registry = (await lake.exists(registryKey()))
-    ? await lake.readJson<RegistryFile>(registryKey())
-    : { next: 1, versions: {} };
-  const current = (await lake.exists(latestTaxonomyKey()))
-    ? (await lake.readJson<{ version: string }>(latestTaxonomyKey())).version
-    : undefined;
+export const EMPTY_REGISTRY: RegistryFile = { next: 1, versions: {} };
 
-  return toVersionList(registry, current);
+export async function getVersions(lake: Lake): Promise<VersionList> {
+  const registry = await readOr(lake, registryKey(), EMPTY_REGISTRY);
+  const latest = await readOr<{ version?: string }>(lake, latestTaxonomyKey(), {});
+
+  return toVersionList(registry, latest.version);
 }

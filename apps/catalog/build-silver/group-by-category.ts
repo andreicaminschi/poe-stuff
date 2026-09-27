@@ -15,20 +15,13 @@ import type { Item } from "../item.ts";
 export function groupByCategory(
   items: readonly Item[],
 ): ReadonlyMap<string, readonly Item[]> {
-  const groups = new Map<string, Item[]>();
-  const named = new Map<string, string>();
+  const groups = Map.groupBy(items, (item) => slug(item.category));
 
-  for (const item of items) {
-    const category = slug(item.category);
-    const other = named.get(category);
-    if (other !== undefined && other !== item.category) {
-      throw new Error(`Categories "${other}" and "${item.category}" both slug to "${category}"`);
+  for (const [category, rows] of groups) {
+    const names = [...new Set(rows.map((row) => row.category))];
+    if (names.length > 1) {
+      throw new Error(`Categories "${names[0]}" and "${names[1]}" both slug to "${category}"`);
     }
-    named.set(category, item.category);
-    const rows = groups.get(category);
-
-    if (rows === undefined) groups.set(category, [item]);
-    else rows.push(item);
   }
 
   return new Map(

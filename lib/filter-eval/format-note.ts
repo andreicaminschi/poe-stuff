@@ -1,6 +1,14 @@
 import { APPLY_KEYS, REQUIRED_KEYS } from "./filter-ast.ts";
 import type { ApplyKey } from "./filter-ast.ts";
 
+const fail = (message: string): never => {
+  throw new Error(`cannot write a #@ note: ${message}`);
+};
+
+const wrong = (message: string): never => {
+  throw new Error(`cannot write a condition line: ${message}`);
+};
+
 /**
  * Write the `#@` line a block ends with.
  *
@@ -51,10 +59,6 @@ export function formatNote(
   return `#@ ${pairs.join(" ")} ${tail}`;
 }
 
-const fail = (message: string): never => {
-  throw new Error(`cannot write a #@ note: ${message}`);
-};
-
 /**
  * Write a condition line, with an optional comment saying where it came from.
  *
@@ -86,7 +90,3 @@ export function formatCondition(condition: string, comment = ""): string {
 
   return note === "" ? written : `${written} # ${note}`;
 }
-
-const wrong = (message: string): never => {
-  throw new Error(`cannot write a condition line: ${message}`);
-};

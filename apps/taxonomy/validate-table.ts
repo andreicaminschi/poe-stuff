@@ -1,6 +1,7 @@
 import type { AuthoredEntry, TaxonomyTable } from "./types.ts";
 import { collect, throwFirst, type RowProblem } from "./validate.ts";
 import { conditionsProblem } from "./validate-conditions.ts";
+import { isObject, isText, optionalBooleanProblem, unknownFields } from "./checks.ts";
 
 const FIELDS = [
   "name",
@@ -35,17 +36,7 @@ const PRICE_KEYS: Readonly<Record<string, "number" | "boolean" | "string">> = {
   corruption: "string",
 };
 
-const isObject = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
-
-const isCategory = (value: unknown): boolean =>
-  typeof value === "string" && value.length > 0;
-
-const isSubcategory = (value: unknown): boolean =>
-  value === null || isCategory(value);
-
-const unknownFields = (value: Record<string, unknown>, known: readonly string[]) =>
-  Object.keys(value).filter((key) => !known.includes(key));
+const isSubcategory = (value: unknown): boolean => value === null || isText(value);
 
 export function listingProblem(value: unknown): string | null {
   if (!Array.isArray(value)) return queryProblem(value);
@@ -78,37 +69,23 @@ function queryProblem(value: unknown): string | null {
 }
 
 function entryProblem(value: unknown): string | null {
-  if (!isObject(value)) {
-    return "is not an object";
-  }
+  if (!isObject(value)) return "is not an object";
 
   const extra = unknownFields(value, FIELDS);
+  if (extra.length > 0) return `has unknown fields: ${extra.join(", ")}`;
 
-  if (extra.length > 0) {
-    return `has unknown fields: ${extra.join(", ")}`;
-  }
+  if (!isText(value.name)) return "name must be a non-empty string";
 
-  if (!isCategory(value.name)) {
-    return "name must be a non-empty string";
-  }
-
-  if (value.displayName !== undefined && !isCategory(value.displayName)) {
+  if (value.displayName !== undefined && !isText(value.displayName)) {
     return "displayName must be a non-empty string when it is present";
   }
 
-  if (!isCategory(value.category)) {
-    return "category must be a non-empty string";
-  }
+  if (!isText(value.category)) return "category must be a non-empty string";
 
-  if (!isSubcategory(value.subcategory)) {
-    return "subcategory must be a non-empty string or null";
-  }
+  if (!isSubcategory(value.subcategory)) return "subcategory must be a non-empty string or null";
 
-  for (const flag of OPTIONAL_FLAGS) {
-    if (value[flag] !== undefined && typeof value[flag] !== "boolean") {
-      return `${flag} must be a boolean when it is present`;
-    }
-  }
+  const flag = optionalBooleanProblem(value, OPTIONAL_FLAGS);
+  if (flag !== null) return flag;
 
   if (value.conditions !== undefined) {
     const problem = conditionsProblem(value.conditions);

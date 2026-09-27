@@ -137,8 +137,14 @@ function toExchangeItem(
 
   const chaos = line.primaryValue;
   const divine = divinePerChaos === 0 ? 0 : chaos * divinePerChaos;
-  const change = line.sparkline?.totalChange ?? 0;
-  const divineValue = divinePerChaos === 0 ? {} : { divineValue: divine };
+  const side = (value: number) => ({
+    ...emptySide,
+    value,
+    chaosValue: chaos,
+    ...(divinePerChaos === 0 ? {} : { divineValue: divine }),
+    volume: line.volumePrimaryValue,
+    change24H: line.sparkline?.totalChange ?? 0,
+  });
 
   return [
     {
@@ -146,25 +152,11 @@ function toExchangeItem(
       name: meta.name,
       icon: meta.image ?? "",
       category,
-      chaos: {
-        ...emptySide,
-        value: chaos,
-        chaosValue: chaos,
-        ...divineValue,
-        volume: line.volumePrimaryValue,
-        change24H: change,
-      },
+      chaos: side(chaos),
       // The same market restated, not a second one. poe.ninja quotes one book in one
       // currency and publishes the rate to the other side once, so a divine price here is
       // arithmetic on the chaos price rather than evidence of anyone trading in divines.
-      divine: {
-        ...emptySide,
-        value: divine,
-        chaosValue: chaos,
-        ...divineValue,
-        volume: line.volumePrimaryValue,
-        change24H: change,
-      },
+      divine: side(divine),
     },
   ];
 }

@@ -1,6 +1,7 @@
 import { CONDITIONS, CONDITIONS_BY_LOWER } from "@poe/filter-eval/filter-ast";
 import type { CategoryTable, Hint, TieringMethod } from "./types.ts";
 import { collect, throwFirst, type RowProblem } from "./validate.ts";
+import { isObject, isText, unknownFields } from "./checks.ts";
 
 const FIELDS = ["name", "baseTypes"];
 
@@ -9,21 +10,12 @@ const CONDITION_FIELDS = ["condition", "operator", "value", "from"];
 const CLASS = "Class";
 const BASE_TYPE = "BaseType";
 
-const isObject = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
-
-const isText = (value: unknown): boolean =>
-  typeof value === "string" && value.length > 0;
-
 const isLiteral = (value: unknown): boolean =>
   value === null ||
   typeof value === "string" ||
   typeof value === "number" ||
   typeof value === "boolean" ||
   (Array.isArray(value) && value.every((entry) => typeof entry === "string"));
-
-const unknownFields = (value: Record<string, unknown>, known: readonly string[]) =>
-  Object.keys(value).filter((key) => !known.includes(key));
 
 function conditionProblem(value: unknown): string | null {
   if (!isObject(value)) return "is not an object";

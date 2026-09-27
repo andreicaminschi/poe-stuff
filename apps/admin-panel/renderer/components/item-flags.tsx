@@ -4,6 +4,7 @@ export function ItemFlags({ row }: { readonly row: Item }) {
   return (
     <>
       {row.source === "authored" ? <span className="flag authored">authored</span> : null}
-      {row.source === "ggg" && row.filterable === false ? <span className="flag no">not filterable</span> : null}    </>
+      {row.source === "ggg" && row.filterable === false ? <span className="flag no">not filterable</span> : null}
+    </>
   );
 }

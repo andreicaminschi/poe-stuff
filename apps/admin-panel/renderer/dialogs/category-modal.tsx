@@ -88,6 +88,9 @@ export function CategoryModal({ target }: { readonly target: CategoryTarget }) {
       ? categorySaveNote(path, moving ? movedPath : undefined, renaming ? renamedPath : undefined)
       : undefined;
 
+  const blockingProblems = [problem, moveProblem, renameProblem, samplesProblem, rejectsProblem];
+  const blocked = blockingProblems.some((one) => one !== undefined);
+
   const title = categoryDialogTitle(target, existing !== undefined);
   const deletable = target.kind === "edit" && existing !== undefined && editable;
   const deleteProblem = deletable && draft !== undefined ? categoryDeleteProblem(draft, path) : undefined;
@@ -144,15 +147,7 @@ export function CategoryModal({ target }: { readonly target: CategoryTarget }) {
           <button
             type="button"
             className="btn primary"
-            disabled={
-              !editable ||
-              busy ||
-              problem !== undefined ||
-              moveProblem !== undefined ||
-              renameProblem !== undefined ||
-              samplesProblem !== undefined ||
-              rejectsProblem !== undefined
-            }
+            disabled={!editable || busy || blocked}
             onClick={() => void submit()}
           >
             Save

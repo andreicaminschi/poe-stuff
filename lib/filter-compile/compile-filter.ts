@@ -1,6 +1,6 @@
 import { formatNote } from "@poe/filter-eval/format-note";
 import { parseFilter } from "@poe/filter-eval/parse-filter";
-import { conditionLine } from "./condition-line.ts";
+import { conditionLines } from "./condition-line.ts";
 import { resolveForms, type CategoryRecords, type Form } from "./resolve-row.ts";
 import type { Condition } from "./types.ts";
 
@@ -19,7 +19,6 @@ export type Skip = { readonly key: string; readonly variant?: string; readonly p
 
 export type Compiled = { readonly text: string; readonly blocks: number; readonly skipped: readonly Skip[] };
 
-/** Subcategories by `order`, unordered next, the catch-all last. */
 function recordOf(categories: CategoryRecords, row: CompileRow) {
   return row.subcategory === null ? undefined : categories[`${row.category}/${row.subcategory}`];
 }
@@ -48,22 +47,15 @@ function blockOf(row: CompileRow, form: Form): Block {
   if (first !== undefined) return { problem: first };
   if (form.conditions.length === 0) return { problem: "has no conditions yet" };
 
-  const written: string[] = [];
-  for (const result of form.conditions.map(conditionLine)) {
-    if ("problem" in result) return { problem: result.problem };
-    written.push(result.line);
-  }
-
-  if (written.some((line) => line.includes("#"))) {
-    return { problem: "has a # in a value, which would start a comment" };
-  }
+  const written = conditionLines(form.conditions);
+  if ("problem" in written) return written;
 
   const note = formatNote(
     { tier: "varies", verb: "check" },
     form.variant === undefined ? row.key : `${row.key} ${form.variant}`,
   );
 
-  return { text: ["Show", ...written.map((line) => `  ${line}`), `  ${note}`].join("\n") };
+  return { text: ["Show", ...written.lines.map((line) => `  ${line}`), `  ${note}`].join("\n") };
 }
 
 /**

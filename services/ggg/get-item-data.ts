@@ -2,8 +2,6 @@ import { call } from "./call.ts";
 import type { GGGItem, GGGItemData, GGGItemDataResponse, GGGItemGroupData, GggContext } from "./types.ts";
 import type { GGGItemGroup } from "./get-item-data.types.ts";
 
-
-
 const HOUR_MS = 3_600_000;
 
 export const mapGGGItemDataToGGGItem = (data: GGGItemData): GGGItem =>

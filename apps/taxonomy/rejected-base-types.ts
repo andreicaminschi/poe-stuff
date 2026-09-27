@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { isObject } from "./checks.ts";
 
 const FILE = new URL("./rejected-base-types.json", import.meta.url);
 
@@ -12,9 +13,7 @@ const FILE = new URL("./rejected-base-types.json", import.meta.url);
 export function readRejectedBaseTypes(): ReadonlySet<string> {
   const value: unknown = JSON.parse(readFileSync(FILE, "utf8"));
 
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    throw new Error("rejected-base-types.json is not an object");
-  }
+  if (!isObject(value)) throw new Error("rejected-base-types.json is not an object");
 
   return new Set(Object.keys(value));
 }

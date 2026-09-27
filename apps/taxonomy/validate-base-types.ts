@@ -1,7 +1,5 @@
 import type { RowProblem } from "./validate.ts";
-
-const isObject = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
+import { isObject } from "./checks.ts";
 
 /** Every seed row's name. A `BaseType` the client accepts is one of these. */
 export function seedNames(items: unknown): ReadonlySet<string> {

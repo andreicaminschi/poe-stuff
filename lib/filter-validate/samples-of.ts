@@ -5,16 +5,6 @@ import { itemsOfSet, type Lookup } from "./samples-of/items-of-set.ts";
 import { pathOf } from "./samples-of/path-of.ts";
 import { sampleSets } from "./samples-of/sample-sets.ts";
 
-function groupByPath(rows: readonly SampleRow[]): ReadonlyMap<string, readonly SampleRow[]> {
-  const groups = new Map<string, SampleRow[]>();
-  for (const row of rows) {
-    const group = groups.get(pathOf(row));
-    if (group === undefined) groups.set(pathOf(row), [row]);
-    else group.push(row);
-  }
-  return groups;
-}
-
 /** Each sample of the row with each reject set laid over it. */
 function rejectsOf(
   item: FilterItem,
@@ -38,7 +28,7 @@ function rejectsOf(
  * sample and yielded with `reject` set: items the path must never take.
  */
 export function* samplesOf(rows: readonly SampleRow[], categories: SampleCategories): Generator<Sample> {
-  for (const group of groupByPath(rows).values()) {
+  for (const group of Map.groupBy(rows, pathOf).values()) {
     const [first] = group;
     if (first === undefined) continue;
     const sets = sampleSets(categories, first.category, first.subcategory);

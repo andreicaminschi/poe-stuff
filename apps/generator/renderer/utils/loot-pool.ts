@@ -1,6 +1,7 @@
 import { tierStyle } from "@poe/filter-style/tier-style";
 import type { BucketName, Style } from "@poe/filter-style/types";
 import type { CategoryPlan } from "@poe/filter-style/write-filter";
+import { placementWorth } from "./dearest-first.ts";
 
 export type Loot = { readonly name: string; readonly bucket: BucketName; readonly style: Style; readonly worth: number };
 
@@ -13,6 +14,6 @@ export const lootPool = (plans: readonly CategoryPlan[]): readonly Loot[] =>
         name: one.item.name,
         bucket: one.bucket,
         style: tierStyle(palette, one.bucket, one.verb),
-        worth: one.stack?.floor ?? one.item.prices[one.verb] ?? 0,
+        worth: placementWorth(one),
       })),
   );

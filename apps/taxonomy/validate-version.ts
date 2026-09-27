@@ -5,13 +5,11 @@ import { collectCategoryTable } from "./validate-conditions.ts";
 import { collectTaxonomyTable } from "./validate-table.ts";
 import { collectVariantTable } from "./validate-variants.ts";
 import { TableShapeError, type RowProblem } from "./validate.ts";
+import { isObject } from "./checks.ts";
 
 export type VersionProblem = RowProblem & {
   readonly file: SourceFile;
 };
-
-const isObject = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
 
 const keysOf = (value: unknown): readonly string[] =>
   isObject(value) ? Object.keys(value) : [];

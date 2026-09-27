@@ -12,14 +12,8 @@ export async function promoteTaxonomy(lake: Lake, version: string): Promise<read
     );
   }
 
-  const copies = [
-    [categoriesKey(version), latestCategoriesKey()],
-    [versionKey(version), latestKey()],
-  ] as const;
+  await lake.writeJsonAtomic(latestCategoriesKey(), await lake.readJson<unknown>(categoriesKey(version)));
+  await lake.writeJsonAtomic(latestKey(), await lake.readJson<unknown>(versionKey(version)));
 
-  for (const [source, target] of copies) {
-    await lake.writeJsonAtomic(target, await lake.readJson<unknown>(source));
-  }
-
-  return copies.map(([, target]) => target);
+  return [latestCategoriesKey(), latestKey()];
 }

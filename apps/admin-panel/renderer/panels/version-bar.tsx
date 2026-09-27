@@ -77,11 +77,7 @@ export function VersionBar() {
       >
         Compile filter
       </button>
-      <button
-        type="button"
-        className="btn"
-        onClick={() => void validateFilter()}
-      >
+      <button type="button" className="btn" disabled={busy || current === undefined} onClick={() => void validateFilter()}>
         Validate filter
       </button>
       <button

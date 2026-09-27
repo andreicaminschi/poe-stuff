@@ -85,14 +85,7 @@ export function statIndex<T>(
   items: Iterable<T>,
   textOf: (item: T) => string,
 ): StatIndex<T> {
-  const byKey = new Map<string, T[]>();
-
-  for (const item of items) {
-    const key = statKey(textOf(item));
-    const seen = byKey.get(key);
-    if (seen === undefined) byKey.set(key, [item]);
-    else seen.push(item);
-  }
+  const byKey = Map.groupBy(items, (item) => statKey(textOf(item)));
 
   return { find: (text) => byKey.get(statKey(text)) ?? [] };
 }

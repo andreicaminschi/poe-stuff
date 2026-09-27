@@ -17,12 +17,10 @@ import type { Lake } from "@poe/lake/types";
 import { seedItems } from "./seed-items.ts";
 import { collectVersion } from "./validate-version.ts";
 import { buildVersion, versionTable } from "./versions.ts";
+import { flag } from "./cli-args.ts";
 
 const USAGE =
   "usage: taxonomy-cli.ts <list|init|create|publish|promote|validate|resolve> [version] [--game=<x.y>] [--parent=<v>] [--id=<key>] [--category=<path>] [--root=<dir>]";
-
-const flag = (args: readonly string[], name: string): string | undefined =>
-  args.find((arg) => arg.startsWith(`--${name}=`))?.slice(name.length + 3);
 
 const json = (value: unknown): void => {
   process.stdout.write(`${JSON.stringify(value)}\n`);

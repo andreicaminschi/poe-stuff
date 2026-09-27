@@ -1,4 +1,6 @@
 import { holds, ladderOf, span } from "./place/ladder.ts";
+
+export { span };
 import {
   VERBS,
   UNPRICED,
@@ -57,20 +59,23 @@ function crowned(ladder: readonly Bucket[], found: readonly Placement[]): readon
   return found.map((one) => (rank(one) === best ? { ...one, won: true } : one));
 }
 
+/** Want to see and Unpriced take an item before any ladder does. */
+function settled(item: Item, options: PlaceOptions): Placement | undefined {
+  if (options.wanted.includes(item.name)) return wantedPlacement(item);
+  if (item.unpriceable === true) return unpricedPlacement(item);
+
+  return undefined;
+}
+
 function byPrice(ladder: readonly Bucket[], items: readonly Item[], options: PlaceOptions): Placed {
   const placed: Placement[] = [];
   const unplaced: Unplaced[] = [];
 
   for (const one of items) {
     const item = { ...one, prices: allowed(one.prices, options.hints) };
-
-    if (options.wanted.includes(item.name)) {
-      placed.push(wantedPlacement(item));
-      continue;
-    }
-
-    if (item.unpriceable === true) {
-      placed.push(unpricedPlacement(item));
+    const early = settled(item, options);
+    if (early !== undefined) {
+      placed.push(early);
       continue;
     }
 
@@ -100,8 +105,8 @@ function stackPlacement(item: Item, bucket: Bucket): Placement {
 function byStack(ladder: readonly Bucket[], items: readonly Item[], options: PlaceOptions): Placed {
   const placed = items.flatMap((one) => {
     const item = { ...one, prices: allowed(one.prices, options.hints) };
-    if (options.wanted.includes(item.name)) return [wantedPlacement(item)];
-    if (item.unpriceable === true) return [unpricedPlacement(item)];
+    const early = settled(item, options);
+    if (early !== undefined) return [early];
 
     return ladder.map((bucket) => stackPlacement(item, bucket));
   });

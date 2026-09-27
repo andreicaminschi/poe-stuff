@@ -1,4 +1,4 @@
-import { conditionLine } from "@poe/filter-compile/condition-line";
+import { conditionLines } from "@poe/filter-compile/condition-line";
 import { resolveForms } from "@poe/filter-compile/resolve-row";
 import type { Condition } from "@poe/filter-compile/types";
 import { formatNote } from "@poe/filter-eval/format-note";
@@ -84,18 +84,14 @@ function build(drawn: Drawn, rows: ReadonlyMap<string, CatalogRow>, categories: 
   if ("problem" in resolved) return resolved;
 
   const conditions = [...resolved, ...stackConditions(placement)];
-  const lines: string[] = [];
-  for (const result of conditions.map(conditionLine)) {
-    if ("problem" in result) return { problem: result.problem };
-    lines.push(result.line);
-  }
-  if (lines.some((line) => line.includes("#"))) return { problem: "has a # in a value, which would start a comment" };
+  const written = conditionLines(conditions);
+  if ("problem" in written) return written;
 
   const { item, bucket, verb } = placement;
   const freehand = item.variant === undefined ? item.key : `${item.key} ${item.variant}`;
   const note = formatNote({ tier: NOTE_TIER[bucket], verb }, freehand);
   const actions = actionLines(tierStyle(palette, bucket, verb));
-  const text = [bucket === HIDDEN ? "Hide" : "Show", ...[...lines, ...actions].map((line) => `  ${line}`), `  ${note}`].join("\n");
+  const text = [bucket === HIDDEN ? "Hide" : "Show", ...[...written.lines, ...actions].map((line) => `  ${line}`), `  ${note}`].join("\n");
 
   return { block: { item, bucket, verb, conditions, freehand }, text };
 }

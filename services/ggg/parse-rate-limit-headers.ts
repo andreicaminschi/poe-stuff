@@ -67,11 +67,10 @@ function parseTriples(header: string | null): [number, number, number][] {
     const fields = part.split(":");
     // Number("") is 0, not NaN.
     if (fields.length !== 3 || fields.some((field) => field.trim() === "")) return [];
-    const [a, b, c] = fields.map(Number);
-    if (a === undefined || b === undefined || c === undefined) return [];
-    if (!Number.isFinite(a) || !Number.isFinite(b) || !Number.isFinite(c)) {
-      return [];
-    }
-    return [[a, b, c] as [number, number, number]];
+
+    const numbers = fields.map(Number);
+    if (!numbers.every(Number.isFinite)) return [];
+
+    return [numbers as [number, number, number]];
   });
 }

@@ -39,7 +39,6 @@ code goes:
 | `apps/` | backend | Has a `main()`. Owns its `.env`. Never imported by anything. |
 | `apps/admin-panel/` | desktop | Two halves. `main.ts` and `api/` are Electron's main process and follow the `apps/` rule. `renderer/` is the React window and never touches Node. |
 | `apps/generator/` | desktop | Shaped like `apps/admin-panel/`: the same two halves and the same rules. |
-| `packages/` | — | **Deprecated only.** The graveyard. Emptied as each POC is replaced. |
 
 An app has a CLI and reads the environment; a lib has neither. If a new file needs
 `requireEnv`, it belongs in an app.
@@ -73,24 +72,20 @@ lib/item-parser/       # @poe/item-parser — one item's copied text, parsed and
 lib/cache/             # @util/cache — cache-key, file-cache, sleep
 lib/env/               # @util/env — requireEnv / optionalEnv. The only reader of process.env
 apps/item-inspect/     # @poe/item-inspect — paste an item, see how the parser read it
-apps/collector/        # README only. Replaces @poe/workers
-apps/catalog/          # the bronze/silver/gold pipeline. Replaces @poe/filterv2. Has a README.md
+apps/collector/        # README only. Replaces the deleted @poe/workers
+apps/catalog/          # the bronze/silver/gold pipeline. Replaces the deleted @poe/filterv2. Has a README.md
 apps/taxonomy/         # the hand-maintained classification table and the filter conditions. Has a README.md
 apps/generator/        # Electron app: tiers, styles and writes the .filter. Has a README.md
 apps/admin-panel/      # Electron + React panel over the taxonomy and the catalog. The one build. Has a README.md
-packages/workers/      # DEPRECATED @poe/workers. Does not compile
-packages/filterv2/     # DEPRECATED @poe/filterv2
 .s3/                   # local stand-in for object storage. Gitignored. Holds the only copy of the taxonomy
 data/sample-items/     # copied item text, the parser's fixtures. Two suites read this folder
 data/                  # everything else here is scratch and gitignored
 docs/                  # item-filter-syntax.md — the .filter grammar as GGG documents it
 docs/plans/            # feature plans. Gitignored and never pushed
 research/              # design notes, archived. Not a spec of what is built
-queries.json           # hand-written trade searches. Belongs to the deprecated collector
-influence-queries.json # generated, 2 MB, tracked. Belongs to the deprecated collector
 README.md              # the product end to end: pipeline, catalog contract, generator status
 techdebt.md            # what the repo knowingly duplicates and does not do yet
-tsconfig.json          # one config. Type-checks apps, lib and services — not packages
+tsconfig.json          # one config. Type-checks apps, lib and services
 jest.config.js         # plain .js: jest loads config before any transform exists
 eslint.config.ts       # flat config
 ```
@@ -113,7 +108,7 @@ reachable contact, and a default would send one that does not exist. No service 
 | `@poe/poe-ninja` | `@poe/poe-ninja/service`, `/get-leagues.types`, `/get-item-overview.types`, `/get-exchange-overview.types`, `/get-league-items.types`, `/get-exchange-ratios.types`, `/errors`, `/types` | poe.ninja's economy API, as a second opinion on the market PoeWatch scrapes. One league is 28 item calls plus 18 exchange calls — there is no whole-market endpoint. **Nothing imports it yet.** What a row *is* comes from the `type` that was asked for; `itemClass` is unusable and is read nowhere. See [services/poe-ninja/README.md](services/poe-ninja/README.md). |
 | `@poe/lake` | `@poe/lake/service`, `/types` | JSON files under `.s3`, addressed by `/`-joined keys: read, write, atomic write, exists, list, clear. Every app and the taxonomy service store through it. It owns how bytes are stored and never where — each app keeps its own keys. See [services/lake/README.md](services/lake/README.md). |
 | `@poe/taxonomy` | `@poe/taxonomy/service`, `/get-taxonomy.types`, `/get-categories.types`, `/errors`, `/types` | One published version of the item taxonomy, keyed by metadata id, and its category table, published as a separate file and read with `getCategories`. `latest` is a real copy of the promoted version. Read the categories by the rows' `version`, never `latest` twice. **A third party we happen to write ourselves** — `apps/taxonomy` publishes the versions and this reads one back, so the catalog treats it exactly like GGG or RePoE and knows nothing about how it was authored. Reads the published files straight off disk, under a `root` it is given (default `.s3`). Validates nothing. See [services/taxonomy/README.md](services/taxonomy/README.md). |
-| `@poe/repoe` | `@poe/repoe/service`, `/get-base-items.types`, `/get-gems.types`, `/get-spectres.types`, `/get-essences.types`, `/get-cluster-jewels.types`, `/get-foulborn-map.types`, `/get-mods.types`, `/errors`, `/types` | RePoE's exports: the game's own data files, unpacked after each patch and served as static JSON off GitHub Pages. Carries no prices — this is what the game knows about an item, not what the market thinks of it. Seven endpoints, each the whole file in one request with no query and no way to ask for less: `base_items.json`, `Gems.min.json`, `Spectres.json`, `Essence.min.json`, `cluster_jewels.json` — which pairs a cluster enchant's mod text with the passive name `EnchantmentPassiveNode` matches — and `ModFoulbornMap.json`, the only published list of which uniques drop foulborn — and `mods.json`, every mod with its minimum item level and the base tags it rolls on. They share no vocabulary and nothing here reconciles them. Only two take the `.min` variant — `Spectres.min.json` is published empty, and `base_items.min.json` drops null keys rather than whitespace. `apps/taxonomy` seeds from it: `init` writes a row per base item and transfigured gem, and `seed` writes the gem and cluster-jewel variants. The deprecated `@poe/filterv2` imports it too. RePoE also publishes `uniques.json` — names and item classes, **no base** — which the service does not wrap; the taxonomy's unique rows were built from it, with each base taken from GGG's trade item list. `item_class` is GGG's internal name, not the `Class` a `.filter` matches on. See [services/repoe/README.md](services/repoe/README.md). |
+| `@poe/repoe` | `@poe/repoe/service`, `/get-base-items.types`, `/get-gems.types`, `/get-spectres.types`, `/get-essences.types`, `/get-cluster-jewels.types`, `/get-foulborn-map.types`, `/get-mods.types`, `/errors`, `/types` | RePoE's exports: the game's own data files, unpacked after each patch and served as static JSON off GitHub Pages. Carries no prices — this is what the game knows about an item, not what the market thinks of it. Seven endpoints, each the whole file in one request with no query and no way to ask for less: `base_items.json`, `Gems.min.json`, `Spectres.json`, `Essence.min.json`, `cluster_jewels.json` — which pairs a cluster enchant's mod text with the passive name `EnchantmentPassiveNode` matches — and `ModFoulbornMap.json`, the only published list of which uniques drop foulborn — and `mods.json`, every mod with its minimum item level and the base tags it rolls on. They share no vocabulary and nothing here reconciles them. Only two take the `.min` variant — `Spectres.min.json` is published empty, and `base_items.min.json` drops null keys rather than whitespace. `apps/taxonomy` seeds from it: `init` writes a row per base item and transfigured gem, and `seed` writes the gem and cluster-jewel variants. RePoE also publishes `uniques.json` — names and item classes, **no base** — which the service does not wrap; the taxonomy's unique rows were built from it, with each base taken from GGG's trade item list. `item_class` is GGG's internal name, not the `Class` a `.filter` matches on. See [services/repoe/README.md](services/repoe/README.md). |
 
 ## Libraries
 
@@ -149,24 +144,18 @@ naming what it will own, which POC it replaces, and what has to be decided first
 | App | Replaces | Owns |
 | --- | --- | --- |
 | [`apps/item-inspect`](apps/item-inspect/README.md) | — | **Written.** Paste an item copied out of the game, see how the parser read it. The one consumer of `@poe/item-parser` today, and where its CLI lives now that `lib/` is pure. |
-| [`apps/collector`](apps/collector/README.md) | `@poe/workers` | The worker loop, the job handlers, the record of outstanding work, the writes into `.s3`, and `queries.json`. |
-| [`apps/catalog`](apps/catalog/README.md) | `@poe/filterv2` | **Written.** The bronze/silver/gold pipeline over the taxonomy. **Its rows are the published taxonomy's drawable rows** — nothing `excluded`, nothing `quest`, nothing `filterable: false`, nothing an authored row replaces — and it invents or judges none. It collects PoeWatch and GGG's trade item list for one league-hour, writes a file per category, then gathers every row into `catalog.json` and `catalog.categories.json`. It carries the conditions the taxonomy authored and resolves none of them. It prices every row and variant off PoeWatch — the exchange first, listings second — and still hangs every unique off the base it rolls on under `uniques` — one group per path (`unique`, `unique/foulborn`), one listing per priced form inside it. The taxonomy now also authors one row per unique base (`unique/regular`, `unique/foulborn`, `unique/fragments`), which the catalog prices like any row, so a unique is priced in both places; which one a generator reads is undecided. `--force=taxonomy,poewatch` refetches only the named sources. `catalog:publish` copies one run's gold into `catalog/latest/`, and a run's manifest records the taxonomy version it used. Also `find-duplicates-cli.ts`, which reports the display names more than one metadata id carries. |
+| [`apps/collector`](apps/collector/README.md) | `@poe/workers`, deleted | The worker loop, the job handlers, the record of outstanding work, the writes into `.s3`, and the trade searches it collects. |
+| [`apps/catalog`](apps/catalog/README.md) | `@poe/filterv2`, deleted | **Written.** The bronze/silver/gold pipeline over the taxonomy. **Its rows are the published taxonomy's drawable rows** — nothing `excluded`, nothing `quest`, nothing `filterable: false`, nothing an authored row replaces — and it invents or judges none. It collects PoeWatch and GGG's trade item list for one league-hour, writes a file per category, then gathers every row into `catalog.json` and `catalog.categories.json`. It carries the conditions the taxonomy authored and resolves none of them. It prices every row and variant off PoeWatch — the exchange first, listings second — and still hangs every unique off the base it rolls on under `uniques` — one group per path (`unique`, `unique/foulborn`), one listing per priced form inside it. The taxonomy now also authors one row per unique base (`unique/regular`, `unique/foulborn`, `unique/fragments`), which the catalog prices like any row, so a unique is priced in both places; which one a generator reads is undecided. `--force=taxonomy,poewatch` refetches only the named sources. `catalog:publish` copies one run's gold into `catalog/latest/`, and a run's manifest records the taxonomy version it used. Also `find-duplicates-cli.ts`, which reports the display names more than one metadata id carries. |
 | [`apps/taxonomy`](apps/taxonomy/README.md) | — | **Written.** The hand-maintained tables: six JSON files per version under `.s3/taxonomy/versions/<v>/`, never in git. A version is `3.29.4` — created from a published parent, never overwritten, and only the newest can be published, while it is still a draft. `validate` and `resolve` answer in JSON for the admin panel. Nothing imports it — the catalog reads what it published through `@poe/taxonomy`. |
 | [`apps/generator`](apps/generator/README.md) | — | **Written.** The player's Electron app, shaped like the admin panel. It reads the published catalog and `.s3/generator/config.json`, shows each category's ladder, floors, want-to-see list and palette with a Take, Check and Gamble preview, drops simulated loot weighted toward cheap items, and writes the `.filter` to a path the player picks. The model is `@poe/filter-style`. |
 | [`apps/admin-panel`](apps/admin-panel/README.md) | — | **Written.** The desktop panel: browse and edit the newest draft, validate, publish, check what the compiled filter misses, build and publish a catalog. Every call is an `.api.ts` adapter that reads the lake or runs a yarn command. Imports no other app. |
 
-## Deprecated
+## Deleted
 
-`packages/` holds POC code being replaced. **Do not add to it and do not import it.** Each
-folder has a `DEPRECATED.md` saying what replaces it and what is worth carrying over.
-
-| Package | State |
-| --- | --- |
-| [`packages/workers`](packages/workers/DEPRECATED.md) | **Does not compile.** `@poe/ledger` and `@poe/poe-wiki` were deleted and it imports both. Kept for `docs/pipeline.md`, which is the collection design in full. |
-| [`packages/filterv2`](packages/filterv2/DEPRECATED.md) | Compiles. Its fourth source — the league's forum post — came out with the forum endpoints on `@poe/ggg`, so it merges three and no longer sees a league launch. Kept for `notes.md` — what the item-list build gets wrong and has not decided, which are decisions about the game rather than about the code. |
-
-Both are excluded from `tsconfig.json` and `jest.config.js`, so `yarn typecheck` stays a
-signal instead of being permanently red.
+`packages/` is gone. It held two proofs of concept — `@poe/workers`, the collector, and
+`@poe/filterv2`, the item-list build — that nothing imported and neither typecheck nor jest
+read. Their design notes went with them: read `docs/pipeline.md` and `filterv2/notes.md` out
+of git history before rewriting either. `apps/collector` and `apps/catalog` replace them.
 
 ## Storage
 
@@ -195,9 +184,9 @@ would not grow the repository forever. Back it up; nothing else does.
 ```
 
 `apps/taxonomy`, `apps/catalog` and `apps/admin-panel` write here through `@poe/lake`, and
-agree on the key layout by convention. `apps/collector` is not built. The deprecated `@poe/workers` still carries
-`@aws-sdk/client-s3` and writes to a real bucket named by `S3_URL` and `S3_BUCKET`. That is
-one of the reasons it is deprecated rather than kept, and the SDK leaves with it.
+agree on the key layout by convention. `apps/collector` is not built. Nothing in the tree
+carries an S3 client any more: `@aws-sdk/client-s3` left with `@poe/workers`, which wrote to
+a real bucket named by `S3_URL` and `S3_BUCKET`.
 
 AWS is the eventual target. Nothing in the live tree assumes it, and no third-party service
 is configured or documented until it is real.
@@ -276,12 +265,11 @@ reads the environment either — `@util/env` exists to be imported by apps.
 
 | Var | Holds | Read by |
 | --- | --- | --- |
-| `POE_USER_AGENT` | `user-agent` sent on every outbound request. Must name the app and a real contact address. No service reads it — they take `userAgent` as an option, and GGG refuses to default it, because a default would send a contact that does not exist | [apps/item-inspect/item-cli.ts](apps/item-inspect/item-cli.ts), [apps/catalog/catalog-cli.ts](apps/catalog/catalog-cli.ts), [apps/admin-panel/main.ts](apps/admin-panel/main.ts) (optional there, from `apps/admin-panel/.env`), and the deprecated `@poe/filterv2` |
-That is the whole live surface: **one variable**, read by more than
-one app. `apps/taxonomy`
-reads none — it only ever touches files under the lake. Every other name still read anywhere
-in the tree belongs to `packages/workers`, which does not compile, and its `.env` names
-things whose packages were deleted.
+| `POE_USER_AGENT` | `user-agent` sent on every outbound request. Must name the app and a real contact address. No service reads it — they take `userAgent` as an option, and GGG refuses to default it, because a default would send a contact that does not exist | [apps/item-inspect/item-cli.ts](apps/item-inspect/item-cli.ts), [apps/catalog/catalog-cli.ts](apps/catalog/catalog-cli.ts), [apps/admin-panel/main.ts](apps/admin-panel/main.ts) (optional there, from `apps/admin-panel/.env`) |
+
+That is the whole surface: **one variable**, read by more than one app. `apps/taxonomy` reads
+none — it only ever touches files under the lake. Nothing else in the tree reads the
+environment at all, now that `@poe/workers` and its Redis, Postgres and S3 names are gone.
 
 ## Gotchas
 
@@ -381,8 +369,7 @@ is where the condition language lives: the shape of a condition, how the four le
 and what the validator refuses. `apps/catalog` and `apps/admin-panel` have one too; the catalog's
 pipeline shape is in the step files' doc comments.
 
-`apps/collector` has a `README.md` describing what does not exist yet. Each folder
-under `packages/` has a `DEPRECATED.md`.
+`apps/collector` has a `README.md` describing what does not exist yet.
 
 [docs/item-filter-syntax.md](docs/item-filter-syntax.md) is how filters work in PoE: the
 `.filter` grammar as GGG documents it — `Show`/`Hide`/`Minimal` blocks, `Continue`,

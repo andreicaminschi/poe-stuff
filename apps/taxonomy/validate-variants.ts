@@ -2,11 +2,9 @@ import type { AuthoredVariant, VariantTable } from "./types.ts";
 import { collect, throwFirst, type RowProblem } from "./validate.ts";
 import { conditionsProblem } from "./validate-conditions.ts";
 import { listingProblem } from "./validate-table.ts";
+import { isObject } from "./checks.ts";
 
 const FIELDS = ["name", "conditions", "listing", "unpriceable"];
-
-const isObject = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
 
 function variantsProblem(value: unknown): string | null {
   if (!Array.isArray(value)) return "is not a list";

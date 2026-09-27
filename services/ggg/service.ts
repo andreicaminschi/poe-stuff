@@ -16,15 +16,10 @@ import type { GGGStat } from "./get-stats.types.ts";
 import type { GGGListingSearch } from "./search-listings.types.ts";
 import type { CallEvent, RateLimiterRule, ResponseCache } from "./types.ts";
 import type { CurrencyExchange } from "./fetch-currency-hour.types.ts";
-
 import { getItemData } from "./get-item-data.ts";
-
 import { getStats } from "./get-stats.ts";
-
 import { createLimiter } from "./rate-limiter.ts";
 import { searchListings } from "./search-listings.ts";
-
-
 
 /**
  * Where the limiter starts before GGG's headers replace it. One request per second is

@@ -35,11 +35,8 @@ function booleanText(value: Value): string | undefined {
   return value ? "True" : "False";
 }
 
-function gemText(value: Value): string | undefined {
-  if (typeof value === "boolean") return booleanText(value);
-
-  return listText(value);
-}
+const gemText = (value: Value): string | undefined =>
+  typeof value === "boolean" ? booleanText(value) : listText(value);
 
 function valueText(kind: ConditionKind, value: Value, order: readonly string[]): string | undefined {
   if (kind === "boolean") return booleanText(value);
@@ -73,4 +70,18 @@ export function conditionLine(condition: Condition): LineResult {
   const operator = condition.operator === undefined ? "" : `${condition.operator} `;
 
   return { line: `${name} ${operator}${text}` };
+}
+
+/** Every condition as a line, or the first reason one cannot be written. */
+export function conditionLines(
+  conditions: readonly Condition[],
+): { readonly lines: readonly string[] } | { readonly problem: string } {
+  const lines: string[] = [];
+  for (const result of conditions.map(conditionLine)) {
+    if ("problem" in result) return result;
+    lines.push(result.line);
+  }
+  if (lines.some((line) => line.includes("#"))) return { problem: "has a # in a value, which would start a comment" };
+
+  return { lines };
 }

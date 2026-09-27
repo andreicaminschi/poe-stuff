@@ -21,7 +21,7 @@ import type {
  * thing.
  */
 
-const negated = (operator: Operator): boolean =>
+export const negated = (operator: Operator): boolean =>
   (NEGATING_OPERATORS as readonly string[]).includes(operator);
 
 /** Compare two numbers by operator. `=` and `==` both mean equality on numbers. */

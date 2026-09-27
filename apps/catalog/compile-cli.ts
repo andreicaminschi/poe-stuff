@@ -13,9 +13,7 @@ import { writeFileSync } from "node:fs";
 import { createTaxonomyService } from "@poe/taxonomy/service";
 import { fromTaxonomy } from "./build-silver/from-taxonomy.ts";
 import { compileFilter } from "@poe/filter-compile/compile-filter";
-
-const flag = (args: readonly string[], name: string): string | undefined =>
-  args.find((arg) => arg.startsWith(`--${name}=`))?.slice(name.length + 3);
+import { flag } from "./cli-args.ts";
 
 async function main(): Promise<void> {
   const args = process.argv.slice(2);

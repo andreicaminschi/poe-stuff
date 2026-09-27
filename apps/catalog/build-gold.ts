@@ -44,17 +44,12 @@ export const buildGold: Step = {
 
     await lake.clear(goldPrefix(runId));
 
-    const written: string[] = [];
+    const catalogKey = goldKey(runId, GOLD_FILES.catalog);
+    const goldCategoriesKey = goldKey(runId, GOLD_FILES.categories);
 
-    for (const [file, value] of [
-      [GOLD_FILES.catalog, rows],
-      [GOLD_FILES.categories, categories],
-    ] as const) {
-      const key = goldKey(runId, file);
-      await lake.writeJson(key, value);
-      written.push(key);
-    }
+    await lake.writeJson(catalogKey, rows);
+    await lake.writeJson(goldCategoriesKey, categories);
 
-    return { keys: written, rows: rows.length };
+    return { keys: [catalogKey, goldCategoriesKey], rows: rows.length };
   },
 };

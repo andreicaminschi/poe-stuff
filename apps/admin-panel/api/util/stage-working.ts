@@ -7,6 +7,7 @@ import { commitLedger } from "../ledger/commit.api.ts";
 import { saveDraft } from "../taxonomy/saveDraft.api.ts";
 import type { DraftChanges } from "../taxonomy/types.ts";
 import { ledgerKey, registryKey, sourceKey, type SourceFile } from "./keys.ts";
+import { runAction } from "./yarn.ts";
 
 const FILES: readonly SourceFile[] = [
   "items",
@@ -40,5 +41,28 @@ export async function stageWorking(lake: Lake, id: string, changes: DraftChanges
   } catch (error) {
     await rm(root, { recursive: true, force: true });
     throw error;
+  }
+}
+
+/**
+ * The working version staged and published in a throwaway lake, handed to `work`, then
+ * removed whatever happens. Publishing is what validates it.
+ */
+export async function withPublishedWorking<T>(
+  repo: string,
+  lake: Lake,
+  id: string,
+  changes: DraftChanges,
+  work: (root: string) => Promise<T>,
+): Promise<T> {
+  const root = await stageWorking(lake, id, changes);
+
+  try {
+    const published = await runAction(repo, ["taxonomy", "publish", id, `--root=${root}`]);
+    if (!published.ok) throw new Error(published.log);
+
+    return await work(root);
+  } finally {
+    await rm(root, { recursive: true, force: true });
   }
 }

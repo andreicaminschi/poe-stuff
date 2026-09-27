@@ -6,7 +6,6 @@ import { useSession } from "../session-store.ts";
 import { categoryLabel } from "../utils/category-label.ts";
 import { displayName } from "../utils/display-name.ts";
 import { pathOf } from "../utils/path-of.ts";
-import { titleCase } from "../utils/title-case.ts";
 
 const LIMIT = 400;
 const CHIPS = 6;
@@ -41,13 +40,7 @@ export function Items() {
     return [...matched].sort((a, b) => displayName(a).localeCompare(displayName(b)));
   }, [rows, filter]);
 
-  const title =
-    selection === undefined
-      ? "All items"
-      : selection
-          .split("/")
-          .map((part, at, parts) => draft?.categories[parts.slice(0, at + 1).join("/")]?.name ?? titleCase(part))
-          .join(" › ");
+  const title = selection === undefined ? "All items" : categoryLabel(draft?.categories ?? {}, selection);
 
   const shown = showAll ? sorted : sorted.slice(0, LIMIT);
   const checkedKeys = new Set(checked);

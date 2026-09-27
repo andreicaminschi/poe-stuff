@@ -8,10 +8,14 @@ const serialise = (value: unknown): string => `${JSON.stringify(value, undefined
 
 export function createLakeService({ root = ".s3" }: LakeServiceOptions = {}): Lake {
   const base = resolve(root);
+  const isOutsideRoot = (path: string): boolean => {
+    const fromRoot = relative(base, resolve(path));
+    return fromRoot === ".." || fromRoot.startsWith(`..${sep}`) || isAbsolute(fromRoot);
+  };
+
   const pathOf = (key: string) => {
     const path = join(root, ...key.split("/"));
-    const rel = relative(base, resolve(path));
-    if (rel === ".." || rel.startsWith(`..${sep}`) || isAbsolute(rel)) throw new Error(`Lake key escapes root: ${key}`);
+    if (isOutsideRoot(path)) throw new Error(`Lake key escapes root: ${key}`);
     return path;
   };
 

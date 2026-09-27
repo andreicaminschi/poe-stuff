@@ -17,24 +17,9 @@ import { findDuplicates, knownDuplicates } from "./find-duplicates.ts";
 import type { Item } from "./item.ts";
 import { createLakeService } from "@poe/lake/service";
 import { manifestKey, runPrefix } from "./lake/keys.ts";
-import { dateFromHour, hourFromDate, parseHour, previousHour, runId } from "./run-id.ts";
+import { chooseHour, flag } from "./cli-args.ts";
+import { dateFromHour, previousHour, runId } from "./run-id.ts";
 import type { Manifest } from "./types.ts";
-
-const flag = (args: readonly string[], name: string): string | undefined =>
-  args.find((arg) => arg.startsWith(`--${name}=`))?.slice(name.length + 3);
-
-function chooseHour(args: readonly string[]): number {
-  const date = flag(args, "date");
-  const hour = flag(args, "hour");
-
-  if (date !== undefined && hour !== undefined) {
-    throw new Error("Pass --date or --hour, not both");
-  }
-  if (date !== undefined) return hourFromDate(date);
-  if (hour !== undefined) return parseHour(hour);
-
-  return previousHour();
-}
 
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
@@ -42,7 +27,7 @@ async function main(): Promise<void> {
   const league = flag(args, "league");
   if (league === undefined) throw new Error("Pass --league=<name>");
 
-  const hourId = chooseHour(args);
+  const hourId = chooseHour(args, previousHour);
   const id = runId(league, hourId);
   const lake = createLakeService({ root: flag(args, "root") });
 

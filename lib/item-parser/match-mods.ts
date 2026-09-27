@@ -2,8 +2,7 @@
  * Turning a modifier's text into the stat ids the trade site knows it by.
  *
  * The list of stats is GGG's own, handed in by the caller — `createGGGService(…).getStats()`
- * answers with the right shape — and cached for
- * an hour.
+ * answers with the right shape.
  * Nothing about a modifier is written down here: a modifier that ships next league is
  * matched the day it appears in that list, and this file does not change. That is the whole
  * maintenance story, and it is why matching is done against published text rather than

@@ -1,7 +1,7 @@
 # apps/catalog
 
 The bronze/silver/gold pipeline for one league and one hour. Replaces
-[`packages/filterv2`](../../packages/filterv2), which is deprecated.
+the deleted `@poe/filterv2` proof of concept.
 
 ## Purpose
 

@@ -5,11 +5,8 @@ import { entryOf, highestDraft, readRegistry } from "./registry.ts";
 import { readRejectedBaseTypes } from "./rejected-base-types.ts";
 import { seedTaxonomy } from "./seed-taxonomy.ts";
 import type { Lake } from "@poe/lake/types";
-import type { SourceFile } from "./types.ts";
 import { versionTable } from "./versions.ts";
-
-const flag = (args: readonly string[], name: string): string | undefined =>
-  args.find((arg) => arg.startsWith(`--${name}=`))?.slice(name.length + 3);
+import { flag } from "./cli-args.ts";
 
 async function draftVersion(lake: Lake): Promise<string> {
   const version = highestDraft(await readRegistry(lake));
@@ -33,21 +30,18 @@ async function main(): Promise<void> {
   const { items } = await versionTable(lake, version, readRejectedBaseTypes());
   const { variants, authored, counts } = await seedTaxonomy(items, createRepoeService());
 
-  const files = [
-    ["variants.seeded", variants],
-    ["authored.seeded", authored],
-  ] as const satisfies readonly (readonly [SourceFile, unknown])[];
+  const variantsKey = sourceKey(version, "variants.seeded");
+  const authoredKey = sourceKey(version, "authored.seeded");
 
-  for (const [file, table] of files) {
-    await lake.writeJson(sourceKey(version, file), table);
-  }
+  await lake.writeJson(variantsKey, variants);
+  await lake.writeJson(authoredKey, authored);
 
   for (const [seed, count] of Object.entries(counts)) {
     process.stdout.write(
       `${seed}: ${count.variants} rows of variants, ${count.authored} authored rows\n`,
     );
   }
-  for (const [file] of files) process.stdout.write(`wrote ${sourceKey(version, file)}\n`);
+  process.stdout.write(`wrote ${variantsKey}\nwrote ${authoredKey}\n`);
 }
 
 main().catch((error: unknown) => {

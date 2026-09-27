@@ -2,6 +2,8 @@ import type { AuthoredRow, AuthoredTable } from "./types.ts";
 import { collect, throwFirst, type RowProblem } from "./validate.ts";
 import { conditionsProblem } from "./validate-conditions.ts";
 import { listingProblem } from "./validate-table.ts";
+import { isObject, isText, optionalBooleanProblem } from "./checks.ts";
+import { slug } from "./slug.ts";
 
 const FIELDS = [
   "name",
@@ -17,24 +19,12 @@ const FIELDS = [
   "listing",
 ];
 
-const slug = (field: string): string =>
-  field
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-
 const PREFIX = "authored/";
 
 const isAuthoredKey = (key: string): boolean =>
   key.startsWith(PREFIX) &&
   key.length > PREFIX.length &&
   slug(key.slice(PREFIX.length)) === key.slice(PREFIX.length);
-
-const isObject = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
-
-const isText = (value: unknown): value is string =>
-  typeof value === "string" && value.length > 0;
 
 function rowProblem(key: string, value: unknown): string | null {
   if (!isAuthoredKey(key)) {
@@ -59,17 +49,8 @@ function rowProblem(key: string, value: unknown): string | null {
 
   if (!isText(value.reason)) return "reason must be a non-empty string";
 
-  if (value.excluded !== undefined && typeof value.excluded !== "boolean") {
-    return "excluded must be a boolean when it is present";
-  }
-
-  if (value.quest !== undefined && typeof value.quest !== "boolean") {
-    return "quest must be a boolean when it is present";
-  }
-
-  if (value.unpriceable !== undefined && typeof value.unpriceable !== "boolean") {
-    return "unpriceable must be a boolean when it is present";
-  }
+  const flag = optionalBooleanProblem(value, ["excluded", "quest", "unpriceable"]);
+  if (flag !== null) return flag;
 
   if (value.replaces !== undefined) {
     if (!Array.isArray(value.replaces) || !value.replaces.every(isText)) {

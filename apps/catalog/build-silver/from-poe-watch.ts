@@ -5,6 +5,7 @@ import type { CorruptionOutcome } from "@poe/poe-watch/types";
 import type { Listing, ListingMatch } from "@poe/taxonomy/types";
 import type { Item, PoeWatchLink, PricedVariant } from "../item.ts";
 import { isSynthesised } from "./is-synthesised.ts";
+import { mostListed } from "./most-listed.ts";
 
 type Price = { readonly mean: number; readonly lowConfidence: boolean; readonly poeWatch: PoeWatchLink };
 
@@ -23,19 +24,16 @@ const listingKey = (name: string): string =>
     (_, inner: string) => `(${inner.split("\n").sort().join("\n")})`,
   );
 
-/** Display name to every listing PoeWatch has under it. */
-function byName(listings: readonly ItemData[]): ReadonlyMap<string, ItemData[]> {
-  const index = new Map<string, ItemData[]>();
+type Exchange = { readonly id: number; readonly chaos: number; readonly lowConfidence: boolean };
 
-  for (const listing of listings) {
-    const key = listingKey(listing.name);
-    const seen = index.get(key);
-    if (seen === undefined) index.set(key, [listing]);
-    else seen.push(listing);
-  }
+type Sale = Exchange & { readonly name: string };
 
-  return index;
-}
+/** Everything one row's prices are looked up in. */
+type Lookup = {
+  readonly byName: ReadonlyMap<string, readonly ItemData[]>;
+  readonly outcomesById: ReadonlyMap<number, readonly CorruptionOutcome[]>;
+  readonly exchange: ReadonlyMap<string, Exchange>;
+};
 
 /**
  * Whether every key the selector writes is equal on the listing.
@@ -56,18 +54,6 @@ const matches = (listing: ItemData, selector: ListingMatch): boolean =>
     key === "name" && typeof value === "string"
       ? listingKey(listing.name) === listingKey(value)
       : field(listing, key) === value,
-  );
-
-/** The most listed, ties to the higher mean. */
-const mostListed = <T extends { readonly daily: number; readonly mean: number }>(
-  candidates: readonly T[],
-): T | undefined =>
-  candidates.reduce<T | undefined>(
-    (best, one) =>
-      best === undefined || one.daily > best.daily || (one.daily === best.daily && one.mean > best.mean)
-        ? one
-        : best,
-    undefined,
   );
 
 /**
@@ -124,6 +110,70 @@ const queriesOf = (listing: Listing | undefined): readonly (ListingMatch | undef
   return [listing as ListingMatch];
 };
 
+/** The dearest of several prices, or none. */
+const dearest = <T>(prices: readonly (T | undefined)[], worth: (price: T) => number): T | undefined =>
+  prices.reduce<T | undefined>((best, one) => {
+    if (one === undefined) return best;
+    return best === undefined || worth(one) > worth(best) ? one : best;
+  }, undefined);
+
+/**
+ * The listing price of one row or variant. A selector with `corruption` reads that outcome.
+ * Several selectors price at the dearest.
+ */
+function bestPrice(listing: Listing | undefined, rowName: string, lookup: Lookup): Price | undefined {
+  const priceOf = (query: ListingMatch | undefined): Price | undefined => {
+    const listings = lookup.byName.get(listingKey(query?.name ?? rowName)) ?? [];
+    if (query?.corruption === undefined) return pickListing(listings, query);
+    return pickOutcome(listings, query.corruption, lookup.outcomesById);
+  };
+
+  return dearest(queriesOf(listing).map(priceOf), (price) => price.mean);
+}
+
+/** The exchange price of a row, when a selector names nothing but a name the exchange trades. */
+function exchangeSale(item: Item, lookup: Lookup): Sale | undefined {
+  const nameOnly = queriesOf(item.listing).filter(
+    (query) => query === undefined || Object.keys(query).every((key) => key === "name"),
+  );
+  const sales = nameOnly.map((query): Sale | undefined => {
+    const name = query?.name ?? item.name;
+    const found = lookup.exchange.get(name);
+    return found === undefined ? undefined : { ...found, name };
+  });
+
+  return dearest(sales, (sale) => sale.chaos);
+}
+
+const withPrice = <T extends object>(target: T, price: Price | undefined): T =>
+  price === undefined
+    ? target
+    : { ...target, meanPrice: price.mean, lowConfidence: price.lowConfidence, poeWatch: price.poeWatch };
+
+function priceRow(item: Item, lookup: Lookup): Item {
+  // A cluster jewel is listed under its enchant, so the selector's name wins.
+  const rowName = queriesOf(item.listing)[0]?.name ?? item.name;
+
+  if (item.variants !== undefined) {
+    const variants: PricedVariant[] = item.variants.map((variant) =>
+      withPrice(variant, bestPrice(variant.listing, rowName, lookup)),
+    );
+    return { ...item, variants };
+  }
+
+  const sale = exchangeSale(item, lookup);
+  if (sale !== undefined) {
+    return {
+      ...item,
+      meanPrice: sale.chaos,
+      lowConfidence: sale.lowConfidence,
+      poeWatch: { source: "poeWatch:exchange", id: sale.id, name: sale.name },
+    };
+  }
+
+  return withPrice(item, bestPrice(item.listing, rowName, lookup));
+}
+
 /**
  * Attaches PoeWatch's mean to every row.
  *
@@ -150,75 +200,19 @@ export function fromPoeWatch(
   ratios: readonly ExchangeRatioItem[],
   corruptions: readonly ItemCorruptions[],
 ): readonly Item[] {
-  const index = byName(listings);
-  const outcomesById = new Map(corruptions.map((item) => [item.item_id, item.corruptions]));
-  // A row with no trade in the window carries no price, and prices nothing here either.
-  const exchange = new Map(
-    ratios.flatMap((ratio) =>
-      ratio.price === undefined
-        ? []
-        : [[ratio.name, { id: ratio.id, chaos: ratio.price.chaos, lowConfidence: ratio.price.lowConfidence }] as const],
+  // A ratio with no trade in the window carries no price, and prices nothing here either.
+  const traded = ratios.flatMap((ratio) => (ratio.price === undefined ? [] : [{ ...ratio, price: ratio.price }]));
+
+  const lookup: Lookup = {
+    byName: Map.groupBy(listings, (listing) => listingKey(listing.name)),
+    outcomesById: new Map(corruptions.map((item) => [item.item_id, item.corruptions])),
+    exchange: new Map(
+      traded.map((ratio) => [
+        ratio.name,
+        { id: ratio.id, chaos: ratio.price.chaos, lowConfidence: ratio.price.lowConfidence },
+      ]),
     ),
-  );
+  };
 
-  return rows.map((item) => {
-    // The listings are looked up under the selector's name when it has one — a cluster jewel
-    // is listed under its enchant — and a variant inherits its row's.
-    const rowName = queriesOf(item.listing)[0]?.name ?? item.name;
-    const listed = (selector: ListingMatch | undefined): readonly ItemData[] =>
-      index.get(listingKey(selector?.name ?? rowName)) ?? [];
-    const priceOf = (query: ListingMatch | undefined): Price | undefined =>
-      query?.corruption === undefined
-        ? pickListing(listed(query), query)
-        : pickOutcome(listed(query), query.corruption, outcomesById);
-    // Several links price at the dearest.
-    const choose = (listing: Listing | undefined): Price | undefined =>
-      queriesOf(listing).reduce<Price | undefined>((best, query) => {
-        const chosen = priceOf(query);
-        if (chosen === undefined) return best;
-        return best === undefined || chosen.mean > best.mean ? chosen : best;
-      }, undefined);
-
-    const sale = queriesOf(item.listing)
-      .filter((query) => query === undefined || Object.keys(query).every((key) => key === "name"))
-      .flatMap((query) => {
-        const name = query?.name ?? item.name;
-        const found = exchange.get(name);
-        return found === undefined ? [] : [{ ...found, name }];
-      })
-      .reduce<{ id: number; chaos: number; lowConfidence: boolean; name: string } | undefined>(
-        (best, one) => (best === undefined || one.chaos > best.chaos ? one : best),
-        undefined,
-      );
-
-    if (item.variants === undefined) {
-      if (sale !== undefined) {
-        return {
-          ...item,
-          meanPrice: sale.chaos,
-          lowConfidence: sale.lowConfidence,
-          poeWatch: { source: "poeWatch:exchange", id: sale.id, name: sale.name },
-        };
-      }
-
-      const chosen = choose(item.listing);
-      return chosen === undefined
-        ? item
-        : { ...item, meanPrice: chosen.mean, lowConfidence: chosen.lowConfidence, poeWatch: chosen.poeWatch };
-    }
-
-    const variants: PricedVariant[] = item.variants.map((variant) => {
-      const chosen = choose(variant.listing);
-      return chosen === undefined
-        ? variant
-        : {
-            ...variant,
-            meanPrice: chosen.mean,
-            lowConfidence: chosen.lowConfidence,
-            poeWatch: chosen.poeWatch,
-          };
-    });
-
-    return { ...item, variants };
-  });
+  return rows.map((item) => priceRow(item, lookup));
 }

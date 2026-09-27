@@ -1,8 +1,4 @@
 import type { Item } from "../../api/taxonomy/types.ts";
+import { withTrueFlag } from "./with-true-flag.ts";
 
-export function withQuest(item: Item, quest: boolean): Item {
-  if (quest) return { ...item, quest: true };
-
-  const { quest: _dropped, ...rest } = item;
-  return rest;
-}
+export const withQuest = (item: Item, quest: boolean): Item => withTrueFlag(item, "quest", quest);
