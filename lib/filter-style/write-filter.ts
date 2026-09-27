@@ -1,4 +1,5 @@
 import { conditionLines } from "@poe/filter-compile/condition-line";
+import { ownerNote } from "@poe/filter-compile/owner-note";
 import { resolveForms } from "@poe/filter-compile/resolve-row";
 import type { Condition } from "@poe/filter-compile/types";
 import { formatNote } from "@poe/filter-eval/format-note";
@@ -88,7 +89,7 @@ function build(drawn: Drawn, rows: ReadonlyMap<string, CatalogRow>, categories: 
   if ("problem" in written) return written;
 
   const { item, bucket, verb } = placement;
-  const freehand = item.variant === undefined ? item.key : `${item.key} ${item.variant}`;
+  const freehand = ownerNote(item.key, item.variant);
   const note = formatNote({ tier: NOTE_TIER[bucket], verb }, freehand);
   const actions = actionLines(tierStyle(palette, bucket, verb));
   const text = [bucket === HIDDEN ? "Hide" : "Show", ...[...written.lines, ...actions].map((line) => `  ${line}`), `  ${note}`].join("\n");

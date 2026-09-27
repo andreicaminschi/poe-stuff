@@ -1,3 +1,4 @@
+import { readOwnerNote } from "@poe/filter-compile/owner-note";
 import { pathOf } from "../samples-of/path-of.ts";
 import type { BlindGroup, PathPair, RejectedGroup, SampleRow } from "../types.ts";
 import type { Blind, Bucket, Flagged, Hit, Rejected } from "./types.ts";
@@ -31,22 +32,24 @@ export const groupHits = (hits: readonly Hit[], bucket: Bucket): readonly PathPa
     }),
   );
 
-const exampleOf = ({ row, block, item }: Flagged) => ({
+type IsKey = (key: string) => boolean;
+
+const exampleOf = ({ row, block, item }: Flagged, isKey: IsKey) => ({
   key: row.key,
-  variant: block.freehand.split(" ").slice(1).join(" "),
+  variant: readOwnerNote(block.freehand, isKey)?.variant ?? "",
   item,
 });
 
-export const groupBlind = (blinds: readonly Blind[]): readonly BlindGroup[] =>
+export const groupBlind = (blinds: readonly Blind[], isKey: IsKey): readonly BlindGroup[] =>
   tally(
     blinds,
     ({ row, property }) => `${pathOf(row)}\n${property}`,
-    (blind) => ({ path: pathOf(blind.row), property: blind.property, count: 1, example: exampleOf(blind) }),
+    (blind) => ({ path: pathOf(blind.row), property: blind.property, count: 1, example: exampleOf(blind, isKey) }),
   );
 
-export const groupRejected = (rejected: readonly Rejected[]): readonly RejectedGroup[] =>
+export const groupRejected = (rejected: readonly Rejected[], isKey: IsKey): readonly RejectedGroup[] =>
   tally(
     rejected,
     ({ row, reject }) => `${pathOf(row)}\n${reject}`,
-    (one) => ({ path: pathOf(one.row), reject: one.reject, count: 1, example: exampleOf(one) }),
+    (one) => ({ path: pathOf(one.row), reject: one.reject, count: 1, example: exampleOf(one, isKey) }),
   );

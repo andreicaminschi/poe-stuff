@@ -1,6 +1,7 @@
 import { formatNote } from "@poe/filter-eval/format-note";
 import { parseFilter } from "@poe/filter-eval/parse-filter";
 import { conditionLines } from "./condition-line.ts";
+import { ownerNote } from "./owner-note.ts";
 import { resolveForms, type CategoryRecords, type Form } from "./resolve-row.ts";
 import type { Condition } from "./types.ts";
 
@@ -52,7 +53,7 @@ function blockOf(row: CompileRow, form: Form): Block {
 
   const note = formatNote(
     { tier: "varies", verb: "check" },
-    form.variant === undefined ? row.key : `${row.key} ${form.variant}`,
+    ownerNote(row.key, form.variant),
   );
 
   return { text: ["Show", ...written.lines.map((line) => `  ${line}`), `  ${note}`].join("\n") };

@@ -53,6 +53,8 @@ export function checkFilter(
 ): FilterCheck {
   const match = compileFilterEvery(blocks);
   const rowOf = rowLookup(rows);
+  const keys = new Set(rows.map((row) => row.key));
+  const isKey = (key: string) => keys.has(key);
 
   const byRow = new Map<string, { readonly row: SampleRow; readonly samples: FilterItem[] }>();
   const hits: Hit[] = [];
@@ -115,8 +117,8 @@ export function checkFilter(
       ownMiss: groupHits(hits, "ownMiss"),
       fallThrough: groupHits(hits, "fallThrough"),
       overlap: groupHits(hits, "overlap"),
-      rejected: groupRejected(rejected),
-      blind: groupBlind(blinds),
+      rejected: groupRejected(rejected, isKey),
+      blind: groupBlind(blinds, isKey),
     },
   };
 }

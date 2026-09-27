@@ -9,6 +9,7 @@
     "./compose": "./compose.ts",
     "./condition-line": "./condition-line.ts",
     "./fill-from": "./fill-from.ts",
+    "./owner-note": "./owner-note.ts",
     "./resolve-row": "./resolve-row.ts",
     "./types": "./types.ts"
   },

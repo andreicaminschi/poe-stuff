@@ -1,3 +1,4 @@
+import { readOwnerNote } from "@poe/filter-compile/owner-note";
 import type { FilterItem } from "@poe/filter-eval/filter-ast";
 import type { FilterMatcher } from "@poe/filter-eval/match-filter";
 
@@ -36,16 +37,14 @@ function uniqueMatches(item: FilterItem, basesByName: ReadonlyMap<string, LinkRo
     .map((listing) => listing.poeWatch);
 }
 
-/** The block's row, or its variant: the freehand is `<key>` or `<key> <variant>`. */
+/** The block's row, or its variant. */
 function blockMatches(freehand: string, rowsByKey: ReadonlyMap<string, LinkRow>): readonly PoeWatchLink[] {
-  const key = [...rowsByKey.keys()]
-    .filter((one) => freehand === one || freehand.startsWith(`${one} `))
-    .reduce((longest, one) => (one.length > longest.length ? one : longest), "");
-  const row = rowsByKey.get(key);
-  if (row === undefined) return [];
+  const owner = readOwnerNote(freehand, (key) => rowsByKey.has(key));
+  const row = owner === undefined ? undefined : rowsByKey.get(owner.key);
+  if (owner === undefined || row === undefined) return [];
 
-  const variant = freehand.slice(key.length + 1);
-  const link = variant === "" ? row.poeWatch : row.variants?.find((one) => one.name === variant)?.poeWatch;
+  const { variant } = owner;
+  const link = variant === undefined ? row.poeWatch : row.variants?.find((one) => one.name === variant)?.poeWatch;
   return link === undefined ? [] : [link];
 }
 
