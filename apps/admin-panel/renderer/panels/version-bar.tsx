@@ -8,10 +8,7 @@ export function VersionBar() {
   const status = useSession((state) => state.status);
   const switchVersion = useSession((state) => state.switchVersion);
   const newDraft = useSession((state) => state.newDraft);
-  const validate = useSession((state) => state.validate);
   const publish = useSession((state) => state.publish);
-  const compileFilter = useSession((state) => state.compileFilter);
-  const validateFilter = useSession((state) => state.validateFilter);
   const openDialog = useSession((state) => state.openDialog);
   const ledgerSize = useSession((state) => state.ledger.length);
   const current = useCurrentVersion();
@@ -66,19 +63,13 @@ export function VersionBar() {
       <button type="button" className="btn" disabled={ledgerSize === 0} onClick={() => openDialog({ kind: "changes" })}>
         View changes{ledgerSize === 0 ? "" : ` ${ledgerSize}`}
       </button>
-      <button type="button" className="btn" disabled={busy || current === undefined} onClick={() => void validate()}>
-        Validate
-      </button>
       <button
         type="button"
         className="btn"
-        disabled={busy || current?.editable !== true}
-        onClick={() => void compileFilter()}
+        disabled={busy || current === undefined}
+        onClick={() => openDialog({ kind: "checks" })}
       >
-        Compile filter
-      </button>
-      <button type="button" className="btn" disabled={busy || current === undefined} onClick={() => void validateFilter()}>
-        Validate filter
+        Validate…
       </button>
       <button
         type="button"

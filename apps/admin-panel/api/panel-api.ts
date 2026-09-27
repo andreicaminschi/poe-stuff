@@ -1,7 +1,15 @@
 import type { RunSummary } from "./catalog/getRuns.api.ts";
 import type { CompiledFilter, CompileSkip } from "./filter/compile.api.ts";
 import type { SavedReport } from "./filter/saveReport.api.ts";
-import type { UnfilteredReport, UnfilteredRow } from "@poe/filter-validate/types";
+import type { ValidationReport } from "./filter/validateFilter.api.ts";
+import type {
+  BlindGroup,
+  FallThroughReport,
+  PathPair,
+  RejectedGroup,
+  UnfilteredReport,
+  UnfilteredRow,
+} from "@poe/filter-validate/types";
 import type { Form } from "./prices/getForms.api.ts";
 import type { PriceName } from "./prices/getNames.api.ts";
 import type { Ledger, LedgerEntry } from "./ledger/types.ts";
@@ -31,7 +39,7 @@ export type PanelApi = {
   popLedger(id: string, seq: number): Promise<void>;
   commitLedger(id: string): Promise<void>;
   compileFilter(id: string, changes: DraftChanges): Promise<CompiledFilter>;
-  validateFilter(id: string, changes: DraftChanges): Promise<UnfilteredReport>;
+  validateFilter(id: string, changes: DraftChanges): Promise<ValidationReport>;
   saveReport(report: UnfilteredReport): Promise<SavedReport>;
 };
 
@@ -67,19 +75,24 @@ export type CatalogSource = (typeof CATALOG_SOURCES)[number];
 
 export type {
   ActionResult,
+  BlindGroup,
   CompiledFilter,
   CompileSkip,
   Draft,
   DraftChanges,
+  FallThroughReport,
   Form,
   Ledger,
   LedgerEntry,
+  PathPair,
   PriceName,
+  RejectedGroup,
   Resolution,
   RunSummary,
   SavedReport,
   UnfilteredReport,
   UnfilteredRow,
   Validation,
+  ValidationReport,
   VersionList,
 };

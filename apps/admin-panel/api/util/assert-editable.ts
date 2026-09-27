@@ -5,7 +5,9 @@ import { readOr } from "./read-or.ts";
 
 export async function assertEditable(lake: Lake, id: string): Promise<void> {
   const registry = await readOr(lake, registryKey(), EMPTY_REGISTRY);
-  const version = toVersionList(registry, undefined).versions.find((candidate) => candidate.id === id);
+  const version = toVersionList(registry, undefined).versions.find(
+    (candidate) => candidate.id === id,
+  );
 
   if (version?.editable !== true) {
     throw new Error(`${id} cannot be edited. Only the newest draft can.`);

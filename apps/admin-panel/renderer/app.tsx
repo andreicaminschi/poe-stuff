@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { AuthorModal } from "./dialogs/author-modal.tsx";
 import { CategoryModal } from "./dialogs/category-modal.tsx";
 import { ChangesPanel } from "./dialogs/changes-panel.tsx";
+import { ChecksDialog } from "./dialogs/checks-dialog.tsx";
 import { CompiledPanel } from "./dialogs/compiled-panel.tsx";
 import { UnfilteredPanel } from "./dialogs/unfiltered-panel.tsx";
 import { ConfirmDialog } from "./dialogs/confirm-dialog.tsx";
@@ -77,6 +78,7 @@ export function App() {
         <ItemEditor />
       </div>
 
+      {dialog?.kind === "checks" ? <ChecksDialog /> : null}
       {dialog?.kind === "validation" ? <ValidationPanel /> : null}
       {dialog?.kind === "runs" ? <RunsPanel /> : null}
       {dialog?.kind === "changes" ? <ChangesPanel /> : null}

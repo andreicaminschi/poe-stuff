@@ -54,6 +54,7 @@ export type CategoryTarget =
   | { readonly kind: "new-subcategory" };
 
 export type Dialog =
+  | { readonly kind: "checks" }
   | { readonly kind: "validation" }
   | { readonly kind: "runs" }
   | { readonly kind: "changes" }

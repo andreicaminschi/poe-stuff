@@ -64,8 +64,9 @@ adapters do and touches nothing in `renderer/`.
   old paths are deleted. Changing a subcategory's parent and slug together saves two entries,
   a move then a rename, and undo reverts one at a time.
 - **Publish validates, publishes and promotes**, in that order, after a confirm.
+- **Validate… opens a chooser**: Taxonomy, Filter (Validate filter below) or Compile filter.
 - **Compile filter is temporary.** It stages the working version in a throwaway lake, publishes
-  the copy there, and runs `yarn catalog:compile` against it. The result
+  the copy there (a published version is copied, not republished), and runs `yarn catalog:compile` against it. The result
   lands in `Documents/My Games/Path of Exile/taxonomy-compiled.filter`, so the game client can
   say which lines it rejects. The real lake is only read.
 - **Validate filter checks what the compiled filter misses.** It stages the working version the

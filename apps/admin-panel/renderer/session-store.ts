@@ -4,8 +4,8 @@ import type {
   Draft,
   Ledger,
   LedgerEntry,
-  UnfilteredReport,
   Validation,
+  ValidationReport,
   VersionList,
 } from "../api/panel-api.ts";
 import type { Category, DraftChanges, Item } from "../api/taxonomy/types.ts";
@@ -38,7 +38,7 @@ export type Session = {
   readonly confirmation?: Confirmation;
   readonly validation?: Validation;
   readonly compiled?: CompiledFilter;
-  readonly report?: UnfilteredReport;
+  readonly report?: ValidationReport;
   readonly status?: string;
   readonly error?: string;
   readonly busy: boolean;
