@@ -1,6 +1,6 @@
 import type { FilterItem } from "@poe/filter-eval/filter-ast";
 
-const describeValue = (value: unknown): string => {
+export const describeValue = (value: unknown): string => {
   if (!Array.isArray(value)) return String(value);
   return value.length === 0 ? "None" : value.join(" ");
 };

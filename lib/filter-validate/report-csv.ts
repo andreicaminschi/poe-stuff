@@ -1,13 +1,10 @@
+import { describeValue } from "./describe-sample.ts";
 import { groupUnfiltered } from "./group-unfiltered.ts";
 import type { UnfilteredReport } from "./types.ts";
 
 const ROW_COLUMNS = ["Category", "Subcategory", "Row", "Key"];
 
-const cellValue = (value: unknown): string => {
-  if (value === undefined) return "";
-  if (!Array.isArray(value)) return String(value);
-  return value.length === 0 ? "None" : value.join(" ");
-};
+const cellValue = (value: unknown): string => (value === undefined ? "" : describeValue(value));
 
 const escape = (cell: string): string => (/[",\r\n]/.test(cell) ? `"${cell.replaceAll('"', '""')}"` : cell);
 

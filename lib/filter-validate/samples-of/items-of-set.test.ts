@@ -38,13 +38,17 @@ describe("itemsOfSet", () => {
     expect(calls).toBe(1);
   });
 
-  it("leaves out a property with no usable values instead of emptying the product", () => {
-    const items = itemsOfSet({ Quality: { values: ["bad"] }, ItemLevel: { from: "conditions" }, Corrupted: { values: [true] } }, row, none);
+  it("leaves out a property read off the row with no values instead of emptying the product", () => {
+    const items = itemsOfSet({ ItemLevel: { from: "conditions" }, Corrupted: { values: [true] } }, row, none);
 
     expect(items).toEqual([{ Corrupted: true }]);
   });
 
-  it("ignores a name that is not a filter condition", () => {
-    expect(itemsOfSet({ NotACondition: { values: [1] } }, row, none)).toEqual([{}]);
+  it("throws on a literal value that does not fit its condition", () => {
+    expect(() => itemsOfSet({ Quality: { values: ["bad"] } }, row, none)).toThrow("does not fit Quality");
+  });
+
+  it("throws on a name that is not a filter condition", () => {
+    expect(() => itemsOfSet({ NotACondition: { values: [1] } }, row, none)).toThrow("not a filter condition");
   });
 });
