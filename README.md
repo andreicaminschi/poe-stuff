@@ -377,8 +377,8 @@ Before it can be written:
 - Nothing decides whether the catalog reads the collected pages itself, or a separate step
   turns them into prices first.
 
-Code: `apps/collector` is a README only. `packages/workers` is the deprecated proof of
-concept, and its `docs/pipeline.md` is the collection design in full.
+Code: `apps/collector` is a README only. The `@poe/workers` proof of concept it replaces was
+deleted; its `docs/pipeline.md`, the collection design in full, is in git history.
 
 ## Where it runs
 
@@ -428,7 +428,6 @@ never imported. [CLAUDE.md](CLAUDE.md) has the full rule.
 | `services/repoe` | The game's own data files. Seeds the taxonomy. |
 | `services/taxonomy` | Reads one published taxonomy version. |
 | `services/lake` | JSON files under `.s3`, addressed by key. |
-| `packages/*` | Deprecated proofs of concept. Never import them. |
 
 ## Words
 

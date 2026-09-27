@@ -2,7 +2,8 @@
 
 **Not written yet.** This folder holds the intent, not the code.
 
-Replaces [`packages/workers`](../../packages/workers), which is deprecated.
+Replaces the deleted `@poe/workers` proof of concept. What that POC got right is written
+down below; its code and design notes are gone from the tree and live only in git history.
 
 ## What it will own
 
@@ -11,15 +12,14 @@ Everything that turns GGG's trade API into files on disk:
 - the worker loop and the job handlers
 - the record of what has been collected and what is still outstanding
 - the writes into `.s3`
-- `queries.json`, which is authored by hand and currently sits at the repo root
+- the hand-authored trade searches it collects, as a file of its own
 - its own `.env`
 
 It talks to GGG through `@poe/ggg` and owns no URLs of its own.
 
 ## What has to be decided first
 
-The POC in `packages/workers` used Redis for the queue and Postgres for the record of every
-job. Neither is configured any more, and no third-party service is going to be until AWS is
+The POC used Redis for the queue and Postgres for the record of every job. Neither is configured any more, and no third-party service is going to be until AWS is
 real. So the first question this app has to answer is **what replaces them locally** — the
 queue and the outstanding-work record are the two things it cannot work without, and both
 were containers.
@@ -37,6 +37,6 @@ What the POC got right and is worth keeping:
 - **One limiter is one IP.** One GGG service per process, because the rate budget is per
   address and two limiters in one process spend it twice as fast.
 
-Read [`packages/workers/docs/pipeline.md`](../../packages/workers/docs/pipeline.md) before
-writing any of this. It is the POC's design in full, and most of it survives the change of
-backing store.
+The POC's design in full was `packages/workers/docs/pipeline.md`, deleted with the rest of
+that package. Read it out of git history before writing any of this — most of it survives
+the change of backing store.

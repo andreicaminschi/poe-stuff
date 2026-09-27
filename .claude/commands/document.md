@@ -11,10 +11,6 @@ in one of them, and guessing which is how the wrong file gets rewritten.
 
 Target file is `$1/README.md`.
 
-**Refuse to document anything under `packages/`.** That tier is deprecated POC code being
-deleted, and each folder already carries a `DEPRECATED.md` saying so. Say that instead of
-writing a README for it.
-
 ## Step 1 — read the package, stop
 
 Read, in this order:
