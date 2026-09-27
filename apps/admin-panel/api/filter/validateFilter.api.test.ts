@@ -5,7 +5,7 @@ import { seedDraft, tempLake, type TempLake } from "../util/temp-lake.test-helpe
 
 type Result = { ok: boolean; log: string };
 const runAction = jest.fn<(repo: string, args: readonly string[]) => Promise<Result>>();
-const runQuery = jest.fn<(repo: string, args: readonly string[]) => Promise<unknown>>();
+const runQuery = jest.fn<(repo: string, args: readonly string[], onLine?: (line: string) => void) => Promise<unknown>>();
 jest.unstable_mockModule("../util/yarn.ts", () => ({ runAction, runQuery, runYarn: jest.fn() }));
 
 const { validateFilter } = await import("./validateFilter.api.ts");
