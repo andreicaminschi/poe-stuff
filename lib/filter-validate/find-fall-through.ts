@@ -1,78 +1,16 @@
-import type { FilterBlock, FilterItem } from "@poe/filter-eval/filter-ast";
+import type { FilterBlock } from "@poe/filter-eval/filter-ast";
 import { compileFilterEvery } from "@poe/filter-eval/match-filter";
-import { ownerOf } from "./find-fall-through/owner-of.ts";
+import { blindsOf } from "./find-fall-through/blinds-of.ts";
+import { judgePlacement } from "./find-fall-through/judge-placement.ts";
+import { judgeReject } from "./find-fall-through/judge-reject.ts";
+import { overlapsOf } from "./find-fall-through/overlaps-of.ts";
+import { rowLookup } from "./find-fall-through/row-lookup.ts";
+import { groupBlind, groupHits, groupRejected } from "./find-fall-through/tally.ts";
+import type { Blind, Hit, Rejected } from "./find-fall-through/types.ts";
 import { variedProperties } from "./find-fall-through/varied-properties.ts";
 import { samplesOf } from "./samples-of.ts";
 import { pathOf } from "./samples-of/path-of.ts";
-import type { BlindGroup, FallThroughReport, RejectedGroup, PathPair, SampleCategories, SampleRow } from "./types.ts";
-
-type Bucket = "ownMiss" | "fallThrough" | "overlap";
-
-type Hit = {
-  readonly bucket: Bucket;
-  readonly own: SampleRow;
-  readonly other: SampleRow | undefined;
-  readonly item: FilterItem;
-};
-
-/** One group per id, counted, the first entry's shape kept, most counted first. */
-function tally<T, G extends { readonly count: number }>(
-  entries: readonly T[],
-  idOf: (entry: T) => string,
-  groupOf: (entry: T) => G,
-): readonly G[] {
-  const groups = new Map<string, G>();
-  for (const entry of entries) {
-    const id = idOf(entry);
-    const earlier = groups.get(id);
-    groups.set(id, earlier === undefined ? groupOf(entry) : { ...earlier, count: earlier.count + 1 });
-  }
-  return [...groups.values()].sort((a, b) => b.count - a.count);
-}
-
-const otherPathOf = (other: SampleRow | undefined): string => (other === undefined ? "" : pathOf(other));
-
-const group = (hits: readonly Hit[], bucket: Bucket): readonly PathPair[] =>
-  tally(
-    hits.filter((hit) => hit.bucket === bucket),
-    ({ own, other }) => `${pathOf(own)}\n${otherPathOf(other)}`,
-    ({ own, other, item }) => ({
-      own: pathOf(own),
-      other: otherPathOf(other),
-      count: 1,
-      example: { ownKey: own.key, otherKey: other?.key ?? "", item },
-    }),
-  );
-
-type Flagged = { readonly row: SampleRow; readonly block: FilterBlock; readonly item: FilterItem };
-
-const exampleOf = ({ row, block, item }: Flagged) => ({
-  key: row.key,
-  variant: block.freehand.split(" ").slice(1).join(" "),
-  item,
-});
-
-type Blind = Flagged & { readonly property: string };
-
-const groupBlind = (blinds: readonly Blind[]): readonly BlindGroup[] =>
-  tally(
-    blinds,
-    ({ row, property }) => `${pathOf(row)}\n${property}`,
-    (blind) => ({ path: pathOf(blind.row), property: blind.property, count: 1, example: exampleOf(blind) }),
-  );
-
-type Rejected = Flagged & { readonly reject: string };
-
-const groupRejected = (rejected: readonly Rejected[]): readonly RejectedGroup[] =>
-  tally(
-    rejected,
-    ({ row, reject }) => `${pathOf(row)}\n${reject}`,
-    (one) => ({ path: pathOf(one.row), reject: one.reject, count: 1, example: exampleOf(one) }),
-  );
-
-function isCatchAll(categories: SampleCategories, own: SampleRow, other: SampleRow): boolean {
-  return other.category === own.category && categories[pathOf(other)]?.catchAll === true;
-}
+import type { FallThroughReport, SampleCategories, SampleRow } from "./types.ts";
 
 /**
  * Every sample whose own path does not cleanly take it. A sample belongs to a path, because
@@ -90,11 +28,7 @@ export function findFallThrough(
   categories: SampleCategories,
 ): FallThroughReport {
   const match = compileFilterEvery(blocks);
-  const rowsByKey = new Map(rows.map((row) => [row.key, row]));
-  const rowOf = (block: FilterBlock | undefined): SampleRow | undefined => {
-    const key = block === undefined ? undefined : ownerOf(block);
-    return key === undefined ? undefined : rowsByKey.get(key);
-  };
+  const rowOf = rowLookup(rows);
 
   const hits: Hit[] = [];
   const blinds: Blind[] = [];
@@ -106,51 +40,32 @@ export function findFallThrough(
   for (const { row, item, reject } of samplesOf(rows, categories)) {
     if (categories[pathOf(row)]?.catchAll === true) continue;
     if (reject !== undefined) {
-      const taken = match(item).winner;
-      const takenRow = rowOf(taken);
-      if (taken !== undefined && takenRow !== undefined && pathOf(takenRow) === pathOf(row)) {
-        rejected.push({ row, block: taken, reject, item });
-      }
+      const taken = judgeReject(row, item, reject, match, rowOf);
+      if (taken !== undefined) rejected.push(taken);
       continue;
     }
     sampled++;
-    const { winner, matched } = match(item);
-    if (winner === undefined) {
+    const placement = judgePlacement(row, item, match, rowOf);
+    if (placement.kind === "unfiltered") {
       unfiltered++;
       continue;
     }
-
-    const owners = [...new Set(matched.map(rowOf))].filter((one) => one !== undefined);
-    const path = pathOf(row);
-    const winnerRow = rowOf(winner);
-
-    if (!owners.some((one) => pathOf(one) === path)) {
-      hits.push({ bucket: "ownMiss", own: row, other: winnerRow, item });
-      continue;
-    }
-    if (winnerRow === undefined || pathOf(winnerRow) !== path) {
-      hits.push({ bucket: "fallThrough", own: row, other: winnerRow, item });
+    if (placement.kind === "miss") {
+      hits.push(placement.hit);
       continue;
     }
     const properties = varied.get(row.key) ?? variedProperties(categories, row);
     varied.set(row.key, properties);
-    for (const property of properties) {
-      if (!(property in item)) continue;
-      if (!winner.conditions.some((one) => one.name === property)) blinds.push({ row, block: winner, property, item });
-    }
-
-    const others = new Map(owners.filter((one) => pathOf(one) !== path).map((one) => [pathOf(one), one]));
-    for (const other of others.values()) {
-      if (!isCatchAll(categories, row, other)) hits.push({ bucket: "overlap", own: row, other, item });
-    }
+    blinds.push(...blindsOf(row, placement.winner, item, properties));
+    hits.push(...overlapsOf(row, placement.owners, item, categories));
   }
 
   return {
     sampled,
     unfiltered,
-    ownMiss: group(hits, "ownMiss"),
-    fallThrough: group(hits, "fallThrough"),
-    overlap: group(hits, "overlap"),
+    ownMiss: groupHits(hits, "ownMiss"),
+    fallThrough: groupHits(hits, "fallThrough"),
+    overlap: groupHits(hits, "overlap"),
     rejected: groupRejected(rejected),
     blind: groupBlind(blinds),
   };

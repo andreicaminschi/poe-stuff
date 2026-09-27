@@ -1,0 +1,52 @@
+import { pathOf } from "../samples-of/path-of.ts";
+import type { BlindGroup, PathPair, RejectedGroup, SampleRow } from "../types.ts";
+import type { Blind, Bucket, Flagged, Hit, Rejected } from "./types.ts";
+
+/** One group per id, counted, the first entry's shape kept, most counted first. */
+function tally<T, G extends { readonly count: number }>(
+  entries: readonly T[],
+  idOf: (entry: T) => string,
+  groupOf: (entry: T) => G,
+): readonly G[] {
+  const groups = new Map<string, G>();
+  for (const entry of entries) {
+    const id = idOf(entry);
+    const earlier = groups.get(id);
+    groups.set(id, earlier === undefined ? groupOf(entry) : { ...earlier, count: earlier.count + 1 });
+  }
+  return [...groups.values()].sort((a, b) => b.count - a.count);
+}
+
+const otherPathOf = (other: SampleRow | undefined): string => (other === undefined ? "" : pathOf(other));
+
+export const groupHits = (hits: readonly Hit[], bucket: Bucket): readonly PathPair[] =>
+  tally(
+    hits.filter((hit) => hit.bucket === bucket),
+    ({ own, other }) => `${pathOf(own)}\n${otherPathOf(other)}`,
+    ({ own, other, item }) => ({
+      own: pathOf(own),
+      other: otherPathOf(other),
+      count: 1,
+      example: { ownKey: own.key, otherKey: other?.key ?? "", item },
+    }),
+  );
+
+const exampleOf = ({ row, block, item }: Flagged) => ({
+  key: row.key,
+  variant: block.freehand.split(" ").slice(1).join(" "),
+  item,
+});
+
+export const groupBlind = (blinds: readonly Blind[]): readonly BlindGroup[] =>
+  tally(
+    blinds,
+    ({ row, property }) => `${pathOf(row)}\n${property}`,
+    (blind) => ({ path: pathOf(blind.row), property: blind.property, count: 1, example: exampleOf(blind) }),
+  );
+
+export const groupRejected = (rejected: readonly Rejected[]): readonly RejectedGroup[] =>
+  tally(
+    rejected,
+    ({ row, reject }) => `${pathOf(row)}\n${reject}`,
+    (one) => ({ path: pathOf(one.row), reject: one.reject, count: 1, example: exampleOf(one) }),
+  );
