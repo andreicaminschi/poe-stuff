@@ -33,12 +33,11 @@ describe("validateFilter", () => {
     });
 
     await expect(validateFilter("/repo", temp.lake, "3.29.2", {})).resolves.toEqual(report);
-    expect(runQuery).toHaveBeenCalledWith("/repo", [
-      "catalog:validate",
-      "--taxonomy-version=3.29.2",
-      `--root=${root}`,
-      `--out=${join(root, "unfiltered.json")}`,
-    ]);
+    expect(runQuery).toHaveBeenCalledWith(
+      "/repo",
+      ["catalog:validate", "--taxonomy-version=3.29.2", `--root=${root}`, `--out=${join(root, "unfiltered.json")}`],
+      expect.any(Function),
+    );
     await expect(access(root)).rejects.toThrow();
   });
 

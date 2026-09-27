@@ -5,6 +5,7 @@ import type {
   Ledger,
   LedgerEntry,
   Validation,
+  ValidateProgress,
   ValidationReport,
   VersionList,
 } from "../api/panel-api.ts";
@@ -39,6 +40,7 @@ export type Session = {
   readonly validation?: Validation;
   readonly compiled?: CompiledFilter;
   readonly report?: ValidationReport;
+  readonly progress?: ValidateProgress;
   readonly status?: string;
   readonly error?: string;
   readonly busy: boolean;
@@ -460,8 +462,16 @@ export const useSession = create<Session>()((set, get) => {
         const { versionId } = get();
         if (versionId === undefined) return;
         set({ status: "Validating the filter…" });
-        const report = await window.panel.validateFilter(versionId, toDraftChanges(get().changes));
-        set({ report, status: undefined, dialog: { kind: "unfiltered" } });
+        const stop = window.panel.onProgress((progress) =>
+          set({ progress, status: `Step ${progress.step} of ${progress.total}: ${progress.label}` }),
+        );
+        try {
+          const report = await window.panel.validateFilter(versionId, toDraftChanges(get().changes));
+          set({ report, dialog: { kind: "unfiltered" } });
+        } finally {
+          stop();
+          set({ progress: undefined, status: undefined });
+        }
       }),
 
     saveReport: () =>

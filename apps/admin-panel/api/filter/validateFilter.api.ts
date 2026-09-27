@@ -10,6 +10,15 @@ const FILE_NAME = "unfiltered.json";
 
 export type ValidationReport = UnfilteredReport & { readonly fallThrough: FallThroughReport };
 
+export type ValidateProgress = { readonly step: number; readonly total: number; readonly label: string };
+
+const PROGRESS = /^progress (\d+)\/(\d+) (.+)$/;
+
+const progressOf = (line: string): ValidateProgress | undefined => {
+  const found = PROGRESS.exec(line.trim());
+  return found === null ? undefined : { step: Number(found[1]), total: Number(found[2]), label: found[3] ?? "" };
+};
+
 /**
  * The working version's compiled filter, checked against its own sample items: every sample
  * no block takes.
@@ -21,10 +30,18 @@ export async function validateFilter(
   lake: Lake,
   id: string,
   changes: DraftChanges,
+  notify: (progress: ValidateProgress) => void = () => {},
 ): Promise<ValidationReport> {
   return withPublishedWorking(repo, lake, id, changes, async (root) => {
     const out = join(root, FILE_NAME);
-    await runQuery<unknown>(repo, ["catalog:validate", `--taxonomy-version=${id}`, `--root=${root}`, `--out=${out}`]);
+    await runQuery<unknown>(
+      repo,
+      ["catalog:validate", `--taxonomy-version=${id}`, `--root=${root}`, `--out=${out}`],
+      (line) => {
+        const progress = progressOf(line);
+        if (progress !== undefined) notify(progress);
+      },
+    );
 
     return JSON.parse(await readFile(out, "utf8")) as ValidationReport;
   });

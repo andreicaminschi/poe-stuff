@@ -6,6 +6,7 @@ export function VersionBar() {
   const versions = useSession((state) => state.versions);
   const busy = useSession((state) => state.busy);
   const status = useSession((state) => state.status);
+  const progress = useSession((state) => state.progress);
   const switchVersion = useSession((state) => state.switchVersion);
   const newDraft = useSession((state) => state.newDraft);
   const publish = useSession((state) => state.publish);
@@ -54,6 +55,11 @@ export function VersionBar() {
         ))}
       </select>
       <span className="sp" />
+      {progress === undefined ? null : (
+        <div className="progress" style={{ width: 120 }} role="progressbar" aria-valuenow={progress.step} aria-valuemin={0} aria-valuemax={progress.total}>
+          <div className="fill" style={{ width: `${Math.round((progress.step / progress.total) * 100)}%` }} />
+        </div>
+      )}
       {status === undefined ? null : <span className="from">{status}</span>}
       {dirty === 0 ? null : (
         <span className="from">

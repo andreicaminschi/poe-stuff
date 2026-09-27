@@ -1,7 +1,7 @@
 import type { RunSummary } from "./catalog/getRuns.api.ts";
 import type { CompiledFilter, CompileSkip } from "./filter/compile.api.ts";
 import type { SavedReport } from "./filter/saveReport.api.ts";
-import type { ValidationReport } from "./filter/validateFilter.api.ts";
+import type { ValidateProgress, ValidationReport } from "./filter/validateFilter.api.ts";
 import type {
   BlindGroup,
   FallThroughReport,
@@ -67,6 +67,13 @@ export const API_NAMES = [
   "saveReport",
 ] as const satisfies readonly (keyof PanelApi)[];
 
+export const PROGRESS_CHANNEL = "progress";
+
+/** Pushed from main; returns an unsubscribe. */
+export type PanelEvents = {
+  onProgress(listener: (progress: ValidateProgress) => void): () => void;
+};
+
 export const LEAGUE = "Allflame";
 
 export const CATALOG_SOURCES = ["ggg", "poewatch", "taxonomy"] as const;
@@ -94,5 +101,6 @@ export type {
   UnfilteredRow,
   Validation,
   ValidationReport,
+  ValidateProgress,
   VersionList,
 };

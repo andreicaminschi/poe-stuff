@@ -20,6 +20,12 @@ import { fromTaxonomy } from "./build-silver/from-taxonomy.ts";
 import { compileFilter } from "@poe/filter-compile/compile-filter";
 import { flag } from "./cli-args.ts";
 
+const STEPS = ["Reading taxonomy", "Compiling filter", "Finding unfiltered samples", "Finding fall-through samples", "Writing report"];
+
+const progress = (step: number): void => {
+  process.stderr.write(`progress ${step}/${STEPS.length} ${STEPS[step - 1]}\n`);
+};
+
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
   const out = flag(args, "out");
@@ -28,15 +34,20 @@ async function main(): Promise<void> {
     throw new Error("usage: validate-cli.ts --out=<file> [--taxonomy-version=<v>] [--root=<dir>]");
   }
 
+  progress(1);
   const taxonomy = createTaxonomyService({ root: flag(args, "root") });
   const published = await taxonomy.getTaxonomy(flag(args, "taxonomy-version"));
   const { categories } = await taxonomy.getCategories(published.version);
   const rows = fromTaxonomy(published);
+  progress(2);
   const blocks = parseFilter(compileFilter(rows, categories).text);
 
+  progress(3);
   const unfiltered = findUnfiltered(blocks, rows, categories);
+  progress(4);
   const fallThrough = findFallThrough(blocks, rows, categories);
 
+  progress(5);
   writeFileSync(out, JSON.stringify({ ...unfiltered, fallThrough }));
   process.stdout.write(
     `${JSON.stringify({

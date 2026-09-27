@@ -21,7 +21,9 @@ const quote = (arg: string): string => {
   return `"${arg}"`;
 };
 
-export function runYarn(repo: string, args: readonly string[]): Promise<Outcome> {
+export type OnLine = (line: string) => void;
+
+export function runYarn(repo: string, args: readonly string[], onStderrLine?: OnLine): Promise<Outcome> {
   return new Promise((done, fail) => {
     const child = spawn(["yarn", ...args.map(quote)].join(" "), {
       cwd: repo,
@@ -34,8 +36,14 @@ export function runYarn(repo: string, args: readonly string[]): Promise<Outcome>
     child.stdout.on("data", (chunk: Buffer) => {
       stdout += chunk.toString();
     });
+    let pending = "";
     child.stderr.on("data", (chunk: Buffer) => {
-      stderr += chunk.toString();
+      const text = chunk.toString();
+      stderr += text;
+      if (onStderrLine === undefined) return;
+      const lines = (pending + text).split(/\r?\n/);
+      pending = lines.pop() ?? "";
+      for (const line of lines) onStderrLine(line);
     });
     child.on("error", fail);
     child.on("close", (code) => done({ code: code ?? 1, stdout, stderr }));
@@ -48,8 +56,8 @@ export async function runAction(repo: string, args: readonly string[]): Promise<
   return { ok: code === 0, log: `${stdout}${stderr}` };
 }
 
-export async function runQuery<T>(repo: string, args: readonly string[]): Promise<T> {
-  const { code, stdout, stderr } = await runYarn(repo, args);
+export async function runQuery<T>(repo: string, args: readonly string[], onStderrLine?: OnLine): Promise<T> {
+  const { code, stdout, stderr } = await runYarn(repo, args, onStderrLine);
 
   if (code !== 0) {
     throw new Error(stderr.trim() || `yarn ${args.join(" ")} exited ${code}`);

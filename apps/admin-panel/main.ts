@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { optionalEnv } from "@util/env";
 import { app, BrowserWindow, dialog, ipcMain } from "electron";
 import { repoRoot } from "./api/util/lake.ts";
-import { API_NAMES } from "./api/panel-api.ts";
+import { API_NAMES, PROGRESS_CHANNEL } from "./api/panel-api.ts";
 import { createPanelService } from "./api/panel.ts";
 
 const envFile = join(app.getAppPath(), ".env");
@@ -26,6 +26,9 @@ const service = createPanelService(
   app.getPath("documents"),
   chooseReportPath,
   optionalEnv("POE_USER_AGENT"),
+  (progress) => {
+    for (const window of BrowserWindow.getAllWindows()) window.webContents.send(PROGRESS_CHANNEL, progress);
+  },
 );
 
 for (const name of API_NAMES) {
