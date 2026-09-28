@@ -37,10 +37,24 @@ describe("buildSamples", () => {
     ]);
   });
 
-  it("yields a sample two rows on one path both build only for the first row", () => {
+  it("yields a sample two rows on one path both build once for each row", () => {
     const categories: SampleCategories = { "gems/skill": { conditions: [], samples: [{ Quality: { values: [20] } }] } };
 
-    expect(brief(categories, [row("a"), row("b")])).toEqual([{ key: "a", item: { Quality: 20 }, reject: undefined }]);
+    expect(brief(categories, [row("a"), row("b")])).toEqual([
+      { key: "a", item: { Quality: 20 }, reject: undefined },
+      { key: "b", item: { Quality: 20 }, reject: undefined },
+    ]);
+  });
+
+  it("yields a sample one row's own sets build twice only once", () => {
+    const categories: SampleCategories = {
+      "gems/skill": { conditions: [], samples: [{ Quality: { values: [0, 20] } }, { Quality: { values: [20] } }] },
+    };
+
+    expect(brief(categories, [row("a")])).toEqual([
+      { key: "a", item: { Quality: 0 }, reject: undefined },
+      { key: "a", item: { Quality: 20 }, reject: undefined },
+    ]);
   });
 
   it("follows each sample with its reject overrides, tagged with the override", () => {

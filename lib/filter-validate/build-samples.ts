@@ -23,7 +23,10 @@ function buildRejects(
   );
 }
 
-/** Builds one row's sample items, each followed by its reject items. */
+/**
+ * Builds one row's sample items, each followed by its reject items. An item the row's own
+ * sets build twice is yielded once.
+ */
 function* buildRowSamples(
   row: SampleRow,
   sets: readonly SampleSet[],
@@ -33,14 +36,22 @@ function* buildRowSamples(
   let cached: ReadonlyMap<string, readonly unknown[]> | undefined;
   const lookup: Lookup = () => (cached ??= conditionValues(categories, row));
 
+  const seen = new Set<string>();
+  const isNew = (sample: Sample): boolean => {
+    const key = JSON.stringify(sample.item);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  };
+
   for (const item of sets.flatMap((set) => itemsOfSet(set, row, lookup))) {
-    yield { row, item };
-    for (const rejected of buildRejects(item, rejects, row, lookup)) yield { row, ...rejected };
+    const rejected = buildRejects(item, rejects, row, lookup).map((one) => ({ row, ...one }));
+    yield* [{ row, item }, ...rejected].filter(isNew);
   }
 }
 
 /**
- * Builds every sample and reject item for the rows of one path, duplicates included.
+ * Builds every sample and reject item for the rows of one path.
  * Yields nothing when the path has no sample sets.
  */
 function* buildPathSamples(rows: readonly SampleRow[], categories: SampleCategories): Generator<Sample> {
@@ -59,16 +70,9 @@ function* buildPathSamples(rows: readonly SampleRow[], categories: SampleCategor
  * Builds the fake items the filter validator checks the filter against, one at a time.
  *
  * Each catalog row gets the items its path's sample sets describe, plus reject items the path
- * must never take. An item that two rows on one path both build is yielded once, for the first row.
+ * must never take. An item two rows both build is yielded once per row, so a caller can
+ * see that the rows overlap.
  */
 export function* buildSamples(rows: readonly SampleRow[], categories: SampleCategories): Generator<Sample> {
-  for (const group of Map.groupBy(rows, formatPath).values()) {
-    const seen = new Set<string>();
-    for (const sample of buildPathSamples(group, categories)) {
-      const key = JSON.stringify(sample.item);
-      if (seen.has(key)) continue;
-      seen.add(key);
-      yield sample;
-    }
-  }
+  for (const group of Map.groupBy(rows, formatPath).values()) yield* buildPathSamples(group, categories);
 }

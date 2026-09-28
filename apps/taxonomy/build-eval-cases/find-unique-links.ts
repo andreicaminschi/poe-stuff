@@ -8,18 +8,18 @@ const FOULBORN = "foulborn";
  * corrupted or not. The item alone cannot say which unique it is, so each one counts as correct.
  *
  * @example
- * const basesByName = new Map([["Ruby Ring", { key: "Ruby Ring", name: "Ruby Ring", uniques: [
+ * const uniqueBasesByName = new Map([["Ruby Ring", { key: "Ruby Ring", name: "Ruby Ring", uniques: [
  *   { subcategory: null, listings: [
  *     { corrupted: false, poeWatch: mingsHeart },
  *     { corrupted: true, poeWatch: mingsHeartCorrupted },
  *   ] },
  * ] }]]);
- * findUniqueLinks({ Rarity: "Unique", BaseType: "Ruby Ring", Corrupted: false }, basesByName);
+ * findUniqueLinks({ Rarity: "Unique", BaseType: "Ruby Ring", Corrupted: false }, uniqueBasesByName);
  * // → [mingsHeart]
  */
-export function findUniqueLinks(item: FilterItem, basesByName: ReadonlyMap<string, LinkRow>): readonly PoeWatchLink[] {
+export function findUniqueLinks(item: FilterItem, uniqueBasesByName: ReadonlyMap<string, LinkRow>): readonly PoeWatchLink[] {
   if (typeof item.BaseType !== "string") return [];
-  const base = basesByName.get(item.BaseType);
+  const base = uniqueBasesByName.get(item.BaseType);
   const subcategory = item.Foulborn === true
     ? FOULBORN
     : null;

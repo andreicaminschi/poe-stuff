@@ -7,7 +7,7 @@
  *
  * Reads `catalog/latest/<league>.catalog.json` and its categories, and writes
  * `taxonomy/evals/<v>/cases.json`, `<v>` being the promoted taxonomy version. Prints the case
- * count and how many match nothing as JSON.
+ * count, how many match nothing and how many items two paths both build, as JSON.
  */
 
 import { createLakeService } from "@poe/lake/service";
@@ -33,11 +33,13 @@ async function main(): Promise<void> {
     `catalog/latest/${slug(league)}.catalog.categories.json`,
   );
 
-  const cases = buildEvalCases(rows, categories);
-  await lake.writeJsonAtomic(`${PREFIX}/evals/${version}/cases.json`, { version, league, cases });
+  const { cases, overlaps } = buildEvalCases(rows, categories);
+  await lake.writeJsonAtomic(`${PREFIX}/evals/${version}/cases.json`, { version, league, cases, overlaps });
 
   const unmatched = cases.filter((one) => one.matches.length === 0).length;
-  process.stdout.write(`${JSON.stringify({ version, cases: cases.length, unmatched })}\n`);
+  process.stdout.write(
+    `${JSON.stringify({ version, cases: cases.length, unmatched, overlaps: overlaps.length })}\n`,
+  );
 }
 
 main().catch((error: unknown) => {

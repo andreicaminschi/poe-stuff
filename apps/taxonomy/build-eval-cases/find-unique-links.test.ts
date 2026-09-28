@@ -19,9 +19,9 @@ const ring: LinkRow = {
     { subcategory: "foulborn", listings: [{ corrupted: false, poeWatch: link(20) }] },
   ],
 };
-const basesByName = new Map([["Ruby Ring", ring]]);
+const uniqueBasesByName = new Map([["Ruby Ring", ring]]);
 const find = (extra: Record<string, unknown>) =>
-  findUniqueLinks({ Rarity: "Unique", ...extra } as FilterItem, basesByName);
+  findUniqueLinks({ Rarity: "Unique", ...extra } as FilterItem, uniqueBasesByName);
 
 describe("findUniqueLinks", () => {
   it("links a plain unique to every uncorrupted regular listing on its base", () => {

@@ -11,7 +11,7 @@ import { variedProperties } from "./find-fall-through/varied-properties.ts";
 import { buildSamples } from "./build-samples.ts";
 import { formatPath } from "./build-samples/format-path.ts";
 import { sampleSets } from "./build-samples/sample-sets.ts";
-import type { FallThroughReport, SampleCategories, SampleRow, UnfilteredReport, UnfilteredRow } from "./types.ts";
+import type { FallThroughReport, Sample, SampleCategories, SampleRow, UnfilteredReport, UnfilteredRow } from "./types.ts";
 
 export type FilterCheck = {
   readonly unfiltered: UnfilteredReport;
@@ -24,6 +24,26 @@ const unsampledOf = (rows: readonly SampleRow[], categories: SampleCategories): 
       rows.filter((row) => sampleSets(categories, row.category, row.subcategory) === undefined).map(formatPath),
     ),
   ].sort();
+
+/**
+ * Skips an item another row on the same path already built, so each report counts it once.
+ * Samples arrive grouped by path, so the seen set resets when the path changes.
+ */
+function* skipPathRepeats(samples: Iterable<Sample>): Generator<Sample> {
+  let path: string | undefined;
+  let seen = new Set<string>();
+  for (const sample of samples) {
+    const samplePath = formatPath(sample.row);
+    if (samplePath !== path) {
+      path = samplePath;
+      seen = new Set();
+    }
+    const key = JSON.stringify(sample.item);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    yield sample;
+  }
+}
 
 /**
  * Both reports off one walk of the samples and one compiled matcher.
@@ -60,7 +80,7 @@ export function checkFilter(
   let judged = 0;
   let judgedUnfiltered = 0;
 
-  for (const { row, item, reject } of buildSamples(rows, categories)) {
+  for (const { row, item, reject } of skipPathRepeats(buildSamples(rows, categories))) {
     const catchAll = categories[formatPath(row)]?.catchAll === true;
     if (reject !== undefined) {
       if (catchAll) continue;

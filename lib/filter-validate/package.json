@@ -13,6 +13,7 @@
     "./report-csv": "./report-csv.ts",
     "./sample-query": "./sample-query.ts",
     "./build-samples": "./build-samples.ts",
+    "./format-path": "./build-samples/format-path.ts",
     "./types": "./types.ts"
   },
   "dependencies": {

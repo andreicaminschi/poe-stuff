@@ -109,7 +109,7 @@ flowchart TD
     B{"Path has<br/>sample sets?"}
     X["skip path"]:::skip
     C["For each row, each set:<br/>itemsOfSet()"]:::step
-    D{"Seen this item<br/>on this path?"}
+    D{"Seen this item<br/>on this row?"}
     X2["skip duplicate"]:::skip
     Y1["yield { row, item }"]:::yield
     E["Lay each reject set over it"]:::step
@@ -123,14 +123,14 @@ flowchart TD
 ```
 
 - It's a generator, so samples stream one at a time and the whole set never sits in memory.
-- A duplicate item on one path goes to the **first** row that built it. Later rows never see it.
+- An item is deduplicated per **row**. Two rows that build the same item each yield it, so a caller can see the overlap.
 - Reject samples carry `reject`, which is the JSON of the override. It's used later as a label.
 
 ## Part 2: the check
 
 ### One walk, one matcher
 
-`checkFilter` compiles the blocks once with `compileFilterEvery`, which returns the winner **and** every other block that matched. Then it walks `buildSamples` once. Each sample is matched once, and that one result feeds both reports.
+`checkFilter` compiles the blocks once with `compileFilterEvery`, which returns the winner **and** every other block that matched. Then it walks `buildSamples` once, skipping an item another row on the same path already built. Each sample is matched once, and that one result feeds both reports.
 
 `findUnfiltered` and `findFallThrough` are one-line wrappers that return one half each.
 

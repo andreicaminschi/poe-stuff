@@ -554,3 +554,7 @@ sample names the item. A variant is an item, so a variant's block answers with t
 link. A unique answers with every unique listing its base carries in the same form — foulborn
 or not, corrupted or not — because the item alone cannot say which unique it is. No block, or
 no price, is `[]`.
+
+An item a second row also builds, on the same path or another, gets no second case. It lands
+in `overlaps` beside the cases, with both row keys and both paths, because two rows claiming
+one item is a taxonomy error.

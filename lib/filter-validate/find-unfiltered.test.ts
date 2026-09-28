@@ -33,6 +33,14 @@ describe("findUnfiltered", () => {
     }); // reject samples are not counted
   });
 
+  it("counts an item two rows on one path both build once", () => {
+    const report = findUnfiltered(takesQuality20, [row("a"), row("b")], categories);
+
+    expect(report.sampled).toBe(2);
+    expect(report.unfiltered).toBe(1);
+    expect(report.rows.map((one) => one.key)).toEqual(["a"]);
+  });
+
   it("counts a sample a Hide block takes as filtered", () => {
     const hideAll = parseFilter("Hide\n    #@ tier=hidden verb=take a\n");
 

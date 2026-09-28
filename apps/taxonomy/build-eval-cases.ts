@@ -4,12 +4,13 @@ import type { FilterItem } from "@poe/filter-eval/filter-ast";
 import { compileFilter } from "@poe/filter-eval/match-filter";
 import { parseFilter } from "@poe/filter-eval/parse-filter";
 import { buildSamples } from "@poe/filter-validate/build-samples";
-import type { SampleCategories } from "@poe/filter-validate/types";
+import { formatPath } from "@poe/filter-validate/format-path";
+import type { SampleCategories, SampleRow } from "@poe/filter-validate/types";
 import { findBlockLinks } from "./build-eval-cases/find-block-links.ts";
 import { findUniqueLinks } from "./build-eval-cases/find-unique-links.ts";
 import type { LinkRow, PoeWatchLink } from "./build-eval-cases/types.ts";
 
-/** What the generator reads off a catalog row. */
+/** What `buildEvalCases` reads off a catalog row. */
 export type EvalRow = CompileRow & LinkRow;
 
 export type EvalCase = {
@@ -17,30 +18,59 @@ export type EvalCase = {
   readonly matches: readonly PoeWatchLink[];
 };
 
+/** One item two taxonomy rows both build: a generation error. */
+export type EvalOverlap = {
+  readonly item: FilterItem;
+  readonly rows: readonly [string, string];
+  readonly paths: readonly [string, string];
+};
+
+export type EvalCases = {
+  readonly cases: readonly EvalCase[];
+  readonly overlaps: readonly EvalOverlap[];
+};
+
 /**
  * Generates test items with their expected price entries, for testing the item classifier.
  * A unique item is answered by its base's unique listings, and any other item by the
- * compiled filter.
+ * compiled filter. Reject samples are skipped. Each distinct item gets one case.
+ * An item a second row also builds, on the same path or another, is reported in `overlaps`,
+ * since two rows claiming one item is a taxonomy error.
  */
 export function buildEvalCases(
   rows: readonly EvalRow[],
   categories: SampleCategories & CategoryRecords,
-): readonly EvalCase[] {
-  const filterMatcher = compileFilter(parseFilter(writeFilter(rows, categories).text));
-  const rowsByKey = new Map(rows.map((row) => [row.key, row]));
-  const basesByName = new Map(rows.filter((row) => row.uniques !== undefined).map((row) => [row.name, row]));
+): EvalCases {
+  const filterText = writeFilter(rows, categories).text;
+  const filterMatcher = compileFilter(parseFilter(filterText));
 
-  const seen = new Set<string>();
+  const rowsByKey = new Map(rows.map((row) => [row.key, row]));
+  const uniqueBasesByName = new Map(rows.filter((row) => row.uniques !== undefined).map((row) => [row.name, row]));
+
+  const findLinks = (item: FilterItem): readonly PoeWatchLink[] =>
+    item.Rarity === "Unique"
+      ? findUniqueLinks(item, uniqueBasesByName)
+      : findBlockLinks(item, filterMatcher, rowsByKey);
+
+  const claimedRowByItem = new Map<string, SampleRow>();
   const cases: EvalCase[] = [];
-  for (const { item, reject } of buildSamples(rows, categories)) {
-    const key = JSON.stringify(item);
-    if (reject !== undefined || seen.has(key)) continue;
-    seen.add(key);
-    const matches =
-      item.Rarity === "Unique"
-        ? findUniqueLinks(item, basesByName)
-        : findBlockLinks(item, filterMatcher, rowsByKey);
-    cases.push({ item, matches });
+  const overlaps: EvalOverlap[] = [];
+
+  for (const { row, item, reject } of buildSamples(rows, categories)) {
+    if (reject !== undefined) continue;
+    const itemKey = JSON.stringify(item);
+    const claimedRow = claimedRowByItem.get(itemKey);
+
+    if (claimedRow === undefined) {
+      claimedRowByItem.set(itemKey, row);
+      cases.push({ item, matches: findLinks(item) });
+    } else {
+      overlaps.push({
+        item,
+        rows: [claimedRow.key, row.key],
+        paths: [formatPath(claimedRow), formatPath(row)],
+      });
+    }
   }
-  return cases;
+  return { cases, overlaps };
 }
