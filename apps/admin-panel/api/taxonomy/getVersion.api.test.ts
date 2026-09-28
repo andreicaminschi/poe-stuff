@@ -17,10 +17,12 @@ describe("getVersion", () => {
   it("fails when one of the six files is missing", async () => {
     await temp.lake.writeJson(`taxonomy/versions/${ID}/items.json`, {});
 
-    await expect(getVersion(temp.lake, ID)).rejects.toThrow(/ENOENT/);
-  });
+    const reading = getVersion(temp.lake, ID);
 
-  it("reads a bare game row with empty conditions and no optional flags", async () => {
+    await expect(reading).rejects.toThrow(/ENOENT/);
+  }); // no fallback: a half version is broken
+
+  it("reads a bare game row with empty conditions, no variants and no optional flags", async () => {
     await seedDraft(temp.lake, ID, { items: { a: currency } });
 
     const draft = await getVersion(temp.lake, ID);
@@ -33,16 +35,23 @@ describe("getVersion", () => {
       conditions: [],
       variants: [],
     });
-  });
+  }); // missing conditions become [], not undefined
 
-  it("keeps a false filterable flag but drops a false excluded flag", async () => {
-    await seedDraft(temp.lake, ID, { items: { a: { ...currency, filterable: false, excluded: false } } });
+  it("keeps a filterable flag set to false", async () => {
+    await seedDraft(temp.lake, ID, { items: { a: { ...currency, filterable: false } } });
 
     const draft = await getVersion(temp.lake, ID);
 
     expect(draft.items["a"]).toMatchObject({ filterable: false });
+  }); // false filterable hides the row: it carries meaning
+
+  it("drops an excluded flag set to false", async () => {
+    await seedDraft(temp.lake, ID, { items: { a: { ...currency, excluded: false } } });
+
+    const draft = await getVersion(temp.lake, ID);
+
     expect(draft.items["a"]).not.toHaveProperty("excluded");
-  });
+  }); // excluded is only ever written as true
 
   it("reads an authored row with an empty base type and replaces list when they are missing", async () => {
     const { baseType: _, ...noBase } = unique;
@@ -62,7 +71,7 @@ describe("getVersion", () => {
     const draft = await getVersion(temp.lake, ID);
 
     expect(draft.items["u"]).toMatchObject({ reason: "manual" });
-  });
+  }); // manual is spread last
 
   it("lets an authored row replace a game row with the same key", async () => {
     await seedDraft(temp.lake, ID, { items: { a: currency }, "authored.manual": { a: { ...unique, name: "a" } } });
@@ -72,22 +81,45 @@ describe("getVersion", () => {
     expect(draft.items["a"]?.source).toBe("authored");
   });
 
-  it("uses manual variants in place of seeded ones, whole list for whole list", async () => {
+  it("uses an item's manual variants in place of its seeded ones, whole list for whole list", async () => {
     await seedDraft(temp.lake, ID, {
-      items: { a: currency, b: { ...currency, name: "b" } },
-      "variants.seeded": { a: [variant("s1"), variant("s2")], b: [variant("seeded")] },
+      items: { a: currency },
+      "variants.seeded": { a: [variant("s1"), variant("s2")] },
       "variants.manual": { a: [variant("m")] },
     });
 
     const draft = await getVersion(temp.lake, ID);
 
     expect(draft.items["a"]?.variants).toEqual([variant("m")]);
+  }); // not merged: one manual variant hides both seeded ones
+
+  it("keeps the seeded variants of an item that has no manual override", async () => {
+    await seedDraft(temp.lake, ID, {
+      items: { a: currency, b: { ...currency, name: "b" } },
+      "variants.seeded": { b: [variant("seeded")] },
+      "variants.manual": { a: [variant("m")] },
+    });
+
+    const draft = await getVersion(temp.lake, ID);
+
     expect(draft.items["b"]?.variants).toEqual([variant("seeded")]);
   });
 
-  it("defaults a category to chaos tiering and drops its empty lists", async () => {
+  it("lets an empty manual list clear an item's seeded variants", async () => {
     await seedDraft(temp.lake, ID, {
-      categories: { currency: { conditions: [], hints: [], samples: [], catchAll: false } },
+      items: { a: currency },
+      "variants.seeded": { a: [variant("s1")] },
+      "variants.manual": { a: [] },
+    });
+
+    const draft = await getVersion(temp.lake, ID);
+
+    expect(draft.items["a"]?.variants).toEqual([]);
+  }); // [] is an override, not absence
+
+  it("defaults a category to chaos tiering and drops its empty lists and false catch-all", async () => {
+    await seedDraft(temp.lake, ID, {
+      categories: { currency: { conditions: [], hints: [], samples: [], rejects: [], catchAll: false } },
     });
 
     const draft = await getVersion(temp.lake, ID);
@@ -101,5 +133,5 @@ describe("getVersion", () => {
     const draft = await getVersion(temp.lake, ID);
 
     expect(draft.categories["currency"]?.order).toBe(0);
-  });
+  }); // zero sorts first; a truthiness check would lose it
 });

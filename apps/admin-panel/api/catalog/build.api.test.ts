@@ -6,15 +6,21 @@ jest.unstable_mockModule("../util/yarn.ts", () => ({ runAction }));
 const { buildCatalog } = await import("./build.api.ts");
 
 describe("buildCatalog", () => {
-  it("builds the league without a force flag when no source is forced", async () => {
+  it("builds the league with no force flag at all when no source is forced", async () => {
     await buildCatalog("/repo", "Allflame", []);
 
-    expect(runAction).toHaveBeenCalledWith("/repo", ["catalog", "--league=Allflame"]);
-  });
+    expect(runAction).toHaveBeenLastCalledWith("/repo", ["catalog", "--league=Allflame"]);
+  }); // an empty --force= would force every source
 
-  it("names every forced source in one comma-joined flag", async () => {
+  it("forces a single source with a flag naming only that source", async () => {
+    await buildCatalog("/repo", "Allflame", ["taxonomy"]);
+
+    expect(runAction).toHaveBeenLastCalledWith("/repo", ["catalog", "--league=Allflame", "--force=taxonomy"]);
+  }); // no trailing comma from the join
+
+  it("names both forced sources in one comma-joined flag, in the order given", async () => {
     await buildCatalog("/repo", "Allflame", ["taxonomy", "poewatch"]);
 
-    expect(runAction).toHaveBeenCalledWith("/repo", ["catalog", "--league=Allflame", "--force=taxonomy,poewatch"]);
-  });
+    expect(runAction).toHaveBeenLastCalledWith("/repo", ["catalog", "--league=Allflame", "--force=taxonomy,poewatch"]);
+  }); // one flag, not one per source
 });

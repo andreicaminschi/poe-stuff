@@ -8,33 +8,46 @@ describe("assertEditable", () => {
   let temp: TempLake;
   beforeEach(async () => {
     temp = await tempLake();
-    await temp.lake.writeJson("taxonomy/registry.json", {
-      next: 3,
-      versions: { "3.29.1": { state: "draft", createdAt: at }, "3.29.2": { state: "draft", createdAt: at } },
-    });
   });
   afterEach(() => temp.remove());
 
+  const register = (versions: object) => temp.lake.writeJson("taxonomy/registry.json", { next: 3, versions });
+
   it("lets the newest draft be edited", async () => {
-    await expect(assertEditable(temp.lake, "3.29.2")).resolves.toBeUndefined();
+    await register({ "3.29.1": { state: "draft", createdAt: at }, "3.29.2": { state: "draft", createdAt: at } });
+
+    const checked = assertEditable(temp.lake, "3.29.2");
+
+    await expect(checked).resolves.toBeUndefined();
   });
 
-  it("refuses an older draft", async () => {
-    await expect(assertEditable(temp.lake, "3.29.1")).rejects.toThrow(
-      "3.29.1 cannot be edited. Only the newest draft can.",
-    );
-  });
+  it("refuses a draft that a newer draft has overtaken", async () => {
+    await register({ "3.29.1": { state: "draft", createdAt: at }, "3.29.2": { state: "draft", createdAt: at } });
+
+    const checked = assertEditable(temp.lake, "3.29.1");
+
+    await expect(checked).rejects.toThrow("3.29.1 cannot be edited. Only the newest draft can.");
+  }); // still a draft on disk, but not the newest
+
+  it("refuses the newest version once it is published", async () => {
+    await register({ "3.29.2": { state: "published", createdAt: at, publishedAt: at } });
+
+    const checked = assertEditable(temp.lake, "3.29.2");
+
+    await expect(checked).rejects.toThrow("3.29.2 cannot be edited");
+  }); // newest alone is not enough; it must be a draft
 
   it("refuses a version the registry does not know", async () => {
-    await expect(assertEditable(temp.lake, "9.9.9")).rejects.toThrow("9.9.9 cannot be edited");
-  });
+    await register({ "3.29.2": { state: "draft", createdAt: at } });
 
-  it("refuses every id when there is no registry at all", async () => {
-    const empty = await tempLake();
+    const checked = assertEditable(temp.lake, "9.9.9");
 
-    await expect(assertEditable(empty.lake, "3.29.2")).rejects.toThrow(
-      "3.29.2 cannot be edited. Only the newest draft can.",
-    );
-    await empty.remove();
-  });
+    await expect(checked).rejects.toThrow("9.9.9 cannot be edited");
+  }); // a missing version reads as not editable, not a crash
+
+  it("refuses every version when there is no registry at all", async () => {
+    const checked = assertEditable(temp.lake, "3.29.2");
+
+    await expect(checked).rejects.toThrow("3.29.2 cannot be edited. Only the newest draft can.");
+  }); // a missing file falls back to an empty registry
 });

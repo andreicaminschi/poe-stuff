@@ -6,9 +6,9 @@ jest.unstable_mockModule("../util/yarn.ts", () => ({ runAction }));
 const { promoteVersion } = await import("./promote.api.ts");
 
 describe("promoteVersion", () => {
-  it("promotes the named version through yarn in the repo", async () => {
+  it("makes the named version current by running yarn taxonomy:promote in the repo", async () => {
     await promoteVersion("/repo", "3.29.4");
 
-    expect(runAction).toHaveBeenCalledWith("/repo", ["taxonomy:promote", "3.29.4"]);
-  });
+    expect(runAction).toHaveBeenLastCalledWith("/repo", ["taxonomy:promote", "3.29.4"]);
+  }); // the id is positional, unlike create's --parent
 });
