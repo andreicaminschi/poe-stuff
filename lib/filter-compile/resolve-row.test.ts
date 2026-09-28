@@ -1,5 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import { categoryLayers, resolveForms, resolvePath, type CategoryRecords } from "./resolve-row.ts";
+import { findCategoryLayers, resolveForms, resolvePath, type CategoryRecords } from "./resolve-row.ts";
 
 const categories: CategoryRecords = {
   armour: { conditions: [{ condition: "Class", value: "Body Armours" }] },
@@ -14,17 +14,17 @@ const row = {
   conditions: [{ condition: "BaseType", from: "name" }],
 };
 
-describe("categoryLayers", () => {
+describe("findCategoryLayers", () => {
   it("gives the category layer then the subcategory layer", () => {
-    expect(categoryLayers(categories, "armour", "unique").map((l) => l.level)).toEqual(["category", "subcategory"]);
+    expect(findCategoryLayers(categories, "armour", "unique").map((l) => l.level)).toEqual(["category", "subcategory"]);
   });
 
   it("gives only the category layer when there is no subcategory", () => {
-    expect(categoryLayers(categories, "armour", null).map((l) => l.level)).toEqual(["category"]);
+    expect(findCategoryLayers(categories, "armour", null).map((l) => l.level)).toEqual(["category"]);
   });
 
   it("skips a category or subcategory that has no record", () => {
-    expect(categoryLayers(categories, "weapons", "unique")).toEqual([]);
+    expect(findCategoryLayers(categories, "weapons", "unique")).toEqual([]);
   }); // looks up weapons/unique, not armour/unique
 });
 

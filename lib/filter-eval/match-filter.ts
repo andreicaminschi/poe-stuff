@@ -279,8 +279,8 @@ function compileWalk(blocks: readonly FilterBlock[]): (item: FilterItem, every: 
 }
 
 /**
- * Compile a parsed filter once into a matcher for many items. It answers what
- * `evaluateFilter` answers, and precomputes everything that does not depend on the item.
+ * Builds a matcher that says which block takes an item, for checking many items against one
+ * filter. It answers what `evaluateFilter` answers, but does the item-independent work once.
  *
  * Blocks with a `BaseType ==` line are indexed by those names, so an item only walks the
  * blocks its base type can match plus the blocks that name no base type.
@@ -290,7 +290,10 @@ export function buildFilterMatcher(blocks: readonly FilterBlock[]): FilterMatche
   return (item) => walk(item, false);
 }
 
-/** Like `buildFilterMatcher`, but `matched` holds every block that matches, past the winner too. */
+/**
+ * Builds a matcher like `buildFilterMatcher` whose `matched` holds every block that matches,
+ * past the winner too, for finding blocks that overlap.
+ */
 export function buildEveryMatchMatcher(blocks: readonly FilterBlock[]): FilterMatcher {
   const walk = compileWalk(blocks);
   return (item) => walk(item, true);

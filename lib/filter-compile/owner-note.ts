@@ -1,7 +1,7 @@
 export type Owner = { readonly key: string; readonly variant: string | undefined };
 
-/** A block's freehand: `<key>` or `<key> <variant>`. */
-export function ownerNote(key: string, variant?: string): string {
+/** Writes the note that names a block's row and variant: `<key>` or `<key> <variant>`. */
+export function writeOwnerNote(key: string, variant?: string): string {
   return variant === undefined
     ? key
     : `${key} ${variant}`;

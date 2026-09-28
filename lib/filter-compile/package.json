@@ -6,9 +6,9 @@
   "type": "module",
   "exports": {
     "./write-unstyled-filter": "./write-unstyled-filter.ts",
-    "./compose": "./compose.ts",
-    "./condition-line": "./condition-line.ts",
-    "./fill-from": "./fill-from.ts",
+    "./compose-layers": "./compose-layers.ts",
+    "./write-condition-line": "./write-condition-line.ts",
+    "./fill-from-row": "./fill-from-row.ts",
     "./owner-note": "./owner-note.ts",
     "./resolve-row": "./resolve-row.ts",
     "./types": "./types.ts"

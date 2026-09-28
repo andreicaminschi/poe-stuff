@@ -138,7 +138,7 @@ flowchart TD
 
 Every block ends with a `#@` note whose freehand is `<key>` or `<key> <variant>`. `@poe/filter-compile/owner-note` owns that format:
 
-- `ownerNote(key, variant?)` writes it. `writeUnstyledFilter` and `@poe/filter-style`'s `writeFilter` both use it.
+- `writeOwnerNote(key, variant?)` writes it. `writeUnstyledFilter` and `@poe/filter-style`'s `writeFilter` both use it.
 - `readOwnerNote(freehand, isKey)` reads it back. Keys may hold spaces, so it takes the **longest known key** the note starts with.
 
 That's how a matched block is traced back to a row, and a row to a path.

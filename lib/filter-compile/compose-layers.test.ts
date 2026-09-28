@@ -1,13 +1,13 @@
 import { describe, it, expect } from "@jest/globals";
-import { compose, composeTrace } from "./compose.ts";
+import { composeLayers } from "./compose-layers.ts";
 
-describe("composeTrace", () => {
+describe("composeLayers", () => {
   it("returns nothing when there are no layers", () => {
-    expect(composeTrace([])).toEqual({ applied: [], removed: [] });
+    expect(composeLayers([])).toEqual({ applied: [], removed: [] });
   });
 
   it("lets a lower level replace a condition with the same name and operator, recording the level it overrode", () => {
-    const result = composeTrace([
+    const result = composeLayers([
       { level: "category", conditions: [{ condition: "ItemLevel", operator: ">=", value: 60 }] },
       { level: "item", conditions: [{ condition: "ItemLevel", operator: ">=", value: 75 }] },
     ]);
@@ -18,7 +18,7 @@ describe("composeTrace", () => {
   });
 
   it("keeps two conditions on the same name when their operators differ", () => {
-    const result = composeTrace([
+    const result = composeLayers([
       { level: "category", conditions: [{ condition: "GemLevel", operator: ">=", value: 3 }] },
       { level: "item", conditions: [{ condition: "GemLevel", operator: "<=", value: 4 }] },
     ]);
@@ -27,7 +27,7 @@ describe("composeTrace", () => {
   }); // operator is part of the key
 
   it("treats a missing operator the same as an explicit double equals", () => {
-    const result = composeTrace([
+    const result = composeLayers([
       { level: "category", conditions: [{ condition: "Rarity", value: "Rare" }] },
       { level: "item", conditions: [{ condition: "Rarity", operator: "==", value: "Unique" }] },
     ]);
@@ -37,7 +37,7 @@ describe("composeTrace", () => {
   });
 
   it("accumulates every overridden level when three levels set the same condition", () => {
-    const result = composeTrace([
+    const result = composeLayers([
       { level: "category", conditions: [{ condition: "Rarity", value: "Normal" }] },
       { level: "subcategory", conditions: [{ condition: "Rarity", value: "Magic" }] },
       { level: "item", conditions: [{ condition: "Rarity", value: "Rare" }] },
@@ -47,7 +47,7 @@ describe("composeTrace", () => {
   });
 
   it("removes an earlier condition when a lower level sets it to null, and records who removed it", () => {
-    const result = composeTrace([
+    const result = composeLayers([
       { level: "category", conditions: [{ condition: "Corrupted", value: false }] },
       { level: "subcategory", conditions: [{ condition: "Corrupted", value: true }] },
       { level: "item", conditions: [{ condition: "Corrupted", value: null }] },
@@ -58,13 +58,13 @@ describe("composeTrace", () => {
   }); // overrides dropped from the removed record
 
   it("ignores a null removal when nothing earlier set that condition", () => {
-    const result = composeTrace([{ level: "item", conditions: [{ condition: "Corrupted", value: null }] }]);
+    const result = composeLayers([{ level: "item", conditions: [{ condition: "Corrupted", value: null }] }]);
 
     expect(result).toEqual({ applied: [], removed: [] });
   });
 
   it("clears the removal when a condition is re-added after being removed", () => {
-    const result = composeTrace([
+    const result = composeLayers([
       { level: "category", conditions: [{ condition: "Corrupted", value: false }] },
       { level: "subcategory", conditions: [{ condition: "Corrupted", value: null }] },
       { level: "item", conditions: [{ condition: "Corrupted", value: true }] },
@@ -75,7 +75,7 @@ describe("composeTrace", () => {
   });
 
   it("keeps the order in which each condition was first set, even after it is overridden", () => {
-    const result = composeTrace([
+    const result = composeLayers([
       {
         level: "category",
         conditions: [
@@ -88,21 +88,4 @@ describe("composeTrace", () => {
 
     expect(result.applied.map((c) => c.condition)).toEqual(["Class", "Rarity"]);
   }); // Map keeps insertion slot
-});
-
-describe("compose", () => {
-  it("returns only the applied conditions", () => {
-    const layers = [
-      { level: "category" as const, conditions: [{ condition: "Corrupted", value: true }] },
-      {
-        level: "item" as const,
-        conditions: [
-          { condition: "Corrupted", value: null },
-          { condition: "Rarity", value: "Rare" },
-        ],
-      },
-    ];
-
-    expect(compose(layers)).toEqual([{ condition: "Rarity", value: "Rare", level: "item" }]);
-  });
 });

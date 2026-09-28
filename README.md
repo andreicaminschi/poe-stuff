@@ -305,7 +305,7 @@ filter does not import it and does not build on it.
 filter from the taxonomy. It is the reference for how the generator reads conditions:
 
 ```ts
-import { conditionLine } from "@poe/filter-compile/condition-line";
+import { writeConditionLine } from "@poe/filter-compile/condition-line";
 import { resolveForms } from "@poe/filter-compile/resolve-row";
 
 const forms = resolveForms(
@@ -321,7 +321,7 @@ const forms = resolveForms(
 );
 
 for (const form of forms) {
-  const lines = form.conditions.map(conditionLine); // { line } or { problem }
+  const lines = form.conditions.map(writeConditionLine); // { line } or { problem }
 }
 ```
 

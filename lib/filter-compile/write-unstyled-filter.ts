@@ -1,11 +1,11 @@
 import { formatNote } from "@poe/filter-eval/format-note";
 import { parseFilter } from "@poe/filter-eval/parse-filter";
-import { conditionLines } from "./condition-line.ts";
-import { ownerNote } from "./owner-note.ts";
+import { writeConditionLines } from "./write-condition-line.ts";
+import { writeOwnerNote } from "./owner-note.ts";
 import { resolveForms, type CategoryRecords, type Form } from "./resolve-row.ts";
 import type { Condition } from "./types.ts";
 
-/** What compile reads off a row. */
+/** What `writeUnstyledFilter` reads off a row. */
 export type CompileRow = {
   readonly key: string;
   readonly name: string;
@@ -20,13 +20,18 @@ export type Skip = { readonly key: string; readonly variant?: string; readonly p
 
 export type Compiled = { readonly text: string; readonly blocks: number; readonly skipped: readonly Skip[] };
 
-function recordOf(categories: CategoryRecords, row: CompileRow) {
+/** Finds the subcategory record a row belongs to, or nothing for a top-level row. */
+function findCategoryRecord(categories: CategoryRecords, row: CompileRow) {
   return row.subcategory === null
     ? undefined
     : categories[`${row.category}/${row.subcategory}`];
 }
 
-/** Rows in category order, each category's subcategories ranked, every catch-all last. */
+/**
+ * Orders rows so the filter's blocks come out in the right priority: categories in the order
+ * they first appear, each category's subcategories by `order`, and every catch-all last so it
+ * only takes what the other blocks miss.
+ */
 function orderRows(rows: readonly CompileRow[], categories: CategoryRecords): readonly CompileRow[] {
   const firstSeen = new Map<string, number>();
   rows.forEach((row, index) => {
@@ -34,7 +39,7 @@ function orderRows(rows: readonly CompileRow[], categories: CategoryRecords): re
   });
   return rows
     .map((row, index) => {
-      const record = recordOf(categories, row);
+      const record = findCategoryRecord(categories, row);
       const rank = record?.order ?? Number.MAX_SAFE_INTEGER;
       const category = record?.catchAll === true
         ? Number.MAX_VALUE
@@ -47,22 +52,26 @@ function orderRows(rows: readonly CompileRow[], categories: CategoryRecords): re
 
 type Block = { readonly text: string } | { readonly problem: string };
 
-function blockOf(row: CompileRow, form: Form): Block {
+/** Writes one form of a row as a `Show` block, or says why it cannot be drawn. */
+function writeBlock(row: CompileRow, form: Form): Block {
   const [first] = form.problems;
   if (first !== undefined) return { problem: first };
   if (form.conditions.length === 0) return { problem: "has no conditions yet" };
 
-  const written = conditionLines(form.conditions);
+  const written = writeConditionLines(form.conditions);
   if ("problem" in written) return written;
 
-  const note = formatNote({ tier: "varies", verb: "check" }, ownerNote(row.key, form.variant));
+  const note = formatNote({ tier: "varies", verb: "check" }, writeOwnerNote(row.key, form.variant));
 
   return { text: ["Show", ...written.lines.map((line) => `  ${line}`), `  ${note}`].join("\n") };
 }
 
 /**
- * The catalog's rows as a `.filter`: one `Show` block per row, or per variant when a row has
- * any, holding the conditions the shared resolver gives it and nothing else. Within a
+ * Writes the catalog's rows as an unstyled `.filter`, so the taxonomy's conditions can be
+ * checked by the game client and the validator before any styling exists.
+ *
+ * One `Show` block per row, or per variant when a row has any, holding the conditions the
+ * shared resolver gives it and nothing else. Within a
  * category, subcategories compile in `order`. A `catchAll` subcategory compiles after
  * every other block in the filter.
  *
@@ -71,6 +80,16 @@ function blockOf(row: CompileRow, form: Form): Block {
  * with a resolution problem or a condition no line can hold, each with its reason.
  * The text is read back with `parseFilter` before it is returned, so a grammar mistake fails
  * here and not in the game client.
+ *
+ * @example
+ * writeUnstyledFilter(
+ *   [{ key: "Ruby Ring", name: "Ruby Ring", category: "rings", subcategory: "any", baseTypes: ["Ruby Ring"] },
+ *    { key: "Iron Ring", name: "Iron Ring", category: "rings", subcategory: "any", baseTypes: [] }],
+ *   { "rings/any": { conditions: [{ condition: "BaseType", operator: "==", from: "baseTypes" }] } },
+ * );
+ * // → { text: "Show\n  BaseType == \"Ruby Ring\"\n  #@ tier=varies verb=check Ruby Ring\n",
+ * //     blocks: 1,
+ * //     skipped: [{ key: "Iron Ring", problem: "reads its base types, which are empty" }] }
  */
 export function writeUnstyledFilter(rows: readonly CompileRow[], categories: CategoryRecords): Compiled {
   const texts: string[] = [];
@@ -90,7 +109,7 @@ export function writeUnstyledFilter(rows: readonly CompileRow[], categories: Cat
     );
 
     for (const form of forms) {
-      const block = blockOf(row, form);
+      const block = writeBlock(row, form);
 
       if ("problem" in block) {
         skipped.push({

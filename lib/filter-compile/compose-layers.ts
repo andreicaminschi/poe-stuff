@@ -15,8 +15,16 @@ export type Composed = {
  * A condition replaces an earlier one with the same name and operator, so `GemLevel >= 3` and
  * `GemLevel <= 4` both survive, and the replacement lists the levels it overrode. A `null`
  * value removes the earlier one, adds nothing, and the earlier one is kept in `removed`.
+ *
+ * @example
+ * composeLayers([
+ *   { level: "category", conditions: [{ condition: "Corrupted", value: false }, { condition: "Rarity", value: "Rare" }] },
+ *   { level: "item", conditions: [{ condition: "Corrupted", value: null }, { condition: "Rarity", value: "Magic" }] },
+ * ]);
+ * // → { applied: [{ condition: "Rarity", value: "Magic", level: "item", overrides: ["category"] }],
+ * //     removed: [{ condition: "Corrupted", value: false, level: "category", removedBy: "item" }] }
  */
-export function composeTrace(layers: readonly Layer[]): Composed {
+export function composeLayers(layers: readonly Layer[]): Composed {
   const byKey = new Map<string, ResolvedCondition>();
   const removed = new Map<string, RemovedCondition>();
 
@@ -46,6 +54,3 @@ export function composeTrace(layers: readonly Layer[]): Composed {
 
   return { applied: [...byKey.values()], removed: [...removed.values()] };
 }
-
-/** Only what reaches the item. */
-export const compose = (layers: readonly Layer[]): readonly ResolvedCondition[] => composeTrace(layers).applied;

@@ -1,5 +1,5 @@
-import { composeTrace, type Composed } from "./compose.ts";
-import { fillFrom } from "./fill-from.ts";
+import { composeLayers, type Composed } from "./compose-layers.ts";
+import { fillFromRow } from "./fill-from-row.ts";
 import type { Condition, FromSource, Layer, RemovedCondition, ResolvedCondition } from "./types.ts";
 
 export type CategoryRecords = Readonly<
@@ -22,8 +22,11 @@ export type Form = {
   readonly problems: readonly string[];
 };
 
-/** A category or subcategory with no record adds nothing, and that is not a problem. */
-export function categoryLayers(
+/**
+ * Finds the condition layers a row inherits from its category and subcategory, top first.
+ * A category or subcategory with no record adds nothing, and that is not a problem.
+ */
+export function findCategoryLayers(
   categories: CategoryRecords,
   category: string,
   subcategory: string | null,
@@ -47,11 +50,12 @@ export function categoryLayers(
 export function resolvePath(categories: CategoryRecords, path: string): Composed {
   const [category = "", subcategory = null] = path.split("/");
 
-  return composeTrace(categoryLayers(categories, category, subcategory));
+  return composeLayers(findCategoryLayers(categories, category, subcategory));
 }
 
-function formOf(variant: string | undefined, composed: Composed, row: FromSource): Form {
-  const filled = fillFrom(composed.applied, row);
+/** Builds one form from its composed conditions, with every `from` filled off the row. */
+function buildForm(variant: string | undefined, composed: Composed, row: FromSource): Form {
+  const filled = fillFromRow(composed.applied, row);
 
   return {
     ...(variant === undefined
@@ -70,33 +74,44 @@ function formOf(variant: string | undefined, composed: Composed, row: FromSource
  * Category, subcategory, row and variant are laid over each other, and every `from` is filled
  * off the row. A row with no variants is one form. A variant that resolves the same as an
  * earlier one is reported, naming the first.
+ *
+ * @example
+ * resolveForms(
+ *   { gems: { conditions: [{ condition: "Class", operator: "==", value: "Skill Gems" }] } },
+ *   { name: "Fireball", baseTypes: ["Fireball"], category: "gems", subcategory: null,
+ *     conditions: [{ condition: "BaseType", operator: "==", from: "name" }] },
+ *   [{ name: "20/20", conditions: [{ condition: "GemLevel", operator: ">=", value: 20 }] }],
+ * );
+ * // → [{ variant: "20/20",
+ * //      conditions: [Class == "Skill Gems", BaseType == "Fireball", GemLevel >= 20],
+ * //      removed: [], problems: [] }]
  */
 export function resolveForms(
   categories: CategoryRecords,
   row: ResolvableRow,
   variants?: readonly ResolvableVariant[],
 ): readonly Form[] {
-  const below = [
-    ...categoryLayers(categories, row.category, row.subcategory),
+  const rowLayers = [
+    ...findCategoryLayers(categories, row.category, row.subcategory),
     { level: "item" as const, conditions: row.conditions },
   ];
 
-  if (variants === undefined || variants.length === 0) return [formOf(undefined, composeTrace(below), row)];
+  if (variants === undefined || variants.length === 0) return [buildForm(undefined, composeLayers(rowLayers), row)];
 
   const forms = variants.map((variant) =>
-    formOf(variant.name, composeTrace([...below, { level: "variant", conditions: variant.conditions }]), row),
+    buildForm(variant.name, composeLayers([...rowLayers, { level: "variant", conditions: variant.conditions }]), row),
   );
 
   const signature = (form: Form) =>
     JSON.stringify(form.conditions.map(({ level, overrides, ...condition }) => condition));
-  const firstWith = new Map<string, string>();
+  const firstVariantBySignature = new Map<string, string>();
 
   for (const form of forms) {
-    if (!firstWith.has(signature(form))) firstWith.set(signature(form), form.variant ?? "");
+    if (!firstVariantBySignature.has(signature(form))) firstVariantBySignature.set(signature(form), form.variant ?? "");
   }
 
   return forms.map((form) => {
-    const first = firstWith.get(signature(form));
+    const first = firstVariantBySignature.get(signature(form));
 
     return first === form.variant
       ? form
