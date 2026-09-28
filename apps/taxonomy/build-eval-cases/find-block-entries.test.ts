@@ -20,23 +20,39 @@ const rowsByKey = new Map([["Ring", ring]]);
 const rare = { Rarity: "Rare" } as FilterItem;
 
 describe("findBlockEntries", () => {
-  it("finds the entry of the row of the block that takes it", () => {
-    expect(findBlockEntries(rare, winning("Ring"), rowsByKey)).toEqual([entry(1)]);
+  it("answers with the row's own entry when the winning block names only the row", () => {
+    const found = findBlockEntries(rare, winning("Ring"), rowsByKey);
+
+    expect(found).toEqual([entry(1)]);
   });
 
-  it("finds the variant entry when the block note names one, including a name with spaces", () => {
-    expect(findBlockEntries(rare, winning("Ring ilvl 84"), rowsByKey)).toEqual([entry(2)]);
+  it("answers with the variant's entry when the note names a variant with a space in it", () => {
+    const found = findBlockEntries(rare, winning("Ring ilvl 84"), rowsByKey);
+
+    expect(found).toEqual([entry(2)]);
+  }); // "ilvl 84" must survive the key/variant split intact
+
+  it("answers with nothing when the named variant carries no price", () => {
+    const found = findBlockEntries(rare, winning("Ring bare"), rowsByKey);
+
+    expect(found).toEqual([]);
+  }); // must not fall back to the row's own entry
+
+  it("answers with nothing when the note names a variant the row does not have", () => {
+    const found = findBlockEntries(rare, winning("Ring ilvl 86"), rowsByKey);
+
+    expect(found).toEqual([]);
   });
 
-  it("finds nothing when the variant has no market entry", () => {
-    expect(findBlockEntries(rare, winning("Ring bare"), rowsByKey)).toEqual([]);
+  it("answers with nothing when no block takes the item", () => {
+    const found = findBlockEntries(rare, winning(undefined), rowsByKey);
+
+    expect(found).toEqual([]);
   });
 
-  it("finds nothing when no block takes the item", () => {
-    expect(findBlockEntries(rare, winning(undefined), rowsByKey)).toEqual([]);
-  });
+  it("answers with nothing when the winning block names a row it does not know", () => {
+    const found = findBlockEntries(rare, winning("Amulet"), rowsByKey);
 
-  it("finds nothing when the block names a row it does not know", () => {
-    expect(findBlockEntries(rare, winning("Amulet"), rowsByKey)).toEqual([]);
+    expect(found).toEqual([]);
   });
 });

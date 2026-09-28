@@ -58,7 +58,7 @@ describe("publishTaxonomy", () => {
     const published = await publishTaxonomy(lake, "3.29.1", table);
 
     expect(published.rowsLeftOut).toBe(0);
-  });
+  }); // each flag alone is a decision, even without a price
 
   it("attaches only the priced or unpriceable variants and counts the rest as left out", async () => {
     const table: Version = {
@@ -93,7 +93,21 @@ describe("publishTaxonomy", () => {
     const published = await publishTaxonomy(lake, "3.29.1", table);
 
     expect(published).toMatchObject({ rowsLeftOut: 1, variantsLeftOut: 1 });
-  });
+  }); // having variants is not a decision; a priced one is
+
+  it("publishes a row with no listing of its own when one of its variants is priced", async () => {
+    const table: Version = {
+      ...emptyVersion,
+      items: { gem: entry() },
+      variants: { gem: [{ name: "listed", conditions: [], listing: { gemLevel: 20 } }] },
+    };
+
+    const published = await publishTaxonomy(lake, "3.29.1", table);
+
+    const written = await lake.readJson<{ items: Record<string, unknown> }>(versionKey("3.29.1"));
+    expect(Object.keys(written.items)).toEqual(["gem"]);
+    expect(published.rowsLeftOut).toBe(0);
+  }); // the priced variant carries the row
 
   it("folds authored rows the same way as items", async () => {
     const table: Version = {
@@ -134,7 +148,7 @@ describe("publishTaxonomy", () => {
       createdAt: at,
       publishedAt: expect.any(String),
     });
-  });
+  }); // the entry is spread, not rebuilt
 
   it("refuses to publish the same version twice", async () => {
     await publishTaxonomy(lake, "3.29.1", emptyVersion);
@@ -142,11 +156,22 @@ describe("publishTaxonomy", () => {
     await expect(publishTaxonomy(lake, "3.29.1", emptyVersion)).rejects.toThrow("already published");
   });
 
+  it("refuses a draft a newer draft has overtaken, and writes no file", async () => {
+    await writeRegistry(lake, {
+      next: 3,
+      versions: { "3.29.1": { state: "draft", createdAt: at }, "3.29.2": { state: "draft", createdAt: at } },
+    });
+
+    await expect(publishTaxonomy(lake, "3.29.1", emptyVersion)).rejects.toThrow("overtaken by 3.29.2");
+
+    expect(await lake.exists(versionKey("3.29.1"))).toBe(false);
+  }); // checked before any write
+
   it("overwrites a file left behind by an interrupted run while the version is a draft", async () => {
     await lake.writeJson(versionKey("3.29.1"), {});
 
     await publishTaxonomy(lake, "3.29.1", emptyVersion);
 
     expect(await lake.readJson(versionKey("3.29.1"))).toMatchObject({ version: "3.29.1" });
-  });
+  }); // a draft's files are leftovers, so no exists-check guards them
 });

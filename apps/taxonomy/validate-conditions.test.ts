@@ -48,7 +48,7 @@ describe("conditionsProblem", () => {
     expect(conditionsProblem([{ condition: "BaseType", value: undefined }])).toBe(
       "BaseType has neither value nor from",
     );
-  });
+  }); // a present-but-undefined key is not a value
 
   it("refuses a from that is not a row field", () => {
     expect(conditionsProblem([{ condition: "BaseType", from: "category" }])).toBe(
@@ -64,7 +64,11 @@ describe("conditionsProblem", () => {
 
   it("accepts a null value, which removes an inherited condition", () => {
     expect(conditionsProblem([{ condition: "BaseType", value: null }])).toBeNull();
-  });
+  }); // null is a value, not a missing one
+
+  it("refuses a condition name in the wrong case", () => {
+    expect(conditionsProblem([{ condition: "itemlevel", value: 1 }])).toBe("\"itemlevel\" is not a filter condition");
+  }); // the client is case-insensitive, the taxonomy is not
 
   it("refuses the same condition and operator twice", () => {
     expect(
@@ -82,7 +86,7 @@ describe("conditionsProblem", () => {
         { condition: "Class", operator: "==", value: "Amulets" },
       ]),
     ).toBe("Class == is authored twice in one list, and the second wins silently");
-  });
+  }); // an absent operator keys as "=="
 
   it("allows one condition twice with different operators", () => {
     expect(
@@ -100,7 +104,7 @@ describe("conditionsProblem", () => {
         { condition: "BaseType", from: "name" },
       ]),
     ).toMatch(/^authors both Class and BaseType/);
-  });
+  }); // BaseType == is exact, so the class adds nothing
 
   it("allows Class beside a BaseType that is removed with null", () => {
     expect(
@@ -109,7 +113,7 @@ describe("conditionsProblem", () => {
         { condition: "BaseType", value: null },
       ]),
     ).toBeNull();
-  });
+  }); // a null-valued condition does not count as authored
 });
 
 const problemOf = (path: string, record: unknown) => collectCategoryTable({ [path]: record }, "categories")[0]?.problem;
@@ -128,11 +132,11 @@ describe("collectCategoryTable", () => {
     ["an empty subcategory", "rings/"],
   ])("refuses a path with %s", (_label, path) => {
     expect(problemOf(path, { conditions: [] })).toMatch(/^is not a category path/);
-  });
+  }); // checked before anything else in the record
 
   it("allows spaces inside a name", () => {
     expect(problemOf("jewels/cluster jewels", { conditions: [] })).toBeUndefined();
-  });
+  }); // only the ends of a name are trimmed-checked
 
   it("refuses a record that is not an object", () => {
     expect(problemOf("rings", [])).toBe("is not an object");
@@ -177,11 +181,11 @@ describe("collectCategoryTable", () => {
       expect(problemOf("rings/magic", { conditions: [], order: Infinity })).toBe(
         "order must be a number when it is present",
       );
-    });
+    }); // Infinity is a number to typeof
 
     it("accepts a negative order", () => {
       expect(problemOf("rings/magic", { conditions: [], order: -1 })).toBeUndefined();
-    });
+    }); // no lower bound: negative sorts first
   });
 
   describe("hints", () => {
@@ -239,7 +243,7 @@ describe("collectCategoryTable", () => {
 
     it("refuses a condition name in the wrong case", () => {
       expect(sub([{ rarity: { values: ["Rare"] } }])).toBe("samples names \"rarity\", which is not a filter condition");
-    });
+    }); // the lowercase lookup must round-trip to the exact name
 
     it("refuses a property that is not an object", () => {
       expect(sub([{ Rarity: ["Rare"] }])).toBe("samples Rarity is not an object");
@@ -293,7 +297,7 @@ describe("collectCategoryTable", () => {
       expect(sub([{ HasEnchantment: { values: [[]] } }])).toBe(
         "samples HasEnchantment takes text or a list of text, not []",
       );
-    });
+    }); // an empty list would build an item with nothing to count
 
     it("refuses a list for a text condition", () => {
       expect(sub([{ BaseType: { values: [["a"]] } }])).toBe("samples BaseType takes text, not [\"a\"]");
@@ -303,7 +307,7 @@ describe("collectCategoryTable", () => {
       expect(problemOf("rings/magic", { conditions: [], rejects: [{ Rarity: { values: [] } }] })).toBe(
         "rejects Rarity needs a non-empty values list or a from",
       );
-    });
+    }); // the same checker runs twice under two labels
   });
 });
 

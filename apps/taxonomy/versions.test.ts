@@ -37,7 +37,7 @@ describe("buildVersion", () => {
     );
 
     expect(version.authored["authored/a"]?.name).toBe("Manual");
-  });
+  }); // manual spreads last, so it wins
 
   it("lets a manual variant list replace the seeded list for the same row, not join it", () => {
     const version = buildVersion(
@@ -50,7 +50,7 @@ describe("buildVersion", () => {
     );
 
     expect(version.variants.Ring?.map((variant) => variant.name)).toEqual(["manual"]);
-  });
+  }); // object spread replaces the whole list
 
   it("accepts variants on an authored row", () => {
     const version = buildVersion(
@@ -63,31 +63,44 @@ describe("buildVersion", () => {
     );
 
     expect(Object.keys(version.variants)).toEqual(["authored/a"]);
-  });
+  }); // authored keys join the known set before variants are checked
 
   it("names the version file and key in the first problem it finds", () => {
     expect(() => buildVersion("3.29.1", files({ items: { Ring: { name: "" } } }), new Set())).toThrow(
       "taxonomy/versions/3.29.1/items.json: \"Ring\" name must be a non-empty string",
     );
-  });
+  }); // the lake key doubles as the file name in the message
 
   it("refuses an authored base type that no seed row carries", () => {
     expect(() =>
       buildVersion("3.29.1", files({ "authored.manual": { "authored/a": authoredRow("A", "Nope") } }), new Set()),
     ).toThrow("3.29.1 authored: \"authored/a\" baseType \"Nope\" is not the name of any seed row");
-  });
+  }); // checked against item names, not keys
 
   it("refuses an authored base type the client rejects", () => {
     expect(() =>
       buildVersion("3.29.1", files({ "authored.manual": { "authored/a": authoredRow("A") } }), new Set(["Ruby Ring"])),
     ).toThrow("is one the client rejects");
-  });
+  }); // the rejected set comes from the caller
 
   it("refuses variants on a key that is neither an item nor an authored row", () => {
     expect(() =>
       buildVersion("3.29.1", files({ "variants.manual": { Ghost: [{ name: "v", conditions: [] }] } }), new Set()),
     ).toThrow("\"Ghost\" is not an item or an authored row");
   });
+
+  it("accepts a seeded authored row carrying variants from the seeded variant file", () => {
+    const version = buildVersion(
+      "3.29.1",
+      files({
+        "authored.seeded": { "authored/s": authoredRow("S") },
+        "variants.seeded": { "authored/s": [{ name: "v", conditions: [] }] },
+      }),
+      new Set(),
+    );
+
+    expect(version.variants["authored/s"]?.map((variant) => variant.name)).toEqual(["v"]);
+  }); // seeded authored rows are known too, not only manual ones
 });
 
 describe("versionTable", () => {

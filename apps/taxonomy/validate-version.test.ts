@@ -23,7 +23,7 @@ describe("collectVersion", () => {
     expect(collectVersion(files({ categories: [] }), new Set())).toEqual([
       { file: "categories", key: "categories", problem: "is not an object" },
     ]);
-  });
+  }); // the shape error is caught per file, so the other five still run
 
   it("reports every problem across files instead of stopping at the first", () => {
     const problems = collectVersion(
@@ -36,7 +36,7 @@ describe("collectVersion", () => {
     );
 
     expect(problems.map((problem) => problem.file)).toEqual(["items", "authored.manual", "variants.seeded"]);
-  });
+  }); // unlike buildVersion, which stops at the first
 
   it("reports a shape problem and a base-type problem on the same authored row", () => {
     const problems = collectVersion(
@@ -48,7 +48,7 @@ describe("collectVersion", () => {
       "has unknown fields: extra",
       "baseType \"Nope\" is not the name of any seed row",
     ]);
-  });
+  }); // the two checks run side by side, not one gating the other
 
   it("checks authored base types against the rejects list", () => {
     const problems = collectVersion(
@@ -71,5 +71,17 @@ describe("collectVersion", () => {
     );
 
     expect(problems.map((problem) => problem.file)).toEqual(["authored.manual"]);
-  });
+  }); // known keys come from the raw files, so one error does not cascade
+
+  it("still reports the other files when the items file is not an object", () => {
+    const problems = collectVersion(
+      files({ items: null, "variants.manual": { Ring: [{ name: "v", conditions: [] }] } }),
+      new Set(),
+    );
+
+    expect(problems).toEqual([
+      { file: "items", key: "items", problem: "is not an object" },
+      { file: "variants.manual", key: "Ring", problem: "is not an item or an authored row in this version" },
+    ]);
+  }); // a broken items file leaves no keys known
 });

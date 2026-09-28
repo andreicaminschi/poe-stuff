@@ -38,11 +38,11 @@ describe("collectVariantTable", () => {
 
   it("refuses the same name twice in one list", () => {
     expect(problemOf([variant(), variant()])).toBe("authors variant \"20/20\" twice");
-  });
+  }); // names are the variant's key in the owner note
 
   it("requires conditions on every variant, even an empty list", () => {
     expect(problemOf([{ name: "20/20" }])).toBe("variant \"20/20\" conditions is not a list");
-  });
+  }); // unlike a row, a variant's conditions are not optional
 
   it("refuses an unpriceable flag that is not a boolean", () => {
     expect(problemOf([variant({ unpriceable: 1 })])).toBe(
@@ -54,7 +54,11 @@ describe("collectVariantTable", () => {
     expect(problemOf([variant({ unpriceable: true, listing: { gemLevel: 20 } })])).toBe(
       "variant \"20/20\" is unpriceable and has a listing",
     );
-  });
+  }); // the two contradict each other
+
+  it("accepts an explicitly priceable variant that has a listing", () => {
+    expect(problemOf([variant({ unpriceable: false, listing: { gemLevel: 20 } })])).toBeUndefined();
+  }); // only true conflicts with a listing
 
   it("prefixes a listing problem with the variant's name", () => {
     expect(problemOf([variant({ listing: {} })])).toBe("variant \"20/20\" listing matches nothing");

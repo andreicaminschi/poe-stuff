@@ -22,14 +22,16 @@ describe("seedItems", () => {
   });
 
   it.each(["[DNT] Ring", "Ring]", "WIP Ring", "MTX Ring"])("leaves out a junk name like %s", (name) => {
-    expect(seedItems({ A: base(name, "Ring") } as BaseItems, {} as Gems)).toEqual({});
-  });
+    const table = seedItems({ A: base(name, "Ring") } as BaseItems, {} as Gems);
 
-  it("keeps names that merely contain the letters MTX or WIP", () => {
-    expect(
-      Object.keys(seedItems({ A: base("SWIPE", "Ring"), B: base("Ring WIP", "Ring") } as BaseItems, {} as Gems)),
-    ).toEqual(["A"]);
-  });
+    expect(table).toEqual({});
+  }); // a lone bracket is enough
+
+  it("keeps a name that merely contains the letters WIP inside a word", () => {
+    const table = seedItems({ A: base("SWIPE", "Ring"), B: base("Ring WIP", "Ring") } as BaseItems, {} as Gems);
+
+    expect(Object.keys(table)).toEqual(["A"]);
+  }); // WIP and MTX match only as whole words
 
   it("adds a transfigured gem under its own key, classed by the base gem's item class", () => {
     const table = seedItems(
@@ -52,7 +54,7 @@ describe("seedItems", () => {
     );
 
     expect(table.SkillGemFireball?.name).toBe("Fireball");
-  });
+  }); // the base row wins over a gem sharing its key
 
   it("does not add a gem with no base type name or no base it points at", () => {
     const table = seedItems({} as BaseItems, { A: gem("SkillGemX", "X"), B: gem("SkillGemFireball") } as Gems);
@@ -64,5 +66,5 @@ describe("seedItems", () => {
     const table = seedItems({ Q: base("", "QuestItem") } as BaseItems, { G: gem("Q", "Gem") } as Gems);
 
     expect(table).toEqual({});
-  });
+  }); // the gem is checked against the raw base, not the seeded table
 });

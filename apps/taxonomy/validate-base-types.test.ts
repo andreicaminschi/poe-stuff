@@ -22,7 +22,7 @@ describe("collectBaseTypes", () => {
     expect(collectBaseTypes({ "authored/a": { baseType: "Ruby Ring" } }, seeds, new Set(["Ruby Ring"]))).toEqual([
       { key: "authored/a", problem: "baseType \"Ruby Ring\" is one the client rejects" },
     ]);
-  });
+  }); // the reject check runs first
 
   it("reports a base type that no seed row carries", () => {
     expect(collectBaseTypes({ "authored/a": { baseType: "Opal Ring" } }, seeds, new Set())).toEqual([
@@ -32,7 +32,7 @@ describe("collectBaseTypes", () => {
 
   it("skips rows with a missing or empty base type, which the shape check reports instead", () => {
     expect(collectBaseTypes({ a: {}, b: { baseType: "" }, c: "row" }, seeds, new Set())).toEqual([]);
-  });
+  }); // not reported twice
 
   it("reports nothing for a table that is not an object", () => {
     expect(collectBaseTypes(null, seeds, new Set())).toEqual([]);

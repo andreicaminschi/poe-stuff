@@ -24,7 +24,7 @@ const at = "2026-01-01T00:00:00.000Z";
 describe("versionNumber", () => {
   it("reads the last part of a version as its number", () => {
     expect(versionNumber("3.29.12")).toBe(12);
-  });
+  }); // a number, not the string "12"
 
   it("refuses a version with only two parts", () => {
     expect(() => versionNumber("3.29")).toThrow("\"3.29\" is not a version");
@@ -32,7 +32,7 @@ describe("versionNumber", () => {
 
   it("refuses a version with four parts", () => {
     expect(() => versionNumber("3.29.1.2")).toThrow("is not a version");
-  });
+  }); // the pattern is anchored at both ends
 });
 
 describe("gameVersion", () => {
@@ -60,7 +60,7 @@ describe("reading and writing the registry", () => {
 
   it("starts an empty registry at version one when no file exists", async () => {
     expect(await readRegistry(lake)).toEqual({ next: 1, versions: {} });
-  });
+  }); // a missing file is not an error
 
   it("reads back the registry it wrote", async () => {
     const registry = registryOf({ "3.29.1": { state: "draft", createdAt: at } }, 2);
@@ -85,7 +85,7 @@ describe("newestVersion", () => {
     });
 
     expect(newestVersion(registry)).toBe("3.29.10");
-  });
+  }); // a string sort would pick 3.29.9
 
   it("ignores the game part and ranks only by the last number", () => {
     const registry = registryOf({
@@ -94,7 +94,7 @@ describe("newestVersion", () => {
     });
 
     expect(newestVersion(registry)).toBe("3.29.2");
-  });
+  }); // the counter is global across game versions
 
   it("has no newest version in an empty registry", () => {
     expect(newestVersion(registryOf({}))).toBeUndefined();
@@ -118,6 +118,10 @@ describe("highestDraft", () => {
     });
 
     expect(highestDraft(registry)).toBeUndefined();
+  }); // only the very newest version may be the draft
+
+  it("is nothing in an empty registry", () => {
+    expect(highestDraft(registryOf({}))).toBeUndefined();
   });
 });
 
@@ -142,6 +146,10 @@ describe("assertPublishable", () => {
     expect(() => assertPublishable(registry, "3.29.1")).toThrow("already published");
   });
 
+  it("refuses a version the registry does not hold", () => {
+    expect(() => assertPublishable(registryOf({}), "3.29.1")).toThrow("3.29.1 does not exist.");
+  });
+
   it("refuses a draft that a newer draft has overtaken", () => {
     const registry = registryOf({
       "3.29.1": { state: "draft", createdAt: at },
@@ -149,7 +157,7 @@ describe("assertPublishable", () => {
     });
 
     expect(() => assertPublishable(registry, "3.29.1")).toThrow("overtaken by 3.29.2");
-  });
+  }); // the message names the version that overtook it
 
   it("accepts the newest draft", () => {
     const registry = registryOf({ "3.29.2": { state: "draft", createdAt: at } });
@@ -161,5 +169,5 @@ describe("assertPublishable", () => {
 describe("nextVersion", () => {
   it("numbers the new version off the registry counter, not off the parent", () => {
     expect(nextVersion(registryOf({}, 7), "3.29.2")).toBe("3.29.7");
-  });
+  }); // parent 2 is ignored; only its game part is kept
 });
