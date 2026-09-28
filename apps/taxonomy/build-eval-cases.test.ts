@@ -36,16 +36,16 @@ describe("buildEvalCases", () => {
     expect(cases[0]?.item).toMatchObject({ Class: "Rings", BaseType: "Ruby Ring", Rarity: "Normal" });
   });
 
-  it("answers each case with the PoeWatch entry of the row whose block takes it", () => {
+  it("answers each case with the market entry of the row whose block takes it", () => {
     const { cases: [first] } = buildEvalCases([row("Ring")], categories);
 
-    expect(first?.matches).toEqual([{ source: "poeWatch:items", id: 1, name: "Ring" }]);
+    expect(first?.expected).toEqual([{ source: "poeWatch:items", id: 1, name: "Ring" }]);
   });
 
   it("matches a row whose key has a space", () => {
     const { cases: [first] } = buildEvalCases([row("Ruby Ring")], categories);
 
-    expect(first?.matches).toEqual([{ source: "poeWatch:items", id: 1, name: "Ruby Ring" }]);
+    expect(first?.expected).toEqual([{ source: "poeWatch:items", id: 1, name: "Ruby Ring" }]);
   });
 
   it("leaves out reject samples", () => {

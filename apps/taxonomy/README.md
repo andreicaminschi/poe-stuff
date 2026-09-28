@@ -545,13 +545,13 @@ yarn taxonomy:build-eval-cases --league=Allflame
 ```
 
 It takes every distinct sample item `buildSamples` builds for the catalog's rows. A case is
-`{ item, matches }`: `item` is the `FilterItem` the classifier gets, and `matches` is every
-PoeWatch entry it is, as the catalog's `{ source, id, name }` links.
+`{ item, expected }`: `item` is the `FilterItem` the classifier gets, and `expected` is every
+market entry it is, as `{ source, id, name }`. PoeWatch is the only source today.
 
 The answer comes from the compiled taxonomy, not from the row the sample was built off. The
 catalog's rows compile into one block per row or variant, and the first block that takes the
 sample names the item. A variant is an item, so a variant's block answers with the variant's
-link. A unique answers with every unique listing its base carries in the same form — foulborn
+entry. A unique answers with every unique listing its base carries in the same form — foulborn
 or not, corrupted or not — because the item alone cannot say which unique it is. No block, or
 no price, is `[]`.
 

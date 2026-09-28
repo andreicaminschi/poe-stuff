@@ -1,4 +1,4 @@
-export type PoeWatchLink = {
+export type MarketEntry = {
   readonly source: "poeWatch:items" | "poeWatch:exchange";
   readonly id: number | null;
   readonly name: string;
@@ -6,14 +6,14 @@ export type PoeWatchLink = {
 
 export type UniqueGroup = {
   readonly subcategory: string | null;
-  readonly listings: readonly { readonly corrupted: boolean; readonly poeWatch: PoeWatchLink }[];
+  readonly listings: readonly { readonly corrupted: boolean; readonly poeWatch: MarketEntry }[];
 };
 
-/** What the matchers read off a catalog row. */
-export type LinkRow = {
+/** What the entry finders read off a catalog row. */
+export type EntryRow = {
   readonly key: string;
   readonly name: string;
-  readonly poeWatch?: PoeWatchLink;
-  readonly variants?: readonly { readonly name: string; readonly poeWatch?: PoeWatchLink }[];
+  readonly poeWatch?: MarketEntry;
+  readonly variants?: readonly { readonly name: string; readonly poeWatch?: MarketEntry }[];
   readonly uniques?: readonly UniqueGroup[];
 };

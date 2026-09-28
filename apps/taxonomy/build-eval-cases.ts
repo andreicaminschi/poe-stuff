@@ -6,16 +6,16 @@ import { parseFilter } from "@poe/filter-eval/parse-filter";
 import { buildSamples } from "@poe/filter-validate/build-samples";
 import { formatPath } from "@poe/filter-validate/format-path";
 import type { SampleCategories, SampleRow } from "@poe/filter-validate/types";
-import { findBlockLinks } from "./build-eval-cases/find-block-links.ts";
-import { findUniqueLinks } from "./build-eval-cases/find-unique-links.ts";
-import type { LinkRow, PoeWatchLink } from "./build-eval-cases/types.ts";
+import { findBlockEntries } from "./build-eval-cases/find-block-entries.ts";
+import { findUniqueEntries } from "./build-eval-cases/find-unique-entries.ts";
+import type { EntryRow, MarketEntry } from "./build-eval-cases/types.ts";
 
 /** What `buildEvalCases` reads off a catalog row. */
-export type EvalRow = CompileRow & LinkRow;
+export type EvalRow = CompileRow & EntryRow;
 
 export type EvalCase = {
   readonly item: FilterItem;
-  readonly matches: readonly PoeWatchLink[];
+  readonly expected: readonly MarketEntry[];
 };
 
 /** One item two taxonomy rows both build: a generation error. */
@@ -47,10 +47,10 @@ export function buildEvalCases(
   const rowsByKey = new Map(rows.map((row) => [row.key, row]));
   const uniqueBasesByName = new Map(rows.filter((row) => row.uniques !== undefined).map((row) => [row.name, row]));
 
-  const findLinks = (item: FilterItem): readonly PoeWatchLink[] =>
+  const findExpectedEntries = (item: FilterItem): readonly MarketEntry[] =>
     item.Rarity === "Unique"
-      ? findUniqueLinks(item, uniqueBasesByName)
-      : findBlockLinks(item, filterMatcher, rowsByKey);
+      ? findUniqueEntries(item, uniqueBasesByName)
+      : findBlockEntries(item, filterMatcher, rowsByKey);
 
   const claimedRowByItem = new Map<string, SampleRow>();
   const cases: EvalCase[] = [];
@@ -63,7 +63,7 @@ export function buildEvalCases(
 
     if (claimedRow === undefined) {
       claimedRowByItem.set(itemKey, row);
-      cases.push({ item, matches: findLinks(item) });
+      cases.push({ item, expected: findExpectedEntries(item) });
     } else {
       overlaps.push({
         item,

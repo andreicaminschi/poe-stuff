@@ -36,7 +36,7 @@ async function main(): Promise<void> {
   const { cases, overlaps } = buildEvalCases(rows, categories);
   await lake.writeJsonAtomic(`${PREFIX}/evals/${version}/cases.json`, { version, league, cases, overlaps });
 
-  const unmatched = cases.filter((one) => one.matches.length === 0).length;
+  const unmatched = cases.filter((one) => one.expected.length === 0).length;
   process.stdout.write(
     `${JSON.stringify({ version, cases: cases.length, unmatched, overlaps: overlaps.length })}\n`,
   );

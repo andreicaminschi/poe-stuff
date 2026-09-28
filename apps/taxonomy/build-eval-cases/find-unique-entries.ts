@@ -1,5 +1,5 @@
 import type { FilterItem } from "@poe/filter-eval/filter-ast";
-import type { LinkRow, PoeWatchLink } from "./types.ts";
+import type { EntryRow, MarketEntry } from "./types.ts";
 
 const FOULBORN = "foulborn";
 
@@ -14,10 +14,10 @@ const FOULBORN = "foulborn";
  *     { corrupted: true, poeWatch: mingsHeartCorrupted },
  *   ] },
  * ] }]]);
- * findUniqueLinks({ Rarity: "Unique", BaseType: "Ruby Ring", Corrupted: false }, uniqueBasesByName);
+ * findUniqueEntries({ Rarity: "Unique", BaseType: "Ruby Ring", Corrupted: false }, uniqueBasesByName);
  * // → [mingsHeart]
  */
-export function findUniqueLinks(item: FilterItem, uniqueBasesByName: ReadonlyMap<string, LinkRow>): readonly PoeWatchLink[] {
+export function findUniqueEntries(item: FilterItem, uniqueBasesByName: ReadonlyMap<string, EntryRow>): readonly MarketEntry[] {
   if (typeof item.BaseType !== "string") return [];
   const base = uniqueBasesByName.get(item.BaseType);
   const subcategory = item.Foulborn === true

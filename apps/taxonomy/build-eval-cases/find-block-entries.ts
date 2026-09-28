@@ -1,10 +1,10 @@
 import { readOwnerNote } from "@poe/filter-compile/owner-note";
 import type { FilterItem } from "@poe/filter-eval/filter-ast";
 import type { FilterMatcher } from "@poe/filter-eval/match-filter";
-import type { LinkRow, PoeWatchLink } from "./types.ts";
+import type { EntryRow, MarketEntry } from "./types.ts";
 
 /**
- * Finds a non-unique item's PoeWatch entry: the compiled filter picks the block that takes
+ * Finds a non-unique item's market entry: the compiled filter picks the block that takes
  * the item, and the block's row or variant carries the entry.
  * Answers `[]` when no block takes the item or the entry has no price.
  *
@@ -18,18 +18,18 @@ import type { LinkRow, PoeWatchLink } from "./types.ts";
  * }]]);
  *
  * // winning block note: "Ruby Ring"
- * findBlockLinks({ BaseType: "Ruby Ring", ItemLevel: 70 }, filterMatcher, rowsByKey);
+ * findBlockEntries({ BaseType: "Ruby Ring", ItemLevel: 70 }, filterMatcher, rowsByKey);
  * // → [rubyRing]
  *
  * // winning block note: "Ruby Ring ilvl 84", split as key "Ruby Ring", variant "ilvl 84"
- * findBlockLinks({ BaseType: "Ruby Ring", ItemLevel: 84 }, filterMatcher, rowsByKey);
+ * findBlockEntries({ BaseType: "Ruby Ring", ItemLevel: 84 }, filterMatcher, rowsByKey);
  * // → [rubyRing84]
  */
-export function findBlockLinks(
+export function findBlockEntries(
   item: FilterItem,
   filterMatcher: FilterMatcher,
-  rowsByKey: ReadonlyMap<string, LinkRow>,
-): readonly PoeWatchLink[] {
+  rowsByKey: ReadonlyMap<string, EntryRow>,
+): readonly MarketEntry[] {
   const winner = filterMatcher(item).winner;
   if (winner === undefined) return [];
 
@@ -39,11 +39,11 @@ export function findBlockLinks(
   const row = rowsByKey.get(owner.key);
   if (row === undefined) return [];
 
-  const link =
+  const entry =
     owner.variant === undefined
       ? row.poeWatch
       : row.variants?.find((variant) => variant.name === owner.variant)?.poeWatch;
-  return link === undefined
+  return entry === undefined
     ? []
-    : [link];
+    : [entry];
 }
