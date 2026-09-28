@@ -12,7 +12,7 @@ sequenceDiagram
 
     opt cache given
         rect rgba(168, 85, 247, 0.12)
-            Note over Call: key = cacheKey("ggg", method, url, body)
+            Note over Call: key = buildCacheKey("ggg", method, url, body)
             Call->>Cache: get(key)
             alt stored
                 Note over Call: emits cache { result: hit }<br/>no slot taken, no request, limiter untouched

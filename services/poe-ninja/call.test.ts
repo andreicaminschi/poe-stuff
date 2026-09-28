@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { fileCache } from "@util/cache/file-cache";
+import { createFileCache } from "@util/cache/create-file-cache";
 import { fetchJson } from "./call.ts";
 import { PoeNinjaHttpError } from "./errors.ts";
 import type { CachedResponse, PoeNinjaContext } from "./types.ts";
@@ -91,7 +91,7 @@ describe("fetchJson", () => {
   it("makes no request for the same URL again inside the same hour", async () => {
     jest.useFakeTimers({ now: 10 * HOUR_MS, doNotFake: ["setImmediate", "nextTick"] });
     dir = await mkdtemp(join(tmpdir(), "poe-ninja-"));
-    const cache = fileCache<CachedResponse>(dir);
+    const cache = createFileCache<CachedResponse>(dir);
     fetchMock.mockResolvedValueOnce(json({ n: 1 })).mockResolvedValueOnce(json({ n: 2 }));
 
     const first = await fetchJson("p", { a: "1" }, { ...context, cache });
@@ -106,7 +106,7 @@ describe("fetchJson", () => {
   it("fetches again once the clock crosses into the next hour", async () => {
     jest.useFakeTimers({ now: 10 * HOUR_MS, doNotFake: ["setImmediate", "nextTick"] });
     dir = await mkdtemp(join(tmpdir(), "poe-ninja-"));
-    const cache = fileCache<CachedResponse>(dir);
+    const cache = createFileCache<CachedResponse>(dir);
     fetchMock.mockResolvedValueOnce(json({ n: 1 })).mockResolvedValueOnce(json({ n: 2 }));
 
     await fetchJson("p", {}, { ...context, cache });
@@ -118,7 +118,7 @@ describe("fetchJson", () => {
 
   it("keeps two queries apart in the cache", async () => {
     dir = await mkdtemp(join(tmpdir(), "poe-ninja-"));
-    const cache = fileCache<CachedResponse>(dir);
+    const cache = createFileCache<CachedResponse>(dir);
     fetchMock.mockResolvedValueOnce(json({ t: "a" })).mockResolvedValueOnce(json({ t: "b" }));
 
     await fetchJson("p", { type: "A" }, { ...context, cache });

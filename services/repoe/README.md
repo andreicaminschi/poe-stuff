@@ -102,12 +102,12 @@ console.log(chaos.name, chaos.properties.stack_size);
 ### Keep the answer on disk
 
 ```ts
-import { fileCache } from "@util/cache/file-cache";
+import { createFileCache } from "@util/cache/create-file-cache";
 import { createRepoeService } from "@poe/repoe/service";
 import type { CachedResponse } from "@poe/repoe/types";
 
 const repoe = createRepoeService({
-  cache: fileCache<CachedResponse>("cache/repoe"),
+  cache: createFileCache<CachedResponse>("cache/repoe"),
 });
 
 await repoe.getBaseItems(); // downloads the whole export

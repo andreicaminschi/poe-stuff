@@ -5,8 +5,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./cache-key": "./cache-key.ts",
-    "./file-cache": "./file-cache.ts",
+    "./build-cache-key": "./build-cache-key.ts",
+    "./create-file-cache": "./create-file-cache.ts",
     "./sleep": "./sleep.ts"
   }
 }

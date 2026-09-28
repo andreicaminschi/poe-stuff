@@ -1,4 +1,4 @@
-import { cacheKey } from "@util/cache/cache-key";
+import { buildCacheKey } from "@util/cache/build-cache-key";
 import { sleep } from "@util/cache/sleep";
 import { GggHttpError } from "./errors.ts";
 import { parseRetryAfter, parseRules, parseState } from "./parse-rate-limit-headers.ts";
@@ -70,8 +70,8 @@ function requestKey(url: string, method: string, body: RequestInit["body"], salt
 
   // Appended only when there is one, so an unsalted request keys exactly as it always did.
   return salt === undefined
-    ? cacheKey("ggg", method, url, body ?? "")
-    : cacheKey("ggg", method, url, body ?? "", salt);
+    ? buildCacheKey("ggg", method, url, body ?? "")
+    : buildCacheKey("ggg", method, url, body ?? "", salt);
 }
 
 /**

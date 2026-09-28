@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, it, expect, jest } from "@jest/globals
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { fileCache } from "@util/cache/file-cache";
+import { createFileCache } from "@util/cache/create-file-cache";
 import { call } from "./call.ts";
 import { GggHttpError } from "./errors.ts";
 import type { CachedResponse, CallEvent, RateLimiter, RateLimiterRule, RateLimitState } from "./types.ts";
@@ -273,7 +273,7 @@ describe("call", () => {
     });
 
     it("answers a repeated request from the cache without fetching or acquiring", async () => {
-      const cache = fileCache<CachedResponse>(dir);
+      const cache = createFileCache<CachedResponse>(dir);
       const { limiter } = spyLimiter();
       const acquire = jest.spyOn(limiter, "acquire");
       reply({ body: { n: 1 } });
@@ -287,7 +287,7 @@ describe("call", () => {
     });
 
     it("reports a hit and a store as events", async () => {
-      const cache = fileCache<CachedResponse>(dir);
+      const cache = createFileCache<CachedResponse>(dir);
       const events: CallEvent[] = [];
       reply({});
 
@@ -301,7 +301,7 @@ describe("call", () => {
     });
 
     it("never stores a failed answer", async () => {
-      const cache = fileCache<CachedResponse>(dir);
+      const cache = createFileCache<CachedResponse>(dir);
       reply({ status: 404 }, { body: "fine" });
 
       await call(URL_, { userAgent: UA, cache }).catch(() => {});
@@ -312,7 +312,7 @@ describe("call", () => {
     });
 
     it("keys two different bodies apart", async () => {
-      const cache = fileCache<CachedResponse>(dir);
+      const cache = createFileCache<CachedResponse>(dir);
       reply({ body: "a" }, { body: "b" });
 
       const a = await call(URL_, { userAgent: UA, cache, init: { method: "POST", body: "1" } });
@@ -322,7 +322,7 @@ describe("call", () => {
     });
 
     it("keys two different salts apart", async () => {
-      const cache = fileCache<CachedResponse>(dir);
+      const cache = createFileCache<CachedResponse>(dir);
       reply({ body: "a" }, { body: "b" });
 
       const a = await call(URL_, { userAgent: UA, cache, cacheSalt: "1" });
@@ -332,7 +332,7 @@ describe("call", () => {
     });
 
     it("refuses to cache a request whose body is not a string", async () => {
-      const cache = fileCache<CachedResponse>(dir);
+      const cache = createFileCache<CachedResponse>(dir);
 
       await expect(
         call(URL_, { userAgent: UA, cache, init: { method: "POST", body: new URLSearchParams("a=1") } }),

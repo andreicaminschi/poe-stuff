@@ -70,12 +70,12 @@ console.log(`${market.length} rows, ${bases.length} crafting bases`);
 ### Keep the answers on disk
 
 ```ts
-import { fileCache } from "@util/cache/file-cache";
+import { createFileCache } from "@util/cache/create-file-cache";
 import { createPoeWatchService } from "@poe/poe-watch/service";
 import type { CachedResponse } from "@poe/poe-watch/types";
 
 const watch = createPoeWatchService({
-  cache: fileCache<CachedResponse>("cache/poe-watch"),
+  cache: createFileCache<CachedResponse>("cache/poe-watch"),
 });
 
 await watch.getCompactData("Allflame"); // downloads

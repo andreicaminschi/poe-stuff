@@ -15,7 +15,7 @@ import { getForms } from "./prices/getForms.api.ts";
 import { getCorruptionNames, getExchangeNames, getListingNames } from "./prices/getNames.api.ts";
 import { createPoeWatchService } from "@poe/poe-watch/service";
 import type { CachedResponse } from "@poe/poe-watch/types";
-import { fileCache } from "@util/cache/file-cache";
+import { createFileCache } from "@util/cache/create-file-cache";
 import { LEAGUE } from "./panel-api.ts";
 import { createVersion } from "./taxonomy/create.api.ts";
 import { getVersion } from "./taxonomy/getVersion.api.ts";
@@ -38,7 +38,7 @@ export function createPanelService(
     ...(userAgent === undefined
       ? {}
       : { userAgent }),
-    cache: fileCache<CachedResponse>(join(repo, ".s3", ".cache")),
+    cache: createFileCache<CachedResponse>(join(repo, ".s3", ".cache")),
   });
   let building = false;
 

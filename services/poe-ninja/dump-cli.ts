@@ -1,5 +1,5 @@
 import { writeFile } from "node:fs/promises";
-import { fileCache } from "@util/cache/file-cache";
+import { createFileCache } from "@util/cache/create-file-cache";
 import { ITEM_TYPES, type ItemType, type CachedResponse } from "./types.ts";
 import type { NinjaExchangeItem } from "./get-exchange-ratios.types.ts";
 import type { NinjaItem } from "./get-league-items.types.ts";
@@ -54,7 +54,7 @@ const ninja = createPoeNinjaService({
   userAgent: "poe-stuff/1.0 (dump-cli)",
   ...(cacheDir === undefined
     ? {}
-    : { cache: fileCache<CachedResponse>(cacheDir) }),
+    : { cache: createFileCache<CachedResponse>(cacheDir) }),
 });
 
 /**

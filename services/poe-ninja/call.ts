@@ -1,4 +1,4 @@
-import { cacheKey } from "@util/cache/cache-key";
+import { buildCacheKey } from "@util/cache/build-cache-key";
 import { sleep } from "@util/cache/sleep";
 import { PoeNinjaHttpError } from "./errors.ts";
 import type { PoeNinjaContext } from "./types.ts";
@@ -46,7 +46,7 @@ export async function fetchJson<T>(
     ? ""
     : `?${search}`}`;
 
-  const key = cache && cacheKey("poe-ninja", url, String(Math.floor(Date.now() / HOUR_MS)));
+  const key = cache && buildCacheKey("poe-ninja", url, String(Math.floor(Date.now() / HOUR_MS)));
 
   if (cache && key) {
     const cached = await cache.get(key);

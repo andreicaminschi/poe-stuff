@@ -1,4 +1,4 @@
-import { cacheKey } from "@util/cache/cache-key";
+import { buildCacheKey } from "@util/cache/build-cache-key";
 import { PoeWatchHttpError } from "./errors.ts";
 import type { PoeWatchContext } from "./types.ts";
 
@@ -18,7 +18,7 @@ import type { PoeWatchContext } from "./types.ts";
  * The body is asserted, not validated: callers that care hand the result to a schema.
  */
 export async function call<T>(url: string, salt: string, { userAgent, cache }: PoeWatchContext): Promise<T> {
-  const key = cache && cacheKey("poe-watch", url, salt);
+  const key = cache && buildCacheKey("poe-watch", url, salt);
 
   if (cache && key) {
     const cached = await cache.get(key);

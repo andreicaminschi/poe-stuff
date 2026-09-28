@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals
 import { mkdtemp, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { fileCache } from "@util/cache/file-cache";
+import { createFileCache } from "@util/cache/create-file-cache";
 import { call, currentHour } from "./call.ts";
 import { PoeWatchHttpError } from "./errors.ts";
 import type { CachedResponse } from "./types.ts";
@@ -65,7 +65,7 @@ describe("call", () => {
 
   it("writes nothing to the cache when the answer is an error", async () => {
     fetchMock.mockResolvedValue(new Response("", { status: 404 }));
-    const cache = fileCache<CachedResponse>(dir);
+    const cache = createFileCache<CachedResponse>(dir);
 
     await expect(call(URL_A, "1", { baseUrl: "", userAgent: "u", cache })).rejects.toThrow("poewatch 404 for " + URL_A);
 
@@ -80,7 +80,7 @@ describe("call", () => {
 
   it("answers the second call with the same URL and hour from the cache", async () => {
     fetchMock.mockImplementation(async () => jsonResponse({ n: 1 }));
-    const context = { baseUrl: "", userAgent: "u", cache: fileCache<CachedResponse>(dir) };
+    const context = { baseUrl: "", userAgent: "u", cache: createFileCache<CachedResponse>(dir) };
 
     await call(URL_A, "100", context);
     const second = await call(URL_A, "100", context);
@@ -91,7 +91,7 @@ describe("call", () => {
 
   it("downloads again once the hour changes", async () => {
     fetchMock.mockImplementation(async () => jsonResponse({ n: 1 }));
-    const context = { baseUrl: "", userAgent: "u", cache: fileCache<CachedResponse>(dir) };
+    const context = { baseUrl: "", userAgent: "u", cache: createFileCache<CachedResponse>(dir) };
 
     await call(URL_A, "100", context);
     await call(URL_A, "101", context);
@@ -101,7 +101,7 @@ describe("call", () => {
 
   it("keeps a different URL in a different cache entry", async () => {
     fetchMock.mockImplementation(async () => jsonResponse({ n: 1 }));
-    const context = { baseUrl: "", userAgent: "u", cache: fileCache<CachedResponse>(dir) };
+    const context = { baseUrl: "", userAgent: "u", cache: createFileCache<CachedResponse>(dir) };
 
     await call(URL_A, "100", context);
     await call(URL_A.replace("&all=true", ""), "100", context);

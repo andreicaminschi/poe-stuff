@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { fileCache } from "@util/cache/file-cache";
+import { createFileCache } from "@util/cache/create-file-cache";
 import { createRepoeService } from "./service.ts";
 import type { RepoeService } from "./service.ts";
 import type { CachedResponse } from "./types.ts";
@@ -63,7 +63,7 @@ describe("createRepoeService", () => {
 
   it("answers a repeat call within the same hour from the cache it was given", async () => {
     jest.spyOn(Date, "now").mockReturnValue(3_600_000 * 10);
-    const service = createRepoeService({ cache: fileCache<CachedResponse>(dir) });
+    const service = createRepoeService({ cache: createFileCache<CachedResponse>(dir) });
 
     await service.getGems();
     await service.getGems();
@@ -73,7 +73,7 @@ describe("createRepoeService", () => {
 
   it("downloads again once the hour turns over", async () => {
     const now = jest.spyOn(Date, "now").mockReturnValue(3_600_000 * 10 + 3_599_999);
-    const service = createRepoeService({ cache: fileCache<CachedResponse>(dir) });
+    const service = createRepoeService({ cache: createFileCache<CachedResponse>(dir) });
 
     await service.getGems();
     now.mockReturnValue(3_600_000 * 11);
@@ -83,7 +83,7 @@ describe("createRepoeService", () => {
   });
 
   it("keeps two endpoints apart in one cache", async () => {
-    const service = createRepoeService({ cache: fileCache<CachedResponse>(dir) });
+    const service = createRepoeService({ cache: createFileCache<CachedResponse>(dir) });
 
     await service.getGems();
     await service.getMods();

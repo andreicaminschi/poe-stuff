@@ -1,4 +1,4 @@
-import { cacheKey } from "@util/cache/cache-key";
+import { buildCacheKey } from "@util/cache/build-cache-key";
 import { RepoeHttpError, RepoeParseError } from "./errors.ts";
 import type { RepoeContext } from "./types.ts";
 
@@ -18,7 +18,7 @@ import type { RepoeContext } from "./types.ts";
  * The body is asserted, not validated: callers that care hand the result to a schema.
  */
 export async function call<T>(url: string, salt: string, { userAgent, cache }: RepoeContext): Promise<T> {
-  const key = cache && cacheKey("repoe", url, salt);
+  const key = cache && buildCacheKey("repoe", url, salt);
 
   if (cache && key) {
     const cached = await cache.get(key);

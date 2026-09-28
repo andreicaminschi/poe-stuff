@@ -175,10 +175,10 @@ traffic — and a default would send a contact that does not exist:
 A disk cache is three lines in the consumer:
 
 ```ts
-import { fileCache } from "@util/cache/file-cache";
+import { createFileCache } from "@util/cache/create-file-cache";
 import type { CachedResponse } from "@poe/ggg/types";
 
-const cache = fileCache<CachedResponse>("cache/ggg");
+const cache = createFileCache<CachedResponse>("cache/ggg");
 ```
 
 ## Gotchas

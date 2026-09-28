@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals
 import { mkdtemp, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { fileCache } from "@util/cache/file-cache";
+import { createFileCache } from "@util/cache/create-file-cache";
 import { call, currentHour } from "./call.ts";
 import { RepoeHttpError } from "./errors.ts";
 import type { CachedResponse } from "./types.ts";
@@ -73,7 +73,7 @@ describe("call", () => {
 
   it("answers the second call with the same salt from the cache", async () => {
     fetchMock.mockImplementation(async () => jsonResponse({ a: 1 }));
-    const context = { baseUrl: "", userAgent: "u", cache: fileCache<CachedResponse>(dir) };
+    const context = { baseUrl: "", userAgent: "u", cache: createFileCache<CachedResponse>(dir) };
 
     await call(URL, "1", context);
     const second = await call(URL, "1", context);
@@ -84,7 +84,7 @@ describe("call", () => {
 
   it("downloads again once the salt changes", async () => {
     fetchMock.mockImplementation(async () => jsonResponse({ a: 1 }));
-    const context = { baseUrl: "", userAgent: "u", cache: fileCache<CachedResponse>(dir) };
+    const context = { baseUrl: "", userAgent: "u", cache: createFileCache<CachedResponse>(dir) };
 
     await call(URL, "1", context);
     await call(URL, "2", context);
@@ -109,7 +109,7 @@ describe("call", () => {
 
   it("caches nothing when the download fails", async () => {
     fetchMock.mockResolvedValue(jsonResponse({}, 500));
-    const cache = fileCache<CachedResponse>(dir);
+    const cache = createFileCache<CachedResponse>(dir);
 
     await call(URL, "1", { baseUrl: "", userAgent: "u", cache }).catch(() => {});
 
