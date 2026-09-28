@@ -23,18 +23,17 @@ describe("createGeneratorService", () => {
     await service.saveConfig(DEFAULT_CONFIG);
 
     expect(JSON.parse(await readFile(join(repo, ".s3", "generator", "config.json"), "utf8"))).toEqual(DEFAULT_CONFIG);
-  });
+  }); // the lake root is repo/.s3, not repo
 
-  it("reads the Allflame catalog", async () => {
+  it("reads the Allflame league's published catalog", async () => {
     const lake = createLakeService({ root: join(repo, ".s3") });
     await lake.writeJson("catalog/latest/allflame.catalog.json", []);
     await lake.writeJson("catalog/latest/allflame.catalog.categories.json", {});
 
-    expect(await createGeneratorService(repo, async () => undefined).getCatalog()).toEqual({
-      rows: [],
-      categories: {},
-    });
-  });
+    const catalog = await createGeneratorService(repo, async () => undefined).getCatalog();
+
+    expect(catalog).toEqual({ rows: [], categories: {} });
+  }); // the league is fixed, the window never names one
 
   it("writes the filter wherever the path picker points", async () => {
     const path = join(repo, "out.filter");
@@ -42,5 +41,5 @@ describe("createGeneratorService", () => {
     await createGeneratorService(repo, async () => path).saveFilter("Hide");
 
     expect(await readFile(path, "utf8")).toBe("Hide");
-  });
+  }); // the picker is asked at save time, not at construction
 });

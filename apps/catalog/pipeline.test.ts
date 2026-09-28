@@ -50,82 +50,76 @@ function servicesFor() {
   };
 }
 
+const BRONZE_STEPS = ["ggg-items", "poe-watch-compact", "poe-watch-corruptions", "poe-watch-ratios", "taxonomy", "validate-bronze"];
+
 describe("SOURCES", () => {
   it("names each outside source once, in step order", () => {
     expect(SOURCES).toEqual(["ggg", "poewatch", "taxonomy"]);
-  });
+  }); // three PoeWatch steps share one source
 });
 
 describe("runPipeline", () => {
-  it("runs every stage on a fresh run and records the taxonomy version", async () => {
+  it("runs bronze, silver and gold on a fresh run and publishes a gold catalog", async () => {
     const { context } = servicesFor();
 
     const manifest = await runPipeline(context);
 
-    expect([
-      manifest.taxonomyVersion,
-      Object.keys(manifest.stages),
-      manifest.stages.bronze?.steps.map((step) => step.id),
-    ]).toEqual([
-      "3.29.4",
+    expect([Object.keys(manifest.stages), manifest.stages.bronze?.steps.map((step) => step.id)]).toEqual([
       ["bronze", "silver", "gold"],
-      ["ggg-items", "poe-watch-compact", "poe-watch-corruptions", "poe-watch-ratios", "taxonomy", "validate-bronze"],
+      BRONZE_STEPS,
     ]);
     expect(await lake.exists("catalog/run=r_1/gold/catalog.json")).toBe(true);
-  });
+  }); // validation is recorded as a bronze step
 
-  it("reports each step's start and finish in order", async () => {
+  it("records the taxonomy version the run collected, 3.29.4", async () => {
+    const { context } = servicesFor();
+
+    const manifest = await runPipeline(context);
+
+    expect(manifest.taxonomyVersion).toBe("3.29.4");
+  }); // read back from bronze, not from the version asked for
+
+  it("reports each step's start in pipeline order", async () => {
     const events: PipelineEvent[] = [];
 
     await runPipeline(servicesFor().context, { onEvent: (event) => events.push(event) });
 
-    expect(
-      events.filter((event) => event.type === "step-started").map((event) => event.type === "step-started" && event.id),
-    ).toEqual([
-      "ggg-items",
-      "poe-watch-compact",
-      "poe-watch-corruptions",
-      "poe-watch-ratios",
-      "taxonomy",
-      "validate-bronze",
+    expect(events.flatMap((event) => (event.type === "step-started"
+      ? [event.id]
+      : []))).toEqual([
+      ...BRONZE_STEPS,
       "build-silver",
       "build-gold",
     ]);
-  });
+  }); // steps run one after another, never in parallel
 
-  it("reuses collected bronze on a second run and rebuilds silver and gold", async () => {
+  it("calls no outside source on a second run and says bronze was already collected", async () => {
     await runPipeline(servicesFor().context);
     const second = servicesFor();
     const events: PipelineEvent[] = [];
 
     await runPipeline(second.context, { onEvent: (event) => events.push(event) });
 
-    expect([second.calls, events[0]]).toEqual([
-      [],
-      { type: "stage-skipped", stage: "bronze", reason: "already collected" },
-    ]);
-  });
+    expect([second.calls, events[0]]).toEqual([[], { type: "stage-skipped", stage: "bronze", reason: "already collected" }]);
+  }); // only bronze is reusable; silver and gold rebuild
 
-  it("refetches only the forced source, rerunning validation and keeping the other steps' records", async () => {
+  it("refetches only the taxonomy when forced to, and keeps every other bronze step's record", async () => {
     const first = await runPipeline(servicesFor().context);
     const second = servicesFor();
 
     const manifest = await runPipeline(second.context, { force: new Set(["taxonomy"]) });
 
     expect(second.calls).toEqual(["taxonomy", "categories"]);
-    expect(manifest.stages.bronze?.steps.map((step) => step.id)).toEqual(
-      first.stages.bronze?.steps.map((step) => step.id),
-    );
-  });
+    expect(manifest.stages.bronze?.steps.map((step) => step.id)).toEqual(first.stages.bronze?.steps.map((step) => step.id));
+  }); // fresh lines merge over old ones in step order, validation reruns
 
-  it("refuses an unknown source in force", async () => {
+  it("refuses an unknown source in force before calling anything", async () => {
     const second = servicesFor();
 
-    await expect(runPipeline(second.context, { force: new Set(["nope"]) })).rejects.toThrow(
-      "Unknown source in force: nope. Known:",
-    );
+    await expect(runPipeline(second.context, { force: new Set(["nope"]) })).rejects.toThrow("Unknown source in force: nope. Known:");
+
     expect(second.calls).toEqual([]);
-  });
+  }); // a typo must not trigger a partial refetch
 
   it("writes no manifest when the collected bronze fails validation", async () => {
     const { context } = servicesFor();
@@ -136,6 +130,6 @@ describe("runPipeline", () => {
 
     await expect(runPipeline(broken)).rejects.toThrow("not valid bronze");
 
-    expect(await lake.exists("catalog/run=r_1/manifest.json")).toBe(false); // validation is a bronze step
-  });
+    expect(await lake.exists("catalog/run=r_1/manifest.json")).toBe(false);
+  }); // the manifest is written after the stage, so the next run collects again
 });

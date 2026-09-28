@@ -27,19 +27,20 @@ const row = {
 };
 
 describe("getCatalog", () => {
-  it("reads the league's rows and category table from the slugged keys", async () => {
+  it("reads the HC Allflame rows and category table from files named hc-allflame", async () => {
     await lake.writeJson("catalog/latest/hc-allflame.catalog.json", [row]);
     await lake.writeJson("catalog/latest/hc-allflame.catalog.categories.json", { Currency: { conditions: [] } });
 
-    expect(await getCatalog(lake, "HC Allflame")).toEqual({
-      rows: [row],
-      categories: { Currency: { conditions: [] } },
-    });
-  });
+    const catalog = await getCatalog(lake, "HC Allflame");
 
-  it("rejects when the category table was never published", async () => {
+    expect(catalog).toEqual({ rows: [row], categories: { Currency: { conditions: [] } } });
+  }); // the league name is slugged before it becomes a key
+
+  it("fails when the rows were published but the category table never was", async () => {
     await lake.writeJson("catalog/latest/allflame.catalog.json", [row]);
 
-    await expect(getCatalog(lake, "Allflame")).rejects.toThrow();
-  });
+    const reading = getCatalog(lake, "Allflame");
+
+    await expect(reading).rejects.toThrow();
+  }); // half a catalog is an error, not an empty table
 });

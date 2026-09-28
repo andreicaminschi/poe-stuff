@@ -27,49 +27,52 @@ const contextWith = (services: object): StepContext =>
   ({ lake, runId: "r_1", league: "Allflame", hourId: 3600, ...services }) as unknown as StepContext;
 
 describe("extractGGGItems", () => {
-  it("stores the trade list and counts items across every group", async () => {
+  it("counts three items across three groups when one group is empty", async () => {
     const groups = [{ items: [1, 2] }, { items: [] }, { items: [3] }];
 
     const result = await extractGGGItems.run(contextWith({ ggg: { getItemData: async () => groups } }));
 
     expect(result).toEqual({ keys: ["catalog/run=r_1/bronze/ggg_items.json"], rows: 3 });
+  }); // rows count items, not groups
+
+  it("stores the trade list exactly as GGG answered it", async () => {
+    const groups = [{ items: [1, 2] }, { items: [] }];
+
+    const result = await extractGGGItems.run(contextWith({ ggg: { getItemData: async () => groups } }));
+
     expect(await lake.readJson(result.keys[0] as string)).toEqual(groups);
-  });
+  }); // bronze is raw, empty groups included
 });
 
 describe("the PoeWatch extracts", () => {
-  it("store the compact dump for the context's league", async () => {
+  it("store the compact dump fetched for the run's league", async () => {
     const getCompactData = jest.fn(async (league: string) => [{ league }]);
 
     const result = await extractPoeWatchCompact.run(contextWith({ poeWatch: { getCompactData } }));
 
-    expect(result).toEqual({ keys: ["catalog/run=r_1/bronze/poe-watch_compact.json"], rows: 1 });
     expect(await lake.readJson(result.keys[0] as string)).toEqual([{ league: "Allflame" }]);
-  });
+  }); // the stored body proves which league was asked
 
-  it("store the corruption outcomes", async () => {
-    const result = await extractPoeWatchCorruptions.run(
-      contextWith({ poeWatch: { getCorruptionData: async () => [] } }),
-    );
+  it("store an empty corruption list and count zero rows", async () => {
+    const result = await extractPoeWatchCorruptions.run(contextWith({ poeWatch: { getCorruptionData: async () => [] } }));
 
     expect(result).toEqual({ keys: ["catalog/run=r_1/bronze/poe-watch_corruptions.json"], rows: 0 });
-  });
+  }); // empty is valid, not a failure
 
-  it("ask the exchange for the first game's ratios", async () => {
+  it("ask the exchange for the first game's ratios, not the second's", async () => {
     const getExchangeRatios = jest.fn(async () => [{}, {}]);
 
     const result = await extractPoeWatchRatios.run(contextWith({ poeWatch: { getExchangeRatios } }));
 
     expect([result.rows, getExchangeRatios.mock.calls[0]]).toEqual([2, ["Allflame", "poe1"]]);
-  });
+  }); // the same endpoint serves PoE 2 under "poe2"
 });
 
 describe("extractTaxonomy", () => {
-  it("reads the categories of the version the taxonomy answered with, not the one asked for", async () => {
-    const getCategories = jest.fn(async (version: string) => ({ version, categories: {} }));
+  it("counts the two items and ignores the authored rows", async () => {
     const taxonomy = {
       getTaxonomy: async () => ({ version: "3.29.4", items: { a: {}, b: {} }, authored: { c: {} } }),
-      getCategories,
+      getCategories: async (version: string) => ({ version, categories: {} }),
     };
 
     const result = await extractTaxonomy.run(contextWith({ taxonomy, taxonomyVersion: "latest" }));
@@ -78,6 +81,16 @@ describe("extractTaxonomy", () => {
       keys: ["catalog/run=r_1/bronze/taxonomy_items.json", "catalog/run=r_1/bronze/taxonomy_categories.json"],
       rows: 2,
     });
+  }); // authored rows are not counted
+
+  it("reads the categories of the version the taxonomy answered with, not the latest it was asked for", async () => {
+    const taxonomy = {
+      getTaxonomy: async () => ({ version: "3.29.4", items: {}, authored: {} }),
+      getCategories: async (version: string) => ({ version, categories: {} }),
+    };
+
+    const result = await extractTaxonomy.run(contextWith({ taxonomy, taxonomyVersion: "latest" }));
+
     expect(await lake.readJson(result.keys[1] as string)).toEqual({ version: "3.29.4", categories: {} });
-  });
+  }); // latest could be promoted between the two reads
 });

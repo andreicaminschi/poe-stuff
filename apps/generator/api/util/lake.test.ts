@@ -3,7 +3,9 @@ import { resolve } from "node:path";
 import { repoRoot } from "./lake.ts";
 
 describe("repoRoot", () => {
-  it("climbs two folders above the app's path", () => {
-    expect(repoRoot(resolve("/repo/apps/generator"))).toBe(resolve("/repo"));
-  });
+  it("finds the repository two folders above the app's folder", () => {
+    const root = repoRoot(resolve("/repo/apps/generator"));
+
+    expect(root).toBe(resolve("/repo"));
+  }); // apps/<name> is always two levels deep
 });

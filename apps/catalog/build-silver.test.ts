@@ -27,7 +27,9 @@ describe("buildSilver", () => {
   it("writes a file per category plus an unpriced file, sorted by file name", async () => {
     await writeBronze(lake, "r_1");
 
-    expect(await run()).toEqual({
+    const result = await run();
+
+    expect(result).toEqual({
       keys: [
         "catalog/run=r_1/silver/currency.json",
         "catalog/run=r_1/silver/rings.json",
@@ -35,9 +37,9 @@ describe("buildSilver", () => {
       ],
       rows: 3,
     });
-  });
+  }); // currency has no unpriced rows, so no currency.unpriced.json
 
-  it("prices rows, hangs uniques and lists only unpriced rows in the unpriced file", async () => {
+  it("prices the rows and hangs the Kaom unique off the Ruby Ring", async () => {
     await writeBronze(lake, "r_1");
 
     await run();
@@ -47,10 +49,16 @@ describe("buildSilver", () => {
       ["Amber Ring", undefined, undefined],
       ["Ruby Ring", 5, "Kaom"],
     ]);
-    expect((await lake.readJson<Item[]>("catalog/run=r_1/silver/rings.unpriced.json")).map((row) => row.key)).toEqual([
-      "unlisted",
-    ]);
-  });
+  }); // pricing and uniques both run before grouping
+
+  it("lists only the row PoeWatch has no price for in the unpriced file", async () => {
+    await writeBronze(lake, "r_1");
+
+    await run();
+
+    const unpriced = await lake.readJson<Item[]>("catalog/run=r_1/silver/rings.unpriced.json");
+    expect(unpriced.map((row) => row.key)).toEqual(["unlisted"]);
+  }); // a subset of rings.json, not a separate set
 
   it("never files a row with variants as unpriced", async () => {
     const taxonomy = {
@@ -60,8 +68,10 @@ describe("buildSilver", () => {
     };
     await writeBronze(lake, "r_1", { "taxonomy_items.json": taxonomy });
 
-    expect((await run()).keys).toEqual(["catalog/run=r_1/silver/gems.json"]);
-  });
+    const result = await run();
+
+    expect(result.keys).toEqual(["catalog/run=r_1/silver/gems.json"]);
+  }); // the variants carry the prices, the row itself never does
 
   it("removes a file an earlier build wrote for a category that is now empty", async () => {
     await lake.writeJson("catalog/run=r_1/silver/gone.json", []);
@@ -70,5 +80,5 @@ describe("buildSilver", () => {
     await run();
 
     expect(await lake.exists("catalog/run=r_1/silver/gone.json")).toBe(false);
-  });
+  }); // silver is cleared before it is written
 });
