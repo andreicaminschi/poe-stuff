@@ -8,10 +8,14 @@ describe("topCategories", () => {
   it("lists each category once, Currency first and the rest alphabetically", () => {
     const items = [item("a", "maps"), item("b", "Currency"), item("c", "bases"), item("d", "maps")];
 
-    expect(topCategories(items)).toEqual(["Currency", "bases", "maps"]);
-  });
+    const keys = topCategories(items);
 
-  it("answers with nothing for no items", () => {
-    expect(topCategories([])).toEqual([]);
-  });
+    expect(keys).toEqual(["Currency", "bases", "maps"]);
+  }); // Currency outranks "bases" even though "C" sorts after "b" in en collation
+
+  it("lists nothing when there are no items", () => {
+    const keys = topCategories([]);
+
+    expect(keys).toEqual([]);
+  }); // degenerate input
 });

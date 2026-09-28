@@ -54,7 +54,7 @@ afterEach(() => {
 
 describe("call", () => {
   describe("the request", () => {
-    it("sends a GET with the user agent and asks for JSON", async () => {
+    it("sends a plain GET with the user agent, asks for JSON and hands back the body", async () => {
       reply({ body: { ok: 1 } });
 
       const body = await call(URL_, { userAgent: UA });
@@ -64,9 +64,9 @@ describe("call", () => {
       expect(url).toBe(URL_);
       expect(init?.method).toBeUndefined();
       expect(init?.headers).toEqual({ "user-agent": UA, accept: "application/json" });
-    });
+    }); // no content-type without a body
 
-    it("marks a request with a body as JSON and passes method and body through", async () => {
+    it("marks a request with a body as JSON and passes its method and body through", async () => {
       reply({});
 
       await call(URL_, { userAgent: UA, init: { method: "POST", body: "{}" } });
@@ -79,9 +79,9 @@ describe("call", () => {
         accept: "application/json",
         "content-type": "application/json",
       });
-    });
+    }); // content-type added only when body is present
 
-    it("lets the caller's own headers override the defaults", async () => {
+    it("lets the caller's own headers win over the defaults", async () => {
       reply({});
 
       await call(URL_, {
@@ -94,11 +94,11 @@ describe("call", () => {
         accept: "text/plain",
         "x-extra": "1",
       });
-    });
+    }); // caller headers are spread last
   });
 
-  describe("errors", () => {
-    it("throws a non-retryable error on a 404 without trying again", async () => {
+  describe("failures", () => {
+    it("fails a 404 as not worth retrying, and asks only once even with three retries allowed", async () => {
       reply({ status: 404 });
 
       const error = await call(URL_, { userAgent: UA, retries: 3 }).catch((e) => e);
@@ -106,32 +106,33 @@ describe("call", () => {
       expect(error).toBeInstanceOf(GggHttpError);
       expect(error).toMatchObject({ url: URL_, status: 404, retryable: false });
       expect(fetchMock).toHaveBeenCalledTimes(1);
-    });
+    }); // retries apply to retryable statuses only
 
-    it("throws a retryable error on a 503 when no retries are allowed", async () => {
+    it("fails a 503 as worth retrying but asks only once when no retries are allowed", async () => {
       reply({ status: 503 });
 
-      await expect(call(URL_, { userAgent: UA })).rejects.toMatchObject({
-        status: 503,
-        retryable: true,
-      });
-      expect(fetchMock).toHaveBeenCalledTimes(1);
-    });
+      const result = call(URL_, { userAgent: UA });
 
-    it("retries a 503 after half a second, then one second", async () => {
+      await expect(result).rejects.toMatchObject({ status: 503, retryable: true });
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    }); // retries default to zero; a job queue owns them
+
+    it("retries a 503 after half a second, then again after one more second", async () => {
       jest.useFakeTimers();
       reply({ status: 503 }, { status: 503 }, { body: "done" });
 
       const result = call(URL_, { userAgent: UA, retries: 2 });
       await jest.advanceTimersByTimeAsync(499);
-      expect(fetchMock).toHaveBeenCalledTimes(1);
+      const at499 = fetchMock.mock.calls.length;
       await jest.advanceTimersByTimeAsync(1);
-      expect(fetchMock).toHaveBeenCalledTimes(2);
+      const at500 = fetchMock.mock.calls.length;
       await jest.advanceTimersByTimeAsync(1_000);
 
+      expect(at499).toBe(1);
+      expect(at500).toBe(2);
       expect(await result).toBe("done");
       expect(fetchMock).toHaveBeenCalledTimes(3);
-    });
+    }); // backoff doubles: 500ms, 1000ms
 
     it("gives up with the last error once the retries run out", async () => {
       jest.useFakeTimers();
@@ -141,11 +142,20 @@ describe("call", () => {
       await jest.advanceTimersByTimeAsync(500);
 
       expect(await result).toMatchObject({ status: 502 });
-    });
+    }); // the second status, not the first
+
+    it("lets a network failure reach the caller without retrying it", async () => {
+      fetchMock.mockRejectedValueOnce(new TypeError("fetch failed"));
+
+      const result = call(URL_, { userAgent: UA, retries: 2 });
+
+      await expect(result).rejects.toThrow("fetch failed");
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    }); // only HTTP statuses are retried
   });
 
   describe("rate-limit headers", () => {
-    it("hands the server's rules and state to the limiter", async () => {
+    it("hands the server's rules and spent counts to the limiter", async () => {
       const { limiter, log } = spyLimiter();
       reply({
         headers: {
@@ -159,9 +169,9 @@ describe("call", () => {
       expect(log.rules).toEqual([[{ max: 9, windowMs: 6_000 }]]);
       expect(log.states).toEqual([[{ hits: 2, windowSeconds: 5, restrictedSeconds: 0 }]]);
       expect(log.penalties).toEqual([]);
-    });
+    }); // parsed rules carry headroom and skew
 
-    it("leaves the limiter's rules alone when the headers are missing", async () => {
+    it("leaves the limiter's rules alone when the response carries no rate-limit headers", async () => {
       const { limiter, log } = spyLimiter();
       reply({});
 
@@ -169,18 +179,18 @@ describe("call", () => {
 
       expect(log.rules).toEqual([]);
       expect(log.states).toEqual([]);
-    });
+    }); // an empty list must not wipe the rules
 
-    it("penalizes for a tier the server says is restricted, even on a 200", async () => {
+    it("holds the limiter for thirty seconds when a 200 says a tier is restricted", async () => {
       const { limiter, log } = spyLimiter();
       reply({ headers: { "x-rate-limit-ip-state": "10:5:30" } });
 
       await call(URL_, { userAgent: UA, limiter });
 
       expect(log.penalties).toEqual([30]);
-    });
+    }); // restriction can arrive on a success
 
-    it("penalizes a 429 for the retry-after seconds on top of the state's restriction", async () => {
+    it("holds a 429 for its 45-second retry-after on top of the state's 30-second restriction", async () => {
       const { limiter, log } = spyLimiter();
       reply({
         status: 429,
@@ -190,38 +200,37 @@ describe("call", () => {
       await call(URL_, { userAgent: UA, limiter }).catch(() => {});
 
       expect(log.penalties).toEqual([30, 45]);
-    });
+    }); // both applied; the limiter keeps the longer
 
-    it("penalizes a 429 with no retry-after for sixty seconds", async () => {
+    it("holds a 429 that names no duration for sixty seconds", async () => {
       const { limiter, log } = spyLimiter();
       reply({ status: 429 });
 
       await call(URL_, { userAgent: UA, limiter }).catch(() => {});
 
       expect(log.penalties).toEqual([60]);
-    });
+    }); // fallback when a proxy answered
 
-    it("penalizes a 429 with retry-after of zero for zero seconds", async () => {
+    it("holds a 429 whose retry-after is zero for zero seconds, not sixty", async () => {
       const { limiter, log } = spyLimiter();
       reply({ status: 429, headers: { "retry-after": "0" } });
 
       await call(URL_, { userAgent: UA, limiter }).catch(() => {});
 
       expect(log.penalties).toEqual([0]);
-    });
+    }); // 0 is a duration, ?? not ||
 
-    it("does not penalize a 429 when there is no limiter", async () => {
+    it("still fails a 429 as retryable when there is no limiter to hold", async () => {
       reply({ status: 429 });
 
-      await expect(call(URL_, { userAgent: UA })).rejects.toMatchObject({
-        status: 429,
-        retryable: true,
-      });
-    });
+      const result = call(URL_, { userAgent: UA });
+
+      await expect(result).rejects.toMatchObject({ status: 429, retryable: true });
+    }); // limiter is optional for unpaced endpoints
   });
 
   describe("events", () => {
-    it("reports request, response and limits in that order, with no wait at full budget", async () => {
+    it("reports request, response and limits in that order, and no wait at full budget", async () => {
       const { limiter } = spyLimiter();
       const events: CallEvent[] = [];
       reply({ headers: { "x-rate-limit-policy": "trade-fetch" } });
@@ -231,9 +240,9 @@ describe("call", () => {
       expect(events.map((e) => e.type)).toEqual(["request", "response", "limits"]);
       expect(events[0]).toEqual({ type: "request", url: URL_, method: "GET", attempt: 0 });
       expect(events[2]).toMatchObject({ policy: "trade-fetch", rules: [], state: [] });
-    });
+    }); // a 0ms wait is suppressed as noise
 
-    it("reports a wait with the limiter's reason when acquiring took time", async () => {
+    it("reports a 250ms wait with the limiter's reason when acquiring held", async () => {
       jest.useFakeTimers();
       const { limiter } = spyLimiter();
       limiter.acquire = () => new Promise((r) => setTimeout(r, 250));
@@ -245,9 +254,9 @@ describe("call", () => {
       await result;
 
       expect(events[0]).toEqual({ type: "wait", ms: 250, reason: "because" });
-    });
+    }); // measured off the faked clock
 
-    it("reports a retry with its backoff", async () => {
+    it("reports a retry with its half-second backoff and numbers the attempts from zero", async () => {
       jest.useFakeTimers();
       const events: CallEvent[] = [];
       reply({ status: 408 }, {});
@@ -258,7 +267,7 @@ describe("call", () => {
 
       expect(events).toContainEqual({ type: "retry", url: URL_, status: 408, backoffMs: 500 });
       expect(events.filter((e) => e.type === "request").map((e) => (e as { attempt: number }).attempt)).toEqual([0, 1]);
-    });
+    }); // 408 is in the retryable set
   });
 
   describe("cache", () => {
@@ -272,7 +281,7 @@ describe("call", () => {
       await rm(dir, { recursive: true, force: true });
     });
 
-    it("answers a repeated request from the cache without fetching or acquiring", async () => {
+    it("answers a repeated request from the cache without fetching or taking a slot", async () => {
       const cache = createFileCache<CachedResponse>(dir);
       const { limiter } = spyLimiter();
       const acquire = jest.spyOn(limiter, "acquire");
@@ -284,9 +293,9 @@ describe("call", () => {
       expect(second).toEqual({ n: 1 });
       expect(fetchMock).toHaveBeenCalledTimes(1);
       expect(acquire).toHaveBeenCalledTimes(1);
-    });
+    }); // a hit spends no budget
 
-    it("reports a hit and a store as events", async () => {
+    it("reports a store on the first call and a hit on the second", async () => {
       const cache = createFileCache<CachedResponse>(dir);
       const events: CallEvent[] = [];
       reply({});
@@ -298,9 +307,9 @@ describe("call", () => {
         "stored",
         "hit",
       ]);
-    });
+    }); // a miss emits nothing of its own
 
-    it("never stores a failed answer", async () => {
+    it("never stores a failed answer, so the next call asks again", async () => {
       const cache = createFileCache<CachedResponse>(dir);
       reply({ status: 404 }, { body: "fine" });
 
@@ -309,9 +318,9 @@ describe("call", () => {
 
       expect(second).toBe("fine");
       expect(fetchMock).toHaveBeenCalledTimes(2);
-    });
+    }); // a stored 429 would replay an expired ban
 
-    it("keys two different bodies apart", async () => {
+    it("keeps two requests with different bodies apart", async () => {
       const cache = createFileCache<CachedResponse>(dir);
       reply({ body: "a" }, { body: "b" });
 
@@ -319,9 +328,9 @@ describe("call", () => {
       const b = await call(URL_, { userAgent: UA, cache, init: { method: "POST", body: "2" } });
 
       expect([a, b]).toEqual(["a", "b"]);
-    });
+    }); // body is in the key
 
-    it("keys two different salts apart", async () => {
+    it("keeps two requests with different salts apart", async () => {
       const cache = createFileCache<CachedResponse>(dir);
       reply({ body: "a" }, { body: "b" });
 
@@ -329,18 +338,18 @@ describe("call", () => {
       const b = await call(URL_, { userAgent: UA, cache, cacheSalt: "2" });
 
       expect([a, b]).toEqual(["a", "b"]);
-    });
+    }); // the hour salt of the digests
 
-    it("refuses to cache a request whose body is not a string", async () => {
+    it("refuses to cache a request whose body is not a string, before sending anything", async () => {
       const cache = createFileCache<CachedResponse>(dir);
 
-      await expect(
-        call(URL_, { userAgent: UA, cache, init: { method: "POST", body: new URLSearchParams("a=1") } }),
-      ).rejects.toThrow(TypeError);
-      expect(fetchMock).not.toHaveBeenCalled();
-    });
+      const result = call(URL_, { userAgent: UA, cache, init: { method: "POST", body: new URLSearchParams("a=1") } });
 
-    it("stores the url, status and body with a timestamp", async () => {
+      await expect(result).rejects.toThrow(TypeError);
+      expect(fetchMock).not.toHaveBeenCalled();
+    }); // a stream cannot be hashed without consuming it
+
+    it("stores the URL, status and body with the time it was written", async () => {
       const store = new Map<string, CachedResponse>();
       reply({ body: { n: 1 } });
 
@@ -352,6 +361,6 @@ describe("call", () => {
       const [entry] = [...store.values()];
       expect(entry).toMatchObject({ url: URL_, status: 200, body: { n: 1 } });
       expect(Number.isNaN(Date.parse(entry!.storedAt))).toBe(false);
-    });
+    }); // the envelope, not the bare body
   });
 });

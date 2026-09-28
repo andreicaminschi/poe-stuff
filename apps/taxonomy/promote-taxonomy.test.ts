@@ -20,7 +20,7 @@ describe("promoteTaxonomy", () => {
     await rm(root, { recursive: true, force: true });
   });
 
-  it("copies the published rows and categories to latest and names both targets", async () => {
+  it("copies a published version's rows and categories to latest and names both files it wrote", async () => {
     await lake.writeJson(versionKey("3.29.1"), { rows: 1 });
     await lake.writeJson(categoriesKey("3.29.1"), { categories: 1 });
 
@@ -31,6 +31,16 @@ describe("promoteTaxonomy", () => {
     expect(await lake.readJson(latestCategoriesKey())).toEqual({ categories: 1 });
   });
 
+  it("replaces whatever an earlier promotion left in latest", async () => {
+    await lake.writeJson(latestKey(), { rows: "old" });
+    await lake.writeJson(versionKey("3.29.2"), { rows: 2 });
+    await lake.writeJson(categoriesKey("3.29.2"), { categories: 2 });
+
+    await promoteTaxonomy(lake, "3.29.2");
+
+    expect(await lake.readJson(latestKey())).toEqual({ rows: 2 });
+  }); // latest is a real copy, not a pointer
+
   it("refuses a version that was never published", async () => {
     await expect(promoteTaxonomy(lake, "3.29.1")).rejects.toThrow("is not published");
   });
@@ -39,6 +49,7 @@ describe("promoteTaxonomy", () => {
     await lake.writeJson(versionKey("3.29.1"), { rows: 1 });
 
     await expect(promoteTaxonomy(lake, "3.29.1")).rejects.toThrow("before categories had their own file");
+
     expect(await lake.exists(latestKey())).toBe(false);
-  });
+  }); // both checks run before either copy, so latest never goes half-updated
 });

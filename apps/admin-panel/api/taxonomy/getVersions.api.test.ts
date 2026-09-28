@@ -7,22 +7,22 @@ const draft = { state: "draft" as const, createdAt: at };
 const published = { state: "published" as const, createdAt: at, publishedAt: at };
 
 describe("toVersionList", () => {
-  it("orders versions by their last number, newest first, not as strings", () => {
+  it("puts 3.29.10 before 3.29.9 and 3.29.2, comparing numbers rather than text", () => {
     const list = toVersionList(
       { next: 11, versions: { "3.29.2": published, "3.29.10": published, "3.29.9": published } },
       undefined,
     );
 
     expect(list.versions.map((version) => version.id)).toEqual(["3.29.10", "3.29.9", "3.29.2"]);
-  });
+  }); // a string sort would put 3.29.9 first
 
-  it("orders only by the last number, ignoring the rest of the id", () => {
+  it("orders by the last number alone, so 3.29.2 comes before 4.0.1", () => {
     const list = toVersionList({ next: 3, versions: { "4.0.1": published, "3.29.2": published } }, undefined);
 
     expect(list.versions.map((version) => version.id)).toEqual(["3.29.2", "4.0.1"]);
-  });
+  }); // the last number is the registry counter
 
-  it("makes the newest version editable when it is a draft", () => {
+  it("makes the newest version editable when it is a draft, and nothing older", () => {
     const list = toVersionList({ next: 3, versions: { "3.29.1": published, "3.29.2": draft } }, undefined);
 
     expect(list.versions).toEqual([
@@ -31,24 +31,29 @@ describe("toVersionList", () => {
     ]);
   });
 
-  it("marks an older draft as overtaken and not editable", () => {
+  it("calls an older draft overtaken and does not let it be edited", () => {
     const list = toVersionList({ next: 3, versions: { "3.29.1": draft, "3.29.2": published } }, undefined);
 
     expect(list.versions[1]).toMatchObject({ id: "3.29.1", state: "overtaken", editable: false });
-  });
+  }); // stored as draft, shown as overtaken
 
   it("makes nothing editable when the newest version is published", () => {
     const list = toVersionList({ next: 3, versions: { "3.29.1": draft, "3.29.2": published } }, undefined);
 
     expect(list.versions.some((version) => version.editable)).toBe(false);
-  });
+  }); // the older draft does not inherit editability
 
-  it("keeps the parent and the current version only when they are known", () => {
+  it("answers an empty list for a registry with no versions", () => {
+    const list = toVersionList({ next: 1, versions: {} }, undefined);
+
+    expect(list).toEqual({ versions: [] });
+  }); // no current key at all, not current: undefined
+
+  it("carries a version's parent and the current version when they are known", () => {
     const list = toVersionList({ next: 2, versions: { "3.29.1": { ...draft, parent: "3.29.0" } } }, "3.29.0");
 
     expect(list.current).toBe("3.29.0");
     expect(list.versions[0]?.parent).toBe("3.29.0");
-    expect("current" in toVersionList({ next: 1, versions: {} }, undefined)).toBe(false);
   });
 });
 
@@ -60,8 +65,10 @@ describe("getVersions", () => {
   afterEach(() => temp.remove());
 
   it("answers with no versions and no current one on an empty lake", async () => {
-    await expect(getVersions(temp.lake)).resolves.toEqual({ versions: [] });
-  });
+    const list = await getVersions(temp.lake);
+
+    expect(list).toEqual({ versions: [] });
+  }); // neither missing file is an error
 
   it("reads the current version off the promoted taxonomy", async () => {
     await temp.lake.writeJson("taxonomy/registry.json", { next: 2, versions: { "3.29.1": published } });
@@ -70,6 +77,13 @@ describe("getVersions", () => {
     const list = await getVersions(temp.lake);
 
     expect(list.current).toBe("3.29.1");
-    expect(list.versions).toHaveLength(1);
   });
+
+  it("has no current version when nothing has been promoted yet", async () => {
+    await temp.lake.writeJson("taxonomy/registry.json", { next: 2, versions: { "3.29.1": published } });
+
+    const list = await getVersions(temp.lake);
+
+    expect(list).not.toHaveProperty("current");
+  }); // published is not the same as promoted
 });

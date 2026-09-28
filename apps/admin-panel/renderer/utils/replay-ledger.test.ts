@@ -6,7 +6,9 @@ describe("replayLedger", () => {
   it("returns the base itself when the ledger is empty", () => {
     const base = draftOf([ggg("a")]);
 
-    expect(replayLedger(base, [])).toBe(base);
+    const next = replayLedger(base, []);
+
+    expect(next).toBe(base); // reduce with no entries hands back the seed
   });
 
   it("applies entries in order, so a later entry wins", () => {
@@ -22,7 +24,7 @@ describe("replayLedger", () => {
       },
     ]);
 
-    expect(next.categories["gems"]?.name).toBe("Gems");
+    expect(next.categories["gems"]?.name).toBe("Gems"); // reversed order would leave it deleted
   });
 
   it("reads an entry that carries only items or only categories", () => {
@@ -33,7 +35,17 @@ describe("replayLedger", () => {
       { seq: 2, at: "t", action: "delete-category", changes: { categories: { gems: null } } },
     ]);
 
-    expect(Object.keys(next.items)).toEqual(["a", "b"]);
-    expect(next.categories).toEqual({});
+    expect({ items: Object.keys(next.items), categories: next.categories }).toEqual({
+      items: ["a", "b"],
+      categories: {},
+    }); // a missing side is read as no changes, not a crash
+  });
+
+  it("leaves the base draft as it was", () => {
+    const base = draftOf([ggg("a")]);
+
+    replayLedger(base, [{ seq: 1, at: "t", action: "save-items", changes: { items: { b: ggg("b") } } }]);
+
+    expect(Object.keys(base.items)).toEqual(["a"]); // replaying must not write into the base
   });
 });

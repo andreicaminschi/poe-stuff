@@ -26,7 +26,7 @@ describe("seedTaxonomy", () => {
     });
     expect(Object.keys(seeded.variants)).toEqual(["SkillGemFireball", "Small"]);
     expect(seeded.authored).toEqual({});
-  });
+  }); // counts are keys written, not variants written
 
   it("joins two seeds' variants on one key in seed order", async () => {
     const shared = { Small: { name: "Small", category: "skill-gems", subcategory: null } };
@@ -38,7 +38,7 @@ describe("seedTaxonomy", () => {
     expect(names).toHaveLength(7 + 10);
     expect(names[0]).toBe("1/0");
     expect(names[7]).toBe("Fire, 2 passives, ilvl 1");
-  });
+  }); // seven gem forms first, then ten jewel forms: joined, not replaced
 
   it("passes on a failure from RePoE", async () => {
     const repoe = {
@@ -49,5 +49,5 @@ describe("seedTaxonomy", () => {
     } as unknown as RepoeService;
 
     await expect(seedTaxonomy(items, repoe)).rejects.toThrow("offline");
-  });
+  }); // no partial seeding on a failed fetch
 });

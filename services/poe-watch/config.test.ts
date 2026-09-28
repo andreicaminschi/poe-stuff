@@ -2,19 +2,27 @@ import { describe, expect, it } from "@jest/globals";
 import { trimUrl } from "./config.ts";
 
 describe("trimUrl", () => {
-  it("drops one trailing slash", () => {
-    expect(trimUrl("https://a.b/")).toBe("https://a.b");
-  });
+  it("drops the one trailing slash off a base", () => {
+    const url = trimUrl("https://a.b/");
 
-  it("leaves a URL without a trailing slash alone", () => {
-    expect(trimUrl("https://a.b/api")).toBe("https://a.b/api");
-  });
+    expect(url).toBe("https://a.b");
+  }); // so joins never double a slash
 
-  it("drops every trailing slash", () => {
-    expect(trimUrl("https://a.b//")).toBe("https://a.b");
-  });
+  it("leaves a URL without a trailing slash exactly as it was", () => {
+    const url = trimUrl("https://a.b/api");
+
+    expect(url).toBe("https://a.b/api");
+  }); // inner slashes untouched
+
+  it("drops two trailing slashes, not just the last one", () => {
+    const url = trimUrl("https://a.b//");
+
+    expect(url).toBe("https://a.b");
+  }); // one-or-more
 
   it("turns a lone slash into an empty string", () => {
-    expect(trimUrl("/")).toBe("");
-  });
+    const url = trimUrl("/");
+
+    expect(url).toBe("");
+  }); // degenerate base, joins become root-relative
 });

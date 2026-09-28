@@ -4,16 +4,23 @@ import { ggg } from "../test-helpers.ts";
 
 describe("withFlag", () => {
   it("writes false as an explicit value, unlike the other toggles", () => {
-    expect(withFlag(ggg("a"), "tradable", false).tradable).toBe(false);
+    const item = withFlag(ggg("a"), "tradable", false);
+
+    expect(item.tradable).toBe(false); // false is an answer here; only undefined clears
   });
 
-  it("removes the key when the value is cleared", () => {
-    expect("filterable" in withFlag(ggg("a", { filterable: true }), "filterable", undefined)).toBe(false);
+  it("removes the flag when the value is cleared", () => {
+    const item = withFlag(ggg("a", { filterable: true }), "filterable", undefined);
+
+    expect("filterable" in item).toBe(false); // deleted, not set to undefined
   });
 
-  it("touches only the named flag", () => {
+  it("leaves the other flags as they were", () => {
     const item = withFlag(ggg("a", { tradable: true }), "tradedOnExchange", true);
 
-    expect(item.tradable).toBe(true);
+    expect({ tradable: item.tradable, tradedOnExchange: item.tradedOnExchange }).toEqual({
+      tradable: true,
+      tradedOnExchange: true,
+    });
   });
 });

@@ -24,16 +24,15 @@ describe("createTaxonomy", () => {
     await rm(root, { recursive: true, force: true });
   });
 
-  it("copies every file of the published parent into the new version", async () => {
+  it("copies all six files of the published parent into the new version", async () => {
     await writeRegistry(lake, { next: 2, versions: { "3.29.1": { state: "published", createdAt: at } } });
 
     const version = await createTaxonomy(lake, "3.29.1");
 
-    expect(version).toBe("3.29.2");
-    expect(await lake.readJson(sourceKey("3.29.2", "authored.manual"))).toEqual({ file: "authored.manual" });
+    for (const file of SOURCE_FILES) expect(await lake.readJson(sourceKey(version, file))).toEqual({ file });
   });
 
-  it("records the new version as a draft that names its parent", async () => {
+  it("records the new version as a draft that names its parent and moves the counter on by one", async () => {
     await writeRegistry(lake, { next: 2, versions: { "3.29.1": { state: "published", createdAt: at } } });
 
     await createTaxonomy(lake, "3.29.1");
@@ -41,16 +40,25 @@ describe("createTaxonomy", () => {
     const registry = await readRegistry(lake);
     expect(registry.next).toBe(3);
     expect(registry.versions["3.29.2"]).toEqual({ state: "draft", parent: "3.29.1", createdAt: expect.any(String) });
-  });
+    expect(registry.versions["3.29.1"]?.state).toBe("published");
+  }); // the parent's entry must survive the rewrite
 
   it("refuses to start from a draft and writes nothing", async () => {
     await writeRegistry(lake, { next: 2, versions: { "3.29.1": { state: "draft", createdAt: at } } });
 
     await expect(createTaxonomy(lake, "3.29.1")).rejects.toThrow("is a draft");
-    expect(await lake.exists(sourceKey("3.29.2", "items"))).toBe(false);
-  });
 
-  it("numbers off the counter, so an older parent still gets the next number", async () => {
+    expect(await lake.exists(sourceKey("3.29.2", "items"))).toBe(false);
+    expect((await readRegistry(lake)).next).toBe(2);
+  }); // checked before any file is copied
+
+  it("refuses a parent the registry has never heard of", async () => {
+    await writeRegistry(lake, { next: 2, versions: {} });
+
+    await expect(createTaxonomy(lake, "3.29.1")).rejects.toThrow("3.29.1 does not exist.");
+  }); // the files are on disk, but the registry is the authority
+
+  it("numbers off the counter, so starting from the older 3.29.1 still yields 3.29.5", async () => {
     await writeRegistry(lake, {
       next: 5,
       versions: {
@@ -59,6 +67,8 @@ describe("createTaxonomy", () => {
       },
     });
 
-    expect(await createTaxonomy(lake, "3.29.1")).toBe("3.29.5");
-  });
+    const version = await createTaxonomy(lake, "3.29.1");
+
+    expect(version).toBe("3.29.5");
+  }); // not parent + 1, which would collide with 3.29.2
 });

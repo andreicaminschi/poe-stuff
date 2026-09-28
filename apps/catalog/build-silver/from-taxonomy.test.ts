@@ -8,13 +8,13 @@ const taxonomyOf = (items: object, authored: object = {}): Taxonomy =>
 const entry = (name: string, extra: object = {}) => ({ name, category: "c", subcategory: null, ...extra });
 
 describe("fromTaxonomy", () => {
-  it("writes an item's own name as its base type", () => {
-    expect(fromTaxonomy(taxonomyOf({ k: entry("Ruby Ring") }))).toEqual([
-      { key: "k", name: "Ruby Ring", category: "c", subcategory: null, baseTypes: ["Ruby Ring"] },
-    ]);
-  });
+  it("uses an item's own name as its base type", () => {
+    const rows = fromTaxonomy(taxonomyOf({ k: entry("Ruby Ring") }));
 
-  it("leaves out excluded, quest and unfilterable items", () => {
+    expect(rows).toEqual([{ key: "k", name: "Ruby Ring", category: "c", subcategory: null, baseTypes: ["Ruby Ring"] }]);
+  }); // no optional keys appear when the entry has none
+
+  it("leaves out excluded, quest and unfilterable items and keeps one with those flags set to false", () => {
     const rows = fromTaxonomy(
       taxonomyOf({
         a: entry("A", { excluded: true }),
@@ -25,47 +25,39 @@ describe("fromTaxonomy", () => {
     );
 
     expect(rows.map((row) => row.key)).toEqual(["d"]);
-  });
+  }); // `filterable` defaults to true, so only an explicit false drops it
 
-  it("leaves out an item an authored row replaces, even when that authored row is excluded", () => {
-    const rows = fromTaxonomy(
-      taxonomyOf(
-        { a: entry("A") },
-        { "authored/x": { ...entry("X"), baseType: "A", replaces: ["a"], excluded: true } },
-      ),
-    );
+  it("leaves out an item an authored row replaces, even when that authored row is itself excluded", () => {
+    const rows = fromTaxonomy(taxonomyOf({ a: entry("A") }, { "authored/x": { ...entry("X"), baseType: "A", replaces: ["a"], excluded: true } }));
 
     expect(rows).toEqual([]);
-  });
+  }); // replaces is collected before the authored filter runs
 
-  it("writes an authored row's base type rather than its name, after every item", () => {
+  it("uses an authored row's base type rather than its name, and lists it after every item", () => {
     const rows = fromTaxonomy(taxonomyOf({ b: entry("B") }, { "authored/x": { ...entry("X"), baseType: "Base" } }));
 
     expect(rows.map((row) => [row.key, row.baseTypes])).toEqual([
       ["b", ["B"]],
       ["authored/x", ["Base"]],
     ]);
-  });
+  }); // authored rows are named for the filter, not the game
 
   it("keeps an authored row that is marked unfilterable", () => {
     const rows = fromTaxonomy(taxonomyOf({}, { "authored/x": { ...entry("X"), baseType: "B", filterable: false } }));
 
-    expect(rows.length).toBe(1);
-  });
+    expect(rows).toHaveLength(1);
+  }); // the filterable rule only applies to items
 
-  it("copies unpriceable only when it is true", () => {
-    const rows = fromTaxonomy(
-      taxonomyOf({ a: entry("A", { unpriceable: false }), b: entry("B", { unpriceable: true }) }),
-    );
+  it("marks a row unpriceable only when the taxonomy says true", () => {
+    const rows = fromTaxonomy(taxonomyOf({ a: entry("A", { unpriceable: false }), b: entry("B", { unpriceable: true }) }));
 
     expect(rows.map((row) => row.unpriceable)).toEqual([undefined, true]);
-  });
+  }); // false is dropped, not copied
 
-  it("copies conditions, variants, listing and an item's display name, but not an authored row's", () => {
+  it("copies conditions, variants, listing and an item's display name, but no display name for an authored row", () => {
     const extra = { conditions: [{ condition: "Rarity" }], variants: [], listing: { name: "L" }, displayName: "D" };
-    const rows = fromTaxonomy(
-      taxonomyOf({ a: entry("A", extra) }, { "authored/x": { ...entry("X", extra), baseType: "B" } }),
-    );
+
+    const rows = fromTaxonomy(taxonomyOf({ a: entry("A", extra) }, { "authored/x": { ...entry("X", extra), baseType: "B" } }));
 
     expect(rows).toEqual([
       { key: "a", name: "A", category: "c", subcategory: null, baseTypes: ["A"], ...extra },
@@ -80,5 +72,5 @@ describe("fromTaxonomy", () => {
         listing: extra.listing,
       },
     ]);
-  });
+  }); // an empty variants list is still copied
 });

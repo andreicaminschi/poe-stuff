@@ -5,7 +5,7 @@ import type { SampleCategories, SampleRow } from "../types.ts";
 const row: SampleRow = { key: "k", name: "n", category: "gems", subcategory: "skill", baseTypes: [] };
 
 describe("variedProperties", () => {
-  it("lists, sorted and once each, the properties some set gives two or more values", () => {
+  it("lists, sorted and once each, the properties a set gives two or more values, skipping one given a single value", () => {
     const categories: SampleCategories = {
       "gems/skill": {
         conditions: [],
@@ -16,18 +16,22 @@ describe("variedProperties", () => {
       },
     };
 
-    expect(variedProperties(categories, row)).toEqual(["GemLevel", "Quality"]);
+    const varied = variedProperties(categories, row);
+
+    expect(varied).toEqual(["GemLevel", "Quality"]); // Corrupted has one value; Quality appears in both sets
   });
 
-  it("does not count a value read off the row as varied", () => {
-    const categories: SampleCategories = {
-      "gems/skill": { conditions: [], samples: [{ BaseType: { from: "baseTypes" } }] },
-    };
+  it("does not count a property read off the row as varied, even when the row has two base types", () => {
+    const categories: SampleCategories = { "gems/skill": { conditions: [], samples: [{ BaseType: { from: "baseTypes" } }] } };
 
-    expect(variedProperties(categories, row)).toEqual([]);
+    const varied = variedProperties(categories, row);
+
+    expect(varied).toEqual([]); // only written values count
   });
 
-  it("is empty for a path with no sample sets", () => {
-    expect(variedProperties({}, row)).toEqual([]);
+  it("lists nothing for a path with no sample sets", () => {
+    const varied = variedProperties({}, row);
+
+    expect(varied).toEqual([]);
   });
 });

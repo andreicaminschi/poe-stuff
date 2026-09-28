@@ -18,15 +18,17 @@ describe("fetchCurrencyHour", () => {
     await fetchCurrencyHour(1788292800, context);
 
     expect(fetchMock.mock.calls[0]![0]).toBe("https://cdn.test/cx/1788292800");
-  });
+  }); // hour id is a path segment
 
-  it("answers every league when none is named", async () => {
+  it("hands back every league's markets when no league is named", async () => {
     stubFetch(digest);
 
-    expect(await fetchCurrencyHour(1, context)).toEqual(digest);
-  });
+    const hour = await fetchCurrencyHour(1, context);
 
-  it("keeps only the named league's markets and the next id untouched", async () => {
+    expect(hour).toEqual(digest);
+  }); // untouched digest
+
+  it("keeps only Allflame's two markets and leaves the next id as it came", async () => {
     stubFetch(digest);
 
     const hour = await fetchCurrencyHour(1, context, { league: "Allflame" });
@@ -35,11 +37,13 @@ describe("fetchCurrencyHour", () => {
       next_change_id: 1790000000,
       markets: [{ league: "Allflame" }, { league: "Allflame" }],
     });
-  });
+  }); // a backfill still walks from next_change_id
 
-  it("answers no markets for a league the hour does not carry", async () => {
+  it("hands back no markets for a league the hour does not carry", async () => {
     stubFetch(digest);
 
-    expect((await fetchCurrencyHour(1, context, { league: "Nope" })).markets).toEqual([]);
-  });
+    const hour = await fetchCurrencyHour(1, context, { league: "Nope" });
+
+    expect(hour.markets).toEqual([]);
+  }); // filtered to empty, not an error
 });

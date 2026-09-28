@@ -33,33 +33,33 @@ describe("createRepoeService", () => {
     ["getClusterJewels", "/cluster_jewels.json"],
     ["getFoulbornMap", "/pob-data/poe1/ModFoulbornMap.json"],
     ["getMods", "/mods.json"],
-  ])("fetches %s from %s on the default site and returns the file as is", async (method, path) => {
+  ])("downloads %s from %s on the default site and hands the file back untouched", async (method, path) => {
     const body = await createRepoeService()[method]();
 
     expect(requestedUrl()).toBe(`https://repoe-fork.github.io${path}`);
     expect(body).toEqual({ k: 1 });
-  });
+  }); // only Gems and Essence take the .min variant
 
-  it("sends the default user agent when none is given", async () => {
+  it("introduces itself as poe-stuff/1.0 when nobody names a user agent", async () => {
     await createRepoeService().getMods();
 
     expect(requestedHeaders()).toEqual({
       "user-agent": "poe-stuff/1.0",
       accept: "application/json",
     });
-  });
+  }); // unlike GGG, RePoE may default
 
-  it("sends the user agent it was given", async () => {
+  it("sends the user agent it was built with", async () => {
     await createRepoeService({ userAgent: "me/2" }).getMods();
 
     expect(requestedHeaders()).toMatchObject({ "user-agent": "me/2" });
-  });
+  }); // option overrides the default
 
-  it("joins onto a given base without doubling its trailing slash", async () => {
+  it("joins onto a mirror given with a trailing slash without doubling it", async () => {
     await createRepoeService({ baseUrl: "https://mirror.test/" }).getMods();
 
     expect(requestedUrl()).toBe("https://mirror.test/mods.json");
-  });
+  }); // trimmed once at construction
 
   it("answers a repeat call within the same hour from the cache it was given", async () => {
     jest.spyOn(Date, "now").mockReturnValue(3_600_000 * 10);
@@ -69,9 +69,9 @@ describe("createRepoeService", () => {
     await service.getGems();
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
-  });
+  }); // the hour is the salt
 
-  it("downloads again once the hour turns over", async () => {
+  it("downloads again when the second call lands one millisecond into the next hour", async () => {
     const now = jest.spyOn(Date, "now").mockReturnValue(3_600_000 * 10 + 3_599_999);
     const service = createRepoeService({ cache: createFileCache<CachedResponse>(dir) });
 
@@ -80,14 +80,14 @@ describe("createRepoeService", () => {
     await service.getGems();
 
     expect(fetchMock).toHaveBeenCalledTimes(2);
-  });
+  }); // salt read per call, not at construction
 
-  it("keeps two endpoints apart in one cache", async () => {
+  it("keeps two different files apart in one cache", async () => {
     const service = createRepoeService({ cache: createFileCache<CachedResponse>(dir) });
 
     await service.getGems();
     await service.getMods();
 
     expect(fetchMock).toHaveBeenCalledTimes(2);
-  });
+  }); // the URL is part of the key
 });

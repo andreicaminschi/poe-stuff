@@ -49,229 +49,241 @@ beforeEach(() => {
   api.saveFilter.mockResolvedValue({ cancelled: true });
 });
 
+const state = () => useSession.getState();
+
 const booted = async (on = "Currency") => {
-  await useSession.getState().boot();
-  useSession.getState().selectCategory(on);
+  await state().boot();
+  state().selectCategory(on);
 };
 
 describe("boot", () => {
-  it("loads the catalog and config, marks the config saved and opens Currency first", async () => {
-    await useSession.getState().boot();
+  it("loads the catalog and config, marks the config as saved and opens Currency first", async () => {
+    await state().boot();
 
-    expect(useSession.getState()).toMatchObject({
-      booting: false,
-      catalog,
-      config,
-      saved: config,
-      category: "Currency",
-    });
-  });
+    expect(state()).toMatchObject({ booting: false, catalog, config, saved: config, category: "Currency" });
+  }); // Currency outranks "Gold" and "maps" in topCategories
 
   it("opens no category when the catalog holds no items", async () => {
     api.getCatalog.mockResolvedValue({ rows: [], categories: {} });
 
-    await useSession.getState().boot();
+    await state().boot();
 
-    expect(useSession.getState().category).toBeUndefined();
-  });
+    expect(state().category).toBeUndefined();
+  }); // no `category: undefined` key is spread in
 
-  it("stops booting and shows the error when loading fails", async () => {
+  it("stops booting and shows the error, holding no catalog, when loading fails", async () => {
     api.getConfig.mockRejectedValue(new Error("no disk"));
 
-    await useSession.getState().boot();
+    await state().boot();
 
-    expect(useSession.getState()).toMatchObject({ booting: false, error: "no disk" });
-    expect(useSession.getState().catalog).toBeUndefined();
-  });
+    expect([state().booting, state().error, state().catalog]).toEqual([false, "no disk", undefined]);
+  }); // one failed half discards the other
 
-  it("shows a thrown non-error as text", async () => {
+  it("shows a thrown string as the error text", async () => {
     api.getCatalog.mockRejectedValue("offline");
 
-    await useSession.getState().boot();
+    await state().boot();
 
-    expect(useSession.getState().error).toBe("offline");
-  });
+    expect(state().error).toBe("offline");
+  }); // non-Error rejections go through String()
 });
 
 describe("selecting", () => {
   it("clears the selected bucket when another category is opened", async () => {
     await booted();
-    useSession.getState().selectBucket("T1");
+    state().selectBucket("T1");
 
-    useSession.getState().selectCategory("maps");
+    state().selectCategory("maps");
 
-    expect(useSession.getState().bucket).toBeNull();
-  });
+    expect(state().bucket).toBeNull();
+  }); // a T1 in Currency means nothing in maps
 });
 
 describe("editing a category", () => {
-  it("does nothing before boot", () => {
-    useSession.getState().toggleTier("T1");
+  it("changes nothing before the session has booted", () => {
+    state().toggleTier("T1");
 
-    expect(useSession.getState().config).toBeUndefined();
-  });
+    expect(state().config).toBeUndefined();
+  }); // guard on missing config and category
 
-  it("disables a tier on the first toggle and enables it on the second", async () => {
+  it("disables a tier on the first toggle", async () => {
     await booted("maps");
 
-    useSession.getState().toggleTier("T2");
-    expect(useSession.getState().config?.categories.maps?.disabled).toEqual(["T2"]);
+    state().toggleTier("T2");
 
-    useSession.getState().toggleTier("T2");
-    expect(useSession.getState().config?.categories.maps?.disabled).toEqual([]);
-  });
+    expect(state().config?.categories.maps?.disabled).toEqual(["T2"]);
+  }); // starts from the fallback, which disables nothing
+
+  it("enables the tier again on the second toggle", async () => {
+    await booted("maps");
+    state().toggleTier("T2");
+
+    state().toggleTier("T2");
+
+    expect(state().config?.categories.maps?.disabled).toEqual([]);
+  }); // the second call must see the first call's config
 
   it("changes only the open category's palette", async () => {
     await booted("maps");
     const palette = { primary: "#123456", secondary: "#654321", icon: "Moon" as const };
 
-    useSession.getState().setPalette(palette);
+    state().setPalette(palette);
 
-    expect(Object.keys(useSession.getState().config?.categories ?? {})).toEqual(["maps"]);
-    expect(useSession.getState().config?.categories.maps?.palette).toEqual(palette);
-  });
+    expect(state().config?.categories).toEqual({ maps: expect.objectContaining({ palette }) });
+  }); // no other category is materialised
 
   it("wants a name once however often it is added", async () => {
     await booted();
 
-    useSession.getState().addWanted("Mirror of Kalandra");
-    useSession.getState().addWanted("Mirror of Kalandra");
+    state().addWanted("Mirror of Kalandra");
+    state().addWanted("Mirror of Kalandra");
 
-    expect(useSession.getState().config?.categories.Currency?.wanted).toEqual(["Mirror of Kalandra"]);
-  });
+    expect(state().config?.categories.Currency?.wanted).toEqual(["Mirror of Kalandra"]);
+  }); // a duplicate add is a no-op
 
   it("stops wanting a removed name", async () => {
     await booted();
-    useSession.getState().addWanted("Mirror of Kalandra");
+    state().addWanted("Mirror of Kalandra");
 
-    useSession.getState().removeWanted("Mirror of Kalandra");
+    state().removeWanted("Mirror of Kalandra");
 
-    expect(useSession.getState().config?.categories.Currency?.wanted).toEqual([]);
-  });
+    expect(state().config?.categories.Currency?.wanted).toEqual([]);
+  }); // filters by name
 
-  it("leaves the saved config behind as edits pile up", async () => {
+  it("keeps the saved config as it was while edits pile up", async () => {
     await booted();
 
-    useSession.getState().toggleTier("T0");
+    state().toggleTier("T0");
 
-    expect(useSession.getState().saved).toBe(config);
-  });
+    expect(state().saved).toBe(config);
+  }); // saved vs config is how the window knows there are unsaved changes
+
+  it("clears the last status line as soon as the player edits again", async () => {
+    await booted();
+    await state().saveConfig();
+
+    state().toggleTier("T0");
+
+    expect(state().status).toBeUndefined();
+  }); // "Config saved." must not linger over unsaved edits
 });
 
 describe("setFloor", () => {
-  it("moves the global floor for a chaos category with no floors of its own", async () => {
+  it("moves the global floor when a chaos category has no floors of its own", async () => {
     await booted("maps");
 
-    useSession.getState().setFloor("T0", 500);
+    state().setFloor("T0", 500);
 
-    expect(useSession.getState().config).toEqual({ floors: { ...floors, T0: 500 }, categories: {} });
-  });
+    expect(state().config).toEqual({ floors: { ...floors, T0: 500 }, categories: {} });
+  }); // global floors are shared by every chaos category
 
-  it("gives a stack-size category its own floors seeded from the stack defaults", async () => {
+  it("gives a stack-size category its own floors seeded from the stack defaults, leaving the global floors alone", async () => {
     await booted("Gold");
 
-    useSession.getState().setFloor("T1", 3000);
+    state().setFloor("T1", 3000);
 
-    expect(useSession.getState().config?.floors).toEqual(floors);
-    expect(useSession.getState().config?.categories.Gold?.floors).toEqual({ ...STACK_FLOORS, T1: 3000 });
-  });
+    expect({ global: state().config?.floors, gold: state().config?.categories.Gold?.floors }).toEqual({
+      global: floors,
+      gold: { ...STACK_FLOORS, T1: 3000 },
+    });
+  }); // a stack size must never land on the chaos slider
 
   it("moves a category's own floors and leaves the global ones alone", async () => {
     api.getConfig.mockResolvedValue({ floors, categories: { maps: { ...DEFAULT_CONFIG.categories.maps!, floors } } });
     await booted("maps");
 
-    useSession.getState().setFloor("T5", 2);
+    state().setFloor("T5", 2);
 
-    expect(useSession.getState().config?.floors).toEqual(floors);
-    expect(useSession.getState().config?.categories.maps?.floors).toEqual({ ...floors, T5: 2 });
-  });
+    expect({ global: state().config?.floors, maps: state().config?.categories.maps?.floors }).toEqual({
+      global: floors,
+      maps: { ...floors, T5: 2 },
+    });
+  }); // own floors win even on a chaos category
 
-  it("does nothing before boot", () => {
-    useSession.getState().setFloor("T0", 1);
+  it("changes nothing before the session has booted", () => {
+    state().setFloor("T0", 1);
 
-    expect(useSession.getState().config).toBeUndefined();
-  });
+    expect(state().config).toBeUndefined();
+  }); // needs the catalog to know the tiering
 });
 
 describe("saveConfig", () => {
-  it("marks the edited config saved and says so", async () => {
+  it("hands the edited config to disk, marks it saved and says so", async () => {
     await booted();
-    useSession.getState().toggleTier("T0");
-    const edited = useSession.getState().config as GeneratorConfig;
+    state().toggleTier("T0");
+    const edited = state().config as GeneratorConfig;
 
-    await useSession.getState().saveConfig();
+    await state().saveConfig();
 
     expect(api.saveConfig).toHaveBeenCalledWith(edited);
-    expect(useSession.getState()).toMatchObject({ saved: edited, status: "Config saved.", busy: false });
-  });
+    expect(state()).toMatchObject({ saved: edited, status: "Config saved.", busy: false });
+  }); // saves the edit, not the booted config
 
   it("keeps the old saved config and shows the error when the write fails", async () => {
     await booted();
     api.saveConfig.mockRejectedValue(new Error("disk full"));
-    useSession.getState().toggleTier("T0");
+    state().toggleTier("T0");
 
-    await useSession.getState().saveConfig();
+    await state().saveConfig();
 
-    expect(useSession.getState()).toMatchObject({ saved: config, error: "disk full", busy: false });
-  });
+    expect(state()).toMatchObject({ saved: config, error: "disk full", busy: false });
+  }); // busy is cleared in finally even on failure
 
   it("is busy while the write is in flight", async () => {
     await booted();
     let finish = () => {};
     api.saveConfig.mockReturnValue(new Promise<void>((resolve) => (finish = resolve)));
 
-    const saving = useSession.getState().saveConfig();
-    expect(useSession.getState().busy).toBe(true);
-
+    const saving = state().saveConfig();
+    const during = state().busy;
     finish();
     await saving;
-    expect(useSession.getState().busy).toBe(false);
-  });
+
+    expect([during, state().busy]).toEqual([true, false]);
+  }); // busy is set synchronously before the await
 });
 
 describe("writeFilter", () => {
-  it("does nothing before boot", async () => {
-    await useSession.getState().writeFilter();
+  it("writes nothing before the session has booted", async () => {
+    await state().writeFilter();
 
     expect(api.saveFilter).not.toHaveBeenCalled();
-  });
+  }); // no catalog means nothing to write
 
-  it("says how many blocks it wrote and where", async () => {
+  it("says how many blocks it wrote, how many it skipped, and where", async () => {
     await booted();
     api.saveFilter.mockResolvedValue({ path: "C:/out.filter" });
 
-    await useSession.getState().writeFilter();
+    await state().writeFilter();
 
-    expect(useSession.getState().status).toBe("Wrote 0 blocks, 9 skipped to C:/out.filter"); // fixture rows lack conditions;
-    expect(useSession.getState().busy).toBe(false);
-  });
+    expect(state()).toMatchObject({ status: "Wrote 0 blocks, 9 skipped to C:/out.filter", busy: false });
+  }); // fixture rows carry no conditions, so every block is skipped
 
   it("says nothing when the person cancels the save", async () => {
     await booted();
 
-    await useSession.getState().writeFilter();
+    await state().writeFilter();
 
-    expect(useSession.getState().status).toBeUndefined();
-    expect(useSession.getState().busy).toBe(false);
-  });
+    expect([state().status, state().busy]).toEqual([undefined, false]);
+  }); // a cancel is not an error either
 
   it("shows the error when the save fails", async () => {
     await booted();
     api.saveFilter.mockRejectedValue(new Error("denied"));
 
-    await useSession.getState().writeFilter();
+    await state().writeFilter();
 
-    expect(useSession.getState()).toMatchObject({ error: "denied", busy: false });
-  });
+    expect(state()).toMatchObject({ error: "denied", busy: false });
+  }); // errors go to the banner, not a throw
 });
 
 describe("dismissError", () => {
   it("clears the shown error", async () => {
     api.getConfig.mockRejectedValue(new Error("no disk"));
-    await useSession.getState().boot();
+    await state().boot();
 
-    useSession.getState().dismissError();
+    state().dismissError();
 
-    expect(useSession.getState().error).toBeUndefined();
-  });
+    expect(state().error).toBeUndefined();
+  }); // leaves the rest of the session as it was
 });

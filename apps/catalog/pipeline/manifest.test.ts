@@ -24,26 +24,32 @@ const record = { startedAt: "a", finishedAt: "b", steps: [] };
 
 describe("readManifest", () => {
   it("answers nothing for a run that never wrote one", async () => {
-    expect(await readManifest(lake, "r_1")).toBeUndefined();
-  });
+    const read = await readManifest(lake, "r_1");
+
+    expect(read).toBeUndefined();
+  }); // a fresh run is not an error
 
   it("reads back what was written under the run", async () => {
     await writeManifest(lake, manifest);
 
-    expect(await readManifest(lake, "r_1")).toEqual(manifest);
-  });
+    const read = await readManifest(lake, "r_1");
+
+    expect(read).toEqual(manifest);
+  }); // write keys by manifest.runId, read by the argument
 });
 
 describe("withStage", () => {
-  it("adds a stage without touching the manifest it was handed", () => {
+  it("records a stage without touching the manifest it was handed", () => {
     const next = withStage(manifest, "silver", record);
 
     expect([next.stages, manifest.stages]).toEqual([{ silver: record }, {}]);
-  });
+  }); // a later stage cannot amend an earlier report
 
-  it("replaces a stage already recorded", () => {
-    const next = withStage(withStage(manifest, "gold", record), "gold", { ...record, finishedAt: "c" });
+  it("replaces a stage that was already recorded", () => {
+    const once = withStage(manifest, "gold", record);
 
-    expect(next.stages.gold?.finishedAt).toBe("c");
-  });
+    const twice = withStage(once, "gold", { ...record, finishedAt: "c" });
+
+    expect(twice.stages.gold?.finishedAt).toBe("c");
+  }); // a rebuild overwrites, never appends
 });

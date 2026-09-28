@@ -20,7 +20,7 @@ describe("gemVariants", () => {
       "20/23 corrupted",
       "21/23 corrupted",
     ]);
-  });
+  }); // the max level comes from the export, not a constant 20
 
   it("writes only corrupted forms for a Vaal gem, without the double outcome", () => {
     expect(namesOf({ SkillGemFireball: gemRow }, { SkillGemFireball: gem(20, { vaalGem: true }) } as Gems)).toEqual([
@@ -30,7 +30,7 @@ describe("gemVariants", () => {
       "21/20 corrupted",
       "20/23 corrupted",
     ]);
-  });
+  }); // a Vaal gem cannot exist uncorrupted, and 21/23 would need two corruptions
 
   it("drops the repeated 1/20 form for a gem whose max level is one", () => {
     expect(namesOf({ SkillGemFireball: gemRow }, { SkillGemFireball: gem(1) } as Gems)).toEqual([
@@ -41,7 +41,7 @@ describe("gemVariants", () => {
       "1/23 corrupted",
       "2/23 corrupted",
     ]);
-  });
+  }); // max 1 makes "1/20" and "max/20" the same name
 
   it("writes each form's conditions and PoeWatch listing", () => {
     const [first] =
@@ -59,18 +59,24 @@ describe("gemVariants", () => {
   });
 
   it("finds a gem by its game id when the export keys it differently", () => {
-    expect(namesOf({ SkillGemFireball: gemRow }, { SkillGemFireballNew: gem(20) } as Gems)).toHaveLength(7);
-  });
+    const names = namesOf({ SkillGemFireball: gemRow }, { SkillGemFireballNew: gem(20) } as Gems);
+
+    expect(names).toHaveLength(7);
+  }); // Convocation is keyed ...New in the export
 
   it("prefers the gem under the row's own key over one found by game id", () => {
     const gems = { SkillGemFireballNew: gem(20), SkillGemFireball: gem(1, { gameId: "Other" }) } as Gems;
 
-    expect(namesOf({ SkillGemFireball: gemRow }, gems)).toHaveLength(6);
-  });
+    const names = namesOf({ SkillGemFireball: gemRow }, gems);
+
+    expect(names).toHaveLength(6);
+  }); // six forms means the max-1 gem won
 
   it("skips rows that are not skill gems, and gems the export does not have", () => {
     const items = { SkillGemFireball: { ...gemRow, category: "support-gems" }, Graft: { ...gemRow, name: "Graft" } };
 
-    expect(gemVariants(items, { SkillGemFireball: gem(20) } as Gems)).toEqual({});
-  });
+    const table = gemVariants(items, { SkillGemFireball: gem(20) } as Gems);
+
+    expect(table).toEqual({});
+  }); // a graft gem gets no key at all, not an empty list
 });

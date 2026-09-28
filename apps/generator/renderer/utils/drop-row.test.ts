@@ -13,12 +13,18 @@ const one: Placement = {
 };
 
 describe("dropRow", () => {
-  it("keys the row by name, bucket and position so repeats stay distinct", () => {
-    expect(dropRow(palette, one, 3).id).toBe("Mirror|T0|3");
-  });
+  it("gives the same item dropped twice two different row ids", () => {
+    const first = dropRow(palette, one, 0);
 
-  it("styles the row for its bucket and verb and prices it by the verb", () => {
-    expect(dropRow(palette, one, 0)).toEqual({
+    const second = dropRow(palette, one, 1);
+
+    expect([first.id, second.id]).toEqual(["Mirror|T0|0", "Mirror|T0|1"]);
+  }); // position is in the id, so React keys never collide
+
+  it("styles the row for its bucket and verb and shows the 90c check price rather than the 5c take", () => {
+    const row = dropRow(palette, one, 0);
+
+    expect(row).toEqual({
       id: "Mirror|T0|0",
       bucket: "T0",
       style: tierStyle(palette, "T0", "check"),
@@ -27,5 +33,5 @@ describe("dropRow", () => {
       worth: "90c",
       reason: "rolls high",
     });
-  });
+  }); // verb drives both style and price
 });

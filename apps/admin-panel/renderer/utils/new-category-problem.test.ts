@@ -1,28 +1,48 @@
 import { describe, it, expect } from "@jest/globals";
 import { newCategoryProblem } from "./new-category-problem.ts";
 
+const SHAPE = "Use lowercase letters, digits and hyphens.";
+
 describe("newCategoryProblem", () => {
-  it("accepts lowercase letters, digits and hyphens", () => {
-    expect(newCategoryProblem("tier-1", "maps/tier-1", false)).toBeUndefined();
+  it("accepts a free slug made of lowercase letters, digits and hyphens", () => {
+    const problem = newCategoryProblem("tier-1", "maps/tier-1", false);
+
+    expect(problem).toBeUndefined(); // all three allowed character kinds at once
   });
 
   it("refuses an empty slug", () => {
-    expect(newCategoryProblem("", "maps/", false)).toBe("Use lowercase letters, digits and hyphens.");
+    const problem = newCategoryProblem("", "maps/", false);
+
+    expect(problem).toBe(SHAPE); // the pattern needs one or more characters
   });
 
   it("refuses uppercase letters", () => {
-    expect(newCategoryProblem("Maps", "Maps", false)).toBe("Use lowercase letters, digits and hyphens.");
+    const problem = newCategoryProblem("Maps", "Maps", false);
+
+    expect(problem).toBe(SHAPE); // no case folding before the check
   });
 
   it("refuses a slash, so a slug cannot nest itself", () => {
-    expect(newCategoryProblem("a/b", "a/b", false)).toBe("Use lowercase letters, digits and hyphens.");
+    const problem = newCategoryProblem("a/b", "a/b", false);
+
+    expect(problem).toBe(SHAPE); // a slash would read as a subcategory path
   });
 
-  it("checks the slug's shape before whether the path is taken", () => {
-    expect(newCategoryProblem("Maps", "Maps", true)).toBe("Use lowercase letters, digits and hyphens.");
+  it("refuses a trailing space rather than trimming it", () => {
+    const problem = newCategoryProblem("maps ", "maps ", false);
+
+    expect(problem).toBe(SHAPE); // anchored at both ends, no trim
   });
 
-  it("names the path when it is already taken", () => {
-    expect(newCategoryProblem("maps", "maps", true)).toBe("maps already exists.");
+  it("reports a badly shaped slug before saying the path is taken", () => {
+    const problem = newCategoryProblem("Maps", "Maps", true);
+
+    expect(problem).toBe(SHAPE); // shape check returns first
+  });
+
+  it("names the full path when it is already taken", () => {
+    const problem = newCategoryProblem("support", "gems/support", true);
+
+    expect(problem).toBe("gems/support already exists."); // the path, not the slug
   });
 });

@@ -20,23 +20,23 @@ describe("createPoeWatchService", () => {
       "https://api.poe.watch/compact?league=X&all=true",
       { headers: { "user-agent": "poe-stuff/1.0", accept: "application/json" } },
     ]);
-  });
+  }); // both defaults at once
 
-  it("strips a trailing slash from a given base URL", async () => {
+  it("joins onto a base given with a trailing slash without doubling it", async () => {
     await createPoeWatchService({ baseUrl: "https://pw.test/" }).getCorruptionData("X");
 
     expect(firstRequest()?.[0]).toBe("https://pw.test/corruptions?league=X&all=true");
-  });
+  }); // trimmed once at construction
 
-  it("sends the given user agent", async () => {
+  it("sends the user agent it was built with", async () => {
     await createPoeWatchService({ userAgent: "me/2" }).getExchangeRatios("X", "poe1");
 
     expect(firstRequest()?.[1]).toEqual({
       headers: { "user-agent": "me/2", accept: "application/json" },
     });
-  });
+  }); // option overrides the default
 
-  it("reads through the given cache before downloading", async () => {
+  it("answers from the cache it was given without downloading", async () => {
     const cache = {
       get: async (): Promise<CachedResponse> => ({
         url: "",
@@ -51,5 +51,5 @@ describe("createPoeWatchService", () => {
 
     expect(items).toEqual(["hit"]);
     expect(fetchMock).not.toHaveBeenCalled();
-  });
+  }); // the cache option reaches every endpoint's context
 });

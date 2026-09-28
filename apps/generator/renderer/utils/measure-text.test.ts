@@ -8,9 +8,11 @@ afterAll(() => {
 });
 
 describe("measureText", () => {
-  it("estimates the width from the character count when the canvas has no 2D context", () => {
+  it("estimates a six-letter name at 10px as 6 × 10 × 0.62 wide when the browser gives no canvas context", () => {
     scope.document = { createElement: () => ({ getContext: () => null }) };
 
-    expect(measureText("Mirror", 10)).toBeCloseTo(6 * 10 * 0.62);
-  });
+    const width = measureText("Mirror", 10);
+
+    expect(width).toBeCloseTo(6 * 10 * 0.62);
+  }); // the ruler is cached per module, so only one path is testable per load
 });

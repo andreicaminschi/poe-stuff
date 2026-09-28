@@ -11,12 +11,17 @@ describe("getLedger", () => {
   afterEach(() => temp.remove());
 
   it("answers with an empty ledger when the version has none on disk", async () => {
-    await expect(getLedger(temp.lake, "3.29.2")).resolves.toEqual([]);
-  });
+    const ledger = await getLedger(temp.lake, "3.29.2");
 
-  it("reads the version's own ledger", async () => {
+    expect(ledger).toEqual([]);
+  }); // missing file is normal, not an error
+
+  it("reads only the named version's ledger, not another version's", async () => {
+    await temp.lake.writeJson("admin-panel/ledger/3.29.1.json", [entry(1), entry(2)]);
     await temp.lake.writeJson("admin-panel/ledger/3.29.2.json", [entry(1)]);
 
-    await expect(getLedger(temp.lake, "3.29.2")).resolves.toEqual([entry(1)]);
-  });
+    const ledger = await getLedger(temp.lake, "3.29.2");
+
+    expect(ledger).toEqual([entry(1)]);
+  }); // one file per version
 });

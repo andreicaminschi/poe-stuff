@@ -3,18 +3,32 @@ import { sharedValue } from "./shared-value.ts";
 
 describe("sharedValue", () => {
   it("has no shared value for an empty list", () => {
-    expect(sharedValue([])).toBeUndefined();
+    const value = sharedValue([]);
+
+    expect(value).toBeUndefined();
+  });
+
+  it("returns the only value of a one-entry list", () => {
+    const value = sharedValue(["a"]);
+
+    expect(value).toBe("a");
   });
 
   it("returns the value every entry agrees on", () => {
-    expect(sharedValue(["a", "a"])).toBe("a");
+    const value = sharedValue(["a", "a"]);
+
+    expect(value).toBe("a");
   });
 
-  it("has no shared value when one entry differs", () => {
-    expect(sharedValue(["a", "a", "b"])).toBeUndefined();
+  it("has no shared value when the last entry differs", () => {
+    const value = sharedValue(["a", "a", "b"]);
+
+    expect(value).toBeUndefined(); // every entry is checked, not just the first two
   });
 
   it("treats a shared empty string as a shared value", () => {
-    expect(sharedValue(["", ""])).toBe("");
+    const value = sharedValue(["", ""]);
+
+    expect(value).toBe(""); // falsy but defined
   });
 });

@@ -16,32 +16,36 @@ const plan = (placed: readonly Placement[]) => ({ palette, placed: { ladder: [],
 
 describe("lootPool", () => {
   it("drops only the placements that won their block", () => {
-    const pool = lootPool([plan([placement("winner", { take: 1 }), placement("loser", { take: 1 }, { won: false })])]);
+    const plans = [plan([placement("winner", { take: 1 }), placement("loser", { take: 1 }, { won: false })])];
+
+    const pool = lootPool(plans);
 
     expect(pool.map((one) => one.name)).toEqual(["winner"]);
-  });
+  }); // a shadowed block never shows in game
 
   it("gathers the winners of every category in plan order", () => {
-    const pool = lootPool([plan([placement("a", { take: 1 })]), plan([placement("b", { take: 1 })])]);
+    const plans = [plan([placement("a", { take: 1 })]), plan([placement("b", { take: 1 })])];
+
+    const pool = lootPool(plans);
 
     expect(pool.map((one) => one.name)).toEqual(["a", "b"]);
-  });
+  }); // flatMap across plans
 
-  it("styles each drop for its bucket and verb", () => {
-    const [one] = lootPool([plan([placement("a", { check: 4 }, { verb: "check", bucket: "T0" })])]);
+  it("styles a checked T0 drop with the check look for T0", () => {
+    const plans = [plan([placement("a", { check: 4 }, { verb: "check", bucket: "T0" })])];
+
+    const [one] = lootPool(plans);
 
     expect(one?.style).toEqual(tierStyle(palette, "T0", "check"));
-  });
+  }); // verb changes the style, not only the bucket
 
-  it("values a drop at its stack floor, else its verb's price, else zero", () => {
-    const pool = lootPool([
-      plan([
-        placement("stack", { take: 3 }, { stack: { floor: 250 } }),
-        placement("priced", { take: 3 }),
-        placement("free", {}),
-      ]),
-    ]);
+  it("values a drop at its 250 stack floor, else its 3c price, else zero", () => {
+    const plans = [
+      plan([placement("stack", { take: 3 }, { stack: { floor: 250 } }), placement("priced", { take: 3 }), placement("free", {})]),
+    ];
+
+    const pool = lootPool(plans);
 
     expect(pool.map((one) => one.worth)).toEqual([250, 3, 0]);
-  });
+  }); // same worth rule as dearestFirst
 });

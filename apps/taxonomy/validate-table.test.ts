@@ -29,7 +29,7 @@ describe("listingProblem", () => {
 
   it("reports the first bad query in a list", () => {
     expect(listingProblem([{ name: "A" }, "B"])).toBe("listing is not an object");
-  });
+  }); // a good first query does not hide a bad second one
 
   it("refuses a field PoeWatch does not know", () => {
     expect(listingProblem({ price: 1 })).toBe("listing has unknown field: price");
@@ -37,7 +37,11 @@ describe("listingProblem", () => {
 
   it("refuses a number written as text", () => {
     expect(listingProblem({ gemLevel: "20" })).toBe("listing.gemLevel must be a number");
-  });
+  }); // no coercion
+
+  it("refuses a passive count written as a number, since PoeWatch labels it as text", () => {
+    expect(listingProblem({ passives: 2 })).toBe("listing.passives must be a string");
+  }); // "9-11" is a bucket, so every passive count is text
 });
 
 describe("collectTaxonomyTable", () => {
@@ -51,7 +55,7 @@ describe("collectTaxonomyTable", () => {
 
   it("names every unknown field", () => {
     expect(problemOf(entry({ baseType: "x" }))).toBe("has unknown fields: baseType");
-  });
+  }); // baseType belongs to authored rows only
 
   it("refuses an empty display name", () => {
     expect(problemOf(entry({ displayName: "" }))).toBe("displayName must be a non-empty string when it is present");
@@ -59,7 +63,7 @@ describe("collectTaxonomyTable", () => {
 
   it("refuses a missing subcategory", () => {
     expect(problemOf({ name: "Ruby Ring", category: "rings" })).toBe("subcategory must be a non-empty string or null");
-  });
+  }); // absent is not null
 
   it.each(["filterable", "tradable", "tradedOnExchange", "excluded", "quest", "unpriceable"])(
     "refuses a %s flag that is not a boolean",

@@ -21,24 +21,20 @@ describe("fanOut", () => {
 
     expect(results).toEqual([]);
     expect(calls).toBe(0);
-  });
+  }); // zero workers are started
 
-  it("returns results in name order even when later names finish first", async () => {
-    const waits = new Map([
-      ["a", 30],
-      ["b", 10],
-      ["c", 0],
-    ]);
+  it("returns results in name order when the last name finishes first", async () => {
+    const gates = new Map(["a", "b", "c"].map((name) => [name, deferred<string>()]));
 
-    const results = await fanOut(["a", "b", "c"], async (name) => {
-      await new Promise((done) => setTimeout(done, waits.get(name)));
-      return name.toUpperCase();
-    });
+    const pending = fanOut(["a", "b", "c"], (name) => gates.get(name)!.promise);
+    gates.get("c")!.resolve("C");
+    gates.get("b")!.resolve("B");
+    gates.get("a")!.resolve("A");
 
-    expect(results).toEqual(["A", "B", "C"]);
-  });
+    await expect(pending).resolves.toEqual(["A", "B", "C"]);
+  }); // written by index, not by arrival
 
-  it("never runs more than four jobs at once", async () => {
+  it("never runs more than four jobs at once, and starts the fifth as soon as one finishes", async () => {
     const gates = Array.from({ length: 6 }, () => deferred<number>());
     const started: number[] = [];
 
@@ -56,7 +52,7 @@ describe("fanOut", () => {
     expect(firstWave).toEqual([0, 1, 2, 3]);
     expect(afterOne).toEqual([0, 1, 2, 3, 4]);
     await expect(pending).resolves.toEqual([0, 1, 2, 3, 4, 5]);
-  });
+  }); // the freed worker takes the next name
 
   it("fails with the failing name in the message and the original error as its cause", async () => {
     const original = new Error("boom");
@@ -68,17 +64,17 @@ describe("fanOut", () => {
 
     expect(error.message).toBe("poe-ninja: Scarab failed: boom");
     expect(error.cause).toBe(original);
-  });
+  }); // a short market must say which type is missing
 
-  it("stringifies a thrown non-error into the message", async () => {
+  it("puts a thrown string into the message as it was thrown", async () => {
     const error = (await fanOut(["x"], async () => {
       throw "plain";
     }).catch((caught: unknown) => caught)) as Error;
 
     expect(error.message).toBe("poe-ninja: x failed: plain");
-  });
+  }); // non-Error goes through String()
 
-  it("keeps the other workers taking names after the caller has been failed", async () => {
+  it("keeps the other workers taking names after the caller has already been failed", async () => {
     const seen: string[] = [];
 
     const pending = fanOut(["bad", "b", "c", "d", "e", "f"], async (name) => {
@@ -91,5 +87,5 @@ describe("fanOut", () => {
     for (let at = 0; at < 5; at += 1) await flush();
 
     expect(seen.sort()).toEqual(["b", "bad", "c", "d", "e", "f"]);
-  });
+  }); // nothing cancels them; documented cost
 });

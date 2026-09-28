@@ -25,7 +25,7 @@ describe("collectAuthoredTable", () => {
     ["a second slash", "authored/a/b"],
   ])("refuses a key with %s", (_label, key) => {
     expect(problemOf(key, row())).toBe("is not keyed \"authored/\" followed by a slug");
-  });
+  }); // the tail must survive slugging unchanged
 
   it("refuses a row that is not an object", () => {
     expect(problemOf("authored/a", [])).toBe("is not an object");
@@ -49,7 +49,7 @@ describe("collectAuthoredTable", () => {
     const { subcategory: _dropped, ...rest } = row();
 
     expect(problemOf("authored/a", rest)).toBe("subcategory must be a non-empty string or null");
-  });
+  }); // undefined is not null
 
   it.each(["excluded", "quest", "unpriceable"])("refuses a %s flag that is not a boolean", (flag) => {
     expect(problemOf("authored/a", row({ [flag]: "yes" }))).toBe(`${flag} must be a boolean when it is present`);
@@ -57,7 +57,7 @@ describe("collectAuthoredTable", () => {
 
   it("refuses an empty replaces list", () => {
     expect(problemOf("authored/a", row({ replaces: [] }))).toBe("replaces nothing; delete the key instead");
-  });
+  }); // an empty list is a leftover, not a no-op
 
   it("refuses a replaces list holding an empty string", () => {
     expect(problemOf("authored/a", row({ replaces: ["a", ""] }))).toBe("replaces must be a list of non-empty strings");
@@ -77,7 +77,7 @@ describe("validateAuthoredTable", () => {
     const table = { "authored/a": row() };
 
     expect(validateAuthoredTable(table, "authored")).toBe(table);
-  });
+  }); // same reference: no copy, no defaults filled in
 
   it("throws the first problem with its source", () => {
     expect(() => validateAuthoredTable({ bad: row() }, "authored.manual")).toThrow(

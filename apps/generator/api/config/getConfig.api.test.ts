@@ -25,38 +25,52 @@ const floors = { T0: 9, T1: 8, T2: 7, T3: 6, T4: 5, T5: 4 };
 
 describe("getConfig", () => {
   it("answers with the defaults when nothing was saved yet", async () => {
-    expect(await getConfig(lake)).toBe(DEFAULT_CONFIG);
-  });
+    const config = await getConfig(lake);
+
+    expect(config).toBe(DEFAULT_CONFIG);
+  }); // checks existence first rather than catching a read error
 
   it("keeps the saved global floors", async () => {
     await lake.writeJson("generator/config.json", { floors, categories: {} });
 
-    expect((await getConfig(lake)).floors).toEqual(floors);
-  });
+    const config = await getConfig(lake);
 
-  it("fills in default categories the saved config never mentions", async () => {
-    await lake.writeJson("generator/config.json", { floors, categories: {} });
+    expect(config.floors).toEqual(floors);
+  }); // saved values beat defaults
 
-    expect((await getConfig(lake)).categories).toEqual(DEFAULT_CONFIG.categories);
-  });
+  it("fills a floor the saved file leaves out from the default floors", async () => {
+    await lake.writeJson("generator/config.json", { floors: { T0: 999 }, categories: {} });
 
-  it("merges a saved category over its default, keeping Gold's stack floors", async () => {
+    const config = await getConfig(lake);
+
+    expect(config.floors).toEqual({ ...DEFAULT_CONFIG.floors, T0: 999 });
+  }); // floors merge key by key, not replace whole
+
+  it("fills in the default categories a saved file with no categories never mentions", async () => {
+    await lake.writeJson("generator/config.json", { floors });
+
+    const config = await getConfig(lake);
+
+    expect(config.categories).toEqual(DEFAULT_CONFIG.categories);
+  }); // `saved.categories ?? {}` guards an older file
+
+  it("merges a saved Gold over its default so Gold keeps its stack floors", async () => {
     const gold = { palette: { primary: "#000000", secondary: "#ffffff", icon: "Star" }, disabled: [], wanted: [] };
     await lake.writeJson("generator/config.json", { floors, categories: { Gold: gold } });
 
-    expect((await getConfig(lake)).categories.Gold).toEqual({ ...DEFAULT_CONFIG.categories.Gold, ...gold });
-  });
+    const config = await getConfig(lake);
+
+    expect(config.categories.Gold).toEqual({ ...DEFAULT_CONFIG.categories.Gold, ...gold });
+  }); // per-category merge, not whole-category replace
 
   it("keeps a saved category the defaults do not know", async () => {
-    const extra = {
-      palette: { primary: "#111111", secondary: "#222222", icon: "Moon" },
-      disabled: ["T5"],
-      wanted: ["x"],
-    };
+    const extra = { palette: { primary: "#111111", secondary: "#222222", icon: "Moon" }, disabled: ["T5"], wanted: ["x"] };
     await lake.writeJson("generator/config.json", { floors, categories: { extra } });
 
-    expect((await getConfig(lake)).categories.extra).toEqual(extra);
-  });
+    const config = await getConfig(lake);
+
+    expect(config.categories.extra).toEqual(extra);
+  }); // spreading an undefined default is harmless
 });
 
 describe("saveConfig", () => {
@@ -66,5 +80,5 @@ describe("saveConfig", () => {
     await saveConfig(lake, config);
 
     expect(await getConfig(lake)).toEqual(config);
-  });
+  }); // round trip through the same key
 });

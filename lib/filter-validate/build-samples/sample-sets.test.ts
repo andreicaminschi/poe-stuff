@@ -8,15 +8,21 @@ const categories: SampleCategories = {
 };
 
 describe("sampleSets", () => {
-  it("returns the subcategory's sets", () => {
-    expect(sampleSets(categories, "gems", "skill")).toEqual([{ Quality: { values: [2] } }]);
+  it("gives the subcategory's sample sets", () => {
+    const sets = sampleSets(categories, "gems", "skill");
+
+    expect(sets).toEqual([{ Quality: { values: [2] } }]);
   });
 
-  it("returns none for a top-level category even when it declares sets", () => {
-    expect(sampleSets(categories, "gems", null)).toBeUndefined();
+  it("gives none for a row with no subcategory, even when its category declares sets", () => {
+    const sets = sampleSets(categories, "gems", null);
+
+    expect(sets).toBeUndefined(); // a category holds no samples
   });
 
-  it("returns none for a subcategory with no record", () => {
-    expect(sampleSets(categories, "gems", "support")).toBeUndefined();
+  it("gives none for a subcategory with no record", () => {
+    const sets = sampleSets(categories, "gems", "support");
+
+    expect(sets).toBeUndefined(); // no fallback to the category
   });
 });

@@ -1,32 +1,60 @@
 import { describe, it, expect } from "@jest/globals";
 import { parseSamples } from "./parse-samples.ts";
 
+const NOT_A_LIST = { problem: "Samples must be a list of objects." };
+
 describe("parseSamples", () => {
   it("reads blank text as no sets", () => {
-    expect(parseSamples("  \n")).toEqual({ samples: [] });
+    const parsed = parseSamples("  \n");
+
+    expect(parsed).toEqual({ samples: [] }); // whitespace never reaches JSON.parse
   });
 
-  it("reads a list of objects", () => {
-    expect(parseSamples("[{\"Rarity\":\"Rare\"},{}]")).toEqual({ samples: [{ Rarity: "Rare" }, {}] });
+  it("reads an empty list as no sets", () => {
+    const parsed = parseSamples("[]");
+
+    expect(parsed).toEqual({ samples: [] }); // every() on nothing is true
   });
 
-  it("reports text that is not JSON under the given label", () => {
+  it("reads a list of objects, an empty object included", () => {
+    const parsed = parseSamples("[{\"Rarity\":\"Rare\"},{}]");
+
+    expect(parsed).toEqual({ samples: [{ Rarity: "Rare" }, {}] }); // {} is a valid set
+  });
+
+  it("reports text that is not JSON under the label it was given", () => {
     const parsed = parseSamples("[", "Rejects");
 
-    expect("problem" in parsed && parsed.problem.startsWith("Rejects is not JSON: ")).toBe(true);
+    expect(parsed).toEqual({ problem: expect.stringMatching(/^Rejects is not JSON: .+/) }); // parser message appended
+  });
+
+  it("names the box Samples when no label is given", () => {
+    const parsed = parseSamples("nope");
+
+    expect(parsed).toEqual({ problem: expect.stringMatching(/^Samples is not JSON: /) }); // default label
   });
 
   it("refuses a single object that is not in a list", () => {
-    expect(parseSamples("{}")).toEqual({ problem: "Samples must be a list of objects." });
+    const parsed = parseSamples("{}");
+
+    expect(parsed).toEqual(NOT_A_LIST); // valid JSON, wrong shape
   });
 
-  it("refuses a list holding null, an array or a number", () => {
-    expect(parseSamples("[null]")).toEqual({ problem: "Samples must be a list of objects." });
-    expect(parseSamples("[[]]")).toEqual({ problem: "Samples must be a list of objects." });
-    expect(parseSamples("[1]")).toEqual({ problem: "Samples must be a list of objects." });
+  it("refuses a list holding null", () => {
+    const parsed = parseSamples("[{}, null]");
+
+    expect(parsed).toEqual(NOT_A_LIST); // typeof null is "object"
   });
 
-  it("accepts an empty list", () => {
-    expect(parseSamples("[]")).toEqual({ samples: [] });
+  it("refuses a list holding a list", () => {
+    const parsed = parseSamples("[[]]");
+
+    expect(parsed).toEqual(NOT_A_LIST); // an array is typeof "object" too
+  });
+
+  it("refuses a list holding a number", () => {
+    const parsed = parseSamples("[1]");
+
+    expect(parsed).toEqual(NOT_A_LIST);
   });
 });

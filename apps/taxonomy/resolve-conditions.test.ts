@@ -39,7 +39,7 @@ describe("resolveRow", () => {
     const [resolution] = resolveRow(version, "authored/mirror");
 
     expect(valuesOf(resolution?.conditions ?? []).BaseType).toEqual(["Ruby Ring"]);
-  });
+  }); // "Mirror Ring" is no base the client knows
 
   it("gives one resolution per variant, each carrying the variant name", () => {
     const withVariants: Version = {
@@ -53,7 +53,7 @@ describe("resolveRow", () => {
     };
 
     expect(resolveRow(withVariants, "Ring").map((resolution) => resolution.variant)).toEqual(["low", "high"]);
-  });
+  }); // variants replace the bare row rather than joining it
 
   it("throws for a key the version does not have", () => {
     expect(() => resolveRow(version, "Ghost")).toThrow("\"Ghost\" is not an item or an authored row in this version");
@@ -70,8 +70,10 @@ describe("resolveCategory", () => {
   });
 
   it("resolves a path with no record to nothing", () => {
-    expect(resolveCategory(version, "nowhere/else").conditions).toEqual([]);
-  });
+    const resolution = resolveCategory(version, "nowhere/else");
+
+    expect(resolution.conditions).toEqual([]);
+  }); // no throw for an unknown path
 });
 
 describe("resolutionProblems", () => {
@@ -93,13 +95,13 @@ describe("resolutionProblems", () => {
     expect(resolutionProblems(repeated)).toEqual([
       expect.objectContaining({ key: "Ring", variant: "b", problems: ["resolves the same as variant \"a\""] }),
     ]);
-  });
+  }); // only the later of the two is blamed
 
-  it("skips rows that are excluded or not filterable", () => {
+  it.each(["Hidden", "Gone"])("skips the %s row, which is not drawn", (key) => {
     const repeated: Version = {
       ...version,
       variants: {
-        Hidden: [
+        [key]: [
           { name: "a", conditions: [] },
           { name: "b", conditions: [] },
         ],
@@ -107,11 +109,19 @@ describe("resolutionProblems", () => {
     };
 
     expect(resolutionProblems(repeated)).toEqual([]);
-  });
+  }); // one is unfilterable, the other excluded
 });
 
 describe("unauthoredCategories", () => {
   it("counts drawable rows per category that has no record, leaving out excluded and unfilterable rows", () => {
-    expect(unauthoredCategories(version)).toEqual({ loose: 1 });
+    const counts = unauthoredCategories(version);
+
+    expect(counts).toEqual({ loose: 1 });
+  }); // three loose rows, only one drawn
+
+  it("counts nothing when every drawn row's category has a record", () => {
+    const counts = unauthoredCategories({ ...version, categories: { ...version.categories, loose: { conditions: [] } } });
+
+    expect(counts).toEqual({});
   });
 });

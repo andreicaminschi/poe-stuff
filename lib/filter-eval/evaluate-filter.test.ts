@@ -8,172 +8,197 @@ const hits = (line: string, item: FilterItem): boolean => matchCondition(cond(li
 
 describe("matchCondition", () => {
   describe("missing values", () => {
-    it("fails a condition when the item lacks the value, even when negated", () => {
-      expect(hits("Corrupted != True", {})).toBe(false);
+    it("fails a condition on an item that lacks the value, even when the condition is negated", () => {
+      const result = hits("Corrupted != True", {});
+
+      expect(result).toBe(false); // a gap is never flipped to true
     });
   });
 
-  describe("booleans", () => {
-    it("matches when the item's flag equals the wanted one", () => {
-      expect(hits("Corrupted False", { Corrupted: false })).toBe(true);
+  describe("yes-or-no conditions", () => {
+    it("matches an uncorrupted item against Corrupted False", () => {
+      const result = hits("Corrupted False", { Corrupted: false });
+
+      expect(result).toBe(true);
     });
 
-    it("flips under a negating operator", () => {
-      expect(hits("Corrupted ! True", { Corrupted: false })).toBe(true);
+    it("matches an uncorrupted item against Corrupted not True", () => {
+      const result = hits("Corrupted ! True", { Corrupted: false });
+
+      expect(result).toBe(true); // "!" negates like "!="
     });
   });
 
   describe("numbers", () => {
-    it("matches exactly at a greater-or-equal edge and not one below", () => {
-      expect([hits("ItemLevel >= 84", { ItemLevel: 84 }), hits("ItemLevel >= 84", { ItemLevel: 83 })]).toEqual([
-        true,
-        false,
-      ]);
+    it("matches item level 84 against at least 84 and not item level 83", () => {
+      const result = [hits("ItemLevel >= 84", { ItemLevel: 84 }), hits("ItemLevel >= 84", { ItemLevel: 83 })];
+
+      expect(result).toEqual([true, false]); // edge and edge minus one
     });
 
-    it("excludes the edge under strictly-greater", () => {
-      expect(hits("ItemLevel > 84", { ItemLevel: 84 })).toBe(false);
-    });
+    it("does not match item level 84 against more than 84", () => {
+      const result = hits("ItemLevel > 84", { ItemLevel: 84 });
 
-    it("refuses a hex value in the filter", () => {
-      expect(() => hits("Quality 0x10", { Quality: 16 })).toThrow("takes a number");
+      expect(result).toBe(false); // strict excludes the edge
     });
   });
 
   describe("rarity", () => {
-    it("walks the ladder under a comparison", () => {
-      expect([hits("Rarity >= Rare", { Rarity: "Unique" }), hits("Rarity >= Rare", { Rarity: "Magic" })]).toEqual([
-        true,
-        false,
-      ]);
+    it("matches a unique and not a magic item against at least Rare", () => {
+      const result = [hits("Rarity >= Rare", { Rarity: "Unique" }), hits("Rarity >= Rare", { Rarity: "Magic" })];
+
+      expect(result).toEqual([true, false]); // walks Normal < Magic < Rare < Unique
     });
 
-    it("never matches a rarity the ladder does not know under a comparison", () => {
-      expect(hits("Rarity < Unique", { Rarity: "Relic" } as FilterItem)).toBe(false);
+    it("never matches a rarity the game does not have under a comparison", () => {
+      const result = hits("Rarity < Unique", { Rarity: "Relic" } as FilterItem);
+
+      expect(result).toBe(false); // index -1 is not below anything
     });
 
-    it("treats several rarities as any-of, ignoring case", () => {
-      expect(hits("Rarity Normal Magic", { Rarity: "magic" })).toBe(true);
+    it("matches any one of several listed rarities, ignoring case", () => {
+      const result = hits("Rarity Normal Magic", { Rarity: "magic" });
+
+      expect(result).toBe(true); // list, not ladder
     });
 
-    it("matches every other rarity under a negated list", () => {
-      expect([hits("Rarity != Unique", { Rarity: "Rare" }), hits("Rarity != Unique", { Rarity: "Unique" })]).toEqual([
-        true,
-        false,
-      ]);
-    });
-  });
+    it("matches every rarity except Unique against not Unique", () => {
+      const result = [hits("Rarity != Unique", { Rarity: "Rare" }), hits("Rarity != Unique", { Rarity: "Unique" })];
 
-  describe("strings", () => {
-    it("matches part of the name under plain equality", () => {
-      expect(hits("BaseType \"Stone Ring\"", { BaseType: "Two-Stone Ring" })).toBe(true);
-    });
-
-    it("needs the whole name under double equals, ignoring case", () => {
-      expect([
-        hits("BaseType == \"stone ring\"", { BaseType: "Two-Stone Ring" }),
-        hits("BaseType == \"two-stone ring\"", { BaseType: "Two-Stone Ring" }),
-      ]).toEqual([false, true]);
-    });
-
-    it("matches every name under an empty quoted value", () => {
-      expect(hits("BaseType \"\"", { BaseType: "Anything" })).toBe(true);
-    });
-
-    it("matches when none of the names is part of the item's under negation", () => {
-      expect([
-        hits("Class != Ring Amulet", { Class: "Belts" }),
-        hits("Class != Ring Amulet", { Class: "Rings" }),
-      ]).toEqual([true, false]);
+      expect(result).toEqual([true, false]);
     });
   });
 
-  describe("enums", () => {
-    it("matches when the item holds any wanted value", () => {
-      expect(hits("HasInfluence Elder Shaper", { HasInfluence: ["Crusader", "shaper"] })).toBe(true);
+  describe("names", () => {
+    it("matches part of a name under a single equals", () => {
+      const result = hits("BaseType \"Stone Ring\"", { BaseType: "Two-Stone Ring" });
+
+      expect(result).toBe(true); // substring, as the game does
     });
 
-    it("matches None only for an item with no influence", () => {
-      expect([
-        hits("HasInfluence None", { HasInfluence: [] }),
-        hits("HasInfluence None", { HasInfluence: ["None"] }),
-      ]).toEqual([true, false]);
+    it("needs the whole name, in any case, under double equals", () => {
+      const item = { BaseType: "Two-Stone Ring" };
+
+      const result = [hits("BaseType == \"stone ring\"", item), hits("BaseType == \"two-stone ring\"", item)];
+
+      expect(result).toEqual([false, true]);
     });
 
-    it("flips under negation", () => {
-      expect(hits("HasInfluence != None", { HasInfluence: ["Elder"] })).toBe(true);
+    it("matches every name against an empty quoted name", () => {
+      const result = hits("BaseType \"\"", { BaseType: "Anything" });
+
+      expect(result).toBe(true); // "" is inside every string
+    });
+
+    it("matches a belt and not a ring against not Ring or Amulet", () => {
+      const result = [hits("Class != Ring Amulet", { Class: "Belts" }), hits("Class != Ring Amulet", { Class: "Rings" })];
+
+      expect(result).toEqual([true, false]); // negated substring
+    });
+  });
+
+  describe("influences", () => {
+    it("matches an item holding any one of the wanted influences, ignoring case", () => {
+      const result = hits("HasInfluence Elder Shaper", { HasInfluence: ["Crusader", "shaper"] });
+
+      expect(result).toBe(true);
+    });
+
+    it("matches None only on an item with no influence at all, not one holding the word", () => {
+      const result = [hits("HasInfluence None", { HasInfluence: [] }), hits("HasInfluence None", { HasInfluence: ["None"] })];
+
+      expect(result).toEqual([true, false]); // None means the empty list
+    });
+
+    it("matches an Elder item against not None", () => {
+      const result = hits("HasInfluence != None", { HasInfluence: ["Elder"] });
+
+      expect(result).toBe(true);
     });
   });
 
   describe("sockets", () => {
-    it("lets Sockets count across linked groups", () => {
-      expect(hits("Sockets >= 5GG", { Sockets: "RGB GG" })).toBe(true);
+    it("counts sockets across linked groups for Sockets", () => {
+      const result = hits("Sockets >= 5GG", { Sockets: "RGB GG" });
+
+      expect(result).toBe(true); // links ignored
     });
 
-    it("makes SocketGroup find one group that satisfies the spec alone", () => {
-      expect([
-        hits("SocketGroup >= 3GG", { SocketGroup: "RGB GG" }),
-        hits("SocketGroup >= 3GG", { SocketGroup: "RGG B" }),
-      ]).toEqual([false, true]);
+    it("needs one linked group to satisfy the whole spec on its own for SocketGroup", () => {
+      const result = [hits("SocketGroup >= 3GG", { SocketGroup: "RGB GG" }), hits("SocketGroup >= 3GG", { SocketGroup: "RGG B" })];
+
+      expect(result).toEqual([false, true]); // per group, first that answers
     });
 
-    it("treats colours as at least, ignoring extra sockets", () => {
-      expect(hits("SocketGroup RGB", { SocketGroup: "RRGGBB" })).toBe(true);
+    it("treats colours as a minimum and ignores extra sockets", () => {
+      const result = hits("SocketGroup RGB", { SocketGroup: "RRGGBB" });
+
+      expect(result).toBe(true); // colours are always "at least"
     });
 
-    it("applies the operator to the count only", () => {
-      expect([hits("Sockets < 3", { Sockets: "RG" }), hits("Sockets < 3", { Sockets: "RGB" })]).toEqual([true, false]);
+    it("applies fewer than three to the socket count: two sockets match, three do not", () => {
+      const result = [hits("Sockets < 3", { Sockets: "RG" }), hits("Sockets < 3", { Sockets: "RGB" })];
+
+      expect(result).toEqual([true, false]);
     });
 
-    it("never matches SocketGroup on an item with no sockets, even when asking for fewer than three", () => {
-      // groups list is empty
-      expect([hits("SocketGroup < 3", { SocketGroup: "" }), hits("Sockets < 3", { Sockets: "" })]).toEqual([
-        false,
-        true,
-      ]);
+    it("never matches SocketGroup on an item with no sockets, while Sockets fewer than three does", () => {
+      const result = [hits("SocketGroup < 3", { SocketGroup: "" }), hits("Sockets < 3", { Sockets: "" })];
+
+      expect(result).toEqual([false, true]); // no groups to ask, vs one empty run
     });
   });
 
   describe("counted mods", () => {
-    it("counts item mods that contain any listed name", () => {
-      expect([
-        hits("HasExplicitMod >=2 \"of Haast\" Tyrannical", { HasExplicitMod: ["Tyrannical", "of Haast"] }),
-        hits("HasExplicitMod >=2 \"of Haast\" Tyrannical", { HasExplicitMod: ["Tyrannical"] }),
-      ]).toEqual([true, false]);
+    it("matches at least two only when two of the item's mods contain a listed name", () => {
+      const line = "HasExplicitMod >=2 \"of Haast\" Tyrannical";
+
+      const result = [hits(line, { HasExplicitMod: ["Tyrannical", "of Haast"] }), hits(line, { HasExplicitMod: ["Tyrannical"] })];
+
+      expect(result).toEqual([true, false]);
     });
 
-    it("counts one mod once even when it contains two listed names", () => {
-      expect(hits("HasExplicitMod >=2 of Haast", { HasExplicitMod: ["of Haast"] })).toBe(false);
+    it("counts one mod once even when it contains two of the listed names", () => {
+      const result = hits("HasExplicitMod >=2 of Haast", { HasExplicitMod: ["of Haast"] });
+
+      expect(result).toBe(false); // counts mods, not names
     });
 
-    it("matches a negated line only when no mod is listed", () => {
-      expect([
-        hits("HasExplicitMod != \"x\"", { HasExplicitMod: [] }),
-        hits("HasExplicitMod != \"x\"", { HasExplicitMod: ["x"] }),
-      ]).toEqual([true, false]);
+    it("matches a negated line only on an item with none of the listed mods", () => {
+      const result = [hits("HasExplicitMod != \"x\"", { HasExplicitMod: [] }), hits("HasExplicitMod != \"x\"", { HasExplicitMod: ["x"] })];
+
+      expect(result).toEqual([true, false]); // count defaults to 1, compared with !=
     });
   });
 
-  describe("transfigured gem", () => {
-    it("treats True as any transfigured gem and an empty name as none", () => {
-      expect([
+  describe("transfigured gems", () => {
+    it("matches any transfigured gem against True and not a gem with an empty name", () => {
+      const result = [
         hits("TransfiguredGem True", { TransfiguredGem: "Frostblink of Wintry Blast" }),
         hits("TransfiguredGem True", { TransfiguredGem: "" }),
-      ]).toEqual([true, false]);
+      ];
+
+      expect(result).toEqual([true, false]); // empty string means not transfigured
     });
 
-    it("matches False only on a gem that is not transfigured", () => {
-      expect(hits("TransfiguredGem False", { TransfiguredGem: "" })).toBe(true);
+    it("matches a gem that is not transfigured against False", () => {
+      const result = hits("TransfiguredGem False", { TransfiguredGem: "" });
+
+      expect(result).toBe(true);
     });
 
-    it("matches part of a gem name under plain equality and the whole under double equals", () => {
+    it("matches part of a gem name under a single equals and needs the whole name under double equals", () => {
       const item = { TransfiguredGem: "Frostblink of Wintry Blast" };
 
-      expect([hits("TransfiguredGem Wintry", item), hits("TransfiguredGem == Wintry", item)]).toEqual([true, false]);
+      const result = [hits("TransfiguredGem Wintry", item), hits("TransfiguredGem == Wintry", item)];
+
+      expect(result).toEqual([true, false]);
     });
 
-    it("flips a name match under negation", () => {
-      expect(hits("TransfiguredGem != Wintry", { TransfiguredGem: "Other" })).toBe(true);
+    it("matches a gem whose name does not contain the word under not", () => {
+      const result = hits("TransfiguredGem != Wintry", { TransfiguredGem: "Other" });
+
+      expect(result).toBe(true);
     });
   });
 });
@@ -193,7 +218,7 @@ describe("evaluateFilter", () => {
     ].join("\n"),
   );
 
-  it("stops at the first matching block without Continue", () => {
+  it("stops at the first matching block that does not continue and reports its notes by header line", () => {
     const result = evaluateFilter(filter, { ItemLevel: 50, Quality: 20 });
 
     expect(result).toEqual({
@@ -204,30 +229,28 @@ describe("evaluateFilter", () => {
         { key: "verb", value: "take", line: 5 },
       ],
       matched: [{ line: 5, keyword: "Show", freehand: "first" }],
-    });
+    }); // line is the block header, not the note
   });
 
-  it("carries notes past a Continue block and lets later blocks overwrite them", () => {
+  it("carries notes past a Continue block and lets a later block overwrite the same keys", () => {
     const result = evaluateFilter(filter, { ItemLevel: 85, Quality: 0 });
 
     expect(result.verdict).toBe("Hide");
-    expect(result.notes).toEqual({ tier: "hidden", verb: "take", family: "bases" });
+    expect(result.notes).toEqual({ tier: "hidden", verb: "take", family: "bases" }); // family survives from the first block
     expect(result.contributions.map((c) => c.line)).toEqual([1, 1, 1, 8, 8]);
     expect(result.matched.map((m) => m.line)).toEqual([1, 8]);
   });
 
-  it("reports no verdict when nothing matches", () => {
-    expect(evaluateFilter([], {})).toEqual({ verdict: "none", notes: {}, contributions: [], matched: [] });
+  it("gives no verdict for an empty filter", () => {
+    const result = evaluateFilter([], {});
+
+    expect(result).toEqual({ verdict: "none", notes: {}, contributions: [], matched: [] });
   });
 
-  it("reports no verdict when the last matching block continues", () => {
+  it("gives no verdict but keeps the notes when the last block that matched says Continue", () => {
     const result = evaluateFilter(filter.slice(0, 1), { ItemLevel: 85 });
 
     expect(result.verdict).toBe("none");
-    expect(result.notes.tier).toBe("T3");
-  });
-
-  it("refuses two duplicate note keys in one block", () => {
-    expect(() => parseFilter("Show\n#@ tier=T1 verb=take tier=T2")).toThrow("note key \"tier\" appears twice");
+    expect(result.notes.tier).toBe("T3"); // walk ran off the end
   });
 });

@@ -14,24 +14,40 @@ afterEach(async () => {
   await rm(root, { recursive: true, force: true });
 });
 
+const text = "Show\n  BaseType == \"Mirror\"\n";
+
 describe("saveFilter", () => {
-  it("writes the text to the picked path and answers with that path", async () => {
+  it("answers with the path the person picked", async () => {
     const path = join(root, "mine.filter");
 
-    const saved = await saveFilter("Show\n  BaseType == \"Mirror\"\n", async () => path);
+    const saved = await saveFilter(text, async () => path);
 
     expect(saved).toEqual({ path });
-    expect(await readFile(path, "utf8")).toBe("Show\n  BaseType == \"Mirror\"\n");
-  });
+  }); // the window shows where it went
 
-  it("writes nothing and reports a cancel when no path is picked", async () => {
+  it("writes the filter text byte for byte to the picked path", async () => {
+    const path = join(root, "mine.filter");
+
+    await saveFilter(text, async () => path);
+
+    expect(await readFile(path, "utf8")).toBe(text);
+  }); // no trailing newline added or stripped
+
+  it("reports a cancel when the person closes the picker without choosing", async () => {
     const saved = await saveFilter("Show", async () => undefined);
 
     expect(saved).toEqual({ cancelled: true });
-    expect(await readdir(root)).toEqual([]);
-  });
+  }); // undefined path is a cancel, not an error
 
-  it("rejects when the picked folder does not exist", async () => {
-    await expect(saveFilter("Show", async () => join(root, "missing", "a.filter"))).rejects.toThrow();
-  });
+  it("writes no file when the person cancels", async () => {
+    await saveFilter("Show", async () => undefined);
+
+    expect(await readdir(root)).toEqual([]);
+  }); // returns before writeFile
+
+  it("fails when the picked folder does not exist", async () => {
+    const saving = saveFilter("Show", async () => join(root, "missing", "a.filter"));
+
+    await expect(saving).rejects.toThrow();
+  }); // no mkdir, the picker only offers real folders
 });

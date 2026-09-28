@@ -13,23 +13,27 @@ beforeEach(() => {
 const answer = (body: unknown) => fetchMock.mockResolvedValue(new Response(JSON.stringify(body)));
 
 describe("getCompactData", () => {
-  it("asks for every item, bases included, in an encoded league", async () => {
+  it("asks for every item, crafting bases included, in a league whose name has a space", async () => {
     answer({ items: [] });
 
     await getCompactData("Hardcore Allflame", context);
 
     expect(fetchMock.mock.calls[0]?.[0]).toBe("https://pw.test/compact?league=Hardcore%20Allflame&all=true");
-  });
+  }); // without all=true no base comes back
 
-  it("returns the items out of the envelope", async () => {
+  it("hands back the item list and drops the rest of the envelope", async () => {
     answer({ items: [{ id: 1 }], extra: true });
 
-    expect(await getCompactData("X", context)).toEqual([{ id: 1 }]);
-  });
+    const items = await getCompactData("X", context);
 
-  it("returns an empty list when the envelope has no items", async () => {
+    expect(items).toEqual([{ id: 1 }]);
+  }); // unwraps items
+
+  it("hands back an empty list when the envelope carries no items", async () => {
     answer({});
 
-    expect(await getCompactData("X", context)).toEqual([]);
-  });
+    const items = await getCompactData("X", context);
+
+    expect(items).toEqual([]);
+  }); // ?? [] fallback
 });

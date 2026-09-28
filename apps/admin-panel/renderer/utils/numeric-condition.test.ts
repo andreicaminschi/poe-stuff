@@ -3,18 +3,26 @@ import { numericCondition } from "./numeric-condition.ts";
 
 describe("numericCondition", () => {
   it("knows ItemLevel compares as a number", () => {
-    expect(numericCondition("ItemLevel")).toBe(true);
+    const numeric = numericCondition("ItemLevel");
+
+    expect(numeric).toBe(true); // read from the grammar's registry, not a list here
   });
 
   it("ignores case and surrounding spaces", () => {
-    expect(numericCondition("  itemlevel ")).toBe(true);
+    const numeric = numericCondition("  itemlevel ");
+
+    expect(numeric).toBe(true); // trimmed and lowercased before the lookup
   });
 
   it("does not treat Rarity as numeric, though it is ordered", () => {
-    expect(numericCondition("Rarity")).toBe(false);
+    const numeric = numericCondition("Rarity");
+
+    expect(numeric).toBe(false); // ordered by name, not compared as a number
   });
 
   it("does not know a name outside the grammar", () => {
-    expect(numericCondition("Madeup")).toBe(false);
+    const numeric = numericCondition("Madeup");
+
+    expect(numeric).toBe(false); // unknown names fall through to false, not a throw
   });
 });

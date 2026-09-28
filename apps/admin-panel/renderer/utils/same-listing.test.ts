@@ -3,26 +3,38 @@ import { sameListing } from "./same-listing.ts";
 
 describe("sameListing", () => {
   it("ignores the name", () => {
-    expect(sameListing({ name: "a", itemLevel: 86 }, { name: "b", itemLevel: 86 })).toBe(true);
+    const same = sameListing({ name: "a", itemLevel: 86 }, { name: "b", itemLevel: 86 });
+
+    expect(same).toBe(true);
   });
 
   it("tells listings apart by any other value", () => {
-    expect(sameListing({ itemLevel: 86 }, { itemLevel: 85 })).toBe(false);
+    const same = sameListing({ itemLevel: 86 }, { itemLevel: 85 });
+
+    expect(same).toBe(false);
   });
 
-  it("tells listings apart when one has an extra key", () => {
-    expect(sameListing({ itemLevel: 86 }, { itemLevel: 86, frame: 3 })).toBe(false);
+  it("tells listings apart when only the second has an extra key", () => {
+    const same = sameListing({ itemLevel: 86 }, { itemLevel: 86, frame: 3 });
+
+    expect(same).toBe(false); // keys come from both sides, not just the first
   });
 
   it("treats two missing listings as the same", () => {
-    expect(sameListing(undefined, undefined)).toBe(true);
+    const same = sameListing(undefined, undefined);
+
+    expect(same).toBe(true);
   });
 
-  it("treats a name-only listing as the same as no listing", () => {
-    expect(sameListing({ name: "a" }, undefined)).toBe(true);
+  it("treats a listing with only a name as the same as no listing", () => {
+    const same = sameListing({ name: "a" }, undefined);
+
+    expect(same).toBe(true);
   });
 
   it("counts a key set to undefined as missing", () => {
-    expect(sameListing({ itemLevel: undefined }, {})).toBe(true);
+    const same = sameListing({ itemLevel: undefined }, {});
+
+    expect(same).toBe(true);
   });
 });

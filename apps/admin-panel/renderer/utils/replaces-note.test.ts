@@ -3,14 +3,20 @@ import { replacesNote } from "./replaces-note.ts";
 
 describe("replacesNote", () => {
   it("says no source has the row when it replaces none", () => {
-    expect(replacesNote(0)).toBe("No source has this row.");
+    const note = replacesNote(0);
+
+    expect(note).toBe("No source has this row."); // not "Replaces 0 rows."
   });
 
   it("uses the singular for one row", () => {
-    expect(replacesNote(1)).toBe("Replaces 1 row.");
+    const note = replacesNote(1);
+
+    expect(note).toBe("Replaces 1 row.");
   });
 
   it("uses the plural for two rows", () => {
-    expect(replacesNote(2)).toBe("Replaces 2 rows.");
+    const note = replacesNote(2);
+
+    expect(note).toBe("Replaces 2 rows."); // first count past the singular
   });
 });

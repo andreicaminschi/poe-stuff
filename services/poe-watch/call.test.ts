@@ -26,7 +26,7 @@ afterEach(async () => {
 });
 
 describe("call", () => {
-  it("sends the user agent and asks for JSON", async () => {
+  it("sends the caller's user agent and asks for JSON", async () => {
     fetchMock.mockResolvedValue(jsonResponse({ ok: 1 }));
 
     await call(URL_A, "1", { baseUrl: "", userAgent: "me/1" });
@@ -34,17 +34,17 @@ describe("call", () => {
     expect(fetchMock).toHaveBeenCalledWith(URL_A, {
       headers: { "user-agent": "me/1", accept: "application/json" },
     });
-  });
+  }); // the request is the contract
 
-  it("returns the parsed body as-is", async () => {
+  it("returns the JSON body exactly as it came back", async () => {
     fetchMock.mockResolvedValue(jsonResponse({ items: [1, 2] }));
 
     const body = await call(URL_A, "1", { baseUrl: "", userAgent: "u" });
 
     expect(body).toEqual({ items: [1, 2] });
-  });
+  }); // asserted, not validated
 
-  it("downloads again on every call when no cache is given", async () => {
+  it("downloads the league again on every call when it has no cache", async () => {
     fetchMock.mockImplementation(async () => jsonResponse({ n: 1 }));
     const context = { baseUrl: "", userAgent: "u" };
 
@@ -52,33 +52,35 @@ describe("call", () => {
     await call(URL_A, "1", context);
 
     expect(fetchMock).toHaveBeenCalledTimes(2);
-  });
+  }); // no cache, no key
 
-  it("throws an HTTP error naming the URL and status on a 503", async () => {
+  it("fails with an error naming the URL and the 503 it answered with", async () => {
     fetchMock.mockResolvedValue(new Response("down", { status: 503 }));
 
     const error = await call(URL_A, "1", { baseUrl: "", userAgent: "u" }).catch((e: unknown) => e);
 
     expect(error).toBeInstanceOf(PoeWatchHttpError);
     expect(error).toMatchObject({ url: URL_A, status: 503 });
-  });
+  }); // body "down" is never parsed
 
-  it("writes nothing to the cache when the answer is an error", async () => {
+  it("writes nothing to the cache when the answer is a 404", async () => {
     fetchMock.mockResolvedValue(new Response("", { status: 404 }));
     const cache = createFileCache<CachedResponse>(dir);
 
     await expect(call(URL_A, "1", { baseUrl: "", userAgent: "u", cache })).rejects.toThrow("poewatch 404 for " + URL_A);
 
     expect(await readdir(dir)).toEqual([]);
-  });
+  }); // a failure must not be replayed all hour
 
   it("lets a network failure reach the caller unchanged", async () => {
     fetchMock.mockRejectedValue(new TypeError("fetch failed"));
 
-    await expect(call(URL_A, "1", { baseUrl: "", userAgent: "u" })).rejects.toThrow("fetch failed");
-  });
+    const result = call(URL_A, "1", { baseUrl: "", userAgent: "u" });
 
-  it("answers the second call with the same URL and hour from the cache", async () => {
+    await expect(result).rejects.toThrow("fetch failed");
+  }); // no wrapping, no retry
+
+  it("answers a second call for the same URL and hour from the cache", async () => {
     fetchMock.mockImplementation(async () => jsonResponse({ n: 1 }));
     const context = { baseUrl: "", userAgent: "u", cache: createFileCache<CachedResponse>(dir) };
 
@@ -87,9 +89,9 @@ describe("call", () => {
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(second).toEqual({ n: 1 });
-  });
+  }); // real file round-trip
 
-  it("downloads again once the hour changes", async () => {
+  it("downloads again once the hour moves on", async () => {
     fetchMock.mockImplementation(async () => jsonResponse({ n: 1 }));
     const context = { baseUrl: "", userAgent: "u", cache: createFileCache<CachedResponse>(dir) };
 
@@ -97,9 +99,9 @@ describe("call", () => {
     await call(URL_A, "101", context);
 
     expect(fetchMock).toHaveBeenCalledTimes(2);
-  });
+  }); // salt is in the key
 
-  it("keeps a different URL in a different cache entry", async () => {
+  it("never answers the narrow compact call from the whole-market entry", async () => {
     fetchMock.mockImplementation(async () => jsonResponse({ n: 1 }));
     const context = { baseUrl: "", userAgent: "u", cache: createFileCache<CachedResponse>(dir) };
 
@@ -107,7 +109,7 @@ describe("call", () => {
     await call(URL_A.replace("&all=true", ""), "100", context);
 
     expect(fetchMock).toHaveBeenCalledTimes(2);
-  });
+  }); // the whole URL, query included, is keyed
 
   it("stores the URL, status, body and write time of a fresh answer", async () => {
     jest.useFakeTimers({ now: new Date("2026-01-02T03:04:05.000Z") });
@@ -123,9 +125,9 @@ describe("call", () => {
     await call(URL_A, "1", { baseUrl: "", userAgent: "u", cache });
 
     expect(writes).toEqual([{ url: URL_A, status: 200, body: { n: 1 }, storedAt: "2026-01-02T03:04:05.000Z" }]);
-  });
+  }); // storedAt comes off the faked clock
 
-  it("serves a cached entry even when it recorded an error status", async () => {
+  it("serves a cached entry even when it recorded a 500", async () => {
     const cache = {
       get: async () => ({ url: URL_A, status: 500, body: { stale: true }, storedAt: "" }),
       set: async () => undefined,
@@ -139,15 +141,19 @@ describe("call", () => {
 });
 
 describe("currentHour", () => {
-  it("counts whole hours since the epoch", () => {
+  it("still reads the fifth hour one millisecond before the sixth begins", () => {
     jest.useFakeTimers({ now: 3_600_000 * 5 + 3_599_999 });
 
-    expect(currentHour()).toBe("5");
-  });
+    const hour = currentHour();
 
-  it("rolls over exactly on the hour", () => {
+    expect(hour).toBe("5");
+  }); // floor, not round
+
+  it("moves to the sixth hour exactly on the hour", () => {
     jest.useFakeTimers({ now: 3_600_000 * 6 });
 
-    expect(currentHour()).toBe("6");
-  });
+    const hour = currentHour();
+
+    expect(hour).toBe("6");
+  }); // the edge belongs to the new hour
 });
