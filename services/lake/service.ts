@@ -1,7 +1,8 @@
 import { constants } from "node:fs";
-import { access, mkdir, readdir, readFile, rename, rm, writeFile } from "node:fs/promises";
+import { access, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
+import { renameWithRetry } from "./service/rename-with-retry.ts";
 import type { Lake, LakeServiceOptions } from "./types.ts";
 
 const serialise = (value: unknown): string => `${JSON.stringify(value, undefined, 2)}\n`;
@@ -35,7 +36,7 @@ export function createLakeService({ root = ".s3" }: LakeServiceOptions = {}): La
       const path = pathOf(key);
       const temp = `${path}.tmp-${process.pid}-${randomUUID()}`;
       await write(temp, value);
-      await rename(temp, path);
+      await renameWithRetry(temp, path);
     },
 
     async exists(key) {
