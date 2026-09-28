@@ -1,88 +1,150 @@
 import { describe, expect, it } from "@jest/globals";
 import { buildEvalCases, type EvalRow } from "./build-eval-cases.ts";
+import type { MarketEntry, UniqueGroup } from "./build-eval-cases/types.ts";
 
-const ringSamples = {
-  conditions: [{ condition: "BaseType", operator: "==", from: "baseTypes" }],
-  samples: [
-    {
-      Class: { values: ["Rings"] },
-      BaseType: { from: "baseTypes" as const },
-      Rarity: { values: ["Normal", "Magic", "Rare"] },
-    },
-  ],
-  rejects: [{ Class: { values: ["Amulets"] } }],
+const byBaseType = [{ condition: "BaseType", operator: "==", from: "baseTypes" }];
+
+const normalRings = {
+  conditions: byBaseType,
+  samples: [{ Class: { values: ["Rings"] }, BaseType: { from: "baseTypes" as const }, Rarity: { values: ["Normal"] } }],
 };
 
 const categories = {
   rings: { conditions: [{ condition: "Class", operator: "==", value: "Rings" }] },
-  "rings/any": ringSamples,
-  "rings/other": ringSamples,
+  "rings/any": normalRings,
+  "rings/other": normalRings,
 };
 
-const row = (key: string, subcategory = "any"): EvalRow => ({
+const entry = (name: string, id = 1): MarketEntry => ({ source: "poeWatch:items", id, name });
+
+const row = (key: string, base: string, subcategory = "any"): EvalRow => ({
   key,
-  name: key,
+  name: base,
   category: "rings",
   subcategory,
-  baseTypes: [key],
-  poeWatch: { source: "poeWatch:items", id: 1, name: key },
+  baseTypes: [base],
+  poeWatch: entry(key),
 });
 
+const normalRing = (base: string) => ({ Class: "Rings", BaseType: base, Rarity: "Normal" });
+
+const uniqueCategories = (set: Record<string, { values: readonly (string | boolean)[] }>) => ({
+  ...categories,
+  "rings/any": {
+    conditions: byBaseType,
+    samples: [{ Class: { values: ["Rings"] }, BaseType: { from: "baseTypes" as const }, Rarity: { values: ["Unique"] }, ...set }],
+  },
+});
+
+const uniqueBase = (uniques: readonly UniqueGroup[]): EvalRow => ({ ...row("Ruby Ring", "Ruby Ring"), uniques });
+
 describe("buildEvalCases", () => {
-  it("makes one case per distinct item", () => {
-    const { cases } = buildEvalCases([row("Ruby Ring")], categories);
+  describe("the expected answer", () => {
+    it("is the market entry of the row whose block takes the item", () => {
+      const rows = [row("Ruby Ring", "Ruby Ring"), row("Gold Ring", "Gold Ring")];
 
-    expect(cases).toHaveLength(3);
-    expect(cases[0]?.item).toMatchObject({ Class: "Rings", BaseType: "Ruby Ring", Rarity: "Normal" });
-  });
+      const { cases } = buildEvalCases(rows, categories);
 
-  it("answers each case with the market entry of the row whose block takes it", () => {
-    const { cases: [first] } = buildEvalCases([row("Ring")], categories);
+      expect(cases).toEqual([
+        { item: normalRing("Ruby Ring"), expected: [entry("Ruby Ring")] },
+        { item: normalRing("Gold Ring"), expected: [entry("Gold Ring")] },
+      ]);
+    });
 
-    expect(first?.expected).toEqual([{ source: "poeWatch:items", id: 1, name: "Ring" }]);
-  });
+    it("is empty when no block takes the item", () => {
+      const amulets = {
+        ...categories,
+        "rings/any": { conditions: byBaseType, samples: [{ Class: { values: ["Amulets"] }, BaseType: { from: "baseTypes" as const } }] },
+      };
 
-  it("matches a row whose key has a space", () => {
-    const { cases: [first] } = buildEvalCases([row("Ruby Ring")], categories);
+      const { cases } = buildEvalCases([row("Ruby Ring", "Ruby Ring")], amulets);
 
-    expect(first?.expected).toEqual([{ source: "poeWatch:items", id: 1, name: "Ruby Ring" }]);
-  });
+      expect(cases).toEqual([{ item: { Class: "Amulets", BaseType: "Ruby Ring" }, expected: [] }]);
+    });
 
-  it("leaves out reject samples", () => {
-    const { cases } = buildEvalCases([row("Ruby Ring")], categories);
+    it("is every unique listing on the item's base, not the base's own price", () => {
+      const base = uniqueBase([
+        { subcategory: null, listings: [
+          { corrupted: false, poeWatch: entry("Ming's Heart", 2) },
+          { corrupted: false, poeWatch: entry("Andvarius", 3) },
+        ] },
+      ]);
 
-    expect(cases.every((one) => one.item.Class === "Rings")).toBe(true);
-  });
+      const { cases } = buildEvalCases([base], uniqueCategories({ Corrupted: { values: [false] } }));
 
-  it("reports an item two paths both build, and keeps one case for it", () => {
-    const { cases, overlaps } = buildEvalCases([row("Ruby Ring"), row("Ruby Ring 2", "other")], categories);
-    const sameBase = buildEvalCases(
-      [row("Ruby Ring"), { ...row("Ruby Ring", "other"), key: "Ruby Ring Other" }],
-      categories,
-    );
+      expect(cases.map((one) => one.expected)).toEqual([[entry("Ming's Heart", 2), entry("Andvarius", 3)]]);
+    });
 
-    expect(overlaps).toEqual([]);
-    expect(cases).toHaveLength(6);
-    expect(sameBase.cases).toHaveLength(3);
-    expect(sameBase.overlaps).toHaveLength(3);
-    expect(sameBase.overlaps[0]?.paths).toEqual(["rings/any", "rings/other"]);
-  });
+    it("gives a corrupted unique only the corrupted listings", () => {
+      const base = uniqueBase([
+        { subcategory: null, listings: [
+          { corrupted: false, poeWatch: entry("Ming's Heart", 2) },
+          { corrupted: true, poeWatch: entry("Ming's Heart", 4) },
+        ] },
+      ]);
 
-  it("reports an item two rows on one path both build, naming both rows", () => {
-    const { cases, overlaps } = buildEvalCases(
-      [row("Ruby Ring"), { ...row("Ruby Ring"), key: "Ruby Ring B" }],
-      categories,
-    );
+      const { cases } = buildEvalCases([base], uniqueCategories({ Corrupted: { values: [true] } }));
 
-    expect(cases).toHaveLength(3);
-    expect(overlaps).toHaveLength(3);
-    expect(overlaps[0]).toMatchObject({
-      rows: ["Ruby Ring", "Ruby Ring B"],
-      paths: ["rings/any", "rings/any"],
+      expect(cases.map((one) => one.expected)).toEqual([[entry("Ming's Heart", 4)]]);
+    });
+
+    it("gives a foulborn unique only the foulborn group's listings", () => {
+      const base = uniqueBase([
+        { subcategory: null, listings: [{ corrupted: false, poeWatch: entry("Ming's Heart", 2) }] },
+        { subcategory: "foulborn", listings: [{ corrupted: false, poeWatch: entry("Ming's Heart", 5) }] },
+      ]);
+
+      const { cases } = buildEvalCases([base], uniqueCategories({ Foulborn: { values: [true] } }));
+
+      expect(cases.map((one) => one.expected)).toEqual([[entry("Ming's Heart", 5)]]);
     });
   });
 
-  it("makes no cases when there are no rows", () => {
-    expect(buildEvalCases([], categories)).toEqual({ cases: [], overlaps: [] });
+  describe("which items become cases", () => {
+    it("never turns a reject sample into a case", () => {
+      const withReject = { ...categories, "rings/any": { ...normalRings, rejects: [{ Rarity: { values: ["Rare"] } }] } };
+
+      const { cases } = buildEvalCases([row("Ruby Ring", "Ruby Ring")], withReject);
+
+      expect(cases.map((one) => one.item)).toEqual([normalRing("Ruby Ring")]);
+    });
+
+    it("keeps one case for an item two rows both build, answered by the first row", () => {
+      const rows = [row("Ruby Ring", "Ruby Ring"), row("Ruby Ring B", "Ruby Ring")];
+
+      const { cases } = buildEvalCases(rows, categories);
+
+      expect(cases).toEqual([{ item: normalRing("Ruby Ring"), expected: [entry("Ruby Ring")] }]);
+    });
+  });
+
+  describe("overlaps", () => {
+    it("reports an item built on two paths, naming both paths", () => {
+      const rows = [row("Ruby Ring", "Ruby Ring"), row("Ruby Ring Other", "Ruby Ring", "other")];
+
+      const { overlaps } = buildEvalCases(rows, categories);
+
+      expect(overlaps).toEqual([
+        { item: normalRing("Ruby Ring"), rows: ["Ruby Ring", "Ruby Ring Other"], paths: ["rings/any", "rings/other"] },
+      ]);
+    });
+
+    it("reports an item built twice on one path, naming both rows", () => {
+      const rows = [row("Ruby Ring", "Ruby Ring"), row("Ruby Ring B", "Ruby Ring")];
+
+      const { overlaps } = buildEvalCases(rows, categories);
+
+      expect(overlaps).toEqual([
+        { item: normalRing("Ruby Ring"), rows: ["Ruby Ring", "Ruby Ring B"], paths: ["rings/any", "rings/any"] },
+      ]);
+    });
+
+    it("reports nothing when every row builds different items", () => {
+      const rows = [row("Ruby Ring", "Ruby Ring"), row("Gold Ring", "Gold Ring", "other")];
+
+      const { overlaps } = buildEvalCases(rows, categories);
+
+      expect(overlaps).toEqual([]);
+    });
   });
 });

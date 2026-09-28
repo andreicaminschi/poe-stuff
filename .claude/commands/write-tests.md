@@ -7,12 +7,18 @@ Write tests for `$1`. Extra focus, if given: $2
 
 ## Step 1 — plan first, stop
 
-Read `$1` in full. Then output ONLY a `describe`/`it` skeleton: nested describes, one
-`it("...")` line per behavior, no bodies. Group by exported symbol, then by method.
+Read `$1` in full. First list the unit's **contract**: each promise its doc comment, name
+and callers rely on, one numbered line each. Mark every branch or decision in the code that
+no contract line covers.
 
-Next to each `it`, note in a trailing comment what makes it non-obvious — the boundary,
-the interleaving, the state that has to survive. If a behavior can't be tested without a
-production change, say so on its own line and propose the smallest change.
+Then output a `describe`/`it` skeleton: nested describes, one `it("...")` line per
+behavior, no bodies. Group by exported symbol, then by method.
+
+Next to each `it`, note in a trailing comment which contract line it proves and what makes
+it non-obvious — the boundary, the interleaving, the state that has to survive. An `it` that
+proves no contract line is cut. A branch left without an `it` is named on its own line. If
+a behavior can't be tested without a production change, say so on its own line and propose
+the smallest change.
 
 Then stop and ask for approval. Do not write the test file yet.
 
@@ -47,10 +53,18 @@ Do NOT test:
   internal arrays, and call order of helpers are not the contract.
 - **Restatements of the code.** A test that mirrors the implementation line for line
   fails only when the code changes, never when it breaks.
+- **The fixture's size.** No `toHaveLength(3)` when 3 is only how many values the fixture
+  happens to hold. A count is a contract only when a rule sets it.
+- **A dependency's behavior.** If the result is right because an imported function works,
+  that function's own package tests it.
 
 ## Rules
 
-- One behavior per `it`.
+- One behavior per `it`. One scenario too: no second call with its own assertions.
+- Assert against the expected value, built in the test. Compare the item or entry itself,
+  not a count or `result[0]`.
+- Build the input so only the behavior under test separates right from wrong. Hold every
+  other field equal, so the test can't pass through some other difference.
 - **Names must read like documentation, not labels.** Someone who has never opened the
   source should learn what the unit does by reading the `describe`/`it` list top to
   bottom. This is a requirement, not a style preference — a correct test with a cryptic
