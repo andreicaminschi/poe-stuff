@@ -2,76 +2,107 @@ import { describe, it, expect } from "@jest/globals";
 import { parseRetryAfter, parseRules, parseState } from "./parse-rate-limit-headers.ts";
 
 describe("parseRules", () => {
-  it("keeps one slot of headroom and widens each window by a second", () => {
-    expect(parseRules("45:60:120,240:240:900")).toEqual([
+  it("allows 44 of 45 requests and holds a 60-second window open for 61 seconds", () => {
+    const rules = parseRules("45:60:120,240:240:900");
+
+    expect(rules).toEqual([
       { max: 44, windowMs: 61_000 },
       { max: 239, windowMs: 241_000 },
     ]);
-  });
+  }); // one slot of headroom, one second of skew
 
-  it("never lowers an allowance of one request below one", () => {
-    expect(parseRules("1:5:10")).toEqual([{ max: 1, windowMs: 6_000 }]);
-  });
+  it("still allows one request when the server allows exactly one", () => {
+    const rules = parseRules("1:5:10");
 
-  it("reads a missing or empty header as no rules", () => {
-    expect(parseRules(null)).toEqual([]);
-    expect(parseRules("")).toEqual([]);
-  });
+    expect(rules).toEqual([{ max: 1, windowMs: 6_000 }]);
+  }); // headroom never drops a rule to zero
 
-  it("drops a short triple and a non-numeric triple but keeps the good ones", () => {
-    expect(parseRules("10:5,x:5:10,20:10:60")).toEqual([{ max: 19, windowMs: 11_000 }]);
-  });
+  it("reads a missing header as no rules", () => {
+    const rules = parseRules(null);
 
-  it("drops a triple with an empty field", () => {
-    expect(parseRules(":5:10")).toEqual([]);
-  });
+    expect(rules).toEqual([]);
+  }); // null header
+
+  it("reads an empty header as no rules", () => {
+    const rules = parseRules("");
+
+    expect(rules).toEqual([]);
+  }); // "" would otherwise split into one empty part
+
+  it("drops a two-field triple and a non-numeric triple but keeps the good one after them", () => {
+    const rules = parseRules("10:5,x:5:10,20:10:60");
+
+    expect(rules).toEqual([{ max: 19, windowMs: 11_000 }]);
+  }); // bad parts are skipped, not fatal
+
+  it("drops a triple with an empty field rather than read it as zero", () => {
+    const rules = parseRules(":5:10");
+
+    expect(rules).toEqual([]);
+  }); // Number("") is 0
 });
 
 describe("parseState", () => {
-  it("reads hits, window and restriction in order", () => {
-    expect(parseState("3:12:0,143:21600:60")).toEqual([
+  it("reads hits, window and restriction in that order for each triple", () => {
+    const state = parseState("3:12:0,143:21600:60");
+
+    expect(state).toEqual([
       { hits: 3, windowSeconds: 12, restrictedSeconds: 0 },
       { hits: 143, windowSeconds: 21600, restrictedSeconds: 60 },
     ]);
-  });
+  }); // no headroom or skew applied here
 
   it("reads a missing header as no state", () => {
-    expect(parseState(null)).toEqual([]);
-  });
+    const state = parseState(null);
+
+    expect(state).toEqual([]);
+  }); // null header
 });
 
 describe("parseRetryAfter", () => {
   const now = Date.parse("2026-01-01T00:00:00Z");
 
-  it("reads a count of seconds", () => {
-    expect(parseRetryAfter("30", now)).toBe(30);
-  });
+  it("reads 30 as thirty seconds", () => {
+    const seconds = parseRetryAfter("30", now);
 
-  it("clamps a negative count to zero", () => {
-    expect(parseRetryAfter("-5", now)).toBe(0);
-  });
+    expect(seconds).toBe(30);
+  }); // numeric form
 
-  it("reads a missing or empty header as no duration", () => {
-    expect(parseRetryAfter(null, now)).toBeUndefined();
-    expect(parseRetryAfter("", now)).toBeUndefined();
-  });
+  it("reads a negative count as no wait", () => {
+    const seconds = parseRetryAfter("-5", now);
 
-  it("turns an HTTP date into whole seconds from now, rounded up", () => {
+    expect(seconds).toBe(0);
+  }); // clamped at zero
+
+  it("reads a missing header as no duration given", () => {
+    const seconds = parseRetryAfter(null, now);
+
+    expect(seconds).toBeUndefined();
+  }); // undefined, not zero
+
+  it("reads a whitespace-only header as no duration given", () => {
+    const seconds = parseRetryAfter(" ", now);
+
+    expect(seconds).toBeUndefined();
+  }); // Number(" ") is 0, so trimmed first
+
+  it("turns an HTTP date a second and a millisecond away into two whole seconds", () => {
     const at = new Date(now + 1_500).toUTCString();
 
-    // toUTCString drops ms, so the date is now+1s
-    expect(parseRetryAfter(at, now - 1)).toBe(2);
-  });
+    const seconds = parseRetryAfter(at, now - 1);
 
-  it("reads a date already in the past as no wait", () => {
-    expect(parseRetryAfter(new Date(now - 60_000).toUTCString(), now)).toBe(0);
-  });
+    expect(seconds).toBe(2);
+  }); // toUTCString drops ms; rounds up, never early
 
-  it("reads garbage as no duration", () => {
-    expect(parseRetryAfter("soon", now)).toBeUndefined();
-  });
+  it("reads a date a minute in the past as no wait", () => {
+    const seconds = parseRetryAfter(new Date(now - 60_000).toUTCString(), now);
 
-  it("reads a whitespace-only header as no duration", () => {
-    expect(parseRetryAfter(" ", now)).toBeUndefined();
-  });
+    expect(seconds).toBe(0);
+  }); // clamped at zero
+
+  it("reads a word that is neither a number nor a date as no duration given", () => {
+    const seconds = parseRetryAfter("soon", now);
+
+    expect(seconds).toBeUndefined();
+  }); // Date.parse NaN
 });

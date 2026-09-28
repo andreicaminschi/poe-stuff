@@ -7,9 +7,11 @@ describe("PoeNinjaHttpError", () => {
 
     expect(error.message).toBe("poe-ninja 404 for https://x/p");
     expect(error.name).toBe("PoeNinjaHttpError");
-  });
+  }); // one attempt is the unremarkable case
 
-  it("says how many attempts were made once it asked more than once", () => {
-    expect(new PoeNinjaHttpError("https://x/p", 503, 2).message).toBe("poe-ninja 503 for https://x/p (2 attempts)");
-  });
+  it("says it made two attempts once it asked twice", () => {
+    const error = new PoeNinjaHttpError("https://x/p", 503, 2);
+
+    expect(error.message).toBe("poe-ninja 503 for https://x/p (2 attempts)");
+  }); // suffix only above one
 });

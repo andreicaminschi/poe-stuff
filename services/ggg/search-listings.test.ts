@@ -7,7 +7,7 @@ afterEach(() => {
 });
 
 describe("searchListings", () => {
-  it("posts the query as JSON to the league's escaped search url", async () => {
+  it("posts the query as JSON to the search address of a league whose name has a space", async () => {
     const fetchMock = stubFetch({ id: "S", result: [], total: 0, complexity: 1 });
 
     await searchListings({ query: { type: "Ring" } }, "Hardcore Allflame", context);
@@ -17,16 +17,13 @@ describe("searchListings", () => {
     expect(init?.method).toBe("POST");
     expect(init?.body).toBe("{\"query\":{\"type\":\"Ring\"}}");
     expect(init?.headers).toMatchObject({ "content-type": "application/json" });
-  });
+  }); // league is a path segment, escaped
 
-  it("renames the answer into search id, hashes, match count and complexity", async () => {
+  it("reports 812 matches even when only two hashes came back", async () => {
     stubFetch({ id: "S", result: ["a", "b"], total: 812, complexity: 7 });
 
-    expect(await searchListings({}, "L", context)).toEqual({
-      searchId: "S",
-      hashes: ["a", "b"],
-      matchCount: 812,
-      complexity: 7,
-    });
-  });
+    const search = await searchListings({}, "L", context);
+
+    expect(search).toEqual({ searchId: "S", hashes: ["a", "b"], matchCount: 812, complexity: 7 });
+  }); // GGG caps hashes, not the total
 });

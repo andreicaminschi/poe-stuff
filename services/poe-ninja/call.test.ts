@@ -27,113 +27,137 @@ afterEach(async () => {
 });
 
 describe("fetchJson", () => {
-  it("sorts the query by name so two spellings of one query hit the same URL", async () => {
-    fetchMock.mockResolvedValue(json({ ok: 1 }));
+  describe("building the request", () => {
+    it("puts the query in name order so two spellings of one query ask for the same URL", async () => {
+      fetchMock.mockResolvedValue(json({ ok: 1 }));
 
-    const body = await fetchJson("p/a", { type: "Oil", league: "Allflame" }, context);
+      const body = await fetchJson("p/a", { type: "Oil", league: "Allflame" }, context);
 
-    expect(body).toEqual({ ok: 1 });
-    expect(fetchMock).toHaveBeenCalledWith("https://ninja.test/p/a?league=Allflame&type=Oil", {
-      headers: { "user-agent": "ua/1", accept: "application/json" },
-    });
+      expect(body).toEqual({ ok: 1 });
+      expect(fetchMock).toHaveBeenCalledWith("https://ninja.test/p/a?league=Allflame&type=Oil", {
+        headers: { "user-agent": "ua/1", accept: "application/json" },
+      });
+    }); // type was given first, league is sent first
+
+    it("leaves the question mark off when there is no query", async () => {
+      fetchMock.mockResolvedValue(json([]));
+
+      await fetchJson("p/leagues", {}, context);
+
+      expect(fetchMock.mock.calls[0]?.[0]).toBe("https://ninja.test/p/leagues");
+    }); // empty search string
+
+    it("sends a space in a league name as a plus sign", async () => {
+      fetchMock.mockResolvedValue(json([]));
+
+      await fetchJson("p", { league: "Hardcore Allflame" }, context);
+
+      expect(fetchMock.mock.calls[0]?.[0]).toBe("https://ninja.test/p?league=Hardcore+Allflame");
+    }); // URLSearchParams, not encodeURIComponent
   });
 
-  it("leaves the question mark off when there is no query", async () => {
-    fetchMock.mockResolvedValue(json([]));
+  describe("retrying", () => {
+    it("fails a 404 at once without asking twice", async () => {
+      fetchMock.mockResolvedValue(json({}, 404));
 
-    await fetchJson("p/leagues", {}, context);
+      const error = await fetchJson("p", {}, context).catch((caught: unknown) => caught);
 
-    expect(fetchMock.mock.calls[0]?.[0]).toBe("https://ninja.test/p/leagues");
+      expect(error).toBeInstanceOf(PoeNinjaHttpError);
+      expect(error).toMatchObject({ status: 404, attempts: 1, url: "https://ninja.test/p" });
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    }); // a typo stays one request
+
+    it("fails a 499 at once, one below the first server error", async () => {
+      fetchMock.mockResolvedValue(json({}, 499));
+
+      const error = await fetchJson("p", {}, context).catch((caught: unknown) => caught);
+
+      expect(error).toMatchObject({ status: 499, attempts: 1 });
+    }); // retry boundary is 500 and up
+
+    it("asks a 429 again only after two full seconds and returns the second answer", async () => {
+      jest.useFakeTimers();
+      fetchMock.mockResolvedValueOnce(json({}, 429)).mockResolvedValueOnce(json({ second: true }));
+
+      const pending = fetchJson("p", {}, context);
+      await jest.advanceTimersByTimeAsync(1_999);
+      const beforeDelay = fetchMock.mock.calls.length;
+      await jest.advanceTimersByTimeAsync(1);
+
+      expect(beforeDelay).toBe(1);
+      await expect(pending).resolves.toEqual({ second: true });
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    }); // nothing at 1999ms, retry at 2000ms
+
+    it("recovers when a 500 is followed by a good answer", async () => {
+      jest.useFakeTimers();
+      fetchMock.mockResolvedValueOnce(json({}, 500)).mockResolvedValueOnce(json({ ok: true }));
+
+      const pending = fetchJson("p", {}, context);
+      await jest.advanceTimersByTimeAsync(2_000);
+
+      await expect(pending).resolves.toEqual({ ok: true });
+    }); // 5xx is retriable like 429
+
+    it("gives up after a second server error and says it tried twice", async () => {
+      jest.useFakeTimers();
+      fetchMock.mockResolvedValueOnce(json({}, 500)).mockResolvedValueOnce(json({}, 503));
+
+      const pending = fetchJson("p", {}, context).catch((caught: unknown) => caught);
+      await jest.advanceTimersByTimeAsync(2_000);
+
+      expect(await pending).toMatchObject({ status: 503, attempts: 2 });
+    }); // reports the second status, never a third try
   });
 
-  it("encodes spaces in a league name as plus signs", async () => {
-    fetchMock.mockResolvedValue(json([]));
+  describe("caching by the hour", () => {
+    it("makes no request for the same URL again one millisecond before the hour ends", async () => {
+      jest.useFakeTimers({ now: 10 * HOUR_MS, doNotFake: ["setImmediate", "nextTick"] });
+      dir = await mkdtemp(join(tmpdir(), "poe-ninja-"));
+      const cache = createFileCache<CachedResponse>(dir);
+      fetchMock.mockResolvedValueOnce(json({ n: 1 })).mockResolvedValueOnce(json({ n: 2 }));
 
-    await fetchJson("p", { league: "Hardcore Allflame" }, context);
+      const first = await fetchJson("p", { a: "1" }, { ...context, cache });
+      jest.setSystemTime(11 * HOUR_MS - 1);
+      const second = await fetchJson("p", { a: "1" }, { ...context, cache });
 
-    expect(fetchMock.mock.calls[0]?.[0]).toBe("https://ninja.test/p?league=Hardcore+Allflame");
-  });
+      expect(first).toEqual({ n: 1 });
+      expect(second).toEqual({ n: 1 });
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    }); // last millisecond of the hour still hits
 
-  it("fails a 404 at once without asking twice", async () => {
-    fetchMock.mockResolvedValue(json({}, 404));
+    it("fetches again once the clock crosses into the next hour", async () => {
+      jest.useFakeTimers({ now: 10 * HOUR_MS, doNotFake: ["setImmediate", "nextTick"] });
+      dir = await mkdtemp(join(tmpdir(), "poe-ninja-"));
+      const cache = createFileCache<CachedResponse>(dir);
+      fetchMock.mockResolvedValueOnce(json({ n: 1 })).mockResolvedValueOnce(json({ n: 2 }));
 
-    const error = await fetchJson("p", {}, context).catch((caught: unknown) => caught);
+      await fetchJson("p", {}, { ...context, cache });
+      jest.setSystemTime(11 * HOUR_MS);
+      const second = await fetchJson("p", {}, { ...context, cache });
 
-    expect(error).toBeInstanceOf(PoeNinjaHttpError);
-    expect(error).toMatchObject({ status: 404, attempts: 1, url: "https://ninja.test/p" });
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-  });
+      expect(second).toEqual({ n: 2 });
+    }); // the hour is read per call
 
-  it("asks a 429 again after two seconds and returns the second answer", async () => {
-    jest.useFakeTimers();
-    fetchMock.mockResolvedValueOnce(json({}, 429)).mockResolvedValueOnce(json({ second: true }));
+    it("keeps two item types of one league apart in the cache", async () => {
+      dir = await mkdtemp(join(tmpdir(), "poe-ninja-"));
+      const cache = createFileCache<CachedResponse>(dir);
+      fetchMock.mockResolvedValueOnce(json({ t: "a" })).mockResolvedValueOnce(json({ t: "b" }));
 
-    const pending = fetchJson("p", {}, context);
-    await jest.advanceTimersByTimeAsync(1_999);
-    const beforeDelay = fetchMock.mock.calls.length;
-    await jest.advanceTimersByTimeAsync(1);
+      await fetchJson("p", { type: "A" }, { ...context, cache });
+      const second = await fetchJson("p", { type: "B" }, { ...context, cache });
 
-    expect(beforeDelay).toBe(1);
-    await expect(pending).resolves.toEqual({ second: true });
-    expect(fetchMock).toHaveBeenCalledTimes(2);
-  });
+      expect(second).toEqual({ t: "b" });
+    }); // the query is part of the key
 
-  it("gives up after a second 5xx and says it tried twice", async () => {
-    jest.useFakeTimers();
-    fetchMock.mockResolvedValueOnce(json({}, 500)).mockResolvedValueOnce(json({}, 503));
+    it("stores nothing when the request fails with a 400", async () => {
+      const set = jest.fn<(key: string, value: CachedResponse) => Promise<void>>();
+      const cache = { get: async () => undefined, set };
+      fetchMock.mockResolvedValue(json({}, 400));
 
-    const pending = fetchJson("p", {}, context).catch((caught: unknown) => caught);
-    await jest.advanceTimersByTimeAsync(2_000);
+      await fetchJson("p", {}, { ...context, cache }).catch(() => undefined);
 
-    expect(await pending).toMatchObject({ status: 503, attempts: 2 });
-  });
-
-  it("makes no request for the same URL again inside the same hour", async () => {
-    jest.useFakeTimers({ now: 10 * HOUR_MS, doNotFake: ["setImmediate", "nextTick"] });
-    dir = await mkdtemp(join(tmpdir(), "poe-ninja-"));
-    const cache = createFileCache<CachedResponse>(dir);
-    fetchMock.mockResolvedValueOnce(json({ n: 1 })).mockResolvedValueOnce(json({ n: 2 }));
-
-    const first = await fetchJson("p", { a: "1" }, { ...context, cache });
-    jest.setSystemTime(11 * HOUR_MS - 1);
-    const second = await fetchJson("p", { a: "1" }, { ...context, cache });
-
-    expect(first).toEqual({ n: 1 });
-    expect(second).toEqual({ n: 1 });
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-  });
-
-  it("fetches again once the clock crosses into the next hour", async () => {
-    jest.useFakeTimers({ now: 10 * HOUR_MS, doNotFake: ["setImmediate", "nextTick"] });
-    dir = await mkdtemp(join(tmpdir(), "poe-ninja-"));
-    const cache = createFileCache<CachedResponse>(dir);
-    fetchMock.mockResolvedValueOnce(json({ n: 1 })).mockResolvedValueOnce(json({ n: 2 }));
-
-    await fetchJson("p", {}, { ...context, cache });
-    jest.setSystemTime(11 * HOUR_MS);
-    const second = await fetchJson("p", {}, { ...context, cache });
-
-    expect(second).toEqual({ n: 2 });
-  });
-
-  it("keeps two queries apart in the cache", async () => {
-    dir = await mkdtemp(join(tmpdir(), "poe-ninja-"));
-    const cache = createFileCache<CachedResponse>(dir);
-    fetchMock.mockResolvedValueOnce(json({ t: "a" })).mockResolvedValueOnce(json({ t: "b" }));
-
-    await fetchJson("p", { type: "A" }, { ...context, cache });
-    const second = await fetchJson("p", { type: "B" }, { ...context, cache });
-
-    expect(second).toEqual({ t: "b" });
-  });
-
-  it("stores nothing when a request fails", async () => {
-    const set = jest.fn<(key: string, value: CachedResponse) => Promise<void>>();
-    const cache = { get: async () => undefined, set };
-    fetchMock.mockResolvedValue(json({}, 400));
-
-    await fetchJson("p", {}, { ...context, cache }).catch(() => undefined);
-
-    expect(set).not.toHaveBeenCalled();
+      expect(set).not.toHaveBeenCalled();
+    }); // a failure is not replayed all hour
   });
 });

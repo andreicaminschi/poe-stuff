@@ -13,7 +13,7 @@ beforeEach(() => {
 const answer = (body: unknown) => fetchMock.mockResolvedValue(new Response(JSON.stringify(body)));
 
 describe("getExchangeRatios", () => {
-  it("names the league and the game in the request", async () => {
+  it("names both the league and the game in the request", async () => {
     answer({ items: [] });
 
     await getExchangeRatios("Dawn of the Hunt", "poe2", context);
@@ -21,11 +21,21 @@ describe("getExchangeRatios", () => {
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
       "https://pw.test/exchange/ratios?league=Dawn%20of%20the%20Hunt&game=poe2",
     );
-  });
+  }); // league names collide across games
 
-  it("returns the items out of the envelope", async () => {
+  it("hands back the item list out of the envelope", async () => {
     answer({ items: [{ id: 3 }] });
 
-    expect(await getExchangeRatios("X", "poe1", context)).toEqual([{ id: 3 }]);
-  });
+    const items = await getExchangeRatios("X", "poe1", context);
+
+    expect(items).toEqual([{ id: 3 }]);
+  }); // unwraps items
+
+  it("hands back an empty list when the envelope carries no items", async () => {
+    answer({});
+
+    const items = await getExchangeRatios("X", "poe1", context);
+
+    expect(items).toEqual([]);
+  }); // ?? [] fallback
 });
