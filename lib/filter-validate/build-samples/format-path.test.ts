@@ -3,14 +3,14 @@ import { formatPath } from "./format-path.ts";
 
 describe("formatPath", () => {
   it("is the category alone for a row with no subcategory", () => {
-    expect(formatPath({ key: "k", name: "n", category: "currency", subcategory: null, baseTypes: [] })).toBe(
-      "currency",
-    );
+    const path = formatPath({ category: "currency", subcategory: null });
+
+    expect(path).toBe("currency"); // no trailing slash
   });
 
-  it("joins category and subcategory with a slash", () => {
-    expect(formatPath({ key: "k", name: "n", category: "gems", subcategory: "skill", baseTypes: [] })).toBe(
-      "gems/skill",
-    );
+  it("joins the category and subcategory with a slash", () => {
+    const path = formatPath({ category: "gems", subcategory: "skill" });
+
+    expect(path).toBe("gems/skill");
   });
 });

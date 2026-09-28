@@ -2,34 +2,59 @@ import { describe, it, expect } from "@jest/globals";
 import { sampleQuery } from "./sample-query.ts";
 
 describe("sampleQuery", () => {
-  it("is only the row name when the item carries nothing", () => {
-    expect(sampleQuery("Exalted Orb", {})).toBe("Exalted Orb");
+  it("is just the row's name when the item carries nothing", () => {
+    const query = sampleQuery("Exalted Orb", {});
+
+    expect(query).toBe("Exalted Orb");
   });
 
-  it("words the known properties in plain English", () => {
+  it("words gem level, quality, corruption, links, map tier and item level in plain English", () => {
     const item = { GemLevel: 21, Quality: 20, Corrupted: true, LinkedSockets: 6, MapTier: 16, ItemLevel: 86 };
 
-    expect(sampleQuery("X", item)).toBe("X, gem level 21, quality 20, corrupted, 6 links, map tier 16, item level 86");
+    const query = sampleQuery("X", item);
+
+    expect(query).toBe("X, gem level 21, quality 20, corrupted, 6 links, map tier 16, item level 86");
   });
 
-  it("drops a worded property whose value is zero or false", () => {
-    expect(sampleQuery("X", { Quality: 0, GemLevel: 0, Corrupted: false })).toBe("X");
+  it("leaves out a worded property that is zero or false", () => {
+    const query = sampleQuery("X", { Quality: 0, GemLevel: 0, Corrupted: false });
+
+    expect(query).toBe("X"); // 0 quality is the default, not worth searching
   });
 
-  it("lists influences and drops an empty influence list", () => {
-    expect(sampleQuery("X", { HasInfluence: ["Shaper", "Elder"] })).toBe("X, influence Shaper Elder");
-    expect(sampleQuery("X", { HasInfluence: [] })).toBe("X");
+  it("lists two influences after the word influence", () => {
+    const query = sampleQuery("X", { HasInfluence: ["Shaper", "Elder"] });
+
+    expect(query).toBe("X, influence Shaper Elder");
   });
 
-  it("skips a string base type that equals the row name", () => {
-    expect(sampleQuery("Hubris Circlet", { BaseType: "Hubris Circlet" })).toBe("Hubris Circlet");
+  it("leaves out an empty influence list", () => {
+    const query = sampleQuery("X", { HasInfluence: [] });
+
+    expect(query).toBe("X");
   });
 
-  it("writes any other property by its condition name", () => {
-    expect(sampleQuery("X", { StackSize: 10, Class: "Currency" })).toBe("X, StackSize 10, Class Currency");
+  it("leaves out a base type that is the same as the row's name", () => {
+    const query = sampleQuery("Hubris Circlet", { BaseType: "Hubris Circlet" });
+
+    expect(query).toBe("Hubris Circlet"); // would repeat the name
   });
 
-  it("drops any other property holding an empty list", () => {
-    expect(sampleQuery("X", { HasExplicitMod: [] })).toBe("X");
+  it("keeps a base type that differs from the row's name", () => {
+    const query = sampleQuery("Kaom's Heart", { BaseType: "Glorious Plate" });
+
+    expect(query).toBe("Kaom's Heart, BaseType Glorious Plate");
+  });
+
+  it("writes any other property by its condition name and value", () => {
+    const query = sampleQuery("X", { StackSize: 10, Class: "Currency" });
+
+    expect(query).toBe("X, StackSize 10, Class Currency");
+  });
+
+  it("leaves out any other property holding an empty list", () => {
+    const query = sampleQuery("X", { HasExplicitMod: [] });
+
+    expect(query).toBe("X");
   });
 });

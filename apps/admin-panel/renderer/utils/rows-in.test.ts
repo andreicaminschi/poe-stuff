@@ -13,18 +13,32 @@ const keys = (items: readonly { key: string }[]) => items.map((item) => item.key
 
 describe("rowsIn", () => {
   it("returns every row in the view when no path is selected", () => {
-    expect(keys(rowsIn(draft, undefined, "included"))).toEqual(["top", "sub", "other"]);
+    const rows = rowsIn(draft, undefined, "included");
+
+    expect(keys(rows)).toEqual(["top", "sub", "other"]); // draft order kept
   });
 
   it("includes a category's subcategory rows", () => {
-    expect(keys(rowsIn(draft, "gems", "included"))).toEqual(["top", "sub"]);
+    const rows = rowsIn(draft, "gems", "included");
+
+    expect(keys(rows)).toEqual(["top", "sub"]);
   });
 
   it("narrows to one subcategory", () => {
-    expect(keys(rowsIn(draft, "gems/support", "included"))).toEqual(["sub"]);
+    const rows = rowsIn(draft, "gems/support", "included");
+
+    expect(keys(rows)).toEqual(["sub"]);
   });
 
-  it("applies the view before the path", () => {
-    expect(keys(rowsIn(draft, "gems", "excluded"))).toEqual(["gone"]);
+  it("applies the view as well as the path", () => {
+    const rows = rowsIn(draft, "gems", "excluded");
+
+    expect(keys(rows)).toEqual(["gone"]);
+  });
+
+  it("returns nothing for a path no row is filed under", () => {
+    const rows = rowsIn(draft, "flasks", "included");
+
+    expect(rows).toEqual([]);
   });
 });

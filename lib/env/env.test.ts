@@ -8,51 +8,65 @@ afterEach(() => {
 });
 
 describe("optionalEnv", () => {
-  it("returns the value when the variable is set", () => {
+  it("returns the value of a variable that is set", () => {
     process.env[NAME] = "x";
 
-    expect(optionalEnv(NAME)).toBe("x");
+    const value = optionalEnv(NAME);
+
+    expect(value).toBe("x");
   });
 
-  it("returns undefined when the variable is unset", () => {
-    expect(optionalEnv(NAME)).toBeUndefined();
+  it("returns nothing for a variable that is not set", () => {
+    const value = optionalEnv(NAME);
+
+    expect(value).toBeUndefined();
   });
 
-  it("treats an empty string as unset", () => {
+  it("treats a variable set to an empty string as not set", () => {
     process.env[NAME] = "";
 
-    expect(optionalEnv(NAME)).toBeUndefined();
+    const value = optionalEnv(NAME);
+
+    expect(value).toBeUndefined(); // "VAR=" in a .env file
   });
 
-  it("keeps a whitespace-only value as it is", () => {
+  it("keeps a value of only spaces exactly as it is", () => {
     process.env[NAME] = "  ";
 
-    expect(optionalEnv(NAME)).toBe("  "); // no trimming
+    const value = optionalEnv(NAME);
+
+    expect(value).toBe("  "); // no trimming
   });
 
-  it("reads the environment at call time, not at import", () => {
-    expect(optionalEnv(NAME)).toBeUndefined();
-
+  it("sees a variable set after the module was imported", () => {
     process.env[NAME] = "late";
 
-    expect(optionalEnv(NAME)).toBe("late");
+    const value = optionalEnv(NAME);
+
+    expect(value).toBe("late"); // read per call, never cached
   });
 });
 
 describe("requireEnv", () => {
-  it("returns the value when the variable is set", () => {
+  it("returns the value of a variable that is set", () => {
     process.env[NAME] = "x";
 
-    expect(requireEnv(NAME)).toBe("x");
+    const value = requireEnv(NAME);
+
+    expect(value).toBe("x");
   });
 
-  it("throws a message naming the missing variable", () => {
-    expect(() => requireEnv(NAME)).toThrow(`Missing ${NAME}. Run with: node --env-file=apps/<name>/.env <script>`);
+  it("throws a message that names the missing variable and how to supply it", () => {
+    const read = () => requireEnv(NAME);
+
+    expect(read).toThrow(`Missing ${NAME}. Run with: node --env-file=apps/<name>/.env <script>`);
   });
 
-  it("throws for an empty string just as for an unset variable", () => {
+  it("throws for a variable set to an empty string, just as for one not set", () => {
     process.env[NAME] = "";
 
-    expect(() => requireEnv(NAME)).toThrow(`Missing ${NAME}.`);
+    const read = () => requireEnv(NAME);
+
+    expect(read).toThrow(`Missing ${NAME}.`); // shares optionalEnv's empty rule
   });
 });

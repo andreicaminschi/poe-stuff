@@ -7,11 +7,15 @@ describe("sharedConditions", () => {
   const ilvl = { condition: "ItemLevel", operator: ">=", value: 75 };
 
   it("has nothing in common across no items", () => {
-    expect(sharedConditions([])).toEqual([]);
+    const shared = sharedConditions([]);
+
+    expect(shared).toEqual([]);
   });
 
   it("returns all of one item's conditions", () => {
-    expect(sharedConditions([ggg("a", { conditions: [rare, ilvl] })])).toEqual([rare, ilvl]);
+    const shared = sharedConditions([ggg("a", { conditions: [rare, ilvl] })]);
+
+    expect(shared).toEqual([rare, ilvl]);
   });
 
   it("keeps only what every item has, in the first item's order", () => {
@@ -21,12 +25,35 @@ describe("sharedConditions", () => {
       ggg("c", { conditions: [rare] }),
     ];
 
-    expect(sharedConditions(items)).toEqual([rare]);
+    const shared = sharedConditions(items);
+
+    expect(shared).toEqual([rare]);
+  });
+
+  it("has nothing in common once one item has no conditions", () => {
+    const items = [ggg("a", { conditions: [rare] }), ggg("b")];
+
+    const shared = sharedConditions(items);
+
+    expect(shared).toEqual([]);
+  });
+
+  it("matches conditions written differently but meaning the same", () => {
+    const items = [
+      ggg("a", { conditions: [rare] }),
+      ggg("b", { conditions: [{ condition: "Rarity", operator: "==", value: "Rare" }] }),
+    ];
+
+    const shared = sharedConditions(items);
+
+    expect(shared).toEqual([rare]); // compared by meaning, returned as the first item wrote it
   });
 
   it("keeps a condition the first item lists twice twice", () => {
     const items = [ggg("a", { conditions: [rare, rare] }), ggg("b", { conditions: [rare] })];
 
-    expect(sharedConditions(items)).toEqual([rare, rare]);
+    const shared = sharedConditions(items);
+
+    expect(shared).toEqual([rare, rare]); // no deduplication
   });
 });

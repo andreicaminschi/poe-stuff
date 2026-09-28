@@ -4,10 +4,14 @@ import { ggg } from "../test-helpers.ts";
 
 describe("withQuest", () => {
   it("marks the item a quest item", () => {
-    expect(withQuest(ggg("a"), true).quest).toBe(true);
+    const item = withQuest(ggg("a"), true);
+
+    expect(item.quest).toBe(true);
   });
 
-  it("removes the key when unset instead of writing false", () => {
-    expect("quest" in withQuest(ggg("a", { quest: true }), false)).toBe(false);
+  it("removes the flag when unset instead of writing false", () => {
+    const item = withQuest(ggg("a", { quest: true }), false);
+
+    expect("quest" in item).toBe(false); // keeps the saved file free of false flags
   });
 });

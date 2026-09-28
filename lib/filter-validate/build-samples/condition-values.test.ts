@@ -17,39 +17,46 @@ const row = (extra: Partial<SampleRow>): SampleRow => ({
 });
 
 describe("conditionValues", () => {
-  it("collects every value the category, subcategory and row resolve to", () => {
-    const values = conditionValues(
-      categories,
-      row({ conditions: [{ condition: "Quality", operator: ">=", value: 20 }] }),
-    );
+  it("collects every value the category, subcategory and row give, by condition name, with lists flattened", () => {
+    const gem = row({ conditions: [{ condition: "Quality", operator: ">=", value: 20 }] });
 
-    expect(Object.fromEntries(values)).toEqual({ Class: ["Skill Gems"], GemLevel: [1], Quality: [20] });
+    const values = conditionValues(categories, gem);
+
+    expect(Object.fromEntries(values)).toEqual({ Class: ["Skill Gems"], GemLevel: [1], Quality: [20] }); // ["Skill Gems"] not nested
   });
 
-  it("merges each variant's values without repeating one", () => {
-    const values = conditionValues(
-      categories,
-      row({
-        variants: [
-          { name: "low", conditions: [{ condition: "GemLevel", operator: ">=", value: 1 }] },
-          { name: "high", conditions: [{ condition: "GemLevel", operator: ">=", value: 21 }] },
-        ],
-      }),
-    );
+  it("joins the values of two variants without repeating the one they share", () => {
+    const gem = row({
+      variants: [
+        { name: "low", conditions: [{ condition: "GemLevel", operator: ">=", value: 1 }] },
+        { name: "high", conditions: [{ condition: "GemLevel", operator: ">=", value: 21 }] },
+      ],
+    });
 
-    expect(values.get("GemLevel")).toEqual([1, 21]);
+    const values = conditionValues(categories, gem);
+
+    expect(values.get("GemLevel")).toEqual([1, 21]); // 1 from the subcategory and "low" counted once
   });
 
-  it("fills a value read off the row's name", () => {
-    const values = conditionValues(
-      categories,
-      row({ conditions: [{ condition: "BaseType", operator: "==", from: "name" }] }),
-    );
+  it("uses the row's name for a condition that reads it", () => {
+    const gem = row({ conditions: [{ condition: "BaseType", operator: "==", from: "name" }] });
 
-    expect(values.get("BaseType")).toEqual(["Arc"]);
+    const values = conditionValues(categories, gem);
+
+    expect(values.get("BaseType")).toEqual(["Arc"]); // filled before collecting
   });
 
-  it("returns nothing for a row on a path with no records and no conditions", () => {
-    expect(conditionValues({}, row({})).size).toBe(0);
+  it("skips a condition a lower level removed", () => {
+    const gem = row({ conditions: [{ condition: "GemLevel", operator: ">=", value: null }] });
+
+    const values = conditionValues(categories, gem);
+
+    expect(values.has("GemLevel")).toBe(false);
+  });
+
+  it("collects nothing for a row on a path with no records and no conditions of its own", () => {
+    const values = conditionValues({}, row({}));
+
+    expect(values.size).toBe(0);
   });
 });

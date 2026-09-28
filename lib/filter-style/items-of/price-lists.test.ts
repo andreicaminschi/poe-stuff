@@ -16,40 +16,45 @@ const row = (baseTypes: string[], uniques: CatalogRow["uniques"]): CatalogRow =>
 const listing = { name: "Kaom's Heart", meanPrice: 10, corrupted: false };
 
 describe("priceLists", () => {
-  it("files a group with no subcategory under the regular path", () => {
-    const lists = priceLists([
-      row(["Glorious Plate"], [{ category: "unique", subcategory: null, listings: [listing] }]),
-    ]);
+  it("files a unique group with no subcategory under the regular path", () => {
+    const rows = [row(["Glorious Plate"], [{ category: "unique", subcategory: null, listings: [listing] }])];
 
-    expect(lists.get(listKey("Glorious Plate", "regular"))).toEqual([listing]);
+    const lists = priceLists(rows);
+
+    expect(lists.get(listKey("Glorious Plate", "regular"))).toEqual([listing]); // null falls back to "regular"
   });
 
-  it("files a group under its subcategory as the path", () => {
-    const lists = priceLists([
-      row(["Glorious Plate"], [{ category: "unique", subcategory: "foulborn", listings: [listing] }]),
-    ]);
+  it("files a foulborn group under the foulborn path", () => {
+    const rows = [row(["Glorious Plate"], [{ category: "unique", subcategory: "foulborn", listings: [listing] }])];
+
+    const lists = priceLists(rows);
 
     expect([...lists.keys()]).toEqual(["Glorious Plate|foulborn"]);
   });
 
-  it("files the same list under every base type the row carries", () => {
-    const lists = priceLists([row(["A", "B"], [{ category: "unique", subcategory: null, listings: [listing] }])]);
+  it("files the same list under each of a row's two base types", () => {
+    const rows = [row(["A", "B"], [{ category: "unique", subcategory: null, listings: [listing] }])];
+
+    const lists = priceLists(rows);
 
     expect([...lists.keys()]).toEqual(["A|regular", "B|regular"]);
   });
 
-  it("merges two rows' lists on the same base and path", () => {
+  it("joins two rows' lists on the same base and path, earlier row first", () => {
     const later = { ...listing, meanPrice: 99 };
-
-    const lists = priceLists([
+    const rows = [
       row(["A"], [{ category: "unique", subcategory: null, listings: [listing] }]),
       row(["A"], [{ category: "unique", subcategory: null, listings: [later] }]),
-    ]);
+    ];
 
-    expect(lists.get("A|regular")).toEqual([listing, later]);
+    const lists = priceLists(rows);
+
+    expect(lists.get("A|regular")).toEqual([listing, later]); // appended, not replaced
   });
 
-  it("returns an empty map for rows without uniques", () => {
-    expect(priceLists([row(["A"], undefined)]).size).toBe(0);
+  it("files nothing for a row with no uniques", () => {
+    const lists = priceLists([row(["A"], undefined)]);
+
+    expect(lists.size).toBe(0);
   });
 });

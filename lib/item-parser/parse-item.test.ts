@@ -5,62 +5,72 @@ import { parseItem, property } from "./parse-item.ts";
 const sample = (name: string) => readFileSync(new URL(`../../data/sample-items/${name}.txt`, import.meta.url), "utf8");
 
 describe("parseItem", () => {
-  it("reports an empty item and nothing else for blank text", () => {
-    expect(parseItem("\n--------\n").issues).toEqual([{ kind: "empty-item", line: "", section: 0 }]);
+  it("reports an empty item, and nothing else, for text that is only a separator", () => {
+    const item = parseItem("\n--------\n");
+
+    expect(item.issues).toEqual([{ kind: "empty-item", line: "", section: 0 }]);
   });
 
-  it("reads a rare ring's header, requirements, properties and mods", () => {
+  it("reads a rare ring's name, base type, requirements and item level", () => {
     const item = parseItem(sample("rare-ring"));
 
-    expect([
-      item.name,
-      item.baseType,
-      item.requirements.map((r) => r.name),
-      property(item, "Item Level")?.numbers,
-    ]).toEqual(["Maelström Circle", "Amethyst Ring", ["Level"], [85]]);
+    expect([item.name, item.baseType, item.requirements.map((r) => r.name), property(item, "Item Level")?.numbers]).toEqual([
+      "Maelström Circle",
+      "Amethyst Ring",
+      ["Level"],
+      [85],
+    ]);
+  });
+
+  it("reads a rare ring's implicit, two prefixes and two suffixes in order", () => {
+    const item = parseItem(sample("rare-ring"));
+
     expect(item.mods.map((mod) => mod.header.affix)).toEqual(["implicit", "prefix", "prefix", "suffix", "suffix"]);
   });
 
-  it("takes sockets out of the properties and reads trailing flags", () => {
+  it("takes the sockets out of the properties and reads the Shaper line as a flag", () => {
     const item = parseItem(sample("influenced-rare"));
 
-    expect([item.sockets, property(item, "Sockets"), item.flags]).toEqual([["WWW"], undefined, ["Shaper Item"]]);
+    expect([item.sockets, property(item, "Sockets"), item.flags]).toEqual([["WWW"], undefined, ["Shaper Item"]]); // sockets get their own field
   });
 
-  it("keeps flavour text verbatim as an extra section", () => {
+  it("keeps flavour text exactly as written in a section of its own", () => {
     const item = parseItem(sample("item-with-enchant"));
 
-    expect(item.extraSections).toHaveLength(1);
-    expect(item.extraSections[0]?.[0]).toBe("Betrayal bites cold as a southerly wind,");
+    expect([item.extraSections.length, item.extraSections[0]?.[0]]).toEqual([1, "Betrayal bites cold as a southerly wind,"]); // one prose line makes the whole section prose
   });
 
-  it("reads a suffixed enchant line as a modifier", () => {
+  it("reads a line ending in (enchant) as an enchant modifier", () => {
     const item = parseItem(sample("item-with-enchant"));
 
     expect(item.mods[0]?.header.qualifiers).toEqual(["enchant"]);
   });
 
-  it("reads a short bare line on a divination card as a flag", () => {
-    expect(parseItem(sample("divination-card")).flags).toEqual(["10x Exalted Orb"]);
+  it("reads a divination card's short reward line as a flag", () => {
+    const item = parseItem(sample("divination-card"));
+
+    expect(item.flags).toEqual(["10x Exalted Orb"]);
   });
 
-  it("keeps a non-property line in a requirements section as an extra section", () => {
+  it("keeps a line in the requirements section that is not a requirement as its own section", () => {
     const item = parseItem("X\n--------\nRequirements:\nLevel: 5\nstrange line");
 
-    expect([item.flags, item.extraSections]).toEqual([[], [["strange line"]]]);
+    expect([item.flags, item.extraSections]).toEqual([[], [["strange line"]]]); // nothing is dropped
   });
 
-  it("reports a line before the first header in a mod section with its 1-based section", () => {
-    expect(parseItem("X\n--------\nstray\n{ Implicit Modifier }\ntext").issues).toEqual([
-      { kind: "orphan-mod-line", line: "stray", section: 2 },
-    ]);
+  it("reports a line that comes before the first modifier header, numbering sections from one", () => {
+    const item = parseItem("X\n--------\nstray\n{ Implicit Modifier }\ntext");
+
+    expect(item.issues).toEqual([{ kind: "orphan-mod-line", line: "stray", section: 2 }]); // header section is 1
   });
 
-  it("keeps the last sockets line when an item prints two", () => {
-    expect(parseItem("X\n--------\nSockets: R\n--------\nSockets: G-G").sockets).toEqual(["GG"]);
+  it("keeps the second sockets line when an item prints two", () => {
+    const item = parseItem("X\n--------\nSockets: R\n--------\nSockets: G-G");
+
+    expect(item.sockets).toEqual(["GG"]); // last one wins
   });
 
-  it("keeps a prose line in a key-value section as an extra section, not a flag", () => {
+  it("keeps a sentence in a key-value section as prose, not as a flag", () => {
     const item = parseItem("X\n--------\nLevel: 1\nThis is a long sentence of prose.");
 
     expect([item.flags, item.extraSections]).toEqual([[], [["This is a long sentence of prose."]]]);
@@ -68,9 +78,11 @@ describe("parseItem", () => {
 });
 
 describe("property", () => {
-  it("returns the first property of that name", () => {
+  it("gives the first of two properties with the same name", () => {
     const item = parseItem("X\n--------\nLevel: 1\nLevel: 2");
 
-    expect(property(item, "Level")?.value).toBe("1");
+    const found = property(item, "Level");
+
+    expect(found?.value).toBe("1");
   });
 });

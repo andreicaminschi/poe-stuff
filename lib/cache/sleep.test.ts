@@ -10,32 +10,39 @@ describe("sleep", () => {
     jest.useRealTimers();
   });
 
-  it("stays pending until one millisecond before the delay", async () => {
+  it("is still waiting one millisecond before a one-second delay is up", async () => {
     let done = false;
     void sleep(1000).then(() => (done = true));
 
     await jest.advanceTimersByTimeAsync(999);
 
-    expect(done).toBe(false);
+    expect(done).toBe(false); // edge minus one
   });
 
-  it("resolves exactly when the delay has passed", async () => {
+  it("finishes exactly when a one-second delay is up", async () => {
     let done = false;
     void sleep(1000).then(() => (done = true));
 
     await jest.advanceTimersByTimeAsync(1000);
 
-    expect(done).toBe(true);
+    expect(done).toBe(true); // edge itself
   });
 
-  it("resolves a zero delay on the next timer tick, not synchronously", async () => {
+  it("does not finish a zero delay synchronously", async () => {
     let done = false;
     void sleep(0).then(() => (done = true));
 
     await Promise.resolve();
-    expect(done).toBe(false);
+
+    expect(done).toBe(false); // still a macrotask
+  });
+
+  it("finishes a zero delay on the next timer tick", async () => {
+    let done = false;
+    void sleep(0).then(() => (done = true));
 
     await jest.advanceTimersByTimeAsync(0);
+
     expect(done).toBe(true);
   });
 
@@ -45,6 +52,6 @@ describe("sleep", () => {
 
     await jest.advanceTimersByTimeAsync(0);
 
-    expect(done).toBe(true);
+    expect(done).toBe(true); // setTimeout clamps below zero
   });
 });

@@ -3,18 +3,32 @@ import { slug } from "./slug.ts";
 
 describe("slug", () => {
   it("lowercases and joins words with single hyphens", () => {
-    expect(slug("Map  Fragments & Keys")).toBe("map-fragments-keys");
+    const text = slug("Map  Fragments & Keys");
+
+    expect(text).toBe("map-fragments-keys"); // a run of separators becomes one hyphen
+  });
+
+  it("keeps digits", () => {
+    const text = slug("Tier 16 Maps");
+
+    expect(text).toBe("tier-16-maps");
   });
 
   it("trims hyphens from both ends", () => {
-    expect(slug("--Boss!!")).toBe("boss");
+    const text = slug("--Boss!!");
+
+    expect(text).toBe("boss");
   });
 
   it("turns text with no letters or digits into an empty slug", () => {
-    expect(slug("  !! ")).toBe("");
+    const text = slug("  !! ");
+
+    expect(text).toBe("");
   });
 
   it("strips diacritics off accented letters", () => {
-    expect(slug("Mjölner")).toBe("mjolner");
+    const text = slug("Mjölner");
+
+    expect(text).toBe("mjolner"); // decomposed then combining marks dropped, not replaced by a hyphen
   });
 });

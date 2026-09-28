@@ -22,7 +22,7 @@ const categories: SampleCategories = {
 const takesQuality20 = parseFilter("Show\n    Quality >= 20\n    #@ tier=T1 verb=take a\n");
 
 describe("findUnfiltered", () => {
-  it("reports the samples no block takes, grouped by the row that built them", () => {
+  it("reports the samples no block takes, under the row that built them, not counting reject samples", () => {
     const report = findUnfiltered(takesQuality20, [row("a")], categories);
 
     expect(report).toEqual({
@@ -30,30 +30,34 @@ describe("findUnfiltered", () => {
       unfiltered: 1,
       unsampled: [],
       rows: [{ key: "a", name: "a", category: "gems", subcategory: "skill", samples: [{ Quality: 0 }] }],
-    }); // reject samples are not counted
+    }); // two samples; the two rejects are not "sampled"
   });
 
-  it("counts an item two rows on one path both build once", () => {
+  it("counts an item that two rows on one path both build only once, under the first row", () => {
     const report = findUnfiltered(takesQuality20, [row("a"), row("b")], categories);
 
-    expect(report.sampled).toBe(2);
-    expect(report.unfiltered).toBe(1);
-    expect(report.rows.map((one) => one.key)).toEqual(["a"]);
+    expect([report.sampled, report.unfiltered, report.rows.map((one) => one.key)]).toEqual([2, 1, ["a"]]); // path repeats skipped
   });
 
   it("counts a sample a Hide block takes as filtered", () => {
     const hideAll = parseFilter("Hide\n    #@ tier=hidden verb=take a\n");
 
-    expect(findUnfiltered(hideAll, [row("a")], categories).unfiltered).toBe(0);
+    const report = findUnfiltered(hideAll, [row("a")], categories);
+
+    expect(report.unfiltered).toBe(0); // only falling off the end counts
   });
 
-  it("reports every sample as unfiltered for an empty filter", () => {
-    expect(findUnfiltered([], [row("a")], categories).unfiltered).toBe(2);
+  it("reports every sample as unfiltered against an empty filter", () => {
+    const report = findUnfiltered([], [row("a")], categories);
+
+    expect(report.unfiltered).toBe(2);
   });
 
-  it("lists each path holding rows but no sample sets once, sorted", () => {
+  it("lists each path that holds rows but no sample sets once, sorted", () => {
     const rows = [row("x", "support"), row("y", "support"), row("z", null), row("a")];
 
-    expect(findUnfiltered([], rows, categories).unsampled).toEqual(["gems", "gems/support"]);
+    const report = findUnfiltered([], rows, categories);
+
+    expect(report.unsampled).toEqual(["gems", "gems/support"]); // deduplicated
   });
 });
