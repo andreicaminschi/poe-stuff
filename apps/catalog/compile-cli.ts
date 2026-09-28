@@ -12,7 +12,7 @@
 import { writeFileSync } from "node:fs";
 import { createTaxonomyService } from "@poe/taxonomy/service";
 import { fromTaxonomy } from "./build-silver/from-taxonomy.ts";
-import { compileFilter } from "@poe/filter-compile/compile-filter";
+import { writeUnstyledFilter } from "@poe/filter-compile/write-unstyled-filter";
 import { flag } from "./cli-args.ts";
 
 async function main(): Promise<void> {
@@ -26,7 +26,7 @@ async function main(): Promise<void> {
   const taxonomy = createTaxonomyService({ root: flag(args, "root") });
   const published = await taxonomy.getTaxonomy(flag(args, "taxonomy-version"));
   const { categories } = await taxonomy.getCategories(published.version);
-  const compiled = compileFilter(fromTaxonomy(published), categories);
+  const compiled = writeUnstyledFilter(fromTaxonomy(published), categories);
 
   writeFileSync(out, compiled.text);
   process.stdout.write(

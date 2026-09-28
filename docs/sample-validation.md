@@ -14,7 +14,7 @@ flowchart LR
     classDef out fill:#7a4a1e,stroke:#f0a050,color:#fff
 
     T[("Published taxonomy<br/>rows + categories")]:::source
-    C["filter-compile<br/>compileFilter()"]:::lib
+    C["filter-compile<br/>writeUnstyledFilter()"]:::lib
     P["filter-eval<br/>parseFilter()"]:::eval
     S["buildSamples()<br/>fake items"]:::lib
     K["checkFilter()<br/>one walk, one matcher"]:::lib
@@ -130,7 +130,7 @@ flowchart TD
 
 ### One walk, one matcher
 
-`checkFilter` compiles the blocks once with `compileFilterEvery`, which returns the winner **and** every other block that matched. Then it walks `buildSamples` once, skipping an item another row on the same path already built. Each sample is matched once, and that one result feeds both reports.
+`checkFilter` builds one matcher over the blocks with `buildEveryMatchMatcher`, which returns the winner **and** every other block that matched. Then it walks `buildSamples` once, skipping an item another row on the same path already built. Each sample is matched once, and that one result feeds both reports.
 
 `findUnfiltered` and `findFallThrough` are one-line wrappers that return one half each.
 
@@ -138,7 +138,7 @@ flowchart TD
 
 Every block ends with a `#@` note whose freehand is `<key>` or `<key> <variant>`. `@poe/filter-compile/owner-note` owns that format:
 
-- `ownerNote(key, variant?)` writes it. `compileFilter` and `@poe/filter-style`'s `writeFilter` both use it.
+- `ownerNote(key, variant?)` writes it. `writeUnstyledFilter` and `@poe/filter-style`'s `writeFilter` both use it.
 - `readOwnerNote(freehand, isKey)` reads it back. Keys may hold spaces, so it takes the **longest known key** the note starts with.
 
 That's how a matched block is traced back to a row, and a row to a path.

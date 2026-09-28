@@ -1,5 +1,5 @@
 import type { FilterBlock, FilterItem } from "@poe/filter-eval/filter-ast";
-import { compileFilterEvery } from "@poe/filter-eval/match-filter";
+import { buildEveryMatchMatcher } from "@poe/filter-eval/match-filter";
 import { blindsOf } from "./find-fall-through/blinds-of.ts";
 import { judgePlacement } from "./find-fall-through/judge-placement.ts";
 import { judgeReject } from "./find-fall-through/judge-reject.ts";
@@ -65,7 +65,7 @@ export function checkFilter(
   rows: readonly SampleRow[],
   categories: SampleCategories,
 ): FilterCheck {
-  const match = compileFilterEvery(blocks);
+  const match = buildEveryMatchMatcher(blocks);
   const rowOf = rowLookup(rows);
   const keys = new Set(rows.map((row) => row.key));
   const isKey = (key: string) => keys.has(key);

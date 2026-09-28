@@ -236,13 +236,13 @@ that set a value, rather than only the value that came out wrong.
 
 ### Many items against one filter
 
-`compileFilter` does the same matching for bulk runs. It compiles the blocks once and
+`buildFilterMatcher` does the same matching for bulk runs. It compiles the blocks once and
 returns a function to call per item:
 
 ```ts
-import { compileFilter } from "@poe/filter-eval/match-filter";
+import { buildFilterMatcher } from "@poe/filter-eval/match-filter";
 
-const match = compileFilter(parseFilter(text));
+const match = buildFilterMatcher(parseFilter(text));
 const { winner, matched } = match({ Rarity: "Magic", BaseType: "Heavy Belt", ItemLevel: 86 });
 ```
 
@@ -259,7 +259,7 @@ matter.
 | ---------------------------------- | ----------------------------------------------------------------------------------- |
 | `@poe/filter-eval/parse-filter`    | `parseFilter`                                                                       |
 | `@poe/filter-eval/evaluate-filter` | `evaluateFilter`, `matchCondition`                                                  |
-| `@poe/filter-eval/match-filter`    | `compileFilter`                                                                     |
+| `@poe/filter-eval/match-filter`    | `buildFilterMatcher`                                                                     |
 | `@poe/filter-eval/format-note`     | `formatNote`, `formatCondition`                                                     |
 | `@poe/filter-eval/filter-ast`      | `CONDITIONS`, `APPLY_KEYS`, `REQUIRED_KEYS`, `FilterItem` and the rest of the types |
 

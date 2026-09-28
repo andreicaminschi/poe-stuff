@@ -1,5 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import { compileFilter, compileFilterEvery } from "./match-filter.ts";
+import { buildFilterMatcher, buildEveryMatchMatcher } from "./match-filter.ts";
 import { evaluateFilter } from "./evaluate-filter.ts";
 import { parseFilter } from "./parse-filter.ts";
 import type { FilterBlock, FilterItem } from "./filter-ast.ts";
@@ -9,11 +9,11 @@ const filterOf = (...blocks: string[][]): FilterBlock[] =>
   parseFilter(blocks.map((lines) => [...lines, NOTE].join("\n")).join("\n"));
 const lines = (blocks: readonly FilterBlock[]): number[] => blocks.map((b) => b.line);
 
-describe("compileFilter", () => {
+describe("buildFilterMatcher", () => {
   it("returns the first matching block without Continue as the winner", () => {
     const filter = filterOf(["Show", "Quality > 5"], ["Hide"]);
 
-    const result = compileFilter(filter)({ Quality: 10 });
+    const result = buildFilterMatcher(filter)({ Quality: 10 });
 
     expect(result.winner?.line).toBe(1);
     expect(lines(result.matched)).toEqual([1]);
@@ -22,14 +22,14 @@ describe("compileFilter", () => {
   it("keeps Continue blocks in the matched list before the winner", () => {
     const filter = filterOf(["Show", "Continue"], ["Hide"]);
 
-    const result = compileFilter(filter)({});
+    const result = buildFilterMatcher(filter)({});
 
     expect(result.winner?.line).toBe(4);
     expect(lines(result.matched)).toEqual([1, 4]);
   });
 
   it("leaves out the winner when only Continue blocks match", () => {
-    const result = compileFilter(filterOf(["Show", "Continue"]))({});
+    const result = buildFilterMatcher(filterOf(["Show", "Continue"]))({});
 
     expect(result).toEqual({ matched: [expect.objectContaining({ line: 1 })] });
     expect("winner" in result).toBe(false);
@@ -43,7 +43,7 @@ describe("compileFilter", () => {
       ["Hide"],
     );
 
-    const result = compileFilter(filter)({ BaseType: "coral ring", Quality: 0 });
+    const result = buildFilterMatcher(filter)({ BaseType: "coral ring", Quality: 0 });
 
     expect(lines(result.matched)).toEqual([4, 8, 11]);
   });
@@ -51,23 +51,23 @@ describe("compileFilter", () => {
   it("skips base-type blocks for an item with no base type", () => {
     const filter = filterOf(["Show", "BaseType == Ring Amulet", "Continue"], ["Hide"]);
 
-    expect(lines(compileFilter(filter)({}).matched)).toEqual([5]);
+    expect(lines(buildFilterMatcher(filter)({}).matched)).toEqual([5]);
   });
 
   it("only indexes the first exact base-type line of a block", () => {
     const filter = filterOf(["Show", "BaseType == Ring", "BaseType == Amulet"], ["Hide"]);
 
-    expect(compileFilter(filter)({ BaseType: "Amulet" }).winner?.line).toBe(5);
+    expect(buildFilterMatcher(filter)({ BaseType: "Amulet" }).winner?.line).toBe(5);
   });
 
   it("still substring-matches a plain base-type line in a generic block", () => {
     const filter = filterOf(["Show", "BaseType Ring"]);
 
-    expect(compileFilter(filter)({ BaseType: "Coral Ring" }).winner?.line).toBe(1);
+    expect(buildFilterMatcher(filter)({ BaseType: "Coral Ring" }).winner?.line).toBe(1);
   });
 
   it("answers the same for the same item called twice", () => {
-    const match = compileFilter(filterOf(["Show", "BaseType == Ring"], ["Hide"]));
+    const match = buildFilterMatcher(filterOf(["Show", "BaseType == Ring"], ["Hide"]));
 
     expect([match({ BaseType: "Ring" }).winner?.line, match({ BaseType: "Ring" }).winner?.line]).toEqual([1, 1]);
   });
@@ -98,23 +98,23 @@ describe("compileFilter", () => {
 
       const expected = evaluateFilter(filter, item).matched[0]?.line;
 
-      expect(compileFilter(filter)(item).winner?.line).toBe(expected);
+      expect(buildFilterMatcher(filter)(item).winner?.line).toBe(expected);
     });
   });
 });
 
-describe("compileFilterEvery", () => {
+describe("buildEveryMatchMatcher", () => {
   it("keeps matching blocks after the winner", () => {
     const filter = filterOf(["Show"], ["Show", "Continue"], ["Hide"]);
 
-    const result = compileFilterEvery(filter)({});
+    const result = buildEveryMatchMatcher(filter)({});
 
     expect(result.winner?.line).toBe(1);
     expect(lines(result.matched)).toEqual([1, 3, 6]);
   });
 
   it("keeps the first winner when later blocks also stop", () => {
-    const result = compileFilterEvery(filterOf(["Show", "Continue"], ["Hide"], ["Show"]))({});
+    const result = buildEveryMatchMatcher(filterOf(["Show", "Continue"], ["Hide"], ["Show"]))({});
 
     expect(result.winner?.line).toBe(4);
   });

@@ -301,7 +301,7 @@ filter does not import it and does not build on it.
 
 ### How conditions become lines
 
-[apps/catalog/compile-filter.ts](apps/catalog/compile-filter.ts) already writes an unstyled
+[lib/filter-compile/write-unstyled-filter.ts](lib/filter-compile/write-unstyled-filter.ts) already writes an unstyled
 filter from the taxonomy. It is the reference for how the generator reads conditions:
 
 ```ts

@@ -16,7 +16,7 @@ import { parseFilter } from "@poe/filter-eval/parse-filter";
 import { checkFilter } from "@poe/filter-validate/check-filter";
 import { createTaxonomyService } from "@poe/taxonomy/service";
 import { fromTaxonomy } from "./build-silver/from-taxonomy.ts";
-import { compileFilter } from "@poe/filter-compile/compile-filter";
+import { writeUnstyledFilter } from "@poe/filter-compile/write-unstyled-filter";
 import { flag } from "./cli-args.ts";
 
 const STEPS = ["Reading taxonomy", "Compiling filter", "Checking samples", "Writing report"];
@@ -39,7 +39,7 @@ async function main(): Promise<void> {
   const { categories } = await taxonomy.getCategories(published.version);
   const rows = fromTaxonomy(published);
   progress(2);
-  const blocks = parseFilter(compileFilter(rows, categories).text);
+  const blocks = parseFilter(writeUnstyledFilter(rows, categories).text);
 
   progress(3);
   const { unfiltered, fallThrough } = checkFilter(blocks, rows, categories);

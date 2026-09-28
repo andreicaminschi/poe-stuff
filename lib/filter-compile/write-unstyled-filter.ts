@@ -72,7 +72,7 @@ function blockOf(row: CompileRow, form: Form): Block {
  * The text is read back with `parseFilter` before it is returned, so a grammar mistake fails
  * here and not in the game client.
  */
-export function compileFilter(rows: readonly CompileRow[], categories: CategoryRecords): Compiled {
+export function writeUnstyledFilter(rows: readonly CompileRow[], categories: CategoryRecords): Compiled {
   const texts: string[] = [];
   const skipped: Skip[] = [];
 

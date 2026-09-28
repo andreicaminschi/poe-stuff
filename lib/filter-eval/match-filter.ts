@@ -285,13 +285,13 @@ function compileWalk(blocks: readonly FilterBlock[]): (item: FilterItem, every: 
  * Blocks with a `BaseType ==` line are indexed by those names, so an item only walks the
  * blocks its base type can match plus the blocks that name no base type.
  */
-export function compileFilter(blocks: readonly FilterBlock[]): FilterMatcher {
+export function buildFilterMatcher(blocks: readonly FilterBlock[]): FilterMatcher {
   const walk = compileWalk(blocks);
   return (item) => walk(item, false);
 }
 
-/** Like `compileFilter`, but `matched` holds every block that matches, past the winner too. */
-export function compileFilterEvery(blocks: readonly FilterBlock[]): FilterMatcher {
+/** Like `buildFilterMatcher`, but `matched` holds every block that matches, past the winner too. */
+export function buildEveryMatchMatcher(blocks: readonly FilterBlock[]): FilterMatcher {
   const walk = compileWalk(blocks);
   return (item) => walk(item, true);
 }

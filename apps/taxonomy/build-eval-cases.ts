@@ -1,7 +1,7 @@
-import { compileFilter as writeFilter, type CompileRow } from "@poe/filter-compile/compile-filter";
+import { writeUnstyledFilter, type CompileRow } from "@poe/filter-compile/write-unstyled-filter";
 import type { CategoryRecords } from "@poe/filter-compile/resolve-row";
 import type { FilterItem } from "@poe/filter-eval/filter-ast";
-import { compileFilter } from "@poe/filter-eval/match-filter";
+import { buildFilterMatcher } from "@poe/filter-eval/match-filter";
 import { parseFilter } from "@poe/filter-eval/parse-filter";
 import { buildSamples } from "@poe/filter-validate/build-samples";
 import { formatPath } from "@poe/filter-validate/format-path";
@@ -54,8 +54,8 @@ export function buildEvalCases(
   rows: readonly EvalRow[],
   categories: SampleCategories & CategoryRecords,
 ): EvalCases {
-  const filterText = writeFilter(rows, categories).text;
-  const filterMatcher = compileFilter(parseFilter(filterText));
+  const filterText = writeUnstyledFilter(rows, categories).text;
+  const filterMatcher = buildFilterMatcher(parseFilter(filterText));
 
   const rowsByKey = new Map(rows.map((row) => [row.key, row]));
   const uniqueBasesByName = new Map(rows.filter((row) => row.uniques !== undefined).map((row) => [row.name, row]));
