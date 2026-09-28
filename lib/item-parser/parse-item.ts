@@ -103,5 +103,4 @@ export function parseItem(text: string): ParsedItem {
 }
 
 /** The value of the first property with this name, or `undefined`. */
-export const property = (item: ParsedItem, name: string) =>
-  item.properties.find((found) => found.name === name);
+export const property = (item: ParsedItem, name: string) => item.properties.find((found) => found.name === name);

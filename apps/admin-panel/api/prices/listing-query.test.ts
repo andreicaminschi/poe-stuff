@@ -9,7 +9,14 @@ describe("listingQuery", () => {
 
   it("keeps every distinguishing field that is set, including zero and false, and drops null ones", () => {
     const query = listingQuery(
-      listing({ gemLevel: 0, gemQuality: 20, gemIsCorrupted: false, linkCount: null, itemLevel: 86, mapTier: undefined }),
+      listing({
+        gemLevel: 0,
+        gemQuality: 20,
+        gemIsCorrupted: false,
+        linkCount: null,
+        itemLevel: 86,
+        mapTier: undefined,
+      }),
     );
 
     expect(query).toEqual({

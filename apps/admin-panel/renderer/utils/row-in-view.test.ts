@@ -24,7 +24,9 @@ describe("rowInView", () => {
 
   it("takes a row out of untouched once it or one of its variants is listed", () => {
     expect(rowInView(ggg("a", { listing: { name: "a" } }), "untouched")).toBe(false);
-    expect(rowInView(ggg("a", { variants: [{ name: "v", conditions: [], listing: { name: "v" } }] }), "untouched")).toBe(false);
+    expect(
+      rowInView(ggg("a", { variants: [{ name: "v", conditions: [], listing: { name: "v" } }] }), "untouched"),
+    ).toBe(false);
   });
 
   it("keeps a row untouched when its listing is an empty list", () => {
@@ -32,6 +34,8 @@ describe("rowInView", () => {
   });
 
   it("counts a row touched when a variant is flagged unpriceable", () => {
-    expect(rowInView(ggg("a", { variants: [{ name: "v", conditions: [], unpriceable: true }] }), "untouched")).toBe(false);
+    expect(rowInView(ggg("a", { variants: [{ name: "v", conditions: [], unpriceable: true }] }), "untouched")).toBe(
+      false,
+    );
   });
 });

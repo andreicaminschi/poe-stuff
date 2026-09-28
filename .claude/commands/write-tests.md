@@ -25,6 +25,7 @@ Only after approval. Implement exactly the `it`s that were approved — no bonus
 A test earns its place if it can fail for a reason TypeScript cannot see.
 
 Test:
+
 - **Boundaries.** `max - 1`, `max`, `max + 1`. Exactly-at-the-edge vs one past it.
   Off-by-one lives here and nowhere else.
 - **Degenerate input.** Empty array, empty string, `0`, negative, single element.
@@ -38,6 +39,7 @@ Test:
 - **Time.** Clock at a window edge, long idle gap, repeated calls inside one tick.
 
 Do NOT test:
+
 - **Shape the compiler already proves.** No `typeof x === "function"`, no "returns an
   object with keys a, b, c". If TS would reject the wrong version, skip it.
 - **The mock.** If the assertion only proves your stub was called, delete it.
@@ -55,7 +57,7 @@ Do NOT test:
   name is not done.
   - Full sentence, plain English, present tense, subject first. No method names, no
     parameter names, no `max+1`, no jargon lifted from the implementation.
-  - Say the *situation* and the *consequence*, in the caller's words:
+  - Say the _situation_ and the _consequence_, in the caller's words:
     `it("makes the fourth request wait until the first one is an hour old")`
     not `it("delays call max+1 until oldest hit exits window")`.
   - Name real quantities instead of variables: "the fourth request", "one hour",

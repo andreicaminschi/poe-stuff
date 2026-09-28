@@ -176,4 +176,3 @@ taxonomy then refuses to publish.
 `api/taxonomy.files.ts` restates the file shapes from `apps/taxonomy/types.ts`. They are the
 data model the adapters map from, and a field added to the taxonomy is invisible to the panel
 until it is added here.
-

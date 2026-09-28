@@ -29,38 +29,48 @@ export function ListingPicker({
       {linked.map((query, index) => (
         <div className="variant" key={describeListing(query)}>
           <span className="vn">{describeListing(query)}</span>
-          {disabled === true ? null : (
-            <button
-              type="button"
-              className="btn icon"
-              title="Unlink"
-              onClick={() => {
-                const rest = linked.filter((_, at) => at !== index);
-                onPick(rest.length === 0 ? undefined : rest);
-              }}
-            >
-              ×
-            </button>
-          )}
+          {disabled === true
+            ? null
+            : (
+                <button
+                  type="button"
+                  className="btn icon"
+                  title="Unlink"
+                  onClick={() => {
+                    const rest = linked.filter((_, at) => at !== index);
+                    onPick(rest.length === 0
+                      ? undefined
+                      : rest);
+                  }}
+                >
+                  ×
+                </button>
+              )}
         </div>
       ))}
-      {disabled === true ? null : (
-        <ComboBox
-          {...(id === undefined ? {} : { id })}
-          placeholder={linked.length === 0 ? (placeholder ?? "") : "Link another listing"}
-          value={text}
-          options={options}
-          onBlur={() => setText("")}
-          onChange={(next) => {
-            setText(next);
-            const picked = options.find((option) => option.value === next);
-            if (picked === undefined) return;
-            setText("");
-            if (linked.some((query) => describeListing(query) === picked.value)) return;
-            onPick([...linked, picked.listing]);
-          }}
-        />
-      )}
+      {disabled === true
+        ? null
+        : (
+            <ComboBox
+              {...(id === undefined
+                ? {}
+                : { id })}
+              placeholder={linked.length === 0
+                ? (placeholder ?? "")
+                : "Link another listing"}
+              value={text}
+              options={options}
+              onBlur={() => setText("")}
+              onChange={(next) => {
+                setText(next);
+                const picked = options.find((option) => option.value === next);
+                if (picked === undefined) return;
+                setText("");
+                if (linked.some((query) => describeListing(query) === picked.value)) return;
+                onPick([...linked, picked.listing]);
+              }}
+            />
+          )}
     </div>
   );
 }

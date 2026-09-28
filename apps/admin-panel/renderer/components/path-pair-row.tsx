@@ -7,7 +7,12 @@ export function PathPairRow({ pair, onOpen }: { readonly pair: PathPair; readonl
     <div className="unfiltered">
       <div className="unfiltered-head">
         <span className="name">
-          {pair.own} → {pair.other === "" ? "nothing" : pair.other}
+          {pair.own}
+          {" "}
+          →
+          {pair.other === ""
+            ? "nothing"
+            : pair.other}
         </span>
         <span className="c mono">{pair.count}</span>
         <button type="button" className="btn" onClick={() => onOpen(pair.example.ownKey)}>

@@ -13,7 +13,9 @@ const listOf = (value: Condition["value"]): readonly string[] => {
 export function raritySet(condition: Condition): readonly string[] {
   const named = listOf(condition.value).flatMap((value) => {
     const rarity = RARITIES.find((one) => one.toLowerCase() === value.trim().toLowerCase());
-    return rarity === undefined ? [] : [rarity];
+    return rarity === undefined
+      ? []
+      : [rarity];
   });
   const first = named[0];
   if (first === undefined) return [];

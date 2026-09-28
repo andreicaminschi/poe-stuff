@@ -54,12 +54,18 @@ describe("buildGold", () => {
     await lake.writeJson("s/a.json", [row("2", "B"), row("9", "A")]);
     await lake.writeJson("s/b.json", [row("1", "A")]);
     await lake.writeJson("s/a.unpriced.json", [row("x", "X")]);
-    await lake.writeJson("catalog/run=r_1/bronze/taxonomy_categories.json", { version: "1", categories: { c: { conditions: [] } } });
+    await lake.writeJson("catalog/run=r_1/bronze/taxonomy_categories.json", {
+      version: "1",
+      categories: { c: { conditions: [] } },
+    });
     await withSilver(["s/a.json", "s/a.unpriced.json", "s/b.json"]);
 
     const result = await run();
 
-    expect(result).toEqual({ keys: ["catalog/run=r_1/gold/catalog.json", "catalog/run=r_1/gold/catalog.categories.json"], rows: 3 });
+    expect(result).toEqual({
+      keys: ["catalog/run=r_1/gold/catalog.json", "catalog/run=r_1/gold/catalog.categories.json"],
+      rows: 3,
+    });
     expect((await lake.readJson<Item[]>(result.keys[0] as string)).map((item) => item.key)).toEqual(["1", "9", "2"]);
     expect(await lake.readJson(result.keys[1] as string)).toEqual({ c: { conditions: [] } });
   });

@@ -21,19 +21,25 @@ export const toRunSummary = (manifest: ManifestFile): RunSummary => ({
   id: manifest.runId,
   league: manifest.league,
   hour: manifest.hourId,
-  ...(manifest.taxonomyVersion === undefined ? {} : { taxonomyVersion: manifest.taxonomyVersion }),
+  ...(manifest.taxonomyVersion === undefined
+    ? {}
+    : { taxonomyVersion: manifest.taxonomyVersion }),
   built: manifest.stages.gold !== undefined,
 });
 
 export async function getRuns(lake: Lake): Promise<readonly RunSummary[]> {
   const ids = (await lake.list(CATALOG_PREFIX)).flatMap((folder) => {
     const match = RUN_FOLDER.exec(folder);
-    return match?.[1] === undefined ? [] : [match[1]];
+    return match?.[1] === undefined
+      ? []
+      : [match[1]];
   });
 
   const manifests = await Promise.all(
     ids.map(async (id) =>
-      (await lake.exists(manifestKey(id))) ? [await lake.readJson<ManifestFile>(manifestKey(id))] : [],
+      (await lake.exists(manifestKey(id)))
+        ? [await lake.readJson<ManifestFile>(manifestKey(id))]
+        : [],
     ),
   );
 

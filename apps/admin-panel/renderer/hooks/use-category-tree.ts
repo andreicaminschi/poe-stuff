@@ -8,5 +8,7 @@ export function useCategoryTree(): CategoryTree | undefined {
   const draft = useDraft();
   const view = useSession((state) => state.view);
 
-  return useMemo(() => (draft === undefined ? undefined : categoryTree(draft, view)), [draft, view]);
+  return useMemo(() => (draft === undefined
+    ? undefined
+    : categoryTree(draft, view)), [draft, view]);
 }

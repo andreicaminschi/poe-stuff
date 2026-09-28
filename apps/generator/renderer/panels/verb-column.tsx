@@ -23,10 +23,22 @@ export function VerbColumn({ copy, placements, hinted }: Props) {
 
   const body = () => {
     if (!hinted) {
-      return <VerbOff head={`${copy.head} is off for ${category.name}.`} use={copy.use} note={`The taxonomy lists no ${copy.verb} hint for this category.`} />;
+      return (
+        <VerbOff
+          head={`${copy.head} is off for ${category.name}.`}
+          use={copy.use}
+          note={`The taxonomy lists no ${copy.verb} hint for this category.`}
+        />
+      );
     }
     if (mine.length === 0) {
-      return <VerbOff head={`No ${copy.head} blocks for ${category.name}.`} use={copy.use} note="No item in this category reaches a tier this way." />;
+      return (
+        <VerbOff
+          head={`No ${copy.head} blocks for ${category.name}.`}
+          use={copy.use}
+          note="No item in this category reaches a tier this way."
+        />
+      );
     }
     if (bucket === null) {
       const names: readonly BucketName[] = [...TIERS.filter((name) => !disabled.includes(name)), WANT, HIDDEN];
@@ -34,18 +46,37 @@ export function VerbColumn({ copy, placements, hinted }: Props) {
     }
 
     const inBucket = dearestFirst(mine.filter((one) => one.bucket === bucket));
-    if (inBucket.length === 0) return <p className="empty">Nothing in {bucket} lands here.</p>;
+    if (inBucket.length === 0) return (
+      <p className="empty">
+        Nothing in
+        {bucket}
+        {" "}
+        lands here.
+      </p>
+    );
 
     return (
       <>
         <DropTable rows={inBucket.slice(0, SHOWN).map((one, at) => dropRow(palette, one, at))} />
-        {inBucket.length > SHOWN ? <p className="note">and {inBucket.length - SHOWN} more</p> : null}
+        {inBucket.length > SHOWN
+          ? (
+              <p className="note">
+                and
+                {inBucket.length - SHOWN}
+                {" "}
+                more
+              </p>
+            )
+          : null}
       </>
     );
   };
 
   return (
-    <div className={`grp ${copy.verb} ${mine.length === 0 ? "dark" : ""}`}>
+    <div className={`grp ${copy.verb} ${mine.length === 0
+      ? "dark"
+      : ""}`}
+    >
       <h4>
         <span className="dot" />
         <b>{copy.head}</b>

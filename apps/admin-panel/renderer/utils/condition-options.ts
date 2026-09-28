@@ -6,5 +6,7 @@ const POE1 = (Object.keys(CONDITIONS) as (keyof typeof CONDITIONS)[]).filter((na
 
 /** Every PoE1 filter condition, plus any name the draft already uses, sorted. */
 export function conditionOptions(used: readonly string[], current: string): readonly string[] {
-  return [...new Set([...POE1, ...used, ...(current === "" ? [] : [current])])].sort();
+  return [...new Set([...POE1, ...used, ...(current === ""
+    ? []
+    : [current])])].sort();
 }

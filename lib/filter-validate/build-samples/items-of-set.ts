@@ -32,7 +32,8 @@ export function itemsOfSet(set: SampleSet, row: SampleRow, lookup: Lookup): read
   let items: Record<string, unknown>[] = [{}];
 
   for (const [name, property] of Object.entries(set)) {
-    if (!(name in CONDITIONS)) throw new Error(`sample set names ${JSON.stringify(name)}, which is not a filter condition`);
+    if (!(name in CONDITIONS))
+      throw new Error(`sample set names ${JSON.stringify(name)}, which is not a filter condition`);
     const values = itemValues(property, name as ConditionName, row, lookup);
     if (values.length === 0) continue;
     items = items.flatMap((item) => values.map((value) => ({ ...item, [name]: value })));

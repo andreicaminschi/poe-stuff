@@ -62,11 +62,7 @@ export const collectVariantTable = (
       : "is not an item or an authored row in this version",
   );
 
-export function validateVariantTable(
-  value: unknown,
-  known: ReadonlySet<string>,
-  source: string,
-): VariantTable {
+export function validateVariantTable(value: unknown, known: ReadonlySet<string>, source: string): VariantTable {
   throwFirst(source, collectVariantTable(value, known, source));
 
   return value as Readonly<Record<string, readonly AuthoredVariant[]>>;

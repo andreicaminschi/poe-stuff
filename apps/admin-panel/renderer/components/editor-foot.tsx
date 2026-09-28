@@ -29,7 +29,10 @@ export function EditorFoot({
         disabled={dirty === 0 || busy || !editable}
         onClick={() => void save()}
       >
-        Save{dirty === 0 ? "" : ` ${dirty}`}
+        Save
+        {dirty === 0
+          ? ""
+          : ` ${dirty}`}
       </button>
     </div>
   );

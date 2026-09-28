@@ -1,9 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import {
-  parseRetryAfter,
-  parseRules,
-  parseState,
-} from "./parse-rate-limit-headers.ts";
+import { parseRetryAfter, parseRules, parseState } from "./parse-rate-limit-headers.ts";
 
 describe("parseRules", () => {
   it("keeps one slot of headroom and widens each window by a second", () => {
@@ -23,9 +19,7 @@ describe("parseRules", () => {
   });
 
   it("drops a short triple and a non-numeric triple but keeps the good ones", () => {
-    expect(parseRules("10:5,x:5:10,20:10:60")).toEqual([
-      { max: 19, windowMs: 11_000 },
-    ]);
+    expect(parseRules("10:5,x:5:10,20:10:60")).toEqual([{ max: 19, windowMs: 11_000 }]);
   });
 
   it("drops a triple with an empty field", () => {

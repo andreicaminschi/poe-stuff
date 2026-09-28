@@ -42,7 +42,9 @@ async function main(): Promise<void> {
   const asFilterItem = args.includes("--filter-item");
   const path = args.find((arg) => !arg.startsWith("--"));
 
-  const text = path === undefined ? await readStdin() : await readFile(path, "utf8");
+  const text = path === undefined
+    ? await readStdin()
+    : await readFile(path, "utf8");
   const item = parseItem(text);
 
   if (asFilterItem) {

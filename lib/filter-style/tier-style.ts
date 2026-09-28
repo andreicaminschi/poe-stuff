@@ -42,8 +42,10 @@ function tier(palette: Palette, name: TierName): Style {
   const { primary, secondary } = palette;
 
   if (name === "T0") return { ...base("XL"), background: WHITE, text: primary, border: primary, ...marked(palette, 0) };
-  if (name === "T1") return { ...base("XL"), background: primary, text: secondary, border: secondary, ...marked(palette, 1) };
-  if (name === "T2") return { ...base("L"), background: mix(primary, secondary, 0.2), text: secondary, border: secondary, ...plain };
+  if (name === "T1")
+    return { ...base("XL"), background: primary, text: secondary, border: secondary, ...marked(palette, 1) };
+  if (name === "T2")
+    return { ...base("L"), background: mix(primary, secondary, 0.2), text: secondary, border: secondary, ...plain };
   if (name === "T3") return faded(palette, "M", 0.4);
   if (name === "T4") return faded(palette, "S", 0.7);
 
@@ -53,7 +55,14 @@ function tier(palette: Palette, name: TierName): Style {
 function bucket(palette: Palette, name: BucketName): Style {
   if (name === WANT) {
     const beam = { colour: nearestNamed(palette.primary) };
-    return { ...base("S"), background: palette.primary, text: palette.secondary, border: palette.secondary, icon: null, beam };
+    return {
+      ...base("S"),
+      background: palette.primary,
+      text: palette.secondary,
+      border: palette.secondary,
+      icon: null,
+      beam,
+    };
   }
   if (name === UNPRICED) return faded(palette, "M", 0.5);
   if (name === HIDDEN) return { ...tier(palette, "T5"), opacity: HIDDEN_OPACITY };
@@ -66,5 +75,7 @@ export function tierStyle(palette: Palette, name: BucketName, verb: Verb = "take
   const style = bucket(palette, name);
   const border = HINT_BORDERS[verb];
 
-  return border === undefined ? style : { ...style, border };
+  return border === undefined
+    ? style
+    : { ...style, border };
 }

@@ -5,11 +5,15 @@ const showValue = (value: ConditionValue | undefined): string => {
   if (value === null) return "(removed)";
   if (Array.isArray(value)) return value.map((entry) => `"${entry}"`).join(" ");
   if (typeof value === "string") return `"${value}"`;
-  if (typeof value === "boolean") return value ? "True" : "False";
+  if (typeof value === "boolean") return value
+    ? "True"
+    : "False";
   return String(value);
 };
 
 export const formatCondition = (condition: Condition): string =>
   `${condition.condition} ${condition.operator ?? "=="} ${
-    condition.from === undefined ? showValue(condition.value) : `‹${condition.from}›`
+    condition.from === undefined
+      ? showValue(condition.value)
+      : `‹${condition.from}›`
   }`.trimEnd();

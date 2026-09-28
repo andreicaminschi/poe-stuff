@@ -20,7 +20,9 @@ describe("assertEditable", () => {
   });
 
   it("refuses an older draft", async () => {
-    await expect(assertEditable(temp.lake, "3.29.1")).rejects.toThrow("3.29.1 cannot be edited. Only the newest draft can.");
+    await expect(assertEditable(temp.lake, "3.29.1")).rejects.toThrow(
+      "3.29.1 cannot be edited. Only the newest draft can.",
+    );
   });
 
   it("refuses a version the registry does not know", async () => {
@@ -30,7 +32,9 @@ describe("assertEditable", () => {
   it("refuses every id when there is no registry at all", async () => {
     const empty = await tempLake();
 
-    await expect(assertEditable(empty.lake, "3.29.2")).rejects.toThrow("3.29.2 cannot be edited. Only the newest draft can.");
+    await expect(assertEditable(empty.lake, "3.29.2")).rejects.toThrow(
+      "3.29.2 cannot be edited. Only the newest draft can.",
+    );
     await empty.remove();
   });
 });

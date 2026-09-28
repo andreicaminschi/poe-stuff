@@ -22,7 +22,7 @@
     "taxonomy:create": "node apps/taxonomy/taxonomy-cli.ts create",
     "taxonomy:promote": "node apps/taxonomy/taxonomy-cli.ts promote",
     "taxonomy:seed": "node apps/taxonomy/seed-taxonomy-cli.ts",
-    "taxonomy:eval-cases": "node apps/taxonomy/eval-cases-cli.ts",
+    "taxonomy:build-eval-cases": "node apps/taxonomy/build-eval-cases-cli.ts",
     "typecheck": "tsc",
     "typecheck:watch": "tsc --watch",
     "lint": "eslint .",
@@ -33,6 +33,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@jest/globals": "^30.4.1",
+    "@stylistic/eslint-plugin": "^5.10.0",
     "@swc/core": "^1.16.0",
     "@swc/jest": "^0.2.39",
     "@types/node": "^26.2.0",

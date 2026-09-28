@@ -5,5 +5,7 @@ import type { Origins } from "../types.ts";
 export function originText(level: Level, origins: Origins): string {
   const name = origins[level];
 
-  return name === undefined ? level : `${level} ${name}`;
+  return name === undefined
+    ? level
+    : `${level} ${name}`;
 }

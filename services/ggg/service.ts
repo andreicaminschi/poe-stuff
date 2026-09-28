@@ -1,15 +1,7 @@
-import {
-  DEFAULT_CURRENCY_API_URL,
-  DEFAULT_TRADE_API_URL,
-  trimUrl,
-} from "./config.ts";
+import { DEFAULT_CURRENCY_API_URL, DEFAULT_TRADE_API_URL, trimUrl } from "./config.ts";
 import { fetchCurrencyHour } from "./fetch-currency-hour.ts";
 import type { FetchCurrencyHourOptions } from "./fetch-currency-hour.ts";
-import {
-  fetchAllListings,
-  fetchListings,
-  pageHashes,
-} from "./fetch-listings.ts";
+import { fetchAllListings, fetchListings, pageHashes } from "./fetch-listings.ts";
 import type { GGGListingPage } from "./fetch-listings.types.ts";
 import type { GGGItemGroup } from "./get-item-data.types.ts";
 import type { GGGStat } from "./get-stats.types.ts";
@@ -56,25 +48,11 @@ export type GGGService = {
   getItemData(): Promise<readonly GGGItemGroup[]>;
   getStats(): Promise<readonly GGGStat[]>;
   searchListings(query: unknown, league: string): Promise<GGGListingSearch>;
-  fetchListings(
-    hashes: readonly string[],
-    searchId: string,
-    page: number,
-  ): Promise<GGGListingPage>;
-  fetchAllListings(
-    hashes: readonly string[],
-    searchId: string,
-    maxPages?: number,
-  ): Promise<readonly GGGListingPage[]>;
-  pageHashes(
-    hashes: readonly string[],
-    maxPages?: number,
-  ): readonly (readonly string[])[];
+  fetchListings(hashes: readonly string[], searchId: string, page: number): Promise<GGGListingPage>;
+  fetchAllListings(hashes: readonly string[], searchId: string, maxPages?: number): Promise<readonly GGGListingPage[]>;
+  pageHashes(hashes: readonly string[], maxPages?: number): readonly (readonly string[])[];
   /** One hour of the Currency Exchange. Pass `league` to be handed only that league. */
-  fetchCurrencyHour(
-    hourId: number,
-    options?: FetchCurrencyHourOptions,
-  ): Promise<CurrencyExchange>;
+  fetchCurrencyHour(hourId: number, options?: FetchCurrencyHourOptions): Promise<CurrencyExchange>;
 };
 
 /**
@@ -105,24 +83,27 @@ export function createGGGService({
   onEvent,
 }: GGGServiceOptions): GGGService {
   const context = {
-    limiter: createLimiter(rules, { ...(smoothAbove === undefined ? {} : { smoothAbove }) }),
+    limiter: createLimiter(rules, { ...(smoothAbove === undefined
+      ? {}
+      : { smoothAbove }) }),
     tradeApiUrl: trimUrl(tradeApiUrl),
     currencyApiUrl: trimUrl(currencyApiUrl),
     userAgent,
-    ...(cache === undefined ? {} : { cache }),
-    ...(onEvent === undefined ? {} : { onEvent }),
+    ...(cache === undefined
+      ? {}
+      : { cache }),
+    ...(onEvent === undefined
+      ? {}
+      : { onEvent }),
   };
 
   return {
     getItemData: () => getItemData(context),
     getStats: () => getStats(context),
     searchListings: (query, league) => searchListings(query, league, context),
-    fetchListings: (hashes, searchId, page) =>
-      fetchListings(hashes, searchId, page, context),
-    fetchAllListings: (hashes, searchId, maxPages) =>
-      fetchAllListings(hashes, searchId, context, maxPages),
+    fetchListings: (hashes, searchId, page) => fetchListings(hashes, searchId, page, context),
+    fetchAllListings: (hashes, searchId, maxPages) => fetchAllListings(hashes, searchId, context, maxPages),
     pageHashes,
-    fetchCurrencyHour: (hourId, options) =>
-      fetchCurrencyHour(hourId, context, options),
+    fetchCurrencyHour: (hourId, options) => fetchCurrencyHour(hourId, context, options),
   };
 }

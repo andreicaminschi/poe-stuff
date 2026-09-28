@@ -45,18 +45,26 @@ function stateOf(published: boolean, newest: boolean): VersionState {
 export function toVersionList(registry: RegistryFile, current: string | undefined): VersionList {
   const entries = Object.entries(registry.versions).sort(([a], [b]) => numberOf(b) - numberOf(a));
   const [newest] = entries;
-  const newestDraft = newest?.[1].state === "draft" ? newest[0] : undefined;
+  const newestDraft = newest?.[1].state === "draft"
+    ? newest[0]
+    : undefined;
 
   return {
     versions: entries.map(([id, entry]) => ({
       id,
       state: stateOf(entry.state === "published", id === newestDraft),
-      ...(entry.parent === undefined ? {} : { parent: entry.parent }),
+      ...(entry.parent === undefined
+        ? {}
+        : { parent: entry.parent }),
       createdAt: entry.createdAt,
-      ...(entry.publishedAt === undefined ? {} : { publishedAt: entry.publishedAt }),
+      ...(entry.publishedAt === undefined
+        ? {}
+        : { publishedAt: entry.publishedAt }),
       editable: id === newestDraft,
     })),
-    ...(current === undefined ? {} : { current }),
+    ...(current === undefined
+      ? {}
+      : { current }),
   };
 }
 

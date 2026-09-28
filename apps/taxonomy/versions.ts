@@ -9,11 +9,7 @@ import { throwFirst } from "./validate.ts";
 import { validateTaxonomyTable } from "./validate-table.ts";
 import { validateVariantTable } from "./validate-variants.ts";
 
-export function buildVersion(
-  version: string,
-  files: VersionFiles,
-  rejected: ReadonlySet<string>,
-): Version {
+export function buildVersion(version: string, files: VersionFiles, rejected: ReadonlySet<string>): Version {
   const named = (file: keyof VersionFiles) => sourceKey(version, file);
 
   const items = validateTaxonomyTable(files.items, named("items"));
@@ -40,10 +36,6 @@ export function buildVersion(
   };
 }
 
-export async function versionTable(
-  lake: Lake,
-  version: string,
-  rejected: ReadonlySet<string>,
-): Promise<Version> {
+export async function versionTable(lake: Lake, version: string, rejected: ReadonlySet<string>): Promise<Version> {
   return buildVersion(version, await readVersionFiles(lake, version), rejected);
 }

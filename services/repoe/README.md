@@ -17,15 +17,15 @@ Four endpoints, and each one is a whole static file with no query, no league and
 fetch — the export, or nothing. Nothing here draws on the GGG budget and no rate limits are
 published, so there is no limiter; the cache is what makes a re-run affordable.
 
-| Endpoint | File | Holds |
-| --- | --- | --- |
-| `getBaseItems` | `/base_items.json` | Every base item in the game. |
-| `getGems` | `/pob-data/poe1/Gems.min.json` | Every gem variant, transfigured ones included. |
-| `getSpectres` | `/pob-data/poe1/Spectres.json` | Every raisable monster and its stats. |
-| `getEssences` | `/pob-data/poe1/Essence.min.json` | Every essence and the mod it forces per slot. |
-| `getClusterJewels` | `/cluster_jewels.json` | The three cluster jewel sizes and every passive each can be enchanted with. |
-| `getFoulbornMap` | `/pob-data/poe1/ModFoulbornMap.json` | Every unique that can drop foulborn, by name, and the mods it can roll. |
-| `getMods` | `/mods.json` | Every mod, with the item level it needs and the base tags it rolls on. |
+| Endpoint           | File                                 | Holds                                                                       |
+| ------------------ | ------------------------------------ | --------------------------------------------------------------------------- |
+| `getBaseItems`     | `/base_items.json`                   | Every base item in the game.                                                |
+| `getGems`          | `/pob-data/poe1/Gems.min.json`       | Every gem variant, transfigured ones included.                              |
+| `getSpectres`      | `/pob-data/poe1/Spectres.json`       | Every raisable monster and its stats.                                       |
+| `getEssences`      | `/pob-data/poe1/Essence.min.json`    | Every essence and the mod it forces per slot.                               |
+| `getClusterJewels` | `/cluster_jewels.json`               | The three cluster jewel sizes and every passive each can be enchanted with. |
+| `getFoulbornMap`   | `/pob-data/poe1/ModFoulbornMap.json` | Every unique that can drop foulborn, by name, and the mods it can roll.     |
+| `getMods`          | `/mods.json`                         | Every mod, with the item level it needs and the base tags it rolls on.      |
 
 **The seven are separate exports and share no vocabulary.** `base_items.json` keys on
 `item_class` and metadata ids; `Gems.json` keys on gem variant ids; `Essence.json` names
@@ -63,18 +63,18 @@ services/repoe/
 
 ## Public API
 
-| Entry point | Exports | Contract |
-| --- | --- | --- |
-| `@poe/repoe/service` | `createRepoeService`, `RepoeService`, `RepoeServiceOptions` | Every endpoint bound to one base URL, user agent and cache. Every option has a default. |
-| `@poe/repoe/get-base-items.types` | `BaseItems`, `BaseItem`, `BaseItemProperties`, `BaseItemRequirements`, `BaseItemVisualIdentity`, `BaseItemBuff`, `DefenceRange` | `BaseItems` is a `Record` keyed by metadata id. There is no envelope — the file is the record. |
-| `@poe/repoe/get-gems.types` | `Gems`, `Gem`, `GemTags` | `Gems` is a `Record` keyed by **variant** metadata id. `gameId` is the base gem and repeats across variants. |
-| `@poe/repoe/get-spectres.types` | `Spectres`, `Spectre`, `SpectreMod` | `Spectres` is a `Record` keyed by monster metadata id. The stats are multipliers, not absolute numbers. |
-| `@poe/repoe/get-essences.types` | `Essences`, `Essence`, `EssenceMods` | `Essences` is a `Record` keyed by currency metadata id. Four fields, none of them optional. |
-| `@poe/repoe/get-foulborn-map.types` | `FoulbornMap` | A `Record` keyed by the unique's display name — Path of Building has no id for a unique — to the text of its foulborn mods. The only published list of which uniques go foulborn. |
-| `@poe/repoe/get-cluster-jewels.types` | `ClusterJewels`, `ClusterJewel`, `ClusterJewelPassive` | `ClusterJewels` is a `Record` keyed by the jewel's metadata id, three rows. A passive's `stat_text` is the mod text PoeWatch lists under; its `name` is what `EnchantmentPassiveNode` matches. Two-line enchants are not in PoeWatch's order — compare as a set. |
-| `@poe/repoe/get-mods.types` | `Mods`, `Mod`, `ModWeight`, `ModStat`, `ModGrantedEffect` | `Mods` is a `Record` keyed by mod id. `text` is the only nullable field. |
-| `@poe/repoe/errors` | `RepoeHttpError` | Carries `url`, `status`. |
-| `@poe/repoe/types` | `RepoeContext`, `ResponseCache`, `CachedResponse` | Types only. `ResponseCache` is what `RepoeServiceOptions.cache` takes. |
+| Entry point                           | Exports                                                                                                                         | Contract                                                                                                                                                                                                                                                         |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@poe/repoe/service`                  | `createRepoeService`, `RepoeService`, `RepoeServiceOptions`                                                                     | Every endpoint bound to one base URL, user agent and cache. Every option has a default.                                                                                                                                                                          |
+| `@poe/repoe/get-base-items.types`     | `BaseItems`, `BaseItem`, `BaseItemProperties`, `BaseItemRequirements`, `BaseItemVisualIdentity`, `BaseItemBuff`, `DefenceRange` | `BaseItems` is a `Record` keyed by metadata id. There is no envelope — the file is the record.                                                                                                                                                                   |
+| `@poe/repoe/get-gems.types`           | `Gems`, `Gem`, `GemTags`                                                                                                        | `Gems` is a `Record` keyed by **variant** metadata id. `gameId` is the base gem and repeats across variants.                                                                                                                                                     |
+| `@poe/repoe/get-spectres.types`       | `Spectres`, `Spectre`, `SpectreMod`                                                                                             | `Spectres` is a `Record` keyed by monster metadata id. The stats are multipliers, not absolute numbers.                                                                                                                                                          |
+| `@poe/repoe/get-essences.types`       | `Essences`, `Essence`, `EssenceMods`                                                                                            | `Essences` is a `Record` keyed by currency metadata id. Four fields, none of them optional.                                                                                                                                                                      |
+| `@poe/repoe/get-foulborn-map.types`   | `FoulbornMap`                                                                                                                   | A `Record` keyed by the unique's display name — Path of Building has no id for a unique — to the text of its foulborn mods. The only published list of which uniques go foulborn.                                                                                |
+| `@poe/repoe/get-cluster-jewels.types` | `ClusterJewels`, `ClusterJewel`, `ClusterJewelPassive`                                                                          | `ClusterJewels` is a `Record` keyed by the jewel's metadata id, three rows. A passive's `stat_text` is the mod text PoeWatch lists under; its `name` is what `EnchantmentPassiveNode` matches. Two-line enchants are not in PoeWatch's order — compare as a set. |
+| `@poe/repoe/get-mods.types`           | `Mods`, `Mod`, `ModWeight`, `ModStat`, `ModGrantedEffect`                                                                       | `Mods` is a `Record` keyed by mod id. `text` is the only nullable field.                                                                                                                                                                                         |
+| `@poe/repoe/errors`                   | `RepoeHttpError`                                                                                                                | Carries `url`, `status`.                                                                                                                                                                                                                                         |
+| `@poe/repoe/types`                    | `RepoeContext`, `ResponseCache`, `CachedResponse`                                                                               | Types only. `ResponseCache` is what `RepoeServiceOptions.cache` takes.                                                                                                                                                                                           |
 
 ### Not exported
 
@@ -197,11 +197,11 @@ console.log(anger.name, anger.tier, anger.mods.Ring);
 **This package reads no environment.** Nothing here touches `process.env`, there is no
 `.env` to load, and every knob is an argument to `createRepoeService`.
 
-| Option | Holds | Default |
-| --- | --- | --- |
-| `baseUrl` | Base of the RePoE site, trailing slash stripped | `https://repoe-fork.github.io` |
-| `userAgent` | `user-agent` sent on every request | `poe-stuff/1.0` |
-| `cache` | A `ResponseCache` answering calls from previous ones. Its presence is the whole switch | absent — every call re-downloads |
+| Option      | Holds                                                                                  | Default                          |
+| ----------- | -------------------------------------------------------------------------------------- | -------------------------------- |
+| `baseUrl`   | Base of the RePoE site, trailing slash stripped                                        | `https://repoe-fork.github.io`   |
+| `userAgent` | `user-agent` sent on every request                                                     | `poe-stuff/1.0`                  |
+| `cache`     | A `ResponseCache` answering calls from previous ones. Its presence is the whole switch | absent — every call re-downloads |
 
 `userAgent` has a default here, unlike `@poe/ggg`, because a static site on GitHub Pages
 publishes no requirement about it.

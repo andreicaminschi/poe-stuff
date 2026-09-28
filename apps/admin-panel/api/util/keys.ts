@@ -1,15 +1,9 @@
 export type SourceFile =
-  | "items"
-  | "categories"
-  | "authored.seeded"
-  | "authored.manual"
-  | "variants.seeded"
-  | "variants.manual";
+  "items" | "categories" | "authored.seeded" | "authored.manual" | "variants.seeded" | "variants.manual";
 
 export const registryKey = (): string => "taxonomy/registry.json";
 
-export const sourceKey = (version: string, file: SourceFile): string =>
-  `taxonomy/versions/${version}/${file}.json`;
+export const sourceKey = (version: string, file: SourceFile): string => `taxonomy/versions/${version}/${file}.json`;
 
 export const latestTaxonomyKey = (): string => "taxonomy/latest/taxonomy.json";
 

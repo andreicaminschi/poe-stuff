@@ -5,7 +5,9 @@ export function toBetween(conditions: readonly Condition[], index: number): read
   const condition = conditions[index];
   if (condition === undefined) return conditions;
 
-  const value = typeof condition.value === "number" ? condition.value : 0;
+  const value = typeof condition.value === "number"
+    ? condition.value
+    : 0;
 
   return [
     ...conditions.slice(0, index),

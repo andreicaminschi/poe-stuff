@@ -19,8 +19,7 @@ export const DEFAULT_TRADE_SITE_URL = "https://www.pathofexile.com/trade/search"
  * is part of this value — this is PoE1 PC, `.../currency-exchange/poe2` is PoE2. An hour
  * id is joined onto it.
  */
-export const DEFAULT_CURRENCY_API_URL =
-  "https://web.poecdn.com/api/currency-exchange";
+export const DEFAULT_CURRENCY_API_URL = "https://web.poecdn.com/api/currency-exchange";
 
 /** Trailing slash stripped, so joins onto a base stay predictable. */
 export const trimUrl = (url: string): string => url.replace(/\/+$/, "");

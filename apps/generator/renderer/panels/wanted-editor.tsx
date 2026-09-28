@@ -28,7 +28,9 @@ export function WantedEditor() {
   return (
     <div className="editor">
       <p className="label">Want to see</p>
-      {wanted.length === 0 ? <p className="note">Nothing on the list.</p> : null}
+      {wanted.length === 0
+        ? <p className="note">Nothing on the list.</p>
+        : null}
       {wanted.map((name) => (
         <div className="wanted" key={name}>
           <span>{name}</span>

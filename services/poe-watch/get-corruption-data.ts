@@ -10,10 +10,7 @@ import type { PoeWatchContext } from "./types.ts";
  *
  * Unlike `/compact` this answers with a bare array, no envelope.
  */
-export function getCorruptionData(
-  league: string,
-  context: PoeWatchContext,
-): Promise<readonly ItemCorruptions[]> {
+export function getCorruptionData(league: string, context: PoeWatchContext): Promise<readonly ItemCorruptions[]> {
   return call<readonly ItemCorruptions[]>(
     `${context.baseUrl}/corruptions?league=${encodeURIComponent(league)}&all=true`,
     currentHour(),

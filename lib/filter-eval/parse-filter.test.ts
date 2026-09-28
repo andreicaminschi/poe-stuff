@@ -22,9 +22,7 @@ describe("parseFilter", () => {
       expect(result).toEqual([
         {
           keyword: "Show",
-          conditions: [
-            { name: "BaseType", kind: "strings", operator: "=", values: ["Ring"], comment: "", line: 3 },
-          ],
+          conditions: [{ name: "BaseType", kind: "strings", operator: "=", values: ["Ring"], comment: "", line: 3 }],
           notes: [
             { key: "tier", value: "T1", line: 4 },
             { key: "verb", value: "take", line: 4 },
@@ -74,15 +72,21 @@ describe("parseFilter", () => {
     });
 
     it("refuses anything after a keyword on the header line", () => {
-      expect(() => parseFilter(`Show BaseType "x"\n${NOTE}`)).toThrow('line 1: Show takes nothing after it, got "BaseType \\"x\\""');
+      expect(() => parseFilter(`Show BaseType "x"\n${NOTE}`)).toThrow(
+        "line 1: Show takes nothing after it, got \"BaseType \\\"x\\\"\"",
+      );
     });
 
     it("refuses a condition before any block", () => {
-      expect(() => parseFilter('BaseType "x"')).toThrow("line 1: the condition BaseType before any Show, Hide or Minimal block");
+      expect(() => parseFilter("BaseType \"x\"")).toThrow(
+        "line 1: the condition BaseType before any Show, Hide or Minimal block",
+      );
     });
 
     it("refuses an action before any block", () => {
-      expect(() => parseFilter("SetFontSize 45")).toThrow("line 1: the action SetFontSize before any Show, Hide or Minimal block");
+      expect(() => parseFilter("SetFontSize 45")).toThrow(
+        "line 1: the action SetFontSize before any Show, Hide or Minimal block",
+      );
     });
 
     it("refuses Continue before any block", () => {
@@ -90,7 +94,9 @@ describe("parseFilter", () => {
     });
 
     it("refuses a condition that comes after the note", () => {
-      expect(() => parseFilter(`Show\n${NOTE}\nQuality > 5`)).toThrow("line 3: the condition Quality after the #@ note");
+      expect(() => parseFilter(`Show\n${NOTE}\nQuality > 5`)).toThrow(
+        "line 3: the condition Quality after the #@ note",
+      );
     });
 
     it("refuses Continue that comes after the note", () => {
@@ -111,11 +117,11 @@ describe("parseFilter", () => {
     });
 
     it("refuses Import lines", () => {
-      expect(() => parseFilter('Import "x.filter"')).toThrow("line 1: Import is not supported");
+      expect(() => parseFilter("Import \"x.filter\"")).toThrow("line 1: Import is not supported");
     });
 
     it("refuses an unknown condition name", () => {
-      expect(() => parseFilter("Show\nBaseTyp \"x\"")).toThrow('line 2: unknown condition "BaseTyp"');
+      expect(() => parseFilter("Show\nBaseTyp \"x\"")).toThrow("line 2: unknown condition \"BaseTyp\"");
     });
   });
 
@@ -129,15 +135,20 @@ describe("parseFilter", () => {
     it("reads every known key in order", () => {
       const result = only("Show\n#@ tier=T1 upto=T0 verb=gamble family=gems");
 
-      expect(result.notes.map((n) => `${n.key}=${n.value}`)).toEqual(["tier=T1", "upto=T0", "verb=gamble", "family=gems"]);
+      expect(result.notes.map((n) => `${n.key}=${n.value}`)).toEqual([
+        "tier=T1",
+        "upto=T0",
+        "verb=gamble",
+        "family=gems",
+      ]);
     });
 
     it("refuses a key that appears twice", () => {
-      expect(() => parseFilter("Show\n#@ tier=T1 verb=take tier=T2")).toThrow('line 2: note key "tier" appears twice');
+      expect(() => parseFilter("Show\n#@ tier=T1 verb=take tier=T2")).toThrow("line 2: note key \"tier\" appears twice");
     });
 
     it("reads a quoted value when it holds no spaces", () => {
-      expect(only('Show\n#@ tier="T1" verb=take').notes[0]!.value).toBe("T1");
+      expect(only("Show\n#@ tier=\"T1\" verb=take").notes[0]!.value).toBe("T1");
     });
 
     it("refuses a bare note marker", () => {
@@ -145,27 +156,31 @@ describe("parseFilter", () => {
     });
 
     it("refuses a note without a verb", () => {
-      expect(() => parseFilter("Show\n#@ tier=T1")).toThrow("line 2: a #@ note needs tier and verb, and this one has no verb");
+      expect(() => parseFilter("Show\n#@ tier=T1")).toThrow(
+        "line 2: a #@ note needs tier and verb, and this one has no verb",
+      );
     });
 
     it("refuses an unknown key", () => {
-      expect(() => parseFilter("Show\n#@ tier=T1 verb=take colour=red")).toThrow('line 2: unknown note key "colour"');
+      expect(() => parseFilter("Show\n#@ tier=T1 verb=take colour=red")).toThrow("line 2: unknown note key \"colour\"");
     });
 
     it("refuses a key with capital letters", () => {
-      expect(() => parseFilter("Show\n#@ Tier=T1 verb=take")).toThrow('line 2: bad note pair "Tier=T1"');
+      expect(() => parseFilter("Show\n#@ Tier=T1 verb=take")).toThrow("line 2: bad note pair \"Tier=T1\"");
     });
 
     it("refuses a key with an empty value", () => {
-      expect(() => parseFilter("Show\n#@ tier= verb=take")).toThrow('line 2: bad note pair "tier="');
+      expect(() => parseFilter("Show\n#@ tier= verb=take")).toThrow("line 2: bad note pair \"tier=\"");
     });
 
     it("refuses a value outside the key's list", () => {
-      expect(() => parseFilter("Show\n#@ tier=T1 verb=Take")).toThrow("line 2: verb takes one of take, check, gamble, got \"Take\"");
+      expect(() => parseFilter("Show\n#@ tier=T1 verb=Take")).toThrow(
+        "line 2: verb takes one of take, check, gamble, got \"Take\"",
+      );
     });
 
     it("refuses an unterminated quoted value", () => {
-      expect(() => parseFilter('Show\n#@ tier="T1 verb=take')).toThrow("line 2: unterminated quote in note");
+      expect(() => parseFilter("Show\n#@ tier=\"T1 verb=take")).toThrow("line 2: unterminated quote in note");
     });
 
     it("treats a note trailing a condition as an ordinary comment", () => {
@@ -178,7 +193,7 @@ describe("parseFilter", () => {
 
   describe("comments and quoting", () => {
     it("keeps a hash inside quotes as part of the value", () => {
-      expect(condition('BaseType "A#B" # why').values).toEqual(["A#B"]);
+      expect(condition("BaseType \"A#B\" # why").values).toEqual(["A#B"]);
     });
 
     it("keeps the trailing comment on the condition, trimmed and without the hash", () => {
@@ -186,16 +201,16 @@ describe("parseFilter", () => {
     });
 
     it("keeps quoted values with spaces as one value", () => {
-      expect(condition('BaseType == "Two Stone Ring" Coral').values).toEqual(["Two Stone Ring", "Coral"]);
+      expect(condition("BaseType == \"Two Stone Ring\" Coral").values).toEqual(["Two Stone Ring", "Coral"]);
     });
 
     it("reads an empty quoted value as an empty string", () => {
       // "" substring-matches every base type
-      expect(condition('BaseType ""').values).toEqual([""]);
+      expect(condition("BaseType \"\"").values).toEqual([""]);
     });
 
     it("refuses an unterminated quote", () => {
-      expect(() => parseFilter(block('BaseType "Ring'))).toThrow("line 2: unterminated quote");
+      expect(() => parseFilter(block("BaseType \"Ring"))).toThrow("line 2: unterminated quote");
     });
   });
 
@@ -209,7 +224,7 @@ describe("parseFilter", () => {
     });
 
     it("reads a glued operator as a value, not an operator", () => {
-      expect(() => parseFilter(block("Quality >=5"))).toThrow('line 2: Quality takes a number, got ">=5"');
+      expect(() => parseFilter(block("Quality >=5"))).toThrow("line 2: Quality takes a number, got \">=5\"");
     });
   });
 
@@ -223,15 +238,17 @@ describe("parseFilter", () => {
     });
 
     it("refuses a comparison operator", () => {
-      expect(() => parseFilter(block("Corrupted > True"))).toThrow('line 2: Corrupted does not take the operator ">"');
+      expect(() => parseFilter(block("Corrupted > True"))).toThrow("line 2: Corrupted does not take the operator \">\"");
     });
 
     it("refuses a value that is not True or False", () => {
-      expect(() => parseFilter(block("Corrupted Yes"))).toThrow('line 2: Corrupted takes True or False, got "Yes"');
+      expect(() => parseFilter(block("Corrupted Yes"))).toThrow("line 2: Corrupted takes True or False, got \"Yes\"");
     });
 
     it("refuses two values", () => {
-      expect(() => parseFilter(block("Corrupted True False"))).toThrow("line 2: Corrupted takes exactly one value, got 2");
+      expect(() => parseFilter(block("Corrupted True False"))).toThrow(
+        "line 2: Corrupted takes exactly one value, got 2",
+      );
     });
   });
 
@@ -246,11 +263,11 @@ describe("parseFilter", () => {
     });
 
     it("refuses a value that is not a number", () => {
-      expect(() => parseFilter(block("Quality high"))).toThrow('line 2: Quality takes a number, got "high"');
+      expect(() => parseFilter(block("Quality high"))).toThrow("line 2: Quality takes a number, got \"high\"");
     });
 
     it("refuses a quoted blank value", () => {
-      expect(() => parseFilter(block('Quality " "'))).toThrow('line 2: Quality takes a number, got " "');
+      expect(() => parseFilter(block("Quality \" \""))).toThrow("line 2: Quality takes a number, got \" \"");
     });
 
     it("refuses infinity", () => {
@@ -268,11 +285,15 @@ describe("parseFilter", () => {
     });
 
     it("refuses several rarities under a comparison", () => {
-      expect(() => parseFilter(block("Rarity > Normal Magic"))).toThrow("line 2: Rarity takes exactly one value, got 2");
+      expect(() => parseFilter(block("Rarity > Normal Magic"))).toThrow(
+        "line 2: Rarity takes exactly one value, got 2",
+      );
     });
 
     it("refuses a rarity that is not on the ladder", () => {
-      expect(() => parseFilter(block("Rarity Relic"))).toThrow('line 2: Rarity takes one of Normal, Magic, Rare, Unique, got "Relic"');
+      expect(() => parseFilter(block("Rarity Relic"))).toThrow(
+        "line 2: Rarity takes one of Normal, Magic, Rare, Unique, got \"Relic\"",
+      );
     });
   });
 
@@ -282,17 +303,21 @@ describe("parseFilter", () => {
     });
 
     it("refuses a value outside the list", () => {
-      expect(() => parseFilter(block("HasInfluence Eater"))).toThrow('HasInfluence takes one of Shaper, Elder, Crusader, Hunter, Redeemer, Warlord, None, got "Eater"');
+      expect(() => parseFilter(block("HasInfluence Eater"))).toThrow(
+        "HasInfluence takes one of Shaper, Elder, Crusader, Hunter, Redeemer, Warlord, None, got \"Eater\"",
+      );
     });
 
     it("refuses a comparison operator", () => {
-      expect(() => parseFilter(block("HasInfluence >= Shaper"))).toThrow('HasInfluence does not take the operator ">="');
+      expect(() => parseFilter(block("HasInfluence >= Shaper"))).toThrow(
+        "HasInfluence does not take the operator \">=\"",
+      );
     });
   });
 
   describe("string conditions", () => {
     it("refuses a comparison operator", () => {
-      expect(() => parseFilter(block('Class > "Rings"'))).toThrow('Class does not take the operator ">"');
+      expect(() => parseFilter(block("Class > \"Rings\""))).toThrow("Class does not take the operator \">\"");
     });
 
     it("accepts any value, with no whitelist", () => {
@@ -318,15 +343,15 @@ describe("parseFilter", () => {
     });
 
     it("refuses a letter that is not a socket colour", () => {
-      expect(() => parseFilter(block("Sockets RX"))).toThrow('Sockets does not know the socket colour "X"');
+      expect(() => parseFilter(block("Sockets RX"))).toThrow("Sockets does not know the socket colour \"X\"");
     });
 
     it("refuses colours written before the count", () => {
-      expect(() => parseFilter(block("Sockets GG5"))).toThrow('Sockets takes a count and colours, got "GG5"');
+      expect(() => parseFilter(block("Sockets GG5"))).toThrow("Sockets takes a count and colours, got \"GG5\"");
     });
 
     it("refuses an empty quoted spec", () => {
-      expect(() => parseFilter(block('Sockets ""'))).toThrow('Sockets takes a count and colours, got ""');
+      expect(() => parseFilter(block("Sockets \"\""))).toThrow("Sockets takes a count and colours, got \"\"");
     });
 
     it("refuses two specs", () => {
@@ -336,31 +361,39 @@ describe("parseFilter", () => {
 
   describe("counted conditions", () => {
     it("reads a count glued to its operator", () => {
-      expect(condition('HasExplicitMod >=2 "of Haast" Tyrannical')).toMatchObject({ operator: ">=", count: 2, values: ["of Haast", "Tyrannical"] });
+      expect(condition("HasExplicitMod >=2 \"of Haast\" Tyrannical")).toMatchObject({
+        operator: ">=",
+        count: 2,
+        values: ["of Haast", "Tyrannical"],
+      });
     });
 
     it("reads a count spaced from its operator", () => {
-      expect(condition('HasExplicitMod >= 2 "of Haast"')).toMatchObject({ operator: ">=", count: 2, values: ["of Haast"] });
+      expect(condition("HasExplicitMod >= 2 \"of Haast\"")).toMatchObject({
+        operator: ">=",
+        count: 2,
+        values: ["of Haast"],
+      });
     });
 
     it("reads a glued zero count as none of them", () => {
-      expect(condition('HasEnchantment =0 "x"')).toMatchObject({ operator: "=", count: 0 });
+      expect(condition("HasEnchantment =0 \"x\"")).toMatchObject({ operator: "=", count: 0 });
     });
 
     it("reads a line with no count as one or more", () => {
-      expect(condition('HasExplicitMod "x" "y"')).toMatchObject({ operator: ">=", count: 1 });
+      expect(condition("HasExplicitMod \"x\" \"y\"")).toMatchObject({ operator: ">=", count: 1 });
     });
 
     it("reads a negated line with no count as exactly zero", () => {
-      expect(condition('HasExplicitMod != "x"')).toMatchObject({ operator: "=", count: 0 });
+      expect(condition("HasExplicitMod != \"x\"")).toMatchObject({ operator: "=", count: 0 });
     });
 
     it("keeps a bare leading number as a mod name when no operator is written", () => {
-      expect(condition('HasExplicitMod 2 "x"')).toMatchObject({ values: ["2", "x"], count: 1 });
+      expect(condition("HasExplicitMod 2 \"x\"")).toMatchObject({ values: ["2", "x"], count: 1 });
     });
 
     it("keeps a negated spaced count as an inequality on the count", () => {
-      expect(condition('HasExplicitMod ! 2 "x"')).toMatchObject({ operator: "!", count: 2 });
+      expect(condition("HasExplicitMod ! 2 \"x\"")).toMatchObject({ operator: "!", count: 2 });
     });
 
     it("refuses a count with no names after it", () => {
@@ -370,7 +403,7 @@ describe("parseFilter", () => {
 
   describe("transfigured gem", () => {
     it("accepts a gem name", () => {
-      expect(condition('TransfiguredGem "Frostblink of Wintry Blast"').values).toEqual(["Frostblink of Wintry Blast"]);
+      expect(condition("TransfiguredGem \"Frostblink of Wintry Blast\"").values).toEqual(["Frostblink of Wintry Blast"]);
     });
 
     it("refuses two values", () => {
@@ -378,7 +411,9 @@ describe("parseFilter", () => {
     });
 
     it("refuses a comparison operator", () => {
-      expect(() => parseFilter(block("TransfiguredGem > True"))).toThrow('TransfiguredGem does not take the operator ">"');
+      expect(() => parseFilter(block("TransfiguredGem > True"))).toThrow(
+        "TransfiguredGem does not take the operator \">\"",
+      );
     });
   });
 });

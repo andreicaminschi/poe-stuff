@@ -10,7 +10,11 @@ export function actionLines(style: Style): readonly string[] {
     `SetTextColor ${colour(style.text, style.opacity)}`,
     `SetBorderColor ${colour(style.border, style.opacity)}`,
     `SetBackgroundColor ${colour(style.background, style.opacity)}`,
-    ...(style.icon === null ? [] : [`MinimapIcon ${style.icon.size} ${style.icon.colour} ${style.icon.shape}`]),
-    ...(style.beam === null ? [] : [`PlayEffect ${style.beam.colour}`]),
+    ...(style.icon === null
+      ? []
+      : [`MinimapIcon ${style.icon.size} ${style.icon.colour} ${style.icon.shape}`]),
+    ...(style.beam === null
+      ? []
+      : [`PlayEffect ${style.beam.colour}`]),
   ];
 }

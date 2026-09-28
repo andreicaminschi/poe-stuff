@@ -20,13 +20,13 @@ describe("collectBaseTypes", () => {
 
   it("reports a rejected base type even when a seed row carries it", () => {
     expect(collectBaseTypes({ "authored/a": { baseType: "Ruby Ring" } }, seeds, new Set(["Ruby Ring"]))).toEqual([
-      { key: "authored/a", problem: 'baseType "Ruby Ring" is one the client rejects' },
+      { key: "authored/a", problem: "baseType \"Ruby Ring\" is one the client rejects" },
     ]);
   });
 
   it("reports a base type that no seed row carries", () => {
     expect(collectBaseTypes({ "authored/a": { baseType: "Opal Ring" } }, seeds, new Set())).toEqual([
-      { key: "authored/a", problem: 'baseType "Opal Ring" is not the name of any seed row' },
+      { key: "authored/a", problem: "baseType \"Opal Ring\" is not the name of any seed row" },
     ]);
   });
 

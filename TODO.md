@@ -4,7 +4,7 @@ Deferred decisions. Nothing here is scheduled.
 
 - **A unique's forms are priced apart and drawn together.** A base row carries every
   unique PoeWatch lists on it under `uniques`, one entry per listed form — `Lightpoacher
-  (2 Sockets)` and `Lightpoacher (1 Socket)` are two entries, 120c and 1c. A filter can tell
+(2 Sockets)` and `Lightpoacher (1 Socket)` are two entries, 120c and 1c. A filter can tell
   those two apart (`Sockets >= 2A`) and cannot tell a foulborn tag's label or a corruption
   outcome apart at all. The first pass of the generator treats every form as a price and
   nothing more. Undecided how a person says, per unique, which forms a filter can name and
@@ -59,8 +59,8 @@ exist anywhere.
   has no concept of a layer that decorates another block.
 - **`HasExplicitMod` counts names in `@poe/filter-eval`, and the game counts modifiers.**
   `matchCounted` in `lib/filter-eval/evaluate-filter.ts` counts how many of the
-  *listed* names appear as a substring of any of the item's modifiers, so the count can
-  never exceed the number of names on the line. The game counts matching *modifiers*, which
+  _listed_ names appear as a substring of any of the item's modifiers, so the count can
+  never exceed the number of names on the line. The game counts matching _modifiers_, which
   the line does not bound. The eight-modifier trick,
   `HasExplicitMod >=8 "a" "e" "i" "o" "u" "y"`, asks for eight out of six names: routine in
   the game, unsatisfiable under the evaluator. The substring direction is right and defends
@@ -129,7 +129,7 @@ exist anywhere.
   Chromatic — value that comes from a recipe rather than from anything a feed lists. Every
   piece is already here: the exchange prices all three currencies, and `Sockets`,
   `LinkedSockets` and `SocketGroup` all parse in `@poe/filter-eval`. What is missing is a
-  pass that knows a recipe's payout is a property of the *item* rather than of a market
+  pass that knows a recipe's payout is a property of the _item_ rather than of a market
   row, which no existing family models — every bucket in the file today is priced by
   somebody's listing. NeverSink spends nine blocks on this at section 1400.
 - **Whether a gem is worth a block at the state it drops in is unanswered.** The vendor
@@ -141,9 +141,5 @@ exist anywhere.
   which are vendor-recipe items and do not drop at all. So the rule cannot be written from
   the price feed: it needs a source saying which gems drop. The wiki has it. Three rows at
   under 10c is what it is worth today.
-
-
-
-
 
 - fractured items??? all bases, only high end bases? lever

@@ -36,21 +36,21 @@ One response is `{ next_change_id, markets: [...] }`. One market entry is
   "league": "Standard",
   "market_id": "…CurrencyEssenceSpite4|…CurrencyRerollRare",
   "market_pair": ["…CurrencyEssenceSpite4", "…CurrencyRerollRare"],
-  "volume_traded": { "…CurrencyEssenceSpite4": 48,   "…CurrencyRerollRare": 816  },
-  "lowest_stock":  { "…CurrencyEssenceSpite4": 0,    "…CurrencyRerollRare": 5251 },
-  "highest_stock": { "…CurrencyEssenceSpite4": 0,    "…CurrencyRerollRare": 5897 },
-  "lowest_ratio":  { "…CurrencyEssenceSpite4": 1,    "…CurrencyRerollRare": 17   },
-  "highest_ratio": { "…CurrencyEssenceSpite4": 1,    "…CurrencyRerollRare": 17   }
+  "volume_traded": { "…CurrencyEssenceSpite4": 48, "…CurrencyRerollRare": 816 },
+  "lowest_stock": { "…CurrencyEssenceSpite4": 0, "…CurrencyRerollRare": 5251 },
+  "highest_stock": { "…CurrencyEssenceSpite4": 0, "…CurrencyRerollRare": 5897 },
+  "lowest_ratio": { "…CurrencyEssenceSpite4": 1, "…CurrencyRerollRare": 17 },
+  "highest_ratio": { "…CurrencyEssenceSpite4": 1, "…CurrencyRerollRare": 17 }
 }
 ```
 
 Every field is a two-key dict. **Read them as a pair, never a side.**
 
-| Field | Kind | Meaning |
-| --- | --- | --- |
-| `volume_traded` | flow | Units that executed on each side, over the hour |
+| Field                            | Kind       | Meaning                                                        |
+| -------------------------------- | ---------- | -------------------------------------------------------------- |
+| `volume_traded`                  | flow       | Units that executed on each side, over the hour                |
 | `lowest_ratio` / `highest_ratio` | price band | Cheapest and dearest ratio seen, as a reduced integer fraction |
-| `lowest_stock` / `highest_stock` | depth | Min and max open book on each side, sampled |
+| `lowest_stock` / `highest_stock` | depth      | Min and max open book on each side, sampled                    |
 
 `market_id` is the two paths joined by `|`, sorted by GGG's internal hash. **Pair order
 is arbitrary** — not base-first, not alphabetical.
@@ -79,7 +79,7 @@ point inside it.**
 Ratios are reduced fractions with no fixed unit side. **548 of 2016** markets had no
 `1` on either side (`ScarabExpedition2 : Chaos = 3 : 2`). Always compute `a/b`.
 
-"Lowest" means lowest *first-side-per-second-side*. Expressed as chaos-per-item that
+"Lowest" means lowest _first-side-per-second-side_. Expressed as chaos-per-item that
 inverts, so `lowest_ratio` becomes the **high** price whenever chaos is the second
 element — and whether it is depends on that arbitrary hash order.
 
@@ -94,13 +94,13 @@ survive the flip.**
 
 ## Degenerate rows
 
-| Case | Count (of 2016) | Handling |
-| --- | --- | --- |
-| Zero volume on a side | 396 | Book existed, nothing traded. Stock is real, VWAP is not |
-| All-zero ratios (`0:0`) | present | Guard the division |
+| Case                    | Count (of 2016)   | Handling                                                     |
+| ----------------------- | ----------------- | ------------------------------------------------------------ |
+| Zero volume on a side   | 396               | Book existed, nothing traded. Stock is real, VWAP is not     |
+| All-zero ratios (`0:0`) | present           | Guard the division                                           |
 | Stock 0 with volume > 0 | the example above | Not a contradiction — offers filled as fast as they appeared |
 
-Stock is the standing book *sampled*; volume is what *executed*. A liquid pair can read
+Stock is the standing book _sampled_; volume is what _executed_. A liquid pair can read
 zero depth all hour.
 
 ---
@@ -115,10 +115,10 @@ Sample below is league **Allflame** only: 1327 markets, 894 distinct currencies.
 reachable from chaos:
 
 | Hops from chaos | Currencies |
-| --- | --- |
-| 0 | 1 |
-| 1 | 881 |
-| 2 | 12 |
+| --------------- | ---------- |
+| 0               | 1          |
+| 1               | 881        |
+| 2               | 12         |
 
 So a chaos-equivalent price exists for the entire universe from a single hour, direct
 for 99% and via one intermediate for twelve. No path-finding infrastructure needed —
@@ -128,11 +128,11 @@ a direct lookup with a one-hop fallback covers it.
 
 `max(ratio) / min(ratio)` per market:
 
-| Statistic | Value |
-| --- | --- |
-| Median | 1.235 |
-| p90 | 3.000 |
-| Max | 30.7 |
+| Statistic        | Value       |
+| ---------------- | ----------- |
+| Median           | 1.235       |
+| p90              | 3.000       |
+| Max              | 30.7        |
 | Flat (exactly 1) | 254 of 1127 |
 
 A median 23% intra-hour band is wide for a market maker and useless as a "price". The
@@ -142,13 +142,13 @@ discarded.
 
 ### Top chaos markets by volume, one hour
 
-| Item | Chaos volume | VWAP (chaos) | Band |
-| --- | --- | --- | --- |
-| Divine Orb (`CurrencyModValues`) | 13,266,104 | 198.83 | 192–201 |
-| `ScarabDivinationCardsNew1` | 827,033 | 22.82 | 21–24 |
-| `CurrencyValdoPuzzleBox` | 753,488 | 246.08 | 222–255 |
-| `DivinationCardDeck` | 506,473 | 3.29 | 2–4 |
-| `ScarabUber7` | 505,178 | 424.52 | 404–444 |
+| Item                             | Chaos volume | VWAP (chaos) | Band    |
+| -------------------------------- | ------------ | ------------ | ------- |
+| Divine Orb (`CurrencyModValues`) | 13,266,104   | 198.83       | 192–201 |
+| `ScarabDivinationCardsNew1`      | 827,033      | 22.82        | 21–24   |
+| `CurrencyValdoPuzzleBox`         | 753,488      | 246.08       | 222–255 |
+| `DivinationCardDeck`             | 506,473      | 3.29         | 2–4     |
+| `ScarabUber7`                    | 505,178      | 424.52       | 404–444 |
 
 Divine is 16x the next market by chaos turnover. Any index weighted by volume is
 effectively a divine/chaos tracker unless deliberately capped.

@@ -27,8 +27,7 @@ type FiledListing = UniqueListing & {
  * The unique a listing is of. `Foulborn Headhunter (Culling)` is Headhunter: the prefix is
  * the tag, and the parentheses are the form.
  */
-const uniqueOf = (listing: string): string =>
-  listing.replace(/^Foulborn /, "").replace(/( \([^)]*\))+$/, "");
+const uniqueOf = (listing: string): string => listing.replace(/^Foulborn /, "").replace(/( \([^)]*\))+$/, "");
 
 /** Which bases the trade list says each unique rolls on. Sixty roll on more than one. */
 function basesByUnique(groups: readonly GGGItemGroup[]): ReadonlyMap<string, string[]> {
@@ -70,7 +69,9 @@ function listedUniques(
     const chosen = mostListed(same);
     if (chosen === undefined) continue;
 
-    const subcategory = name.startsWith(FOULBORN) ? FOULBORN_SUBCATEGORY : null;
+    const subcategory = name.startsWith(FOULBORN)
+      ? FOULBORN_SUBCATEGORY
+      : null;
 
     entries.push({
       name,

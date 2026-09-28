@@ -187,16 +187,16 @@ export type GemItem = ItemCommon & {
 };
 
 /** Unique and rare armour pieces. */
-export type ArmourItem = ItemCommon &
-  PerfectPrice & {
+export type ArmourItem = ItemCommon
+  & PerfectPrice & {
     readonly category: "armour";
     /** Number of linked sockets, 0 for non-linkable items. */
     readonly linkCount: number;
   };
 
 /** Unique weapons. */
-export type WeaponItem = ItemCommon &
-  PerfectPrice & {
+export type WeaponItem = ItemCommon
+  & PerfectPrice & {
     readonly category: "weapons";
     /** Number of linked sockets, 0 for non-linkable items. */
     readonly linkCount: number;
@@ -206,16 +206,16 @@ export type WeaponItem = ItemCommon &
 export type JewelItem = ItemCommon & PerfectPrice & { readonly category: "jewels" };
 
 /** Unique rings, amulets and belts. */
-export type AccessoryItem = ItemCommon &
-  PerfectPrice & {
+export type AccessoryItem = ItemCommon
+  & PerfectPrice & {
     readonly category: "accessories";
     /** Number of linked sockets, 0 for non-linkable items. */
     readonly linkCount: number;
   };
 
 /** Maps of every rarity, plus the unique maps. */
-export type MapItem = ItemCommon &
-  ExchangePair & {
+export type MapItem = ItemCommon
+  & ExchangePair & {
     readonly category: "maps";
     /** Tier of the map. Absent on rows where tier does not apply. */
     readonly mapTier?: number | null;
@@ -236,8 +236,8 @@ export type ItemisedCorpseItem = ItemCommon & { readonly category: "itemisedcorp
 export type ScarabItem = ItemCommon & ExchangePair & { readonly category: "scarab" };
 
 /** Divination cards. Frame 6, and the only category with reward fields. */
-export type DivinationCardItem = ItemCommon &
-  ExchangePair & {
+export type DivinationCardItem = ItemCommon
+  & ExchangePair & {
     readonly category: "card";
     /** Reward name for the card. */
     readonly reward?: string | null;
@@ -255,8 +255,8 @@ export type HeistMissionItem = ItemCommon & {
 };
 
 /** Essences. The only category carrying `tier`. */
-export type EssenceItem = ItemCommon &
-  ExchangePair & {
+export type EssenceItem = ItemCommon
+  & ExchangePair & {
     readonly category: "essence";
     /** Tier of the essence. */
     readonly tier: number;
@@ -314,8 +314,7 @@ export type HeistObjectiveItem = ItemCommon & { readonly category: "heistobjecti
  * Stacked Deck. Its own category despite being currency — PoeWatch files the deck apart
  * from the cards it opens into, which live in {@link DivinationCardItem}.
  */
-export type StackedDeckItem = ItemCommon &
-  ExchangePair & { readonly category: "divination" };
+export type StackedDeckItem = ItemCommon & ExchangePair & { readonly category: "divination" };
 
 /** Envelope returned by `GET /compact`. */
 export type CompactResponse = { readonly items: readonly ItemData[] };

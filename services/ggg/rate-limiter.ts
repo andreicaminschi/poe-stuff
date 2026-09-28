@@ -1,8 +1,4 @@
-import type {
-  RateLimiter,
-  RateLimiterRule,
-  RateLimitState,
-} from "./types.ts";
+import type { RateLimiter, RateLimiterRule, RateLimitState } from "./types.ts";
 
 // A limiter with no usable rules is a config mistake, not "unlimited" — the likely way
 // to get here is a rate-limit header that failed to parse. Fail where it enters.
@@ -12,14 +8,10 @@ function assertRules(rules: RateLimiterRule[]) {
   }
   for (const r of rules) {
     if (!Number.isInteger(r.max) || r.max < 1) {
-      throw new RangeError(
-        `limiter rule max must be a positive integer, got ${r.max}`,
-      );
+      throw new RangeError(`limiter rule max must be a positive integer, got ${r.max}`);
     }
     if (!(r.windowMs > 0)) {
-      throw new RangeError(
-        `limiter rule windowMs must be positive, got ${r.windowMs}`,
-      );
+      throw new RangeError(`limiter rule windowMs must be positive, got ${r.windowMs}`);
     }
   }
 }
@@ -47,10 +39,7 @@ export type LimiterOptions = {
 };
 
 /** Throws `RangeError` if `rules` is empty or any rule is unusable. */
-export function createLimiter(
-  rules: RateLimiterRule[],
-  options: LimiterOptions = {},
-): RateLimiter {
+export function createLimiter(rules: RateLimiterRule[], options: LimiterOptions = {}): RateLimiter {
   assertRules(rules);
 
   const { smoothAbove } = options;
@@ -76,13 +65,14 @@ export function createLimiter(
   const unseenAt = (tier: number, now: number) => {
     const held = unseen[tier];
 
-    return held === undefined || held.until <= now ? 0 : held.count;
+    return held === undefined || held.until <= now
+      ? 0
+      : held.count;
   };
 
   // reduce, not Math.max(...spread): an empty list would silently yield -Infinity and
   // trim away every hit. assertRules rules that out, and this keeps it out.
-  const longest = () =>
-    rules.reduce((widest, r) => Math.max(widest, r.windowMs), 0);
+  const longest = () => rules.reduce((widest, r) => Math.max(widest, r.windowMs), 0);
 
   /** Our hits inside the rule's window plus what the server counted that we did not. */
   const spentIn = (rule: RateLimiterRule, tier: number, now: number): number =>
@@ -101,13 +91,19 @@ export function createLimiter(
     const oldest = inWindow[0];
 
     const frees = [
-      held !== undefined && held.until > now ? held.until - now : Infinity,
-      oldest === undefined ? Infinity : oldest + rule.windowMs - now,
+      held !== undefined && held.until > now
+        ? held.until - now
+        : Infinity,
+      oldest === undefined
+        ? Infinity
+        : oldest + rule.windowMs - now,
     ];
 
     const wait = Math.min(...frees);
 
-    return Number.isFinite(wait) ? Math.max(wait, 1) : NO_WAIT;
+    return Number.isFinite(wait)
+      ? Math.max(wait, 1)
+      : NO_WAIT;
   }
 
   /**
@@ -115,11 +111,7 @@ export function createLimiter(
    * than in bursts. NO_WAIT until the tier passes `smoothAbove`, so an idle budget is
    * still spent freely and only a filling one slows down.
    */
-  function spacingFor(
-    rule: RateLimiterRule,
-    tier: number,
-    now: number,
-  ): number {
+  function spacingFor(rule: RateLimiterRule, tier: number, now: number): number {
     if (smoothAbove === undefined) return NO_WAIT;
 
     if (spentIn(rule, tier, now) < rule.max * smoothAbove) return NO_WAIT;

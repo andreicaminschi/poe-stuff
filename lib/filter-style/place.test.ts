@@ -3,8 +3,20 @@ import { place } from "./place.ts";
 import type { Item, PlaceOptions } from "./types.ts";
 
 const floors = { T0: 500, T1: 100, T2: 20, T3: 5, T4: 2, T5: 1 };
-const options = (extra: Partial<PlaceOptions> = {}): PlaceOptions => ({ floors, disabled: [], hints: [], wanted: [], ...extra });
-const item = (name: string, prices: Item["prices"], extra: Partial<Item> = {}): Item => ({ name, key: name, category: "c", prices, ...extra });
+const options = (extra: Partial<PlaceOptions> = {}): PlaceOptions => ({
+  floors,
+  disabled: [],
+  hints: [],
+  wanted: [],
+  ...extra,
+});
+const item = (name: string, prices: Item["prices"], extra: Partial<Item> = {}): Item => ({
+  name,
+  key: name,
+  category: "c",
+  prices,
+  ...extra,
+});
 
 describe("place", () => {
   describe("by price", () => {
@@ -12,7 +24,13 @@ describe("place", () => {
       const { placed } = place([item("a", { take: 20 })], options());
 
       expect(placed).toEqual([
-        { item: item("a", { take: 20 }), bucket: "T2", verb: "take", reason: "worth it as it lies: 20c, inside 20-100c", won: true },
+        {
+          item: item("a", { take: 20 }),
+          bucket: "T2",
+          verb: "take",
+          reason: "worth it as it lies: 20c, inside 20-100c",
+          won: true,
+        },
       ]);
     });
 
@@ -86,7 +104,10 @@ describe("place", () => {
 
   describe("by stack size", () => {
     it("gives an item one winning block per bucket, each with its stack range", () => {
-      const { placed, unplaced } = place([item("a", {})], options({ tiering: "stack-size", disabled: ["T2", "T3", "T4", "T5"] }));
+      const { placed, unplaced } = place(
+        [item("a", {})],
+        options({ tiering: "stack-size", disabled: ["T2", "T3", "T4", "T5"] }),
+      );
 
       expect([unplaced, placed.map((one) => [one.bucket, one.stack, one.reason, one.won])]).toEqual([
         [],

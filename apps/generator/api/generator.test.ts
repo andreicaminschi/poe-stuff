@@ -30,7 +30,10 @@ describe("createGeneratorService", () => {
     await lake.writeJson("catalog/latest/allflame.catalog.json", []);
     await lake.writeJson("catalog/latest/allflame.catalog.categories.json", {});
 
-    expect(await createGeneratorService(repo, async () => undefined).getCatalog()).toEqual({ rows: [], categories: {} });
+    expect(await createGeneratorService(repo, async () => undefined).getCatalog()).toEqual({
+      rows: [],
+      categories: {},
+    });
   });
 
   it("writes the filter wherever the path picker points", async () => {

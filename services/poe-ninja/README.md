@@ -43,16 +43,16 @@ services/poe-ninja/
 
 ## Public API
 
-| Entry point | Exports | Contract |
-| --- | --- | --- |
-| `@poe/poe-ninja/service` | `createPoeNinjaService`, `PoeNinjaService`, `PoeNinjaServiceOptions` | Five endpoints bound to one base URL, user agent and cache. Every option has a default. |
-| `@poe/poe-ninja/get-leagues.types` | `EconomyLeague` | `id` is what every other call wants. |
-| `@poe/poe-ninja/get-item-overview.types` | `ITEM_TYPES`, `ItemType`, `ItemOverviewLine`, `ItemOverviewResponse`, `ModifierLine` | `itemClass` is on the line and is read nowhere — see the gotcha. |
+| Entry point                                  | Exports                                                                                                          | Contract                                                                                   |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `@poe/poe-ninja/service`                     | `createPoeNinjaService`, `PoeNinjaService`, `PoeNinjaServiceOptions`                                             | Five endpoints bound to one base URL, user agent and cache. Every option has a default.    |
+| `@poe/poe-ninja/get-leagues.types`           | `EconomyLeague`                                                                                                  | `id` is what every other call wants.                                                       |
+| `@poe/poe-ninja/get-item-overview.types`     | `ITEM_TYPES`, `ItemType`, `ItemOverviewLine`, `ItemOverviewResponse`, `ModifierLine`                             | `itemClass` is on the line and is read nowhere — see the gotcha.                           |
 | `@poe/poe-ninja/get-exchange-overview.types` | `EXCHANGE_TYPES`, `ExchangeType`, `ExchangeLine`, `ExchangeItemMeta`, `ExchangeCore`, `ExchangeOverviewResponse` | Returned whole: `lines` prices a slug, `items` names it, `core` says what the price is in. |
-| `@poe/poe-ninja/get-league-items.types` | `NinjaItem` | Every field is either poe.ninja's or documented as synthesized. |
-| `@poe/poe-ninja/get-exchange-ratios.types` | `NinjaExchangeItem`, `NinjaExchangeSide` | `id` is a negative hash of the slug, so it can never collide with an item id. |
-| `@poe/poe-ninja/errors` | `PoeNinjaHttpError` | Carries `url`, `status`, `attempts`. |
-| `@poe/poe-ninja/types` | `PoeNinjaContext`, `ResponseCache`, `CachedResponse`, `SparkLine` | Types only. `ResponseCache` is what `PoeNinjaServiceOptions.cache` takes. |
+| `@poe/poe-ninja/get-league-items.types`      | `NinjaItem`                                                                                                      | Every field is either poe.ninja's or documented as synthesized.                            |
+| `@poe/poe-ninja/get-exchange-ratios.types`   | `NinjaExchangeItem`, `NinjaExchangeSide`                                                                         | `id` is a negative hash of the slug, so it can never collide with an item id.              |
+| `@poe/poe-ninja/errors`                      | `PoeNinjaHttpError`                                                                                              | Carries `url`, `status`, `attempts`.                                                       |
+| `@poe/poe-ninja/types`                       | `PoeNinjaContext`, `ResponseCache`, `CachedResponse`, `SparkLine`                                                | Types only. `ResponseCache` is what `PoeNinjaServiceOptions.cache` takes.                  |
 
 ### Not exported
 
@@ -115,18 +115,18 @@ const gems = await ninja.getItemOverview("Allflame", "SkillGem");
 **This package reads no environment.** Nothing here touches `process.env`, there is no
 `.env` to load, and every knob is an argument to `createPoeNinjaService`.
 
-| Option | Holds | Default |
-| --- | --- | --- |
-| `baseUrl` | Base of poe.ninja, trailing slash stripped | `https://poe.ninja` |
-| `userAgent` | `user-agent` sent on every request | `poe-stuff/1.0` |
-| `cache` | A `ResponseCache` answering calls from previous ones. Its presence is the whole switch | absent — every call re-downloads |
+| Option      | Holds                                                                                  | Default                          |
+| ----------- | -------------------------------------------------------------------------------------- | -------------------------------- |
+| `baseUrl`   | Base of poe.ninja, trailing slash stripped                                             | `https://poe.ninja`              |
+| `userAgent` | `user-agent` sent on every request                                                     | `poe-stuff/1.0`                  |
+| `cache`     | A `ResponseCache` answering calls from previous ones. Its presence is the whole switch | absent — every call re-downloads |
 
 ## Gotchas
 
 - **`itemClass` cannot be read.** poe.ninja documents it as a rarity — 0 normal, 1 magic,
   2 rare, 3 unique — and the payload does not honour that: `type=BaseType` returns 20,004
   white crafting bases of which ~95% carry `2`, and `type=UniqueAccessory` carries `10` on
-  eight ordinary uniques. What a row *is* comes from the `type` that was asked for, which
+  eight ordinary uniques. What a row _is_ comes from the `type` that was asked for, which
   is what `item-types.ts` is for.
 - **An empty type is an answer.** Four of the 28 — `Incubator`, `ShrineBelt`, `ImbuedGem`,
   `Memory` — come back with no lines in a healthy league, because nothing traded one. A

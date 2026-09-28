@@ -9,12 +9,12 @@ const isCorrupted = (conditions: readonly Condition[] | undefined): boolean =>
   (conditions ?? []).some((one) => one.condition === "Corrupted" && one.value === true);
 
 const asksForUnique = (conditions: readonly Condition[] | undefined): boolean =>
-  (conditions ?? []).some(
-    (one) => one.condition === "Rarity" && JSON.stringify(one.value ?? "").includes("Unique"),
-  );
+  (conditions ?? []).some((one) => one.condition === "Rarity" && JSON.stringify(one.value ?? "").includes("Unique"));
 
 const usable = (price: number | undefined, lowConfidence: boolean | undefined): number | undefined =>
-  lowConfidence === true || price === undefined || !Number.isFinite(price) ? undefined : price;
+  lowConfidence === true || price === undefined || !Number.isFinite(price)
+    ? undefined
+    : price;
 
 function pathOf(row: CatalogRow, stray: boolean): string | null {
   if (stray) return "regular";
@@ -37,7 +37,9 @@ function listFor(
     (one) => usable(one.meanPrice, one.lowConfidence) !== undefined && one.corrupted === corrupted,
   );
 
-  return mine.length === 0 ? undefined : mine;
+  return mine.length === 0
+    ? undefined
+    : mine;
 }
 
 function itemOf(
@@ -50,22 +52,40 @@ function itemOf(
   const corrupted = isCorrupted(row.conditions) || isCorrupted(variant?.conditions);
   const own = variant ?? row;
   const price = usable(own.meanPrice, own.lowConfidence);
-  const list = unique ? listFor(lists, row, stray, corrupted) : undefined;
-  const outcomes = unique && !corrupted ? listFor(lists, row, stray, true) : undefined;
+  const list = unique
+    ? listFor(lists, row, stray, corrupted)
+    : undefined;
+  const outcomes = unique && !corrupted
+    ? listFor(lists, row, stray, true)
+    : undefined;
 
   return {
-    name: variant === undefined ? row.name : `${row.name} (${variant.name})`,
+    name: variant === undefined
+      ? row.name
+      : `${row.name} (${variant.name})`,
     key: row.key,
-    ...(variant === undefined ? {} : { variant: variant.name }),
-    category: stray ? "unique" : row.category,
+    ...(variant === undefined
+      ? {}
+      : { variant: variant.name }),
+    category: stray
+      ? "unique"
+      : row.category,
     prices: pricesOf({
-      ...(price === undefined ? {} : { price }),
-      ...(list === undefined ? {} : { list }),
-      ...(outcomes === undefined ? {} : { outcomes }),
+      ...(price === undefined
+        ? {}
+        : { price }),
+      ...(list === undefined
+        ? {}
+        : { list }),
+      ...(outcomes === undefined
+        ? {}
+        : { outcomes }),
       unique,
       corrupted,
     }),
-    ...(row.unpriceable === true || variant?.unpriceable === true ? { unpriceable: true } : {}),
+    ...(row.unpriceable === true || variant?.unpriceable === true
+      ? { unpriceable: true }
+      : {}),
   };
 }
 

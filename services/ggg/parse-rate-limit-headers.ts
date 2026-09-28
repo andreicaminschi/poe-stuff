@@ -32,13 +32,11 @@ export function parseRules(header: string | null): RateLimiterRule[] {
 
 /** `x-rate-limit-ip-state` — `hits:windowSeconds:restrictedSeconds`. */
 export function parseState(header: string | null): RateLimitState[] {
-  return parseTriples(header).map(
-    ([hits, windowSeconds, restrictedSeconds]) => ({
-      hits,
-      windowSeconds,
-      restrictedSeconds,
-    }),
-  );
+  return parseTriples(header).map(([hits, windowSeconds, restrictedSeconds]) => ({
+    hits,
+    windowSeconds,
+    restrictedSeconds,
+  }));
 }
 
 /**

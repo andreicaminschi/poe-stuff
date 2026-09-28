@@ -14,12 +14,18 @@ const row = (key: string, extra: Partial<CatalogRow> = {}): CatalogRow => ({
   ...extra,
 });
 
-const categories: Record<string, CategoryRecord> = { currency: { conditions: [{ condition: "Class", operator: "==", value: ["Stackable Currency"] }] } };
+const categories: Record<string, CategoryRecord> = {
+  currency: { conditions: [{ condition: "Class", operator: "==", value: ["Stackable Currency"] }] },
+};
 
 const item = (key: string, variant?: string): Item => ({
-  name: variant === undefined ? key : `${key} (${variant})`,
+  name: variant === undefined
+    ? key
+    : `${key} (${variant})`,
   key,
-  ...(variant === undefined ? {} : { variant }),
+  ...(variant === undefined
+    ? {}
+    : { variant }),
   category: "currency",
   prices: {},
 });
@@ -50,8 +56,8 @@ describe("writeFilter", () => {
     expect(text).toBe(
       [
         "Show",
-        '  Class == "Stackable Currency"',
-        '  BaseType == "Chaos Orb"',
+        "  Class == \"Stackable Currency\"",
+        "  BaseType == \"Chaos Orb\"",
         "  SetFontSize 38",
         "  SetTextColor 0 0 255 255",
         "  SetBorderColor 0 0 255 255",
@@ -102,11 +108,15 @@ describe("writeFilter", () => {
 
     const { blocks } = writeFilter({ rows: [row("a")], categories, plans: [plan([placement])] });
 
-    expect(blocks[0]?.conditions.filter((one) => one.condition === "StackSize")).toEqual([{ condition: "StackSize", operator: "<", value: 5 }]);
+    expect(blocks[0]?.conditions.filter((one) => one.condition === "StackSize")).toEqual([
+      { condition: "StackSize", operator: "<", value: 5 },
+    ]);
   });
 
   it("names a variant's block by the row key and the variant name", () => {
-    const withVariant = row("a", { variants: [{ name: "big", conditions: [{ condition: "StackSize", operator: ">=", value: 5 }] }] });
+    const withVariant = row("a", {
+      variants: [{ name: "big", conditions: [{ condition: "StackSize", operator: ">=", value: 5 }] }],
+    });
     const placement = { ...at("a", "T3"), item: item("a", "big") };
 
     const { blocks } = writeFilter({ rows: [withVariant], categories, plans: [plan([placement])] });
@@ -136,7 +146,11 @@ describe("writeFilter", () => {
     });
 
     it("keeps writing the other blocks after a skip", () => {
-      const { blocks } = writeFilter({ rows: [row("a")], categories, plans: [plan([at("ghost", "T0"), at("a", "T1")])] });
+      const { blocks } = writeFilter({
+        rows: [row("a")],
+        categories,
+        plans: [plan([at("ghost", "T0"), at("a", "T1")])],
+      });
 
       expect(blocks.map((one) => one.item.key)).toEqual(["a"]);
     });

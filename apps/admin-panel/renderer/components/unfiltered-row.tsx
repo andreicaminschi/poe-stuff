@@ -10,7 +10,11 @@ export function UnfilteredRow({ row, onOpen }: { readonly row: Row; readonly onO
     <div className="unfiltered">
       <div className="unfiltered-head">
         <button type="button" className="unfiltered-fold" onClick={() => setOpen(!open)}>
-          <span className="caret">{open ? "▾" : "▸"}</span>
+          <span className="caret">
+            {open
+              ? "▾"
+              : "▸"}
+          </span>
           <span className="name">{row.name}</span>
           <span className="c mono">{row.samples.length}</span>
         </button>
@@ -18,18 +22,25 @@ export function UnfilteredRow({ row, onOpen }: { readonly row: Row; readonly onO
           Open
         </button>
       </div>
-      {open ? (
-        <ul className="samples">
-          {row.samples.map((item, at) => {
-            const query = sampleQuery(row.name, item);
-            return (
-              <li key={at} className="mono" title="Click to copy" onClick={() => void navigator.clipboard.writeText(query)}>
-                {query}
-              </li>
-            );
-          })}
-        </ul>
-      ) : null}
+      {open
+        ? (
+            <ul className="samples">
+              {row.samples.map((item, at) => {
+                const query = sampleQuery(row.name, item);
+                return (
+                  <li
+                    key={at}
+                    className="mono"
+                    title="Click to copy"
+                    onClick={() => void navigator.clipboard.writeText(query)}
+                  >
+                    {query}
+                  </li>
+                );
+              })}
+            </ul>
+          )
+        : null}
     </div>
   );
 }

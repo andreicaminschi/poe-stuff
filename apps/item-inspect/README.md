@@ -34,8 +34,8 @@ exactly that shape, so fetching it is this app's job and passing it in costs no 
 
 ## Environment
 
-| Var | Holds |
-| --- | --- |
+| Var              | Holds                                                                                                                                                              |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `POE_USER_AGENT` | Sent on the one GGG request. Must name the app and a real contact address — GGG refuses to default it, because a default would send a contact that does not exist. |
 
 The limiter opens at one request per second and never sees a second, so GGG's own

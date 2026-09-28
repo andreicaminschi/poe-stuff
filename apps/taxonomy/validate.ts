@@ -24,7 +24,9 @@ export function collect(
   return Object.entries(value).flatMap(([key, row]) => {
     const problem = problemOf(key, row);
 
-    return problem === null ? [] : [{ key, problem }];
+    return problem === null
+      ? []
+      : [{ key, problem }];
   });
 }
 

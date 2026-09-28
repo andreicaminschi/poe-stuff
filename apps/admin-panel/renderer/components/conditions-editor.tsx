@@ -42,13 +42,17 @@ const EMPTY: Readonly<Record<Kind, Pick<Condition, "value" | "from">>> = {
 
 const withKind = (condition: Condition, kind: Kind): Condition => ({
   condition: condition.condition,
-  ...(condition.operator === undefined ? {} : { operator: condition.operator }),
+  ...(condition.operator === undefined
+    ? {}
+    : { operator: condition.operator }),
   ...EMPTY[kind],
 });
 
 const removal = (condition: Condition): Condition => ({
   condition: condition.condition,
-  ...(condition.operator === undefined ? {} : { operator: condition.operator }),
+  ...(condition.operator === undefined
+    ? {}
+    : { operator: condition.operator }),
   value: null,
 });
 
@@ -59,8 +63,8 @@ const NUMBER_KINDS: readonly Kind[] = ["number", "remove"];
 const kindsFor = (condition: Condition): readonly (readonly [Kind, string])[] =>
   KINDS.filter(
     ([kind]) =>
-      (kind !== "from-name" || kindOf(condition) === "from-name") &&
-      (!numericCondition(condition.condition) || NUMBER_KINDS.includes(kind)),
+      (kind !== "from-name" || kindOf(condition) === "from-name")
+      && (!numericCondition(condition.condition) || NUMBER_KINDS.includes(kind)),
   );
 
 const isRarity = (name: string): boolean => name.trim().toLowerCase() === "rarity";
@@ -115,9 +119,13 @@ export function ConditionsEditor({
 }) {
   const disabled = onChange === undefined;
   const replace = (index: number, next: Condition) =>
-    onChange?.(own.map((condition, at) => (at === index ? next : condition)));
-  const removeAt = (...indexes: readonly number[]) => () =>
-    onChange?.(own.filter((_, at) => !indexes.includes(at)));
+    onChange?.(own.map((condition, at) => (at === index
+      ? next
+      : condition)));
+  const removeAt =
+    (...indexes: readonly number[]) =>
+      () =>
+        onChange?.(own.filter((_, at) => !indexes.includes(at)));
   const allNames = conditionOptions(names, "").map((value) => ({ value }));
 
   const nameBox = (value: string, rename: (name: string) => void) => (
@@ -135,7 +143,11 @@ export function ConditionsEditor({
   const betweenRow = ({ low, high, from, to }: { low: number; high: number; from: Condition; to: Condition }) => (
     <div className="crow own" key={`between ${low} ${high}`}>
       {nameBox(from.condition, (name) =>
-        onChange?.(own.map((condition, at) => (at === low || at === high ? { ...condition, condition: name } : condition))),
+        onChange?.(
+          own.map((condition, at) => (at === low || at === high
+            ? { ...condition, condition: name }
+            : condition)),
+        ),
       )}
       <select
         className="mono"
@@ -176,7 +188,12 @@ export function ConditionsEditor({
 
   /** Any other condition: name, operator, kind of value, value. */
   const singleRow = (index: number, condition: Condition) => (
-    <div className={`crow own${kindOf(condition) === "remove" ? " removed" : ""}`} key={index}>
+    <div
+      className={`crow own${kindOf(condition) === "remove"
+        ? " removed"
+        : ""}`}
+      key={index}
+    >
       {nameBox(condition.condition, (name) => replace(index, renamed(condition, name)))}
       <select
         className="mono"
@@ -185,10 +202,11 @@ export function ConditionsEditor({
         onChange={(event) =>
           event.target.value === BETWEEN
             ? onChange?.(toBetween(own, index))
-            : replace(index, { ...condition, operator: event.target.value })
-        }
+            : replace(index, { ...condition, operator: event.target.value })}
       >
-        {(numericCondition(condition.condition) ? [...OPERATORS, BETWEEN] : OPERATORS).map((operator) => (
+        {(numericCondition(condition.condition)
+          ? [...OPERATORS, BETWEEN]
+          : OPERATORS).map((operator) => (
           <option key={operator} value={operator}>
             {operator}
           </option>
@@ -210,7 +228,9 @@ export function ConditionsEditor({
         condition={condition}
         disabled={disabled}
         onChange={(next) => replace(index, next)}
-        {...(row === undefined ? {} : { row })}
+        {...(row === undefined
+          ? {}
+          : { row })}
         {...(valueOptions?.[condition.condition] === undefined
           ? {}
           : { options: valueOptions[condition.condition] as readonly ValueOption[] })}
@@ -225,17 +245,21 @@ export function ConditionsEditor({
         <div className="cap">
           <span>Added here</span>
           <span className="sp" />
-          {disabled ? null : (
-            <button
-              type="button"
-              className="btn tiny ghost"
-              onClick={() => onChange([...own, { condition: "", operator: "==", value: "" }])}
-            >
-              + Condition
-            </button>
-          )}
+          {disabled
+            ? null
+            : (
+                <button
+                  type="button"
+                  className="btn tiny ghost"
+                  onClick={() => onChange([...own, { condition: "", operator: "==", value: "" }])}
+                >
+                  + Condition
+                </button>
+              )}
         </div>
-        {own.length === 0 ? <p className="note">None.</p> : null}
+        {own.length === 0
+          ? <p className="note">None.</p>
+          : null}
         {betweenRows(own).map((entry) => {
           if (entry.kind === "between") return betweenRow(entry);
           if (isRarity(entry.condition.condition) && entry.condition.value !== null) {
@@ -245,37 +269,51 @@ export function ConditionsEditor({
         })}
       </div>
 
-      {resolved === undefined ? null : (
-        <>
-          <div className="cap">{resolved.label}</div>
-          <div className="resolved">
-            {resolved.conditions.length === 0 ? <span className="faint">Not drawn: no conditions yet.</span> : null}
-            {resolved.conditions.map((condition) => (
-              <div className="rline" key={`applied ${keyOf(condition)}`}>
-                <span className="cond">{formatCondition(condition)}</span>
-                <span className="origin">{appliedOrigin(condition, resolved.origins)}</span>
-                {disabled || condition.level === level ? null : (
-                  <button type="button" className="btn tiny ghost" onClick={() => onChange([...own, removal(condition)])}>
-                    Remove for this {level}
-                  </button>
-                )}
+      {resolved === undefined
+        ? null
+        : (
+            <>
+              <div className="cap">{resolved.label}</div>
+              <div className="resolved">
+                {resolved.conditions.length === 0
+                  ? <span className="faint">Not drawn: no conditions yet.</span>
+                  : null}
+                {resolved.conditions.map((condition) => (
+                  <div className="rline" key={`applied ${keyOf(condition)}`}>
+                    <span className="cond">{formatCondition(condition)}</span>
+                    <span className="origin">{appliedOrigin(condition, resolved.origins)}</span>
+                    {disabled || condition.level === level
+                      ? null
+                      : (
+                          <button
+                            type="button"
+                            className="btn tiny ghost"
+                            onClick={() => onChange([...own, removal(condition)])}
+                          >
+                            Remove for this
+                            {" "}
+                            {level}
+                          </button>
+                        )}
+                  </div>
+                ))}
+                {resolved.removed.map((condition) => (
+                  <div className="rline gone" key={`removed ${keyOf(condition)}`}>
+                    <span className="cond">{formatCondition(condition)}</span>
+                    <span className="origin">{removedOrigin(condition, resolved.origins)}</span>
+                  </div>
+                ))}
               </div>
-            ))}
-            {resolved.removed.map((condition) => (
-              <div className="rline gone" key={`removed ${keyOf(condition)}`}>
-                <span className="cond">{formatCondition(condition)}</span>
-                <span className="origin">{removedOrigin(condition, resolved.origins)}</span>
-              </div>
-            ))}
-          </div>
-          {resolved.problems.map((problem) => (
-            <p className="err" key={problem}>
-              {problem}
-            </p>
-          ))}
-        </>
-      )}
-      {note === undefined ? null : <p className="note">{note}</p>}
+              {resolved.problems.map((problem) => (
+                <p className="err" key={problem}>
+                  {problem}
+                </p>
+              ))}
+            </>
+          )}
+      {note === undefined
+        ? null
+        : <p className="note">{note}</p>}
     </div>
   );
 }

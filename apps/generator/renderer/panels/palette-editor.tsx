@@ -15,7 +15,11 @@ export function PaletteEditor() {
 
   return (
     <div className="palette">
-      <p className="label">{category.name} · colours</p>
+      <p className="label">
+        {category.name}
+        {" "}
+        · colours
+      </p>
       {(["primary", "secondary"] as const).map((key) => (
         <div className="swatch" key={key}>
           <label htmlFor={`swatch-${key}`}>{key}</label>
@@ -46,7 +50,9 @@ export function PaletteEditor() {
         <span />
         <span className="named">
           <IconShape icon={icon} size={16} />
-          {icon === null ? "" : `${icon.colour} ${ICON_COLOURS[icon.colour]}`}
+          {icon === null
+            ? ""
+            : `${icon.colour} ${ICON_COLOURS[icon.colour]}`}
         </span>
       </div>
     </div>

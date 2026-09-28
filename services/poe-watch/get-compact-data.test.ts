@@ -10,8 +10,7 @@ beforeEach(() => {
   globalThis.fetch = fetchMock;
 });
 
-const answer = (body: unknown) =>
-  fetchMock.mockResolvedValue(new Response(JSON.stringify(body)));
+const answer = (body: unknown) => fetchMock.mockResolvedValue(new Response(JSON.stringify(body)));
 
 describe("getCompactData", () => {
   it("asks for every item, bases included, in an encoded league", async () => {
@@ -19,9 +18,7 @@ describe("getCompactData", () => {
 
     await getCompactData("Hardcore Allflame", context);
 
-    expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      "https://pw.test/compact?league=Hardcore%20Allflame&all=true",
-    );
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("https://pw.test/compact?league=Hardcore%20Allflame&all=true");
   });
 
   it("returns the items out of the envelope", async () => {

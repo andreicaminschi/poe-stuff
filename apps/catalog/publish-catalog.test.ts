@@ -39,7 +39,10 @@ describe("publishCatalog", () => {
 
     const keys = await publishCatalog(lake, "r_1", "Some League");
 
-    expect(keys).toEqual(["catalog/latest/some-league.catalog.json", "catalog/latest/some-league.catalog.categories.json"]);
+    expect(keys).toEqual([
+      "catalog/latest/some-league.catalog.json",
+      "catalog/latest/some-league.catalog.categories.json",
+    ]);
     expect([await lake.readJson(keys[0] as string), await lake.readJson(keys[1] as string)]).toEqual([[1], { c: 2 }]);
   });
 

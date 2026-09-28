@@ -26,10 +26,7 @@ import { mapItemOverviewLineToNinjaItem } from "./to-item.ts";
  * caller wanting the fan-out's shape counts those rather than asking for the market
  * twice.
  */
-export async function getLeagueItems(
-  league: string,
-  context: PoeNinjaContext,
-): Promise<readonly NinjaItem[]> {
+export async function getLeagueItems(league: string, context: PoeNinjaContext): Promise<readonly NinjaItem[]> {
   const perType = await fanOut(ITEM_TYPES, async (type: ItemType) => {
     const lines = await getItemOverview(league, type, context);
     return lines.map((line) => mapItemOverviewLineToNinjaItem(line, type));

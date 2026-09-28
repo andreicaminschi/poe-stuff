@@ -35,8 +35,9 @@ const RARITIES: ReadonlySet<string> = new Set(CONDITIONS.Rarity.order);
 /** What a filter sees when the game printed something outside that ladder. */
 type Rarity = (typeof CONDITIONS.Rarity.order)[number];
 
-const rarityOf = (rarity: string): Rarity =>
-  RARITIES.has(rarity) ? (rarity as Rarity) : "Normal";
+const rarityOf = (rarity: string): Rarity => (RARITIES.has(rarity)
+  ? (rarity as Rarity)
+  : "Normal");
 
 /** The six influences, minus the `None` that only a filter line writes. */
 const INFLUENCES = CONDITIONS.HasInfluence.values.filter((value) => value !== "None");
@@ -52,8 +53,7 @@ const BLIGHTED = "Blighted ";
 const UBER_BLIGHTED = "Blight-ravaged ";
 
 /** The first number of a property, or the fallback when the item has no such property. */
-const number = (item: ParsedItem, name: string, fallback: number) =>
-  property(item, name)?.numbers[0] ?? fallback;
+const number = (item: ParsedItem, name: string, fallback: number) => property(item, name)?.numbers[0] ?? fallback;
 
 /** Whether a header's qualifiers include a word, ignoring the case the game wrote it in. */
 const qualifiedMod = (qualifiers: readonly string[], word: string) =>
@@ -74,7 +74,9 @@ function mapTier(item: ParsedItem): number | undefined {
   if (tier !== undefined) return tier;
 
   const named = NAME_TIER.exec(item.baseType)?.[1];
-  return named === undefined ? undefined : Number(named);
+  return named === undefined
+    ? undefined
+    : Number(named);
 }
 
 export function toFilterItem(item: ParsedItem): FilterItem {
@@ -102,14 +104,18 @@ export function toFilterItem(item: ParsedItem): FilterItem {
     ItemLevel: number(item, "Item Level", 0),
     Quality: number(item, "Quality", 0),
     StackSize: number(item, "Stack Size", 1),
-    ...(tier === undefined ? {} : { MapTier: tier }),
+    ...(tier === undefined
+      ? {}
+      : { MapTier: tier }),
 
     // `Sockets` reads every letter and `SocketGroup` tries one group at a time, so both take
     // the same string and the spaces are what tell them apart.
     Sockets: item.sockets.join(" "),
     SocketGroup: item.sockets.join(" "),
     // One socket is not a link, which is why the game and the filter both call it zero.
-    LinkedSockets: largestGroup > 1 ? largestGroup : 0,
+    LinkedSockets: largestGroup > 1
+      ? largestGroup
+      : 0,
 
     Corrupted: item.flags.includes("Corrupted"),
     Mirrored: item.flags.includes("Mirrored"),

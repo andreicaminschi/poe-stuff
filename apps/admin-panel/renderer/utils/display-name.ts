@@ -4,5 +4,7 @@ import type { Item } from "../../api/taxonomy/types.ts";
 export function displayName(item: Item): string {
   if (item.source === "authored") return item.name;
 
-  return item.displayName === undefined || item.displayName.trim() === "" ? item.name : item.displayName;
+  return item.displayName === undefined || item.displayName.trim() === ""
+    ? item.name
+    : item.displayName;
 }

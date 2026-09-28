@@ -1,11 +1,6 @@
 import type { DraftChanges } from "../taxonomy/types.ts";
 
-export type LedgerAction =
-  | "save-items"
-  | "save-category"
-  | "delete-category"
-  | "move-subcategory"
-  | "rename-category";
+export type LedgerAction = "save-items" | "save-category" | "delete-category" | "move-subcategory" | "rename-category";
 
 export type LedgerEntry = {
   readonly seq: number;

@@ -28,14 +28,18 @@ export function MultiItemPane() {
 
   const items = checked.flatMap((key): Item[] => {
     const item = draft?.items[key];
-    return item === undefined ? [] : [item];
+    return item === undefined
+      ? []
+      : [item];
   });
 
   const category = sharedValue(items.map((item) => item.classification.category));
   const subcategory =
     category === undefined
       ? undefined
-      : sharedValue(items.map((item) => (item.classification.subcategory === null ? "" : pathOf(item.classification))));
+      : sharedValue(items.map((item) => (item.classification.subcategory === null
+          ? ""
+          : pathOf(item.classification))));
   const top = categories.find((node) => node.path === category);
 
   const excludedCount = items.filter((item) => item.excluded === true).length;
@@ -56,7 +60,9 @@ export function MultiItemPane() {
         ...item,
         classification: {
           ...item.classification,
-          subcategory: path === "" ? null : (path.split("/")[1] ?? null),
+          subcategory: path === ""
+            ? null
+            : (path.split("/")[1] ?? null),
         },
       })),
     );
@@ -64,7 +70,11 @@ export function MultiItemPane() {
   return (
     <div className="pane">
       <div className="subhead">
-        <div className="title">{items.length} items selected</div>
+        <div className="title">
+          {items.length}
+          {" "}
+          items selected
+        </div>
       </div>
 
       <div className="grp">
@@ -77,12 +87,16 @@ export function MultiItemPane() {
             disabled={!editable}
             onChange={(event) => moveTo(event.target.value)}
           >
-            {category === undefined ? (
-              <option value={MIXED} disabled>
-                — mixed —
-              </option>
-            ) : null}
-            {category !== undefined && top === undefined ? <option value={category}>{category}</option> : null}
+            {category === undefined
+              ? (
+                  <option value={MIXED} disabled>
+                    — mixed —
+                  </option>
+                )
+              : null}
+            {category !== undefined && top === undefined
+              ? <option value={category}>{category}</option>
+              : null}
             {categories.map((node) => (
               <option key={node.path} value={node.path}>
                 {node.label}
@@ -98,17 +112,21 @@ export function MultiItemPane() {
             disabled={!editable || category === undefined}
             onChange={(event) => moveToSub(event.target.value)}
           >
-            {subcategory === undefined ? (
-              <option value={MIXED} disabled>
-                — mixed —
-              </option>
-            ) : null}
+            {subcategory === undefined
+              ? (
+                  <option value={MIXED} disabled>
+                    — mixed —
+                  </option>
+                )
+              : null}
             <option value="">— none —</option>
-            {subcategory !== undefined &&
-            subcategory !== "" &&
-            top?.children.every((child) => child.path !== subcategory) !== false ? (
-              <option value={subcategory}>{subcategory.split("/")[1]}</option>
-            ) : null}
+            {subcategory !== undefined
+              && subcategory !== ""
+              && top?.children.every((child) => child.path !== subcategory) !== false
+              ? (
+                  <option value={subcategory}>{subcategory.split("/")[1]}</option>
+                )
+              : null}
             {(top?.children ?? []).map((child) => (
               <option key={child.path} value={child.path}>
                 {child.label}
@@ -116,7 +134,9 @@ export function MultiItemPane() {
             ))}
           </select>
         </div>
-        {category === undefined ? <p className="note">Pick one category before setting a subcategory.</p> : null}
+        {category === undefined
+          ? <p className="note">Pick one category before setting a subcategory.</p>
+          : null}
       </div>
 
       <BulkFlagGroup
@@ -156,7 +176,9 @@ export function MultiItemPane() {
         <h4>Conditions</h4>
         <ConditionsEditor
           own={shared}
-          {...(editable ? { onChange: setConditions } : {})}
+          {...(editable
+            ? { onChange: setConditions }
+            : {})}
           note={
             withExtras === 0
               ? "These are the conditions every checked item has. An edit here applies to all of them."

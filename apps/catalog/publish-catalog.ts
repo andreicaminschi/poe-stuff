@@ -2,11 +2,7 @@ import { GOLD_FILES, goldKey, latestKey } from "./lake/keys.ts";
 import { readManifest } from "./pipeline/manifest.ts";
 import type { Lake } from "@poe/lake/types";
 
-export async function publishCatalog(
-  lake: Lake,
-  runId: string,
-  league: string,
-): Promise<readonly string[]> {
+export async function publishCatalog(lake: Lake, runId: string, league: string): Promise<readonly string[]> {
   const manifest = await readManifest(lake, runId);
 
   if (manifest?.stages.gold === undefined) {

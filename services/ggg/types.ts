@@ -71,10 +71,10 @@ export type CallEvent =
   | { type: "response"; url: string; status: number; durationMs: number }
   | { type: "retry"; url: string; status: number; backoffMs: number }
   | {
-      type: "penalize";
-      seconds: number;
-      source: "retry-after" | "state" | "fallback";
-    }
+    type: "penalize";
+    seconds: number;
+    source: "retry-after" | "state" | "fallback";
+  }
   // A miss emits nothing: the `request` that follows it says the same thing.
   | { type: "cache"; result: "hit" | "stored"; key: string }
   /**
@@ -82,11 +82,11 @@ export type CallEvent =
    * against, the rules it published, and how much of each window is already spent.
    */
   | {
-      type: "limits";
-      policy: string;
-      rules: RateLimiterRule[];
-      state: RateLimitState[];
-    };
+    type: "limits";
+    policy: string;
+    rules: RateLimiterRule[];
+    state: RateLimitState[];
+  };
 
 /**
  * What every endpoint in this package needs from the process it runs in. The limiter

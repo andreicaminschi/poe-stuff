@@ -102,15 +102,10 @@ function entryProblem(value: unknown): string | null {
   return null;
 }
 
-export const collectTaxonomyTable = (
-  value: unknown,
-  source: string,
-): readonly RowProblem[] => collect(value, source, (_key, entry) => entryProblem(entry));
+export const collectTaxonomyTable = (value: unknown, source: string): readonly RowProblem[] =>
+  collect(value, source, (_key, entry) => entryProblem(entry));
 
-export function validateTaxonomyTable(
-  value: unknown,
-  source: string,
-): TaxonomyTable {
+export function validateTaxonomyTable(value: unknown, source: string): TaxonomyTable {
   throwFirst(source, collectTaxonomyTable(value, source));
 
   return value as Readonly<Record<string, AuthoredEntry>>;

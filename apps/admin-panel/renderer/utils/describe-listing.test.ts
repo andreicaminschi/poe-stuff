@@ -19,7 +19,9 @@ describe("describeListing", () => {
         influences: "shaper",
         synthesised: true,
       }),
-    ).toBe("Onyx · rare · ilvl 86 · 6L · L20 · Q23 · corrupted · T16 · tier 3 · 8 passives · shaper · synth · corrupted: a / b");
+    ).toBe(
+      "Onyx · rare · ilvl 86 · 6L · L20 · Q23 · corrupted · T16 · tier 3 · 8 passives · shaper · synth · corrupted: a / b",
+    );
   });
 
   it("leaves out zero links", () => {

@@ -25,11 +25,11 @@ hide one, so pricing it styles nothing.
 
 ## Stages
 
-| Stage | Does | On a rerun |
-| --- | --- | --- |
+| Stage  | Does                                                                                                                                                                                | On a rerun                                                             |
+| ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
 | bronze | Fetches every source as it answered that hour: GGG's trade item list, PoeWatch's listings, exchange ratios and corruption outcomes, and the taxonomy. Then validates what it wrote. | Reused. The hour is gone, and fetching again gives a different answer. |
-| silver | The taxonomy's drawable rows, priced, with their uniques. One file per category, plus `<category>.unpriced.json` for the rows PoeWatch has no price for. | Rebuilt. |
-| gold | Gathers every row into `catalog.json`, beside the category table in `catalog.categories.json`. | Rebuilt. |
+| silver | The taxonomy's drawable rows, priced, with their uniques. One file per category, plus `<category>.unpriced.json` for the rows PoeWatch has no price for.                            | Rebuilt.                                                               |
+| gold   | Gathers every row into `catalog.json`, beside the category table in `catalog.categories.json`.                                                                                      | Rebuilt.                                                               |
 
 `pipeline.ts` holds the list of steps, and each step's doc comment says what it does.
 
@@ -58,8 +58,8 @@ listing: `{ source, id, name }`. `source` is `poeWatch:items` for a listing or
 
 ## Environment
 
-| Var | Holds |
-| --- | --- |
+| Var              | Holds                                                                     |
+| ---------------- | ------------------------------------------------------------------------- |
 | `POE_USER_AGENT` | Required. Sent on every request, and GGG wants it to name a real contact. |
 
 It lives in `apps/catalog/.env`, which `yarn catalog` loads. The taxonomy is read from the

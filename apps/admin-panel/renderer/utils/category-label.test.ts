@@ -4,7 +4,10 @@ import { category } from "../test-helpers.ts";
 
 describe("categoryLabel", () => {
   it("uses each level's recorded name", () => {
-    const categories = { maps: category("maps", { name: "Map Fragments" }), "maps/boss": category("maps/boss", { name: "Boss" }) };
+    const categories = {
+      maps: category("maps", { name: "Map Fragments" }),
+      "maps/boss": category("maps/boss", { name: "Boss" }),
+    };
 
     expect(categoryLabel(categories, "maps/boss")).toBe("Map Fragments › Boss");
   });

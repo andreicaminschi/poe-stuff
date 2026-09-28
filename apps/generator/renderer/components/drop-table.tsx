@@ -27,16 +27,33 @@ export function DropTable({ rows }: { readonly rows: readonly DropRow[] }) {
       </thead>
       <tbody>
         {rows.map((row) => (
-          <tr key={row.id} className={row.name === undefined ? "vacant" : ""} title={row.reason}>
+          <tr
+            key={row.id}
+            className={row.name === undefined
+              ? "vacant"
+              : ""}
+            title={row.reason}
+          >
             <td>
-              <span className={row.won === true ? "pill won" : "pill"}>{row.bucket}</span>
+              <span className={row.won === true
+                ? "pill won"
+                : "pill"}
+              >
+                {row.bucket}
+              </span>
             </td>
             <td className="ic">
               <BeamBar beam={row.style.beam} />
               <IconShape icon={row.style.icon} />
             </td>
             <td className="it">
-              {row.name === undefined ? <span className="empty">no item in this tier</span> : <LootLabel style={row.style} name={row.name} />}
+              {row.name === undefined
+                ? (
+                    <span className="empty">no item in this tier</span>
+                  )
+                : (
+                    <LootLabel style={row.style} name={row.name} />
+                  )}
             </td>
             <td className="pr">{row.worth ?? ""}</td>
           </tr>

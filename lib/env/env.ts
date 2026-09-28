@@ -9,15 +9,15 @@
 
 export function optionalEnv(name: string): string | undefined {
   const value = process.env[name];
-  return value === undefined || value === "" ? undefined : value;
+  return value === undefined || value === ""
+    ? undefined
+    : value;
 }
 
 export function requireEnv(name: string): string {
   const value = optionalEnv(name);
   if (value === undefined) {
-    throw new Error(
-      `Missing ${name}. Run with: node --env-file=apps/<name>/.env <script>`,
-    );
+    throw new Error(`Missing ${name}. Run with: node --env-file=apps/<name>/.env <script>`);
   }
   return value;
 }

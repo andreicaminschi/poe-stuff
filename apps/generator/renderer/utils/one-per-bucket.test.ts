@@ -14,7 +14,11 @@ const placement = (name: string, bucket: BucketName, take: number): Placement =>
 
 describe("onePerBucket", () => {
   it("shows the dearest placement of each bucket, in the order the buckets are named", () => {
-    const rows = onePerBucket(palette, ["T0", "T1"], [placement("cheap", "T1", 1), placement("dear", "T1", 9), placement("top", "T0", 99)]);
+    const rows = onePerBucket(
+      palette,
+      ["T0", "T1"],
+      [placement("cheap", "T1", 1), placement("dear", "T1", 9), placement("top", "T0", 99)],
+    );
 
     expect(rows.map((row) => row.name)).toEqual(["top", "dear"]);
   });
@@ -26,6 +30,8 @@ describe("onePerBucket", () => {
   });
 
   it("leaves a styled vacant row for a bucket with no placement", () => {
-    expect(onePerBucket(palette, ["T3"], [])).toEqual([{ id: "vacant|T3", bucket: "T3", style: tierStyle(palette, "T3") }]);
+    expect(onePerBucket(palette, ["T3"], [])).toEqual([
+      { id: "vacant|T3", bucket: "T3", style: tierStyle(palette, "T3") },
+    ]);
   });
 });

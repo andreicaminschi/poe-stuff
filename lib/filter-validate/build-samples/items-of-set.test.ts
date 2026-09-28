@@ -2,7 +2,13 @@ import { describe, it, expect } from "@jest/globals";
 import { itemsOfSet } from "./items-of-set.ts";
 import type { SampleRow } from "../types.ts";
 
-const row: SampleRow = { key: "k", name: "Hubris Circlet", category: "armour", subcategory: "helmets", baseTypes: ["A", "B"] };
+const row: SampleRow = {
+  key: "k",
+  name: "Hubris Circlet",
+  category: "armour",
+  subcategory: "helmets",
+  baseTypes: ["A", "B"],
+};
 const none = () => new Map<string, readonly unknown[]>();
 
 describe("itemsOfSet", () => {
@@ -33,7 +39,10 @@ describe("itemsOfSet", () => {
       return new Map([["ItemLevel", [75, 86]]]);
     };
 
-    expect(itemsOfSet({ ItemLevel: { from: "conditions" } }, row, lookup)).toEqual([{ ItemLevel: 75 }, { ItemLevel: 86 }]);
+    expect(itemsOfSet({ ItemLevel: { from: "conditions" } }, row, lookup)).toEqual([
+      { ItemLevel: 75 },
+      { ItemLevel: 86 },
+    ]);
     expect(itemsOfSet({ Quality: { values: [1] } }, row, lookup)).toEqual([{ Quality: 1 }]);
     expect(calls).toBe(1);
   });

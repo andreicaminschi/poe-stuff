@@ -3,7 +3,13 @@ import { parseFilter } from "@poe/filter-eval/parse-filter";
 import { findFallThrough } from "./find-fall-through.ts";
 import type { SampleCategories, SampleRow } from "./types.ts";
 
-const row = (key: string, subcategory: string): SampleRow => ({ key, name: key, category: "gems", subcategory, baseTypes: [] });
+const row = (key: string, subcategory: string): SampleRow => ({
+  key,
+  name: key,
+  category: "gems",
+  subcategory,
+  baseTypes: [],
+});
 
 const block = (conditions: string, owner: string) => `Show\n${conditions}    #@ tier=T1 verb=take ${owner}\n`;
 const filter = (...blocks: string[]) => parseFilter(blocks.join("\n"));
@@ -46,7 +52,12 @@ describe("findFallThrough", () => {
     const report = findFallThrough(blocks, [row("a", "skill"), row("b", "support")], categories);
 
     expect(report.ownMiss).toEqual([
-      { own: "gems/skill", other: "gems/support", count: 2, example: { ownKey: "a", otherKey: "b", item: { Quality: 0 } } },
+      {
+        own: "gems/skill",
+        other: "gems/support",
+        count: 2,
+        example: { ownKey: "a", otherKey: "b", item: { Quality: 0 } },
+      },
     ]);
   });
 
@@ -64,7 +75,9 @@ describe("findFallThrough", () => {
 
     const report = findFallThrough(blocks, [row("a", "skill"), row("b", "support")], categories);
 
-    expect(report.fallThrough.map(({ own, other, count }) => [own, other, count])).toEqual([["gems/skill", "gems/support", 1]]);
+    expect(report.fallThrough.map(({ own, other, count }) => [own, other, count])).toEqual([
+      ["gems/skill", "gems/support", 1],
+    ]);
   });
 
   it("reports an overlap when its own path wins and another path also matches", () => {
@@ -73,11 +86,16 @@ describe("findFallThrough", () => {
 
     const report = findFallThrough(blocks, [row("a", "skill"), row("b", "support")], categories);
 
-    expect(report.overlap.map(({ own, other, count }) => [own, other, count])).toEqual([["gems/skill", "gems/support", 1]]);
+    expect(report.overlap.map(({ own, other, count }) => [own, other, count])).toEqual([
+      ["gems/skill", "gems/support", 1],
+    ]);
   });
 
   it("lets a catch-all path in the same category overlap without a report", () => {
-    const categories: SampleCategories = { "gems/skill": qualitySamples, "gems/other": { conditions: [], catchAll: true } };
+    const categories: SampleCategories = {
+      "gems/skill": qualitySamples,
+      "gems/other": { conditions: [], catchAll: true },
+    };
     const blocks = filter(block("    Quality >= 0\n", "a"), block("    Quality >= 20\n", "b"));
 
     const report = findFallThrough(blocks, [row("a", "skill"), row("b", "other")], categories);
@@ -93,7 +111,11 @@ describe("findFallThrough", () => {
 
   it("reports a reject sample its own path takes, and does not count it as sampled", () => {
     const categories: SampleCategories = {
-      "gems/skill": { conditions: [], samples: [{ Quality: { values: [20] } }], rejects: [{ Corrupted: { values: [true] } }] },
+      "gems/skill": {
+        conditions: [],
+        samples: [{ Quality: { values: [20] } }],
+        rejects: [{ Corrupted: { values: [true] } }],
+      },
     };
     const blocks = filter(block("    Quality >= 20\n", "a level"));
 
@@ -104,7 +126,7 @@ describe("findFallThrough", () => {
       [
         {
           path: "gems/skill",
-          reject: '{"Corrupted":true}',
+          reject: "{\"Corrupted\":true}",
           count: 1,
           example: { key: "a", variant: "level", item: { Quality: 20, Corrupted: true } },
         },
@@ -114,7 +136,11 @@ describe("findFallThrough", () => {
 
   it("does not report a reject sample that its own path leaves alone", () => {
     const categories: SampleCategories = {
-      "gems/skill": { conditions: [], samples: [{ Quality: { values: [20] } }], rejects: [{ Corrupted: { values: [true] } }] },
+      "gems/skill": {
+        conditions: [],
+        samples: [{ Quality: { values: [20] } }],
+        rejects: [{ Corrupted: { values: [true] } }],
+      },
     };
     const blocks = filter(block("    Corrupted False\n    Quality >= 20\n", "a"));
 

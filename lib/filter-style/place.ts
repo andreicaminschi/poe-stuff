@@ -24,9 +24,15 @@ const WHY: Readonly<Record<Verb, string>> = {
 
 /** A category without a hint never reads that hint's price. */
 const allowed = (prices: Prices, hints: readonly Hint[]): Prices => ({
-  ...(prices.take === undefined ? {} : { take: prices.take }),
-  ...(prices.check === undefined || !hints.includes("check") ? {} : { check: prices.check }),
-  ...(prices.gamble === undefined || !hints.includes("gamble") ? {} : { gamble: prices.gamble }),
+  ...(prices.take === undefined
+    ? {}
+    : { take: prices.take }),
+  ...(prices.check === undefined || !hints.includes("check")
+    ? {}
+    : { check: prices.check }),
+  ...(prices.gamble === undefined || !hints.includes("gamble")
+    ? {}
+    : { gamble: prices.gamble }),
 });
 
 function wantedPlacement(item: Item): Placement {
@@ -46,7 +52,9 @@ function qualifications(ladder: readonly Bucket[], item: Item): readonly Placeme
     const bucket = ladder.find((one) => holds(one, price));
     if (bucket === undefined) return [];
 
-    return [{ item, bucket: bucket.name, verb, reason: `${WHY[verb]}: ${price}c, inside ${span(bucket, "c")}`, won: false }];
+    return [
+      { item, bucket: bucket.name, verb, reason: `${WHY[verb]}: ${price}c, inside ${span(bucket, "c")}`, won: false },
+    ];
   });
 }
 
@@ -56,7 +64,9 @@ function crowned(ladder: readonly Bucket[], found: readonly Placement[]): readon
     ladder.findIndex((bucket) => bucket.name === one.bucket) * VERBS.length + VERBS.indexOf(one.verb);
   const best = Math.min(...found.map(rank));
 
-  return found.map((one) => (rank(one) === best ? { ...one, won: true } : one));
+  return found.map((one) => (rank(one) === best
+    ? { ...one, won: true }
+    : one));
 }
 
 /** Want to see and Unpriced take an item before any ladder does. */
@@ -98,7 +108,9 @@ function stackPlacement(item: Item, bucket: Bucket): Placement {
     verb: "take",
     reason: `a stack of ${span(bucket, "")}`,
     won: true,
-    stack: bucket.ceiling === undefined ? { floor: bucket.floor } : { floor: bucket.floor, ceiling: bucket.ceiling },
+    stack: bucket.ceiling === undefined
+      ? { floor: bucket.floor }
+      : { floor: bucket.floor, ceiling: bucket.ceiling },
   };
 }
 

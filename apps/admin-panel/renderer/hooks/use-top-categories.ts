@@ -6,5 +6,7 @@ import { useDraft } from "./use-draft.ts";
 export function useTopCategories(): readonly CategoryNode[] {
   const draft = useDraft();
 
-  return useMemo(() => (draft === undefined ? [] : categoryTree(draft).nodes), [draft]);
+  return useMemo(() => (draft === undefined
+    ? []
+    : categoryTree(draft).nodes), [draft]);
 }

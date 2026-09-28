@@ -6,7 +6,9 @@ const listing = (name: string, meanPrice: number, corrupted = false, lowConfiden
   name,
   meanPrice,
   corrupted,
-  ...(lowConfidence ? { lowConfidence } : {}),
+  ...(lowConfidence
+    ? { lowConfidence }
+    : {}),
 });
 
 const base = (listings: UniqueListing[], subcategory: string | null = null): CatalogRow => ({
@@ -31,14 +33,31 @@ const uniqueRow = (extra: Partial<CatalogRow> = {}): CatalogRow => ({
 describe("itemsOf", () => {
   describe("plain rows", () => {
     it("turns a row without variants into one item priced as a take", () => {
-      const rows: CatalogRow[] = [{ key: "k", name: "Chaos Orb", category: "currency", subcategory: null, baseTypes: ["Chaos Orb"], meanPrice: 1 }];
+      const rows: CatalogRow[] = [
+        {
+          key: "k",
+          name: "Chaos Orb",
+          category: "currency",
+          subcategory: null,
+          baseTypes: ["Chaos Orb"],
+          meanPrice: 1,
+        },
+      ];
 
       expect(itemsOf(rows)).toEqual([{ name: "Chaos Orb", key: "k", category: "currency", prices: { take: 1 } }]);
     });
 
     it("turns each variant into its own item named after the row and the variant", () => {
       const rows: CatalogRow[] = [
-        { key: "k", name: "Gem", category: "gems", subcategory: null, baseTypes: [], meanPrice: 99, variants: [{ name: "20/20", meanPrice: 4 }, { name: "1/0" }] },
+        {
+          key: "k",
+          name: "Gem",
+          category: "gems",
+          subcategory: null,
+          baseTypes: [],
+          meanPrice: 99,
+          variants: [{ name: "20/20", meanPrice: 4 }, { name: "1/0" }],
+        },
       ];
 
       expect(itemsOf(rows)).toEqual([
@@ -48,25 +67,41 @@ describe("itemsOf", () => {
     });
 
     it("treats an empty variant list like no variants", () => {
-      const rows: CatalogRow[] = [{ key: "k", name: "A", category: "c", subcategory: null, baseTypes: [], variants: [] }];
+      const rows: CatalogRow[] = [
+        { key: "k", name: "A", category: "c", subcategory: null, baseTypes: [], variants: [] },
+      ];
 
       expect(itemsOf(rows)).toHaveLength(1);
     });
 
     it("never reads a low-confidence price", () => {
-      const rows: CatalogRow[] = [{ key: "k", name: "A", category: "c", subcategory: null, baseTypes: [], meanPrice: 50, lowConfidence: true }];
+      const rows: CatalogRow[] = [
+        { key: "k", name: "A", category: "c", subcategory: null, baseTypes: [], meanPrice: 50, lowConfidence: true },
+      ];
 
       expect(itemsOf(rows)[0]?.prices).toEqual({});
     });
 
     it("never reads a price that is not a finite number", () => {
-      const rows: CatalogRow[] = [{ key: "k", name: "A", category: "c", subcategory: null, baseTypes: [], meanPrice: NaN }];
+      const rows: CatalogRow[] = [
+        { key: "k", name: "A", category: "c", subcategory: null, baseTypes: [], meanPrice: NaN },
+      ];
 
       expect(itemsOf(rows)[0]?.prices).toEqual({});
     });
 
     it("flags a variant unpriceable when its row is", () => {
-      const rows: CatalogRow[] = [{ key: "k", name: "A", category: "c", subcategory: null, baseTypes: [], unpriceable: true, variants: [{ name: "v" }] }];
+      const rows: CatalogRow[] = [
+        {
+          key: "k",
+          name: "A",
+          category: "c",
+          subcategory: null,
+          baseTypes: [],
+          unpriceable: true,
+          variants: [{ name: "v" }],
+        },
+      ];
 
       expect(itemsOf(rows)[0]?.unpriceable).toBe(true);
     });

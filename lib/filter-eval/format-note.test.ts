@@ -4,7 +4,9 @@ import { parseFilter } from "./parse-filter.ts";
 
 describe("formatNote", () => {
   it("writes keys in declared order whatever order they were given in", () => {
-    expect(formatNote({ family: "gems", verb: "check", upto: "T0", tier: "T2" })).toBe("#@ tier=T2 upto=T0 verb=check family=gems");
+    expect(formatNote({ family: "gems", verb: "check", upto: "T0", tier: "T2" })).toBe(
+      "#@ tier=T2 upto=T0 verb=check family=gems",
+    );
   });
 
   it("appends trimmed freehand text after the pairs", () => {
@@ -20,12 +22,18 @@ describe("formatNote", () => {
 
     const [block] = parseFilter(`Show\n${note}`);
 
-    expect(block!.notes.map((n) => [n.key, n.value])).toEqual([["tier", "want"], ["verb", "gamble"], ["family", "maps"]]);
+    expect(block!.notes.map((n) => [n.key, n.value])).toEqual([
+      ["tier", "want"],
+      ["verb", "gamble"],
+      ["family", "maps"],
+    ]);
     expect(block!.freehand).toBe("why this");
   });
 
   it("refuses notes without a tier", () => {
-    expect(() => formatNote({ verb: "take" })).toThrow("cannot write a #@ note: a note needs tier and verb, and this one has no tier");
+    expect(() => formatNote({ verb: "take" })).toThrow(
+      "cannot write a #@ note: a note needs tier and verb, and this one has no tier",
+    );
   });
 
   it("refuses notes without a verb", () => {
@@ -33,7 +41,9 @@ describe("formatNote", () => {
   });
 
   it("refuses a value outside the key's list", () => {
-    expect(() => formatNote({ tier: "want", verb: "take", upto: "want" })).toThrow('upto takes one of T0, T1, T2, T3, T4, T5, T6, varies, hidden, got "want"');
+    expect(() => formatNote({ tier: "want", verb: "take", upto: "want" })).toThrow(
+      "upto takes one of T0, T1, T2, T3, T4, T5, T6, varies, hidden, got \"want\"",
+    );
   });
 
   it("refuses freehand that spans lines", () => {
@@ -41,7 +51,7 @@ describe("formatNote", () => {
   });
 
   it("refuses freehand whose first word looks like a pair", () => {
-    expect(() => formatNote({ tier: "T1", verb: "take" }, "a=b c")).toThrow('freehand cannot start with "a=b"');
+    expect(() => formatNote({ tier: "T1", verb: "take" }, "a=b c")).toThrow("freehand cannot start with \"a=b\"");
   });
 });
 
@@ -67,11 +77,11 @@ describe("formatCondition", () => {
   });
 
   it("refuses a condition that is already a comment", () => {
-    expect(() => formatCondition("# x")).toThrow('"# x" is already a comment');
+    expect(() => formatCondition("# x")).toThrow("\"# x\" is already a comment");
   });
 
   it("refuses a hash anywhere in the condition, even inside quotes", () => {
-    expect(() => formatCondition('BaseType "A#B"')).toThrow("has a # in it");
+    expect(() => formatCondition("BaseType \"A#B\"")).toThrow("has a # in it");
   });
 
   it("refuses a comment over two lines", () => {

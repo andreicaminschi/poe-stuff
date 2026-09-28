@@ -4,9 +4,13 @@ import type { UnfilteredReport } from "./types.ts";
 
 const ROW_COLUMNS = ["Category", "Subcategory", "Row", "Key"];
 
-const cellValue = (value: unknown): string => (value === undefined ? "" : describeValue(value));
+const cellValue = (value: unknown): string => (value === undefined
+  ? ""
+  : describeValue(value));
 
-const escape = (cell: string): string => (/[",\r\n]/.test(cell) ? `"${cell.replaceAll('"', '""')}"` : cell);
+const escape = (cell: string): string => (/[",\r\n]/.test(cell)
+  ? `"${cell.replaceAll("\"", "\"\"")}"`
+  : cell);
 
 /**
  * The report as CSV: one line per unfiltered sample. The property columns are every
@@ -16,7 +20,9 @@ export function reportCsv(report: UnfilteredReport): string {
   const groups = groupUnfiltered(report.rows);
 
   const properties = new Set<string>();
-  for (const group of groups) for (const row of group.rows) for (const item of row.samples) for (const name of Object.keys(item)) properties.add(name);
+  for (const group of groups)
+    for (const row of group.rows)
+      for (const item of row.samples) for (const name of Object.keys(item)) properties.add(name);
   const columns = [...properties];
 
   const lines = [[...ROW_COLUMNS, ...columns].map(escape).join(",")];

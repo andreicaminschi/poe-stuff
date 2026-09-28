@@ -37,15 +37,16 @@ export async function fetchJson<T>(
   { baseUrl, userAgent, cache }: PoeNinjaContext,
 ): Promise<T> {
   // Sorted, so two call sites spelling the same query in a different order key alike.
-  const parameters = Object.entries(query).sort(([left], [right]) =>
-    left < right ? -1 : 1,
-  );
+  const parameters = Object.entries(query).sort(([left], [right]) => (left < right
+    ? -1
+    : 1));
 
   const search = new URLSearchParams(parameters).toString();
-  const url = `${baseUrl}/${path}${search === "" ? "" : `?${search}`}`;
+  const url = `${baseUrl}/${path}${search === ""
+    ? ""
+    : `?${search}`}`;
 
-  const key =
-    cache && cacheKey("poe-ninja", url, String(Math.floor(Date.now() / HOUR_MS)));
+  const key = cache && cacheKey("poe-ninja", url, String(Math.floor(Date.now() / HOUR_MS)));
 
   if (cache && key) {
     const cached = await cache.get(key);
@@ -67,10 +68,7 @@ export async function fetchJson<T>(
 }
 
 /** The request itself, with one retry on the statuses worth asking twice about. */
-async function request<T>(
-  url: string,
-  userAgent: string,
-): Promise<{ body: T; status: number }> {
+async function request<T>(url: string, userAgent: string): Promise<{ body: T; status: number }> {
   const headers = { "user-agent": userAgent, accept: "application/json" };
 
   const first = await fetch(url, { headers });

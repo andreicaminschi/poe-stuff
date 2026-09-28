@@ -6,9 +6,7 @@ const matcher = modMatcher([{ id: "explicit.life", text: "+# to maximum Life", t
 
 describe("resolveItem", () => {
   it("lists the joined text of every modifier that matched nothing", () => {
-    const item = parseItem(
-      "X\n--------\n{ Prefix Modifier }\n+5 to maximum Life\n{ Suffix Modifier }\nfoo\nbar",
-    );
+    const item = parseItem("X\n--------\n{ Prefix Modifier }\n+5 to maximum Life\n{ Suffix Modifier }\nfoo\nbar");
 
     const resolved = resolveItem(item, matcher);
 

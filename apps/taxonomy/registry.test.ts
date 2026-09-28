@@ -27,7 +27,7 @@ describe("versionNumber", () => {
   });
 
   it("refuses a version with only two parts", () => {
-    expect(() => versionNumber("3.29")).toThrow('"3.29" is not a version');
+    expect(() => versionNumber("3.29")).toThrow("\"3.29\" is not a version");
   });
 
   it("refuses a version with four parts", () => {
@@ -41,7 +41,7 @@ describe("gameVersion", () => {
   });
 
   it("refuses text that is not a version", () => {
-    expect(() => gameVersion("latest")).toThrow('"latest" is not a version');
+    expect(() => gameVersion("latest")).toThrow("\"latest\" is not a version");
   });
 });
 

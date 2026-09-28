@@ -29,7 +29,7 @@ describe("createLakeService", () => {
 
       await lake.writeJson("k.json", { a: 1 });
 
-      expect(await readFile(join(root, "k.json"), "utf8")).toBe('{\n  "a": 1\n}\n');
+      expect(await readFile(join(root, "k.json"), "utf8")).toBe("{\n  \"a\": 1\n}\n");
     });
 
     it("overwrites a key that already holds a value", async () => {

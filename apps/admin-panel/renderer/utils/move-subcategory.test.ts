@@ -54,7 +54,9 @@ describe("moveSubcategory", () => {
   });
 
   it("refuses a target that has rows but no record", () => {
-    expect(moveSubcategory(draft, "gems/support", category("skills/support"))).toEqual({ problem: "skills/support already exists." });
+    expect(moveSubcategory(draft, "gems/support", category("skills/support"))).toEqual({
+      problem: "skills/support already exists.",
+    });
   });
 
   it("treats moving to the same path as moving onto its own record", () => {

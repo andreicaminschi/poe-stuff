@@ -32,17 +32,21 @@ export function Items() {
         ? rows
         : rows.filter(
             (row) =>
-              displayName(row).toLowerCase().includes(needle) ||
-              row.name.toLowerCase().includes(needle) ||
-              row.key.toLowerCase().includes(needle),
+              displayName(row).toLowerCase().includes(needle)
+              || row.name.toLowerCase().includes(needle)
+              || row.key.toLowerCase().includes(needle),
           );
 
     return [...matched].sort((a, b) => displayName(a).localeCompare(displayName(b)));
   }, [rows, filter]);
 
-  const title = selection === undefined ? "All items" : categoryLabel(draft?.categories ?? {}, selection);
+  const title = selection === undefined
+    ? "All items"
+    : categoryLabel(draft?.categories ?? {}, selection);
 
-  const shown = showAll ? sorted : sorted.slice(0, LIMIT);
+  const shown = showAll
+    ? sorted
+    : sorted.slice(0, LIMIT);
   const checkedKeys = new Set(checked);
   const checkedHere = sorted.filter((row) => checkedKeys.has(row.key)).length;
   const allChecked = sorted.length > 0 && checkedHere === sorted.length;
@@ -50,7 +54,9 @@ export function Items() {
   const toggleAll = () => {
     const here = new Set(sorted.map((row) => row.key));
     const others = checked.filter((key) => !here.has(key));
-    setChecked(allChecked ? others : [...others, ...here]);
+    setChecked(allChecked
+      ? others
+      : [...others, ...here]);
   };
 
   return (
@@ -70,7 +76,9 @@ export function Items() {
           />
         </label>
         <p className="label grow">
-          {title} <span className="mono faint">{sorted.length}</span>
+          {title}
+          {" "}
+          <span className="mono faint">{sorted.length}</span>
         </p>
         <input
           type="text"
@@ -86,7 +94,9 @@ export function Items() {
             <div
               role="button"
               tabIndex={0}
-              className={`item${row.key === selectedKey ? " on" : ""}`}
+              className={`item${row.key === selectedKey
+                ? " on"
+                : ""}`}
               onClick={() => selectItem(row.key)}
               onKeyDown={(event) => {
                 if (event.key === "Enter") selectItem(row.key);
@@ -112,36 +122,53 @@ export function Items() {
                 <ItemFlags row={row} />
               </span>
             </div>
-            {row.variants.length === 0 ? null : (
-              <div
-                className={`vars${row.key === selectedKey ? " on" : ""}`}
-                onClick={() => selectItem(row.key, "variants")}
-              >
-                {row.variants.slice(0, CHIPS).map((variant) => (
-                  <span
-                    className="v"
-                    key={variant.name}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      selectVariant(row.key, variant.name);
-                    }}
+            {row.variants.length === 0
+              ? null
+              : (
+                  <div
+                    className={`vars${row.key === selectedKey
+                      ? " on"
+                      : ""}`}
+                    onClick={() => selectItem(row.key, "variants")}
                   >
-                    {variant.name}
-                  </span>
-                ))}
-                {row.variants.length > CHIPS ? (
-                  <span className="v faint">… and {row.variants.length - CHIPS} more</span>
-                ) : null}
-              </div>
-            )}
+                    {row.variants.slice(0, CHIPS).map((variant) => (
+                      <span
+                        className="v"
+                        key={variant.name}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          selectVariant(row.key, variant.name);
+                        }}
+                      >
+                        {variant.name}
+                      </span>
+                    ))}
+                    {row.variants.length > CHIPS
+                      ? (
+                          <span className="v faint">
+                            … and
+                            {row.variants.length - CHIPS}
+                            {" "}
+                            more
+                          </span>
+                        )
+                      : null}
+                  </div>
+                )}
           </Fragment>
         ))}
-        {!showAll && sorted.length > LIMIT ? (
-          <button type="button" className="btn tiny ghost more" onClick={() => setShowAll(true)}>
-            Show all {sorted.length}
-          </button>
-        ) : null}
-        {sorted.length === 0 ? <p className="note pad">Nothing here.</p> : null}
+        {!showAll && sorted.length > LIMIT
+          ? (
+              <button type="button" className="btn tiny ghost more" onClick={() => setShowAll(true)}>
+                Show all
+                {" "}
+                {sorted.length}
+              </button>
+            )
+          : null}
+        {sorted.length === 0
+          ? <p className="note pad">Nothing here.</p>
+          : null}
       </div>
     </div>
   );

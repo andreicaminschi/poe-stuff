@@ -82,7 +82,9 @@ describe("toFilterItem", () => {
   });
 
   it("counts corruption-qualified modifiers", () => {
-    expect(text("X\n--------\n{ Corruption Implicit Modifier }\na\n{ Corruption Implicit Modifier }\nb").CorruptedMods).toBe(2);
+    expect(
+      text("X\n--------\n{ Corruption Implicit Modifier }\na\n{ Corruption Implicit Modifier }\nb").CorruptedMods,
+    ).toBe(2);
   });
 
   it("marks a replica from its name", () => {

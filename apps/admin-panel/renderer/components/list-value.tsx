@@ -26,24 +26,28 @@ export function ListValue({
       {value.map((entry) => (
         <span className="tag" key={entry}>
           {entry}
-          {disabled ? null : (
-            <button type="button" className="x" onClick={() => onChange(value.filter((other) => other !== entry))}>
-              ×
-            </button>
-          )}
+          {disabled
+            ? null
+            : (
+                <button type="button" className="x" onClick={() => onChange(value.filter((other) => other !== entry))}>
+                  ×
+                </button>
+              )}
         </span>
       ))}
-      {disabled ? null : (
-        <ComboBox
-          className="addtag"
-          placeholder="+ add"
-          value={adding}
-          options={options ?? []}
-          onChange={setAdding}
-          onCommit={add}
-          onBlur={() => add(adding)}
-        />
-      )}
+      {disabled
+        ? null
+        : (
+            <ComboBox
+              className="addtag"
+              placeholder="+ add"
+              value={adding}
+              options={options ?? []}
+              onChange={setAdding}
+              onCommit={add}
+              onBlur={() => add(adding)}
+            />
+          )}
     </div>
   );
 }

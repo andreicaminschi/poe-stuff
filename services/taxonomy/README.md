@@ -39,13 +39,13 @@ services/taxonomy/
 
 ## Public API
 
-| Import | Exports | Contract |
-| --- | --- | --- |
-| `@poe/taxonomy/service` | `createTaxonomyService`, `TaxonomyService` | Takes an optional `root` (default `.s3`) and `prefix` (default `taxonomy`). `getTaxonomy(version?)` answers with one version's rows, `getCategories(version?)` with its category table; either takes the promoted one when no version is named. |
-| `@poe/taxonomy/get-categories.types` | `TaxonomyCategories` | Types only. `{ version, categories }`. |
-| `@poe/taxonomy/get-taxonomy.types` | `Taxonomy` | Types only. `Taxonomy.items` is keyed by metadata id, so a lookup is a property access. |
-| `@poe/taxonomy/types` | `TaxonomyServiceOptions`, `Condition`, `ListingMatch`, `TaxonomyVariant`, `TaxonomyEntry`, `TaxonomyAuthored`, `TaxonomyCategory`, `TieringMethod` | Types only. |
-| `@poe/taxonomy/errors` | `TaxonomyNotFoundError` | Carries the `key` that was missing. |
+| Import                               | Exports                                                                                                                                            | Contract                                                                                                                                                                                                                                        |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@poe/taxonomy/service`              | `createTaxonomyService`, `TaxonomyService`                                                                                                         | Takes an optional `root` (default `.s3`) and `prefix` (default `taxonomy`). `getTaxonomy(version?)` answers with one version's rows, `getCategories(version?)` with its category table; either takes the promoted one when no version is named. |
+| `@poe/taxonomy/get-categories.types` | `TaxonomyCategories`                                                                                                                               | Types only. `{ version, categories }`.                                                                                                                                                                                                          |
+| `@poe/taxonomy/get-taxonomy.types`   | `Taxonomy`                                                                                                                                         | Types only. `Taxonomy.items` is keyed by metadata id, so a lookup is a property access.                                                                                                                                                         |
+| `@poe/taxonomy/types`                | `TaxonomyServiceOptions`, `Condition`, `ListingMatch`, `TaxonomyVariant`, `TaxonomyEntry`, `TaxonomyAuthored`, `TaxonomyCategory`, `TieringMethod` | Types only.                                                                                                                                                                                                                                     |
+| `@poe/taxonomy/errors`               | `TaxonomyNotFoundError`                                                                                                                            | Carries the `key` that was missing.                                                                                                                                                                                                             |
 
 **Not exported.** `config.ts` exports the default prefix and every key builder, and none of
 them appear in the `exports` map. They are reachable only from

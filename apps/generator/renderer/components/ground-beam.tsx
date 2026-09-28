@@ -11,7 +11,12 @@ export function GroundBeam({ drop }: { readonly drop: Piled }) {
   return (
     <div
       className="shaft"
-      style={{ left: drop.gx - 4, top: drop.gy - HEIGHT + 20, height: HEIGHT, background: `linear-gradient(to top, ${colour}, transparent)` }}
+      style={{
+        left: drop.gx - 4,
+        top: drop.gy - HEIGHT + 20,
+        height: HEIGHT,
+        background: `linear-gradient(to top, ${colour}, transparent)`,
+      }}
     />
   );
 }

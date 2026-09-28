@@ -3,8 +3,7 @@ import { createPoeNinjaService } from "./service.ts";
 import { slugId } from "./get-exchange-ratios.ts";
 import { EXCHANGE_TYPES, ITEM_TYPES } from "./types.ts";
 
-const json = (body: unknown, status = 200): Response =>
-  new Response(JSON.stringify(body), { status });
+const json = (body: unknown, status = 200): Response => new Response(JSON.stringify(body), { status });
 
 let fetchMock: jest.Mock<typeof fetch>;
 
@@ -83,7 +82,9 @@ describe("createPoeNinjaService", () => {
 
     it("fails the whole market naming the type that failed", async () => {
       fetchMock.mockImplementation(async (url) =>
-        queryOf(String(url)).get("type") === "Beast" ? json({}, 404) : json({ lines: [] }),
+        queryOf(String(url)).get("type") === "Beast"
+          ? json({}, 404)
+          : json({ lines: [] }),
       );
 
       await expect(createPoeNinjaService().getLeagueItems("Allflame")).rejects.toThrow(
@@ -98,7 +99,14 @@ describe("createPoeNinjaService", () => {
       lines:
         type === "Scarab"
           ? [
-              { id: "gilded", primaryValue: 40, volumePrimaryValue: 9, maxVolumeCurrency: "", maxVolumeRate: 0, sparkline: { totalChange: 3, data: [] } },
+              {
+                id: "gilded",
+                primaryValue: 40,
+                volumePrimaryValue: 9,
+                maxVolumeCurrency: "",
+                maxVolumeRate: 0,
+                sparkline: { totalChange: 3, data: [] },
+              },
               { id: "nameless", primaryValue: 1, volumePrimaryValue: 1, maxVolumeCurrency: "", maxVolumeRate: 0 },
             ]
           : [],
@@ -117,8 +125,24 @@ describe("createPoeNinjaService", () => {
           name: "Gilded Scarab",
           icon: "",
           category: "scarab",
-          chaos: { value: 40, lowConfidence: false, timestamp: 0, volume: 9, change24H: 3, chaosValue: 40, divineValue: 0.2 },
-          divine: { value: 0.2, lowConfidence: false, timestamp: 0, volume: 9, change24H: 3, chaosValue: 40, divineValue: 0.2 },
+          chaos: {
+            value: 40,
+            lowConfidence: false,
+            timestamp: 0,
+            volume: 9,
+            change24H: 3,
+            chaosValue: 40,
+            divineValue: 0.2,
+          },
+          divine: {
+            value: 0.2,
+            lowConfidence: false,
+            timestamp: 0,
+            volume: 9,
+            change24H: 3,
+            chaosValue: 40,
+            divineValue: 0.2,
+          },
         },
       ]);
     });
@@ -135,7 +159,9 @@ describe("createPoeNinjaService", () => {
     it("refuses a book quoted in anything but chaos, naming the type", async () => {
       fetchMock.mockImplementation(async (url) => {
         const type = queryOf(String(url)).get("type") ?? "";
-        return json(book(type, type === "Oil" ? "divine" : "chaos"));
+        return json(book(type, type === "Oil"
+          ? "divine"
+          : "chaos"));
       });
 
       await expect(createPoeNinjaService().getExchangeRatios("Allflame")).rejects.toThrow(

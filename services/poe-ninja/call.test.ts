@@ -10,8 +10,7 @@ import type { CachedResponse, PoeNinjaContext } from "./types.ts";
 const HOUR_MS = 3_600_000;
 const context: PoeNinjaContext = { baseUrl: "https://ninja.test", userAgent: "ua/1" };
 
-const json = (body: unknown, status = 200): Response =>
-  new Response(JSON.stringify(body), { status });
+const json = (body: unknown, status = 200): Response => new Response(JSON.stringify(body), { status });
 
 let fetchMock: jest.Mock<typeof fetch>;
 let dir: string | undefined;

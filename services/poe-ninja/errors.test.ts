@@ -10,8 +10,6 @@ describe("PoeNinjaHttpError", () => {
   });
 
   it("says how many attempts were made once it asked more than once", () => {
-    expect(new PoeNinjaHttpError("https://x/p", 503, 2).message).toBe(
-      "poe-ninja 503 for https://x/p (2 attempts)",
-    );
+    expect(new PoeNinjaHttpError("https://x/p", 503, 2).message).toBe("poe-ninja 503 for https://x/p (2 attempts)");
   });
 });

@@ -10,8 +10,7 @@ beforeEach(() => {
   globalThis.fetch = fetchMock;
 });
 
-const answer = (body: unknown) =>
-  fetchMock.mockResolvedValue(new Response(JSON.stringify(body)));
+const answer = (body: unknown) => fetchMock.mockResolvedValue(new Response(JSON.stringify(body)));
 
 describe("getExchangeRatios", () => {
   it("names the league and the game in the request", async () => {

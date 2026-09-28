@@ -23,7 +23,9 @@ export function TopBar() {
         <button
           type="button"
           key={key}
-          className={key === selected ? "ctab on" : "ctab"}
+          className={key === selected
+            ? "ctab on"
+            : "ctab"}
           onClick={() => selectCategory(key)}
         >
           {catalog?.categories[key]?.name ?? key}

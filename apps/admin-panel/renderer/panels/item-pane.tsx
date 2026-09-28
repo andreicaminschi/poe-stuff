@@ -30,9 +30,13 @@ const TRI: readonly (readonly [Tri, string])[] = [
 function toTri(value: boolean | undefined): Tri {
   if (value === undefined) return "sources";
 
-  return value ? "yes" : "no";
+  return value
+    ? "yes"
+    : "no";
 }
-const fromTri = (tri: Tri): boolean | undefined => (tri === "sources" ? undefined : tri === "yes");
+const fromTri = (tri: Tri): boolean | undefined => (tri === "sources"
+  ? undefined
+  : tri === "yes");
 
 const FLAGS: readonly (readonly [Flag, string])[] = [
   ["filterable", "Filterable"],
@@ -71,43 +75,51 @@ export function ItemPane({
 
   return (
     <div className="pane">
-      {item.source === "authored" ? (
-        <div className="subhead">
-          <div className="title">
-            <span className="flag authored">authored</span> Authored row
-          </div>
-          <div className="id">{replacesNote(item.replaces.length)}</div>
-        </div>
-      ) : null}
+      {item.source === "authored"
+        ? (
+            <div className="subhead">
+              <div className="title">
+                <span className="flag authored">authored</span>
+                {" "}
+                Authored row
+              </div>
+              <div className="id">{replacesNote(item.replaces.length)}</div>
+            </div>
+          )
+        : null}
       <div className="grp">
         <div className="fld">
           <label htmlFor="row-name">Name</label>
           <input
             id="row-name"
             type="text"
-            value={item.source === "ggg" ? (item.displayName ?? item.name) : item.name}
+            value={item.source === "ggg"
+              ? (item.displayName ?? item.name)
+              : item.name}
             placeholder={item.name}
             disabled={!editable}
             onChange={(event) => editItem(withDisplayName(item, event.target.value))}
           />
         </div>
-        {item.source === "ggg" ? (
-          <div className="fld">
-            <label>RePoE name</label>
-            <span>{item.name}</span>
-          </div>
-        ) : (
-          <div className="fld">
-            <label htmlFor="row-base-type">Base type</label>
-            <input
-              id="row-base-type"
-              type="text"
-              value={item.baseType}
-              disabled={!editable}
-              onChange={(event) => editItem({ ...item, baseType: event.target.value })}
-            />
-          </div>
-        )}
+        {item.source === "ggg"
+          ? (
+              <div className="fld">
+                <label>RePoE name</label>
+                <span>{item.name}</span>
+              </div>
+            )
+          : (
+              <div className="fld">
+                <label htmlFor="row-base-type">Base type</label>
+                <input
+                  id="row-base-type"
+                  type="text"
+                  value={item.baseType}
+                  disabled={!editable}
+                  onChange={(event) => editItem({ ...item, baseType: event.target.value })}
+                />
+              </div>
+            )}
         <div className="fld">
           <label>Metadata id</label>
           <span className="mono faint">{item.key}</span>
@@ -123,12 +135,11 @@ export function ItemPane({
             value={classification.category}
             disabled={!editable}
             onChange={(event) =>
-              editItem({ ...item, classification: { category: event.target.value, subcategory: null } })
-            }
+              editItem({ ...item, classification: { category: event.target.value, subcategory: null } })}
           >
-            {top === undefined ? (
-              <option value={classification.category}>{classification.category}</option>
-            ) : null}
+            {top === undefined
+              ? <option value={classification.category}>{classification.category}</option>
+              : null}
             {categories.map((node) => (
               <option key={node.path} value={node.path}>
                 {node.label}
@@ -140,23 +151,28 @@ export function ItemPane({
           <label htmlFor="row-subcategory">Subcategory</label>
           <select
             id="row-subcategory"
-            value={classification.subcategory === null ? "" : pathOf(classification)}
+            value={classification.subcategory === null
+              ? ""
+              : pathOf(classification)}
             disabled={!editable}
             onChange={(event) =>
               editItem({
                 ...item,
                 classification: {
                   ...classification,
-                  subcategory: event.target.value === "" ? null : (event.target.value.split("/")[1] ?? null),
+                  subcategory: event.target.value === ""
+                    ? null
+                    : (event.target.value.split("/")[1] ?? null),
                 },
-              })
-            }
+              })}
           >
             <option value="">— none —</option>
-            {classification.subcategory !== null &&
-            top?.children.every((child) => child.path !== pathOf(classification)) !== false ? (
-              <option value={pathOf(classification)}>{classification.subcategory}</option>
-            ) : null}
+            {classification.subcategory !== null
+              && top?.children.every((child) => child.path !== pathOf(classification)) !== false
+              ? (
+                  <option value={pathOf(classification)}>{classification.subcategory}</option>
+                )
+              : null}
             {(top?.children ?? []).map((child) => (
               <option key={child.path} value={child.path}>
                 {child.label}
@@ -164,58 +180,70 @@ export function ItemPane({
             ))}
           </select>
         </div>
-        {item.source === "ggg" ? null : (
-          <>
-            <div className="fld top">
-              <label htmlFor="row-reason">Reason</label>
-              <textarea
-                id="row-reason"
-                rows={3}
-                value={item.reason}
-                disabled={!editable}
-                onChange={(event) => editItem({ ...item, reason: event.target.value })}
-              />
-            </div>
-            <div className="fld top">
-              <label>Replaces</label>
-              <div className="listval">
-                {item.replaces.length === 0 ? <span className="faint">nothing — no source has it</span> : null}
-                {item.replaces.map((key) => (
-                  <span className="tag" key={key}>
-                    {key}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </>
-        )}
+        {item.source === "ggg"
+          ? null
+          : (
+              <>
+                <div className="fld top">
+                  <label htmlFor="row-reason">Reason</label>
+                  <textarea
+                    id="row-reason"
+                    rows={3}
+                    value={item.reason}
+                    disabled={!editable}
+                    onChange={(event) => editItem({ ...item, reason: event.target.value })}
+                  />
+                </div>
+                <div className="fld top">
+                  <label>Replaces</label>
+                  <div className="listval">
+                    {item.replaces.length === 0
+                      ? <span className="faint">nothing — no source has it</span>
+                      : null}
+                    {item.replaces.map((key) => (
+                      <span className="tag" key={key}>
+                        {key}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
       </div>
 
-      {item.source === "ggg" ? (
-        <div className="grp">
-          <h4>Overrides</h4>
-          {FLAGS.map(([flag, label]) => (
-            <div className="fld" key={flag}>
-              <label>{label}</label>
-              <Segmented
-                value={toTri(item[flag])}
-                options={TRI}
-                disabled={!editable}
-                onChange={(tri) => editItem(withFlag(item, flag, fromTri(tri)))}
-              />
+      {item.source === "ggg"
+        ? (
+            <div className="grp">
+              <h4>Overrides</h4>
+              {FLAGS.map(([flag, label]) => (
+                <div className="fld" key={flag}>
+                  <label>{label}</label>
+                  <Segmented
+                    value={toTri(item[flag])}
+                    options={TRI}
+                    disabled={!editable}
+                    onChange={(tri) => editItem(withFlag(item, flag, fromTri(tri)))}
+                  />
+                </div>
+              ))}
+              <p className="note">Sources means take what the game data and the trade site say.</p>
             </div>
-          ))}
-          <p className="note">Sources means take what the game data and the trade site say.</p>
-        </div>
-      ) : null}
+          )
+        : null}
 
       <div className="grp">
         <h4>Conditions</h4>
         <ConditionsEditor
           own={item.conditions}
-          {...(editable ? { onChange: (conditions) => editItem({ ...item, conditions }) } : {})}
-          {...(resolved === undefined ? {} : { resolved })}
-          {...(resolveNote === undefined ? {} : { note: resolveNote })}
+          {...(editable
+            ? { onChange: (conditions) => editItem({ ...item, conditions }) }
+            : {})}
+          {...(resolved === undefined
+            ? {}
+            : { resolved })}
+          {...(resolveNote === undefined
+            ? {}
+            : { note: resolveNote })}
           names={names}
           row={fromValues(item)}
           level="item"
@@ -228,7 +256,9 @@ export function ItemPane({
         <div className="fld">
           <label>Quest item</label>
           <Segmented
-            value={item.quest === true ? "yes" : "no"}
+            value={item.quest === true
+              ? "yes"
+              : "no"}
             options={YES_NO}
             disabled={!editable}
             onChange={(value) => editItem(withQuest(item, value === "yes"))}
@@ -237,7 +267,9 @@ export function ItemPane({
         <div className="fld">
           <label>Unpriceable</label>
           <Segmented
-            value={item.unpriceable === true ? "yes" : "no"}
+            value={item.unpriceable === true
+              ? "yes"
+              : "no"}
             options={YES_NO}
             disabled={!editable}
             onChange={(value) => editItem(withUnpriceable(item, value === "yes"))}
@@ -256,26 +288,36 @@ export function ItemPane({
         </div>
         <p className="note">
           {hint.note}
-          {priceOptions.length === 0 ? " PoeWatch's listings did not download." : ""}
+          {priceOptions.length === 0
+            ? " PoeWatch's listings did not download."
+            : ""}
         </p>
       </div>
 
-      {editable ? (
-        <div className="grp">
-          <h4>Actions</h4>
-          <div className="row">
-            <button type="button" className="btn" onClick={() => editItem(withExcluded(item, item.excluded !== true))}>
-              {item.excluded === true ? "Include" : "Exclude"}
-            </button>
-            {item.source === "ggg" ? (
-              <button type="button" className="btn" onClick={() => openDialog({ kind: "author", replaces: item.key })}>
-                Author a replacement row…
-              </button>
-            ) : null}
-          </div>
-          {item.excluded === true ? <p className="note">Excluded rows are never drawn.</p> : null}
-        </div>
-      ) : null}
+      {editable
+        ? (
+            <div className="grp">
+              <h4>Actions</h4>
+              <div className="row">
+                <button type="button" className="btn" onClick={() => editItem(withExcluded(item, item.excluded !== true))}>
+                  {item.excluded === true
+                    ? "Include"
+                    : "Exclude"}
+                </button>
+                {item.source === "ggg"
+                  ? (
+                      <button type="button" className="btn" onClick={() => openDialog({ kind: "author", replaces: item.key })}>
+                        Author a replacement row…
+                      </button>
+                    )
+                  : null}
+              </div>
+              {item.excluded === true
+                ? <p className="note">Excluded rows are never drawn.</p>
+                : null}
+            </div>
+          )
+        : null}
     </div>
   );
 }

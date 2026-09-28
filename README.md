@@ -25,14 +25,14 @@ Three rules decide what goes into the taxonomy, and so what the filter can show:
 
 ## Status
 
-| Part | State |
-| --- | --- |
-| Taxonomy | Built. The maintainer edits and publishes it in the admin panel. |
-| Catalog | Built. A person starts each build, for one league and one hour. Nothing schedules it yet. |
-| Admin panel | Built. The maintainer's desktop tool for the taxonomy and the catalog. |
-| Generator | Built. The player's Electron app tiers, styles, simulates and writes the `.filter`. |
-| Collector | Not started. It needs a job queue and a record of outstanding work first. |
-| AWS | Not started. Everything runs on one local machine. |
+| Part        | State                                                                                     |
+| ----------- | ----------------------------------------------------------------------------------------- |
+| Taxonomy    | Built. The maintainer edits and publishes it in the admin panel.                          |
+| Catalog     | Built. A person starts each build, for one league and one hour. Nothing schedules it yet. |
+| Admin panel | Built. The maintainer's desktop tool for the taxonomy and the catalog.                    |
+| Generator   | Built. The player's Electron app tiers, styles, simulates and writes the `.filter`.       |
+| Collector   | Not started. It needs a job queue and a record of outstanding work first.                 |
+| AWS         | Not started. Everything runs on one local machine.                                        |
 
 ## The pipeline
 
@@ -46,11 +46,11 @@ collector (planned) ─────────────────┘
 
 Each stage answers one question and knows nothing about the stages after it.
 
-| Stage | Question | Who runs it |
-| --- | --- | --- |
-| Taxonomy | What is this item, which category holds it, and which `.filter` conditions select it? | The maintainer, whenever the classification changes |
-| Catalog | What is each taxonomy row worth right now? | The backend. Planned hourly, started by hand today |
-| Generator | How loudly does the filter draw each item? | The player, on their own machine, for each new catalog |
+| Stage     | Question                                                                              | Who runs it                                            |
+| --------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| Taxonomy  | What is this item, which category holds it, and which `.filter` conditions select it? | The maintainer, whenever the classification changes    |
+| Catalog   | What is each taxonomy row worth right now?                                            | The backend. Planned hourly, started by hand today     |
+| Generator | How loudly does the filter draw each item?                                            | The player, on their own machine, for each new catalog |
 
 ## Taxonomy
 
@@ -90,12 +90,12 @@ Three edits change what the sources report:
 The category table is a flattened tree. The key is the path: `map`, and `map/blighted`
 below it. The tree is one level deep, category and subcategory, and never deeper.
 
-| Field | Holds |
-| --- | --- |
-| `conditions` | The conditions every row under this path shares. |
-| `name` | Optional. A display name for the path. |
-| `tiering` | Optional. `chaos` or `stack-size`. Absent means `chaos`. |
-| `hints` | Optional, top-level categories only. Which of `check` and `gamble` the category allows. Absent means neither. |
+| Field        | Holds                                                                                                         |
+| ------------ | ------------------------------------------------------------------------------------------------------------- |
+| `conditions` | The conditions every row under this path shares.                                                              |
+| `name`       | Optional. A display name for the path.                                                                        |
+| `tiering`    | Optional. `chaos` or `stack-size`. Absent means `chaos`.                                                      |
+| `hints`      | Optional, top-level categories only. Which of `check` and `gamble` the category allows. Absent means neither. |
 
 `tiering` says what a category's tier floors count. In a `chaos` category, a floor is a
 price, and the generator compares a row's price against it. In a `stack-size` category, a
@@ -136,9 +136,11 @@ A row or a variant names the PoeWatch listing that prices it, with a `listing` m
 PoeWatch's own field names:
 
 ```json
-{ "name": "level 6",
-  "conditions": [ { "condition": "GemLevel", "operator": ">=", "value": 6 } ],
-  "listing": { "gemLevel": 6, "gemQuality": 20, "gemIsCorrupted": false } }
+{
+  "name": "level 6",
+  "conditions": [{ "condition": "GemLevel", "operator": ">=", "value": 6 }],
+  "listing": { "gemLevel": 6, "gemQuality": 20, "gemIsCorrupted": false }
+}
 ```
 
 The same fact is written twice on purpose. The condition is what the filter asks of an item
@@ -177,11 +179,11 @@ rows are the published taxonomy's drawable rows: every row that is not excluded,
 
 ### Stages
 
-| Stage | Does | On a rebuild |
-| --- | --- | --- |
+| Stage  | Does                                                                                                                                                                     | On a rebuild                                                                 |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
 | bronze | Saves what each source said that hour: PoeWatch's listings, exchange prices and corruption outcomes, GGG's trade item list, and the taxonomy. Then checks what it saved. | Kept, because a new fetch gives a different answer. `--force` fetches again. |
-| silver | Prices the rows and attaches the uniques. Writes one file per category, plus a file of the rows with no price. | Rebuilt. |
-| gold | Writes every row to `catalog.json`, and the category table to `catalog.categories.json`. | Rebuilt. |
+| silver | Prices the rows and attaches the uniques. Writes one file per category, plus a file of the rows with no price.                                                           | Rebuilt.                                                                     |
+| gold   | Writes every row to `catalog.json`, and the category table to `catalog.categories.json`.                                                                                 | Rebuilt.                                                                     |
 
 A manifest records which stages finished and which taxonomy version the run used. That is
 the promoted version, unless `--taxonomy-version` names another.
@@ -223,21 +225,21 @@ outcome of the listing before it. **The generator reads both**: an authored uniq
 `catalog.json` is an array of rows. The shape is `Item` in
 [apps/catalog/item.ts](apps/catalog/item.ts).
 
-| Field | Holds |
-| --- | --- |
-| `key` | The taxonomy key: a metadata id, or `authored/<slug>`. |
-| `name` | The row's name. Prices and conditions read this. |
-| `displayName` | Optional. The maintainer's internal name. Nothing prices or resolves by it. |
-| `category`, `subcategory` | The row's path. `subcategory` is `null` when the row sits directly in the category. |
-| `baseTypes` | What a filter writes for `BaseType`: the row's name, or an authored row's `baseType`. |
-| `quest` | Optional. `true` on a quest item. A quest item needs no listing, so it often has no price. |
-| `unpriceable` | Optional. `true` on an item no market prices but that can drop. It needs no listing and has no price. |
-| `conditions` | Optional. The row's own conditions, copied from the taxonomy and **not resolved**. |
-| `variants` | Optional. Each has `name`, `conditions`, an optional `listing`, and its own `meanPrice` and `lowConfidence`. |
-| `listing` | Optional. The PoeWatch match that prices the row. |
-| `meanPrice` | Optional. Chaos. Absent on a row with variants, and on a row with no price. |
-| `lowConfidence` | Optional. PoeWatch's flag on the listing `meanPrice` came from. |
-| `uniques` | Optional. The groups of priced unique forms. |
+| Field                     | Holds                                                                                                        |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `key`                     | The taxonomy key: a metadata id, or `authored/<slug>`.                                                       |
+| `name`                    | The row's name. Prices and conditions read this.                                                             |
+| `displayName`             | Optional. The maintainer's internal name. Nothing prices or resolves by it.                                  |
+| `category`, `subcategory` | The row's path. `subcategory` is `null` when the row sits directly in the category.                          |
+| `baseTypes`               | What a filter writes for `BaseType`: the row's name, or an authored row's `baseType`.                        |
+| `quest`                   | Optional. `true` on a quest item. A quest item needs no listing, so it often has no price.                   |
+| `unpriceable`             | Optional. `true` on an item no market prices but that can drop. It needs no listing and has no price.        |
+| `conditions`              | Optional. The row's own conditions, copied from the taxonomy and **not resolved**.                           |
+| `variants`                | Optional. Each has `name`, `conditions`, an optional `listing`, and its own `meanPrice` and `lowConfidence`. |
+| `listing`                 | Optional. The PoeWatch match that prices the row.                                                            |
+| `meanPrice`               | Optional. Chaos. Absent on a row with variants, and on a row with no price.                                  |
+| `lowConfidence`           | Optional. PoeWatch's flag on the listing `meanPrice` came from.                                              |
+| `uniques`                 | Optional. The groups of priced unique forms.                                                                 |
 
 `catalog.categories.json` is the taxonomy's category table, keyed by path, without items. It
 is copied unchanged from the taxonomy version the run used. So a catalog's rows and
@@ -408,42 +410,42 @@ never imported. [CLAUDE.md](CLAUDE.md) has the full rule.
 
 ## Parts
 
-| Package | Role |
-| --- | --- |
-| `apps/taxonomy` | Seeds, validates, publishes and promotes taxonomy versions. |
-| `apps/catalog` | Builds and publishes the catalog. Also `catalog:compile`, the unstyled test filter. |
-| `apps/admin-panel` | The maintainer's Electron app over the taxonomy and the catalog. |
-| `apps/item-inspect` | Takes an item's copied text and shows how the parser read it. |
-| `apps/collector` | Planned. A README only. |
-| `apps/generator` | The player's Electron app. Tiers, styles and writes the `.filter`. |
-| `lib/filter-compile` | Resolves a row's conditions and writes them as `.filter` lines. |
-| `lib/filter-style` | The generator's model: items, placement, tier styles and the styled `.filter`. |
-| `lib/filter-eval` | Parses a `.filter` and says which block takes an item. |
-| `lib/item-parser` | Reads one item's copied text into the shape `@poe/filter-eval` asks about. |
-| `lib/cache` | Cache keys, and a JSON file cache every service uses. |
-| `lib/env` | The only reader of `process.env`. Apps only. |
-| `services/ggg` | GGG's trade API behind the rate limiter. |
-| `services/poe-watch` | PoeWatch's league-wide price digests. The catalog's price source. |
-| `services/poe-ninja` | poe.ninja's economy API. Nothing reads it yet. |
-| `services/repoe` | The game's own data files. Seeds the taxonomy. |
-| `services/taxonomy` | Reads one published taxonomy version. |
-| `services/lake` | JSON files under `.s3`, addressed by key. |
+| Package              | Role                                                                                |
+| -------------------- | ----------------------------------------------------------------------------------- |
+| `apps/taxonomy`      | Seeds, validates, publishes and promotes taxonomy versions.                         |
+| `apps/catalog`       | Builds and publishes the catalog. Also `catalog:compile`, the unstyled test filter. |
+| `apps/admin-panel`   | The maintainer's Electron app over the taxonomy and the catalog.                    |
+| `apps/item-inspect`  | Takes an item's copied text and shows how the parser read it.                       |
+| `apps/collector`     | Planned. A README only.                                                             |
+| `apps/generator`     | The player's Electron app. Tiers, styles and writes the `.filter`.                  |
+| `lib/filter-compile` | Resolves a row's conditions and writes them as `.filter` lines.                     |
+| `lib/filter-style`   | The generator's model: items, placement, tier styles and the styled `.filter`.      |
+| `lib/filter-eval`    | Parses a `.filter` and says which block takes an item.                              |
+| `lib/item-parser`    | Reads one item's copied text into the shape `@poe/filter-eval` asks about.          |
+| `lib/cache`          | Cache keys, and a JSON file cache every service uses.                               |
+| `lib/env`            | The only reader of `process.env`. Apps only.                                        |
+| `services/ggg`       | GGG's trade API behind the rate limiter.                                            |
+| `services/poe-watch` | PoeWatch's league-wide price digests. The catalog's price source.                   |
+| `services/poe-ninja` | poe.ninja's economy API. Nothing reads it yet.                                      |
+| `services/repoe`     | The game's own data files. Seeds the taxonomy.                                      |
+| `services/taxonomy`  | Reads one published taxonomy version.                                               |
+| `services/lake`      | JSON files under `.s3`, addressed by key.                                           |
 
 ## Words
 
-| Word | Meaning |
-| --- | --- |
-| Row | One taxonomy item, keyed by metadata id or `authored/<slug>`. |
-| Drawable row | A row that is not excluded, not `filterable: false`, and not replaced. Only these reach the catalog. |
-| Variant | One form of a row, with its own conditions and its own price. |
-| Category path | `category` or `category/subcategory`. The key of a category record. |
-| Condition | One structured `.filter` condition, authored in the taxonomy. |
-| Form | A row or one of its variants, with its conditions resolved. `catalog:compile` writes one block per form. |
-| Tiering | What a category's floors count: `chaos` or `stack-size`. |
-| Bucket | A player-defined group of items inside one category, chosen by a rule. |
-| Visual identity | The look of one category and bucket pair. |
-| League-hour | One league at one hour. One catalog build covers one league-hour. |
-| Base type | The item a unique drops as, and what `BaseType` matches. |
+| Word            | Meaning                                                                                                  |
+| --------------- | -------------------------------------------------------------------------------------------------------- |
+| Row             | One taxonomy item, keyed by metadata id or `authored/<slug>`.                                            |
+| Drawable row    | A row that is not excluded, not `filterable: false`, and not replaced. Only these reach the catalog.     |
+| Variant         | One form of a row, with its own conditions and its own price.                                            |
+| Category path   | `category` or `category/subcategory`. The key of a category record.                                      |
+| Condition       | One structured `.filter` condition, authored in the taxonomy.                                            |
+| Form            | A row or one of its variants, with its conditions resolved. `catalog:compile` writes one block per form. |
+| Tiering         | What a category's floors count: `chaos` or `stack-size`.                                                 |
+| Bucket          | A player-defined group of items inside one category, chosen by a rule.                                   |
+| Visual identity | The look of one category and bucket pair.                                                                |
+| League-hour     | One league at one hour. One catalog build covers one league-hour.                                        |
+| Base type       | The item a unique drops as, and what `BaseType` matches.                                                 |
 
 ## Read next
 

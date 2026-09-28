@@ -44,48 +44,75 @@ export function CategoryModal({ target }: { readonly target: CategoryTarget }) {
   const moveTo = useSession((state) => state.moveSubcategory);
   const renameTo = useSession((state) => state.renameCategory);
 
-  const existing = target.kind === "edit" ? draft?.categories[target.path] : undefined;
+  const existing = target.kind === "edit"
+    ? draft?.categories[target.path]
+    : undefined;
   const selection = useSession((state) => state.selection);
   const [parent, setParent] = useState(() => initialParent(target, selection, tops));
-  const [slug, setSlug] = useState(target.kind === "edit" ? (target.path.split("/").at(-1) ?? "") : "");
+  const [slug, setSlug] = useState(target.kind === "edit"
+    ? (target.path.split("/").at(-1) ?? "")
+    : "");
   const [name, setName] = useState(existing?.name ?? "");
   const [tiering, setTiering] = useState<Tiering>(existing?.tiering ?? "chaos");
   const [hints, setHints] = useState<readonly Hint[]>(existing?.hints ?? []);
   const [conditions, setConditions] = useState<readonly Condition[]>(existing?.conditions ?? []);
   const [samplesText, setSamplesText] = useState(() =>
-    existing?.samples === undefined ? "" : JSON.stringify(existing.samples, null, 2),
+    existing?.samples === undefined
+      ? ""
+      : JSON.stringify(existing.samples, null, 2),
   );
   const parsedSamples = parseSamples(samplesText);
-  const samplesProblem = "problem" in parsedSamples ? parsedSamples.problem : undefined;
+  const samplesProblem = "problem" in parsedSamples
+    ? parsedSamples.problem
+    : undefined;
   const [rejectsText, setRejectsText] = useState(() =>
-    existing?.rejects === undefined ? "" : JSON.stringify(existing.rejects, null, 2),
+    existing?.rejects === undefined
+      ? ""
+      : JSON.stringify(existing.rejects, null, 2),
   );
   const parsedRejects = parseSamples(rejectsText, "Rejects");
-  const rejectsProblem = "problem" in parsedRejects ? parsedRejects.problem : undefined;
+  const rejectsProblem = "problem" in parsedRejects
+    ? parsedRejects.problem
+    : undefined;
 
   const isSub = target.kind === "new-subcategory" || (target.kind === "edit" && target.path.includes("/"));
   const path = categoryPath(target, parent, slug);
 
   const composed = useMemo(
-    () => (draft === undefined || path === "" ? undefined : resolvePath({ ...draft.categories, [path]: { conditions } }, path)),
+    () =>
+      draft === undefined || path === ""
+        ? undefined
+        : resolvePath({ ...draft.categories, [path]: { conditions } }, path),
     [draft, path, conditions],
   );
 
-  const oldSlug = target.kind === "edit" ? (target.path.split("/").at(-1) ?? "") : "";
+  const oldSlug = target.kind === "edit"
+    ? (target.path.split("/").at(-1) ?? "")
+    : "";
   const moving = target.kind === "edit" && isSub && parent !== (target.path.split("/")[0] ?? "");
   const renaming = target.kind === "edit" && slug !== oldSlug;
   const movedPath = `${parent}/${oldSlug}`;
-  const renamedPath = isSub ? `${parent}/${slug}` : slug;
+  const renamedPath = isSub
+    ? `${parent}/${slug}`
+    : slug;
 
   const problem =
-    target.kind === "edit" ? undefined : newCategoryProblem(slug, path, draft?.categories[path] !== undefined);
-  const moveProblem = moving && draft?.categories[movedPath] !== undefined ? `${movedPath} already exists.` : undefined;
+    target.kind === "edit"
+      ? undefined
+      : newCategoryProblem(slug, path, draft?.categories[path] !== undefined);
+  const moveProblem = moving && draft?.categories[movedPath] !== undefined
+    ? `${movedPath} already exists.`
+    : undefined;
   const renameProblem = renaming
     ? newCategoryProblem(slug, renamedPath, draft?.categories[renamedPath] !== undefined)
     : undefined;
   const note =
     moveProblem === undefined && renameProblem === undefined
-      ? categorySaveNote(path, moving ? movedPath : undefined, renaming ? renamedPath : undefined)
+      ? categorySaveNote(path, moving
+          ? movedPath
+          : undefined, renaming
+          ? renamedPath
+          : undefined)
       : undefined;
 
   const blockingProblems = [problem, moveProblem, renameProblem, samplesProblem, rejectsProblem];
@@ -93,17 +120,31 @@ export function CategoryModal({ target }: { readonly target: CategoryTarget }) {
 
   const title = categoryDialogTitle(target, existing !== undefined);
   const deletable = target.kind === "edit" && existing !== undefined && editable;
-  const deleteProblem = deletable && draft !== undefined ? categoryDeleteProblem(draft, path) : undefined;
+  const deleteProblem = deletable && draft !== undefined
+    ? categoryDeleteProblem(draft, path)
+    : undefined;
 
   const record = (at: string): Category => ({
     path: at,
-    ...(name.trim() === "" ? {} : { name: name.trim() }),
+    ...(name.trim() === ""
+      ? {}
+      : { name: name.trim() }),
     tiering,
-    ...(isSub || hints.length === 0 ? {} : { hints }),
-    ...(isSub && "samples" in parsedSamples && parsedSamples.samples.length > 0 ? { samples: parsedSamples.samples } : {}),
-    ...(isSub && "samples" in parsedRejects && parsedRejects.samples.length > 0 ? { rejects: parsedRejects.samples } : {}),
-    ...(existing?.catchAll === true ? { catchAll: true } : {}),
-    ...(existing?.order === undefined ? {} : { order: existing.order }),
+    ...(isSub || hints.length === 0
+      ? {}
+      : { hints }),
+    ...(isSub && "samples" in parsedSamples && parsedSamples.samples.length > 0
+      ? { samples: parsedSamples.samples }
+      : {}),
+    ...(isSub && "samples" in parsedRejects && parsedRejects.samples.length > 0
+      ? { rejects: parsedRejects.samples }
+      : {}),
+    ...(existing?.catchAll === true
+      ? { catchAll: true }
+      : {}),
+    ...(existing?.order === undefined
+      ? {}
+      : { order: existing.order }),
     conditions,
   });
 
@@ -112,7 +153,9 @@ export function CategoryModal({ target }: { readonly target: CategoryTarget }) {
       await moveTo(path, record(movedPath));
       if (useSession.getState().error !== undefined) return;
     }
-    if (renaming) await renameTo(moving ? movedPath : path, record(renamedPath));
+    if (renaming) await renameTo(moving
+      ? movedPath
+      : path, record(renamedPath));
     if (!moving && !renaming) await saveCategory(record(path));
     if (useSession.getState().error === undefined) closeDialog();
   };
@@ -128,19 +171,21 @@ export function CategoryModal({ target }: { readonly target: CategoryTarget }) {
     <Modal
       title={title}
       onClose={closeDialog}
-      footer={
+      footer={(
         <>
-          {deletable ? (
-            <button
-              type="button"
-              className="btn"
-              disabled={busy || deleteProblem !== undefined}
-              title={deleteProblem ?? "Delete this category"}
-              onClick={() => void remove()}
-            >
-              Delete
-            </button>
-          ) : null}
+          {deletable
+            ? (
+                <button
+                  type="button"
+                  className="btn"
+                  disabled={busy || deleteProblem !== undefined}
+                  title={deleteProblem ?? "Delete this category"}
+                  onClick={() => void remove()}
+                >
+                  Delete
+                </button>
+              )
+            : null}
           <button type="button" className="btn" onClick={closeDialog}>
             Cancel
           </button>
@@ -153,28 +198,34 @@ export function CategoryModal({ target }: { readonly target: CategoryTarget }) {
             Save
           </button>
         </>
-      }
+      )}
     >
       <div className="grp">
-        {target.kind === "new-subcategory" || (target.kind === "edit" && isSub) ? (
-          <div className="fld">
-            <label htmlFor="cat-parent">Category</label>
-            <select
-              id="cat-parent"
-              value={parent}
-              disabled={!editable}
-              onChange={(event) => setParent(event.target.value)}
-            >
-              {tops.map((node) => (
-                <option key={node.path} value={node.path}>
-                  {node.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        ) : null}
+        {target.kind === "new-subcategory" || (target.kind === "edit" && isSub)
+          ? (
+              <div className="fld">
+                <label htmlFor="cat-parent">Category</label>
+                <select
+                  id="cat-parent"
+                  value={parent}
+                  disabled={!editable}
+                  onChange={(event) => setParent(event.target.value)}
+                >
+                  {tops.map((node) => (
+                    <option key={node.path} value={node.path}>
+                      {node.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )
+          : null}
         <div className="fld">
-          <label htmlFor="cat-slug">{isSub ? "Subcategory" : "Category"}</label>
+          <label htmlFor="cat-slug">
+            {isSub
+              ? "Subcategory"
+              : "Category"}
+          </label>
           <input
             id="cat-slug"
             type="text"
@@ -185,14 +236,31 @@ export function CategoryModal({ target }: { readonly target: CategoryTarget }) {
             onChange={(event) => setSlug(event.target.value)}
           />
         </div>
-        {problem === undefined ? null : <p className="err">{problem}</p>}
-        {moveProblem === undefined ? null : <p className="err">{moveProblem}</p>}
-        {renameProblem === undefined ? null : <p className="err">{renameProblem}</p>}
-        {note === undefined ? null : <p className="note">{note}</p>}
-        {deleteProblem === undefined ? null : <p className="note">Cannot delete: {deleteProblem}</p>}
-        {target.kind === "edit" && existing === undefined ? (
-          <p className="note">Rows are filed here but it has no record. Saving writes one.</p>
-        ) : null}
+        {problem === undefined
+          ? null
+          : <p className="err">{problem}</p>}
+        {moveProblem === undefined
+          ? null
+          : <p className="err">{moveProblem}</p>}
+        {renameProblem === undefined
+          ? null
+          : <p className="err">{renameProblem}</p>}
+        {note === undefined
+          ? null
+          : <p className="note">{note}</p>}
+        {deleteProblem === undefined
+          ? null
+          : (
+              <p className="note">
+                Cannot delete:
+                {deleteProblem}
+              </p>
+            )}
+        {target.kind === "edit" && existing === undefined
+          ? (
+              <p className="note">Rows are filed here but it has no record. Saving writes one.</p>
+            )
+          : null}
         <div className="fld">
           <label htmlFor="cat-name">Friendly name</label>
           <input
@@ -208,36 +276,41 @@ export function CategoryModal({ target }: { readonly target: CategoryTarget }) {
           <label>Tiering</label>
           <Segmented value={tiering} options={TIERING} disabled={!editable} onChange={setTiering} />
         </div>
-        {isSub ? null : (
-          <div className="fld">
-            <label>Hints</label>
-            <div className="rarities">
-              {HINTS.map(([hint, label]) => (
-                <label key={hint} className="check">
-                  <input
-                    type="checkbox"
-                    checked={hints.includes(hint)}
-                    disabled={!editable}
-                    onChange={(event) =>
-                      setHints(
-                        HINTS.map(([one]) => one).filter((one) =>
-                          one === hint ? event.target.checked : hints.includes(one),
-                        ),
-                      )
-                    }
-                  />
-                  {label}
-                </label>
-              ))}
-            </div>
-          </div>
-        )}
+        {isSub
+          ? null
+          : (
+              <div className="fld">
+                <label>Hints</label>
+                <div className="rarities">
+                  {HINTS.map(([hint, label]) => (
+                    <label key={hint} className="check">
+                      <input
+                        type="checkbox"
+                        checked={hints.includes(hint)}
+                        disabled={!editable}
+                        onChange={(event) =>
+                          setHints(
+                            HINTS.map(([one]) => one).filter((one) =>
+                              one === hint
+                                ? event.target.checked
+                                : hints.includes(one),
+                            ),
+                          )}
+                      />
+                      {label}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
       </div>
       <div className="grp">
         <h4>Conditions</h4>
         <ConditionsEditor
           own={conditions}
-          {...(editable ? { onChange: setConditions } : {})}
+          {...(editable
+            ? { onChange: setConditions }
+            : {})}
           {...(composed === undefined
             ? {}
             : {
@@ -252,39 +325,47 @@ export function CategoryModal({ target }: { readonly target: CategoryTarget }) {
                   }),
                 },
               })}
-          level={isSub ? "subcategory" : "category"}
+          level={isSub
+            ? "subcategory"
+            : "category"}
           names={names}
           valueOptions={valueOptions}
         />
       </div>
-      {isSub ? (
-        <div className="grp">
-          <h4>Samples</h4>
-          <p className="note">Sample items the filter validator builds for rows here.</p>
-          <textarea
-            id="cat-samples"
-            className="mono"
-            rows={8}
-            value={samplesText}
-            disabled={!editable}
-            placeholder='[{ "BaseType": { "from": "baseTypes" }, "Rarity": { "values": ["Normal", "Magic"] } }]'
-            onChange={(event) => setSamplesText(event.target.value)}
-          />
-          {samplesProblem === undefined ? null : <p className="err">{samplesProblem}</p>}
-          <h4>Rejects</h4>
-          <p className="note">Laid over each sample. No row here may take the result.</p>
-          <textarea
-            id="cat-rejects"
-            className="mono"
-            rows={4}
-            value={rejectsText}
-            disabled={!editable}
-            placeholder='[{ "Rarity": { "values": ["Unique"] } }]'
-            onChange={(event) => setRejectsText(event.target.value)}
-          />
-          {rejectsProblem === undefined ? null : <p className="err">{rejectsProblem}</p>}
-        </div>
-      ) : null}
+      {isSub
+        ? (
+            <div className="grp">
+              <h4>Samples</h4>
+              <p className="note">Sample items the filter validator builds for rows here.</p>
+              <textarea
+                id="cat-samples"
+                className="mono"
+                rows={8}
+                value={samplesText}
+                disabled={!editable}
+                placeholder='[{ "BaseType": { "from": "baseTypes" }, "Rarity": { "values": ["Normal", "Magic"] } }]'
+                onChange={(event) => setSamplesText(event.target.value)}
+              />
+              {samplesProblem === undefined
+                ? null
+                : <p className="err">{samplesProblem}</p>}
+              <h4>Rejects</h4>
+              <p className="note">Laid over each sample. No row here may take the result.</p>
+              <textarea
+                id="cat-rejects"
+                className="mono"
+                rows={4}
+                value={rejectsText}
+                disabled={!editable}
+                placeholder='[{ "Rarity": { "values": ["Unique"] } }]'
+                onChange={(event) => setRejectsText(event.target.value)}
+              />
+              {rejectsProblem === undefined
+                ? null
+                : <p className="err">{rejectsProblem}</p>}
+            </div>
+          )
+        : null}
     </Modal>
   );
 }

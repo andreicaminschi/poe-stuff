@@ -14,9 +14,5 @@ import type { RepoeContext } from "./types.ts";
  * the gem they come from.
  */
 export async function getGems(context: RepoeContext): Promise<Gems> {
-  return call<Gems>(
-    `${context.baseUrl}/pob-data/poe1/Gems.min.json`,
-    currentHour(),
-    context,
-  );
+  return call<Gems>(`${context.baseUrl}/pob-data/poe1/Gems.min.json`, currentHour(), context);
 }

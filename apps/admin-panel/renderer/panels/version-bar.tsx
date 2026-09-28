@@ -22,9 +22,20 @@ export function VersionBar() {
   return (
     <div className="bar">
       <span className="ver mono">{current?.id ?? "—"}</span>
-      {current === undefined ? null : <span className={`pill ${current.state}`}>{current.state}</span>}
-      {current !== undefined && current.id === versions.current ? <span className="pill live">current</span> : null}
-      {current?.parent === undefined ? null : <span className="from">from {current.parent}</span>}
+      {current === undefined
+        ? null
+        : <span className={`pill ${current.state}`}>{current.state}</span>}
+      {current !== undefined && current.id === versions.current
+        ? <span className="pill live">current</span>
+        : null}
+      {current?.parent === undefined
+        ? null
+        : (
+            <span className="from">
+              from
+              {current.parent}
+            </span>
+          )}
       <div className="sep" />
       <select
         className="tiny"
@@ -34,7 +45,10 @@ export function VersionBar() {
       >
         {versions.versions.map((version) => (
           <option key={version.id} value={version.id}>
-            {version.id} · {version.state}
+            {version.id}
+            {" "}
+            ·
+            {version.state}
           </option>
         ))}
       </select>
@@ -55,19 +69,40 @@ export function VersionBar() {
         ))}
       </select>
       <span className="sp" />
-      {progress === undefined ? null : (
-        <div className="progress" style={{ width: 120 }} role="progressbar" aria-valuenow={progress.step} aria-valuemin={0} aria-valuemax={progress.total}>
-          <div className="fill" style={{ width: `${Math.round((progress.step / progress.total) * 100)}%` }} />
-        </div>
-      )}
-      {status === undefined ? null : <span className="from">{status}</span>}
-      {dirty === 0 ? null : (
-        <span className="from">
-          {dirty} unsaved edit{dirty === 1 ? "" : "s"}
-        </span>
-      )}
+      {progress === undefined
+        ? null
+        : (
+            <div
+              className="progress"
+              style={{ width: 120 }}
+              role="progressbar"
+              aria-valuenow={progress.step}
+              aria-valuemin={0}
+              aria-valuemax={progress.total}
+            >
+              <div className="fill" style={{ width: `${Math.round((progress.step / progress.total) * 100)}%` }} />
+            </div>
+          )}
+      {status === undefined
+        ? null
+        : <span className="from">{status}</span>}
+      {dirty === 0
+        ? null
+        : (
+            <span className="from">
+              {dirty}
+              {" "}
+              unsaved edit
+              {dirty === 1
+                ? ""
+                : "s"}
+            </span>
+          )}
       <button type="button" className="btn" disabled={ledgerSize === 0} onClick={() => openDialog({ kind: "changes" })}>
-        View changes{ledgerSize === 0 ? "" : ` ${ledgerSize}`}
+        View changes
+        {ledgerSize === 0
+          ? ""
+          : ` ${ledgerSize}`}
       </button>
       <button
         type="button"
@@ -83,7 +118,10 @@ export function VersionBar() {
         disabled={busy || current?.editable !== true}
         onClick={() => void publish()}
       >
-        Publish{current?.editable === true ? ` ${current.id}` : ""}
+        Publish
+        {current?.editable === true
+          ? ` ${current.id}`
+          : ""}
       </button>
       <div className="sep" />
       <button type="button" className="btn" onClick={() => openDialog({ kind: "runs" })}>

@@ -33,14 +33,14 @@ describe("runYarn", () => {
 
     await runYarn("/repo", ["taxonomy", "--root=C:\\tmp dir"]);
 
-    expect(spawn).toHaveBeenCalledWith('yarn "taxonomy" "--root=C:\\tmp dir"', {
+    expect(spawn).toHaveBeenCalledWith("yarn \"taxonomy\" \"--root=C:\\tmp dir\"", {
       cwd: "/repo",
       shell: true,
       windowsHide: true,
     });
   });
 
-  it.each(['a"b', "100%", "$HOME", "a`b"])("refuses to pass %s to a shell and never spawns", async (arg) => {
+  it.each(["a\"b", "100%", "$HOME", "a`b"])("refuses to pass %s to a shell and never spawns", async (arg) => {
     exits(0);
 
     await expect(runYarn("/repo", [arg])).rejects.toThrow(`Refusing to pass ${arg} to a shell`);
@@ -87,7 +87,7 @@ describe("runAction", () => {
 
 describe("runQuery", () => {
   it("parses stdout as JSON on success", async () => {
-    exits(0, '{"blocks":3}');
+    exits(0, "{\"blocks\":3}");
 
     await expect(runQuery("/repo", [])).resolves.toEqual({ blocks: 3 });
   });

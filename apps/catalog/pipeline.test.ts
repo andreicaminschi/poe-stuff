@@ -22,10 +22,12 @@ afterEach(async () => {
 
 function servicesFor() {
   const calls: string[] = [];
-  const answer = <T>(name: string, value: T) => async () => {
-    calls.push(name);
-    return value;
-  };
+  const answer =
+    <T>(name: string, value: T) =>
+      async () => {
+        calls.push(name);
+        return value;
+      };
 
   return {
     calls,
@@ -60,7 +62,11 @@ describe("runPipeline", () => {
 
     const manifest = await runPipeline(context);
 
-    expect([manifest.taxonomyVersion, Object.keys(manifest.stages), manifest.stages.bronze?.steps.map((step) => step.id)]).toEqual([
+    expect([
+      manifest.taxonomyVersion,
+      Object.keys(manifest.stages),
+      manifest.stages.bronze?.steps.map((step) => step.id),
+    ]).toEqual([
       "3.29.4",
       ["bronze", "silver", "gold"],
       ["ggg-items", "poe-watch-compact", "poe-watch-corruptions", "poe-watch-ratios", "taxonomy", "validate-bronze"],
@@ -73,7 +79,9 @@ describe("runPipeline", () => {
 
     await runPipeline(servicesFor().context, { onEvent: (event) => events.push(event) });
 
-    expect(events.filter((event) => event.type === "step-started").map((event) => event.type === "step-started" && event.id)).toEqual([
+    expect(
+      events.filter((event) => event.type === "step-started").map((event) => event.type === "step-started" && event.id),
+    ).toEqual([
       "ggg-items",
       "poe-watch-compact",
       "poe-watch-corruptions",
@@ -92,7 +100,10 @@ describe("runPipeline", () => {
 
     await runPipeline(second.context, { onEvent: (event) => events.push(event) });
 
-    expect([second.calls, events[0]]).toEqual([[], { type: "stage-skipped", stage: "bronze", reason: "already collected" }]);
+    expect([second.calls, events[0]]).toEqual([
+      [],
+      { type: "stage-skipped", stage: "bronze", reason: "already collected" },
+    ]);
   });
 
   it("refetches only the forced source, rerunning validation and keeping the other steps' records", async () => {
@@ -102,13 +113,17 @@ describe("runPipeline", () => {
     const manifest = await runPipeline(second.context, { force: new Set(["taxonomy"]) });
 
     expect(second.calls).toEqual(["taxonomy", "categories"]);
-    expect(manifest.stages.bronze?.steps.map((step) => step.id)).toEqual(first.stages.bronze?.steps.map((step) => step.id));
+    expect(manifest.stages.bronze?.steps.map((step) => step.id)).toEqual(
+      first.stages.bronze?.steps.map((step) => step.id),
+    );
   });
 
   it("refuses an unknown source in force", async () => {
     const second = servicesFor();
 
-    await expect(runPipeline(second.context, { force: new Set(["nope"]) })).rejects.toThrow("Unknown source in force: nope. Known:");
+    await expect(runPipeline(second.context, { force: new Set(["nope"]) })).rejects.toThrow(
+      "Unknown source in force: nope. Known:",
+    );
     expect(second.calls).toEqual([]);
   });
 

@@ -19,10 +19,7 @@ const wrong = (message: string): never => {
  * Keys come out in the order `APPLY_KEYS` declares them, so the same notes always produce
  * the same line and two generated filters can be compared as text.
  */
-export function formatNote(
-  notes: Readonly<Partial<Record<ApplyKey, string>>>,
-  freehand = "",
-): string {
+export function formatNote(notes: Readonly<Partial<Record<ApplyKey, string>>>, freehand = ""): string {
   for (const required of REQUIRED_KEYS) {
     if (notes[required] === undefined) {
       fail(`a note needs ${REQUIRED_KEYS.join(" and ")}, and this one has no ${required}`);
@@ -88,5 +85,7 @@ export function formatCondition(condition: string, comment = ""): string {
   const note = comment.trim();
   if (/[\r\n]/.test(note)) wrong("the comment is more than one line");
 
-  return note === "" ? written : `${written} # ${note}`;
+  return note === ""
+    ? written
+    : `${written} # ${note}`;
 }

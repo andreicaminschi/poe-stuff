@@ -74,8 +74,13 @@ export function stripUnscalable(text: string): {
  */
 export function invertScaling(text: string): string | undefined {
   const flipped = text
-    .replace(/(-?\d+(?:\.\d+)?)((?:%)? )reduced /g, (_, value: string, gap: string) => `${-Number(value)}${gap}increased `)
+    .replace(
+      /(-?\d+(?:\.\d+)?)((?:%)? )reduced /g,
+      (_, value: string, gap: string) => `${-Number(value)}${gap}increased `,
+    )
     .replace(/(-?\d+(?:\.\d+)?)((?:%)? )less /g, (_, value: string, gap: string) => `${-Number(value)}${gap}more `);
 
-  return flipped === text ? undefined : flipped;
+  return flipped === text
+    ? undefined
+    : flipped;
 }

@@ -28,15 +28,7 @@ export const NEGATING_OPERATORS = ["!", "!="] as const;
 export type Keyword = "Show" | "Hide" | "Minimal";
 
 /** How a condition compares. Every kind here has a parser and a matcher. */
-export type ConditionKind =
-  | "boolean"
-  | "numeric"
-  | "ordered"
-  | "strings"
-  | "enums"
-  | "sockets"
-  | "counted"
-  | "gem";
+export type ConditionKind = "boolean" | "numeric" | "ordered" | "strings" | "enums" | "sockets" | "counted" | "gem";
 
 /** `R` red, `G` green, `B` blue, `A` abyss, `D` delve, `W` white. */
 export type SocketColour = "R" | "G" | "B" | "A" | "D" | "W";

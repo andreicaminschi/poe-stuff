@@ -1,5 +1,5 @@
 import type { FilterBlock, FilterItem } from "@poe/filter-eval/filter-ast";
-import { pathOf } from "../samples-of/path-of.ts";
+import { formatPath } from "../build-samples/format-path.ts";
 import type { SampleRow } from "../types.ts";
 import type { RowOf } from "./row-lookup.ts";
 import type { Rejected } from "./types.ts";
@@ -13,6 +13,6 @@ export function judgeReject(
   rowOf: RowOf,
 ): Rejected | undefined {
   const takenRow = rowOf(winner);
-  if (winner === undefined || takenRow === undefined || pathOf(takenRow) !== pathOf(row)) return undefined;
+  if (winner === undefined || takenRow === undefined || formatPath(takenRow) !== formatPath(row)) return undefined;
   return { row, block: winner, reject, item };
 }

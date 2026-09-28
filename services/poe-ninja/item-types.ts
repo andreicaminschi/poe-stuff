@@ -178,10 +178,7 @@ export const TYPE_RULES: Readonly<Record<ItemType, TypeRule>> = {
  * not PoeWatch's exact spelling — that one pluralises, inconsistently — and nothing reads
  * this field to decide anything. It is here so a row can be grouped by eye.
  */
-export const groupFor = (
-  rule: TypeRule,
-  itemType: string | undefined,
-): string | null => {
+export const groupFor = (rule: TypeRule, itemType: string | undefined): string | null => {
   if (rule.group !== FROM_ITEM_TYPE) return rule.group;
   if (itemType === undefined || itemType === "") return null;
 

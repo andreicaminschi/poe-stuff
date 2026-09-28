@@ -37,14 +37,14 @@ async function main(): Promise<void> {
   await lake.writeJson(authoredKey, authored);
 
   for (const [seed, count] of Object.entries(counts)) {
-    process.stdout.write(
-      `${seed}: ${count.variants} rows of variants, ${count.authored} authored rows\n`,
-    );
+    process.stdout.write(`${seed}: ${count.variants} rows of variants, ${count.authored} authored rows\n`);
   }
   process.stdout.write(`wrote ${variantsKey}\nwrote ${authoredKey}\n`);
 }
 
 main().catch((error: unknown) => {
-  process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
+  process.stderr.write(`${error instanceof Error
+    ? error.message
+    : String(error)}\n`);
   process.exitCode = 1;
 });

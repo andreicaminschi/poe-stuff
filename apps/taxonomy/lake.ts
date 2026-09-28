@@ -11,8 +11,7 @@ export const SOURCE_FILES: readonly SourceFile[] = [
   "variants.manual",
 ];
 
-export const sourceKey = (version: string, file: SourceFile): string =>
-  `${PREFIX}/versions/${version}/${file}.json`;
+export const sourceKey = (version: string, file: SourceFile): string => `${PREFIX}/versions/${version}/${file}.json`;
 
 export const versionKey = (version: string): string => `${PREFIX}/${version}.json`;
 

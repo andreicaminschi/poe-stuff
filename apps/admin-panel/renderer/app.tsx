@@ -39,9 +39,9 @@ export function App() {
       if (!(event.ctrlKey || event.metaKey) || event.shiftKey || event.key.toLowerCase() !== "z") return;
       const target = event.target;
       if (
-        target instanceof HTMLInputElement ||
-        target instanceof HTMLTextAreaElement ||
-        target instanceof HTMLSelectElement
+        target instanceof HTMLInputElement
+        || target instanceof HTMLTextAreaElement
+        || target instanceof HTMLSelectElement
       ) {
         return;
       }
@@ -58,19 +58,27 @@ export function App() {
   return (
     <div className="app">
       <VersionBar />
-      {error === undefined ? null : (
-        <div className="banner">
-          <pre>{error}</pre>
-          <button type="button" className="btn icon" onClick={dismissError} aria-label="Dismiss">
-            ×
-          </button>
-        </div>
-      )}
-      {!editable && version !== undefined ? (
-        <div className="banner quiet">
-          {version.id} is {version.state}. Read only — only the newest draft can be edited.
-        </div>
-      ) : null}
+      {error === undefined
+        ? null
+        : (
+            <div className="banner">
+              <pre>{error}</pre>
+              <button type="button" className="btn icon" onClick={dismissError} aria-label="Dismiss">
+                ×
+              </button>
+            </div>
+          )}
+      {!editable && version !== undefined
+        ? (
+            <div className="banner quiet">
+              {version.id}
+              {" "}
+              is
+              {version.state}
+              . Read only — only the newest draft can be edited.
+            </div>
+          )
+        : null}
 
       <div className="cols">
         <Categories />
@@ -78,15 +86,33 @@ export function App() {
         <ItemEditor />
       </div>
 
-      {dialog?.kind === "checks" ? <ChecksDialog /> : null}
-      {dialog?.kind === "validation" ? <ValidationPanel /> : null}
-      {dialog?.kind === "runs" ? <RunsPanel /> : null}
-      {dialog?.kind === "changes" ? <ChangesPanel /> : null}
-      {dialog?.kind === "compiled" ? <CompiledPanel /> : null}
-      {dialog?.kind === "unfiltered" ? <UnfilteredPanel /> : null}
-      {dialog?.kind === "category" ? <CategoryModal target={dialog.target} /> : null}
-      {dialog?.kind === "author" ? <AuthorModal replaces={dialog.replaces} /> : null}
-      {dialog?.kind === "discover" ? <DiscoverVariants /> : null}
+      {dialog?.kind === "checks"
+        ? <ChecksDialog />
+        : null}
+      {dialog?.kind === "validation"
+        ? <ValidationPanel />
+        : null}
+      {dialog?.kind === "runs"
+        ? <RunsPanel />
+        : null}
+      {dialog?.kind === "changes"
+        ? <ChangesPanel />
+        : null}
+      {dialog?.kind === "compiled"
+        ? <CompiledPanel />
+        : null}
+      {dialog?.kind === "unfiltered"
+        ? <UnfilteredPanel />
+        : null}
+      {dialog?.kind === "category"
+        ? <CategoryModal target={dialog.target} />
+        : null}
+      {dialog?.kind === "author"
+        ? <AuthorModal replaces={dialog.replaces} />
+        : null}
+      {dialog?.kind === "discover"
+        ? <DiscoverVariants />
+        : null}
       <ConfirmDialog />
     </div>
   );

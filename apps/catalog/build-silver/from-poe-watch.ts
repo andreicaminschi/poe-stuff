@@ -19,10 +19,7 @@ type Price = { readonly mean: number; readonly lowConfidence: boolean; readonly 
  * no parentheses and comes back untouched.
  */
 const listingKey = (name: string): string =>
-  name.replace(
-    /\(([^)]*)\)$/,
-    (_, inner: string) => `(${inner.split("\n").sort().join("\n")})`,
-  );
+  name.replace(/\(([^)]*)\)$/, (_, inner: string) => `(${inner.split("\n").sort().join("\n")})`);
 
 type Exchange = { readonly id: number; readonly chaos: number; readonly lowConfidence: boolean };
 
@@ -63,13 +60,10 @@ const matches = (listing: ItemData, selector: ListingMatch): boolean =>
  * the higher mean, so a cheap and a dear form with one listing each read as the dear one.
  * No selector keeps every listing, which is how a plain item prices at its most-listed form.
  */
-function pick(
-  listings: readonly ItemData[],
-  selector: ListingMatch | undefined,
-): ItemData | undefined {
-  return mostListed(
-    selector === undefined ? listings : listings.filter((listing) => matches(listing, selector)),
-  );
+function pick(listings: readonly ItemData[], selector: ListingMatch | undefined): ItemData | undefined {
+  return mostListed(selector === undefined
+    ? listings
+    : listings.filter((listing) => matches(listing, selector)));
 }
 
 /**
@@ -101,7 +95,11 @@ function pickOutcome(
 function pickListing(listings: readonly ItemData[], selector: ListingMatch | undefined): Price | undefined {
   const listing = pick(listings, selector);
   if (listing === undefined) return undefined;
-  return { mean: listing.mean, lowConfidence: listing.lowConfidence, poeWatch: { source: "poeWatch:items", id: listing.id, name: listing.name } };
+  return {
+    mean: listing.mean,
+    lowConfidence: listing.lowConfidence,
+    poeWatch: { source: "poeWatch:items", id: listing.id, name: listing.name },
+  };
 }
 
 const queriesOf = (listing: Listing | undefined): readonly (ListingMatch | undefined)[] => {
@@ -114,7 +112,9 @@ const queriesOf = (listing: Listing | undefined): readonly (ListingMatch | undef
 const dearest = <T>(prices: readonly (T | undefined)[], worth: (price: T) => number): T | undefined =>
   prices.reduce<T | undefined>((best, one) => {
     if (one === undefined) return best;
-    return best === undefined || worth(one) > worth(best) ? one : best;
+    return best === undefined || worth(one) > worth(best)
+      ? one
+      : best;
   }, undefined);
 
 /**
@@ -139,7 +139,9 @@ function exchangeSale(item: Item, lookup: Lookup): Sale | undefined {
   const sales = nameOnly.map((query): Sale | undefined => {
     const name = query?.name ?? item.name;
     const found = lookup.exchange.get(name);
-    return found === undefined ? undefined : { ...found, name };
+    return found === undefined
+      ? undefined
+      : { ...found, name };
   });
 
   return dearest(sales, (sale) => sale.chaos);
@@ -201,7 +203,9 @@ export function fromPoeWatch(
   corruptions: readonly ItemCorruptions[],
 ): readonly Item[] {
   // A ratio with no trade in the window carries no price, and prices nothing here either.
-  const traded = ratios.flatMap((ratio) => (ratio.price === undefined ? [] : [{ ...ratio, price: ratio.price }]));
+  const traded = ratios.flatMap((ratio) => (ratio.price === undefined
+    ? []
+    : [{ ...ratio, price: ratio.price }]));
 
   const lookup: Lookup = {
     byName: Map.groupBy(listings, (listing) => listingKey(listing.name)),

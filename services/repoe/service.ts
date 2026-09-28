@@ -53,7 +53,9 @@ export function createRepoeService({
   const context = {
     baseUrl: trimUrl(baseUrl),
     userAgent,
-    ...(cache === undefined ? {} : { cache }),
+    ...(cache === undefined
+      ? {}
+      : { cache }),
   };
 
   return {

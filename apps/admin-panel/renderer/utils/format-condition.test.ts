@@ -8,12 +8,12 @@ describe("formatCondition", () => {
 
   it("quotes each entry of a list", () => {
     expect(formatCondition({ condition: "Class", operator: "=", value: ["Rings", "Amulets"] })).toBe(
-      'Class = "Rings" "Amulets"',
+      "Class = \"Rings\" \"Amulets\"",
     );
   });
 
   it("quotes a single string", () => {
-    expect(formatCondition({ condition: "Rarity", value: "Rare" })).toBe('Rarity == "Rare"');
+    expect(formatCondition({ condition: "Rarity", value: "Rare" })).toBe("Rarity == \"Rare\"");
   });
 
   it("writes booleans the way a filter does", () => {

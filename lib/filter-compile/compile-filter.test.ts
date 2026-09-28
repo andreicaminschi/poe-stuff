@@ -5,7 +5,12 @@ import type { CategoryRecords } from "./resolve-row.ts";
 
 const note = (key: string) => formatNote({ tier: "varies", verb: "check" }, key);
 
-const rowOf = (key: string, category: string, subcategory: string | null, extra: Partial<CompileRow> = {}): CompileRow => ({
+const rowOf = (
+  key: string,
+  category: string,
+  subcategory: string | null,
+  extra: Partial<CompileRow> = {},
+): CompileRow => ({
   key,
   name: key,
   category,
@@ -69,7 +74,15 @@ describe("compileFilter", () => {
 
   it("skips a row with a resolution problem, giving only the first problem", () => {
     const result = compileFilter(
-      [rowOf("A", "x", null, { name: "", conditions: [{ condition: "BaseType", from: "name" }, { condition: "X", from: "y" }] })],
+      [
+        rowOf("A", "x", null, {
+          name: "",
+          conditions: [
+            { condition: "BaseType", from: "name" },
+            { condition: "X", from: "y" },
+          ],
+        }),
+      ],
       {},
     );
 
@@ -90,7 +103,7 @@ describe("compileFilter", () => {
     );
 
     expect(result.blocks).toBe(1);
-    expect(result.skipped).toEqual([{ key: "A", variant: "bad", problem: '"Nope" is not a filter condition' }]);
+    expect(result.skipped).toEqual([{ key: "A", variant: "bad", problem: "\"Nope\" is not a filter condition" }]);
   });
 
   it("skips a row whose value holds a hash, which would start a comment", () => {

@@ -17,7 +17,10 @@ export function FlaggedGroupRow({
     <div className="unfiltered">
       <div className="unfiltered-head">
         <span className="name">
-          {group.path} · {label}
+          {group.path}
+          {" "}
+          ·
+          {label}
         </span>
         <span className="c mono">{group.count}</span>
         <button type="button" className="btn" onClick={() => onOpen(key)}>
@@ -25,7 +28,11 @@ export function FlaggedGroupRow({
         </button>
       </div>
       <p className="note mono">
-        {variant === "" ? key : `${key} ${variant}`}: {describeSample(item)}
+        {variant === ""
+          ? key
+          : `${key} ${variant}`}
+        :
+        {describeSample(item)}
       </p>
     </div>
   );

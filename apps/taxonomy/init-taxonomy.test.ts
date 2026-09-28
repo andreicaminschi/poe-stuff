@@ -50,6 +50,6 @@ describe("initTaxonomy", () => {
   });
 
   it("refuses a game version that does not make a valid version", async () => {
-    await expect(initTaxonomy(lake, "3", items)).rejects.toThrow('"3.1" is not a version');
+    await expect(initTaxonomy(lake, "3", items)).rejects.toThrow("\"3.1\" is not a version");
   });
 });

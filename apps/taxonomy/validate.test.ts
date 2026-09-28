@@ -3,7 +3,9 @@ import { collect, TableShapeError, throwFirst } from "./validate.ts";
 
 describe("collect", () => {
   it("reports one problem per bad row and none for good rows, in key order", () => {
-    const problems = collect({ a: 1, b: 2, c: 3 }, "table", (_key, row) => (row === 2 ? null : "bad"));
+    const problems = collect({ a: 1, b: 2, c: 3 }, "table", (_key, row) => (row === 2
+      ? null
+      : "bad"));
 
     expect(problems).toEqual([
       { key: "a", problem: "bad" },
@@ -27,7 +29,7 @@ describe("throwFirst", () => {
         { key: "a", problem: "is broken" },
         { key: "b", problem: "is also broken" },
       ]),
-    ).toThrow('items: "a" is broken');
+    ).toThrow("items: \"a\" is broken");
   });
 
   it("does nothing when there are no problems", () => {

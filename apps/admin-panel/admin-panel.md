@@ -1,7 +1,7 @@
 # Taxonomy admin panel
 
-
 ## Overview
+
 An interactive electron desktop application that allows the admins to edit and publish new taxonomies and/or change categories
 
 It is supposed to be the all-in-one place where the fragments from other applications are consolidated in a meaningull flow - for now just the catalog application
@@ -9,6 +9,7 @@ It is supposed to be the all-in-one place where the fragments from other applica
 ## Intended functionality
 
 The electron application would let an administrator to
+
 - see a list of categories and the items in them
 - quickly move items from one category to another
 - quickly create variants for an item
@@ -18,21 +19,20 @@ The electron application would let an administrator to
 
 ## Third party applications
 
-Every application in this repo is supposed to be self contained, so when the admin panel interacts with other applications it will do so by api calls. However, this needs to be abstracted because other applications don't support api calls currently, only command line tools - which is good, because the project is only hosted locally for now. 
+Every application in this repo is supposed to be self contained, so when the admin panel interacts with other applications it will do so by api calls. However, this needs to be abstracted because other applications don't support api calls currently, only command line tools - which is good, because the project is only hosted locally for now.
 
 When abstracting contracts between the admin-panel and other applications, an .api.ts file will be created. The pattern here is that there is a clear distinction between what the third party applications send to us - the data model, and the way we are using and describing that structure internally in the admin panel - the domain model.
-
 
 ### Example abstractions
 
 The admin panel needs to read the versions, taxonomy, variants and authored items from the taxomy project
 
 ```
-taxonomy.service.ts            
-taxonomy.getVersions.api.ts    
+taxonomy.service.ts
+taxonomy.getVersions.api.ts
 taxonomy.getTaxonmy.api.ts
 taxonomy.publish.api.ts
-... 
+...
 ```
 
 Each api call is not isolated, and contracts can be degined
@@ -43,7 +43,6 @@ Most important, the .api.ts just read files directly from disk or execute yarn c
 There is not HTTP transport going on, only stdout
 
 ## Versioning
-
 
 ### Taxonomy
 
@@ -70,4 +69,3 @@ The latest version will be readable at .s3/catalog/latest/*.json
 The catalog is supposed to work as before - every new hourly run will create a new folder and redownload everything in the bronze tier
 An option to force redownload the certain providers will be implemented
 `yarn catalog --league=Allflame --force=taxonomy,ggg,poewatch,...`
-

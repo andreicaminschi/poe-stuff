@@ -29,7 +29,9 @@ export function Modal({
   return (
     <div className="scrim" ref={scrim} onClick={onClose}>
       <div
-        className={`modal${wide ? " wide" : ""}`}
+        className={`modal${wide
+          ? " wide"
+          : ""}`}
         role="dialog"
         aria-label={title}
         onClick={(event) => event.stopPropagation()}
@@ -42,7 +44,9 @@ export function Modal({
           </button>
         </header>
         <div className="mbody">{children}</div>
-        {footer === undefined ? null : <footer>{footer}</footer>}
+        {footer === undefined
+          ? null
+          : <footer>{footer}</footer>}
       </div>
     </div>
   );

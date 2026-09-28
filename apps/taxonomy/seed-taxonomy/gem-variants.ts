@@ -2,12 +2,10 @@ import type { Gems } from "@poe/repoe/get-gems.types";
 import type { AuthoredVariant, TaxonomyTable, VariantTable } from "../types.ts";
 
 /** A gem's form: one level, one quality, corrupted or not. */
-const form = (
-  level: number,
-  quality: number,
-  corrupted: boolean,
-): AuthoredVariant => ({
-  name: `${level}/${quality}${corrupted ? " corrupted" : ""}`,
+const form = (level: number, quality: number, corrupted: boolean): AuthoredVariant => ({
+  name: `${level}/${quality}${corrupted
+    ? " corrupted"
+    : ""}`,
   conditions: [
     { condition: "GemLevel", operator: "==", value: level },
     { condition: "Quality", operator: "==", value: quality },
@@ -28,13 +26,7 @@ const form = (
  */
 function gemForms(max: number, vaal: boolean): readonly AuthoredVariant[] {
   const forms = vaal
-    ? [
-        form(1, 0, true),
-        form(1, 20, true),
-        form(max, 20, true),
-        form(max + 1, 20, true),
-        form(max, 23, true),
-      ]
+    ? [form(1, 0, true), form(1, 20, true), form(max, 20, true), form(max + 1, 20, true), form(max, 23, true)]
     : [
         form(1, 0, false),
         form(1, 20, false),

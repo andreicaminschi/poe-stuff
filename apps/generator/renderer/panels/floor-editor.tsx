@@ -15,7 +15,11 @@ export function FloorEditor() {
 
   return (
     <div className="editor">
-      <p className="label">{stack ? `${category.name} · stack sizes` : "Floors · every Chaos category"}</p>
+      <p className="label">
+        {stack
+          ? `${category.name} · stack sizes`
+          : "Floors · every Chaos category"}
+      </p>
       <div className="floors">
         {TIERS.map((name) => (
           <label key={name}>

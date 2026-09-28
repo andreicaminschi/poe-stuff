@@ -21,8 +21,7 @@ import type {
  * thing.
  */
 
-export const negated = (operator: Operator): boolean =>
-  (NEGATING_OPERATORS as readonly string[]).includes(operator);
+export const negated = (operator: Operator): boolean => (NEGATING_OPERATORS as readonly string[]).includes(operator);
 
 /** Compare two numbers by operator. `=` and `==` both mean equality on numbers. */
 const compare = (have: number, want: number, operator: Operator): boolean => {
@@ -45,13 +44,17 @@ const compare = (have: number, want: number, operator: Operator): boolean => {
 };
 
 const asList = (value: unknown): readonly string[] | undefined =>
-  Array.isArray(value) ? (value as readonly string[]) : undefined;
+  Array.isArray(value)
+    ? (value as readonly string[])
+    : undefined;
 
 const matchBoolean = (condition: FilterCondition, value: unknown): boolean => {
   if (typeof value !== "boolean") return false;
   const want = condition.values[0]?.toLowerCase() === "true";
   const same = value === want;
-  return negated(condition.operator) ? !same : same;
+  return negated(condition.operator)
+    ? !same
+    : same;
 };
 
 const matchNumeric = (condition: FilterCondition, value: unknown): boolean => {
@@ -68,8 +71,7 @@ const matchOrdered = (condition: FilterCondition, value: unknown): boolean => {
   // `Rarity Normal Magic Rare` is any-of by name. Only the comparison operators actually
   // walk the ladder, and the parser has already held those to one value.
   if (!negated(condition.operator) && condition.operator !== "=" && condition.operator !== "==") {
-    const index = (of: string): number =>
-      entry.order.findIndex((step) => step.toLowerCase() === of.toLowerCase());
+    const index = (of: string): number => entry.order.findIndex((step) => step.toLowerCase() === of.toLowerCase());
 
     const have = index(value);
     const want = index(condition.values[0] ?? "");
@@ -79,10 +81,10 @@ const matchOrdered = (condition: FilterCondition, value: unknown): boolean => {
     return compare(have, want, condition.operator);
   }
 
-  const any = condition.values.some(
-    (wanted) => wanted.toLowerCase() === value.toLowerCase(),
-  );
-  return negated(condition.operator) ? !any : any;
+  const any = condition.values.some((wanted) => wanted.toLowerCase() === value.toLowerCase());
+  return negated(condition.operator)
+    ? !any
+    : any;
 };
 
 const matchStrings = (condition: FilterCondition, value: unknown): boolean => {
@@ -94,10 +96,14 @@ const matchStrings = (condition: FilterCondition, value: unknown): boolean => {
   const exact = condition.operator === "==";
   const any = condition.values.some((wanted) => {
     const want = wanted.toLowerCase();
-    return exact ? have === want : have.includes(want);
+    return exact
+      ? have === want
+      : have.includes(want);
   });
 
-  return negated(condition.operator) ? !any : any;
+  return negated(condition.operator)
+    ? !any
+    : any;
 };
 
 const matchEnums = (condition: FilterCondition, value: unknown): boolean => {
@@ -113,25 +119,21 @@ const matchEnums = (condition: FilterCondition, value: unknown): boolean => {
     return have.includes(want);
   });
 
-  return negated(condition.operator) ? !any : any;
+  return negated(condition.operator)
+    ? !any
+    : any;
 };
 
 /** Every socket letter in a string, upper-cased, ignoring spaces and anything else. */
 const lettersOf = (group: string): SocketColour[] =>
-  [...group.toUpperCase()].filter((char): char is SocketColour =>
-    (SOCKET_COLOURS as readonly string[]).includes(char),
-  );
+  [...group.toUpperCase()].filter((char): char is SocketColour => (SOCKET_COLOURS as readonly string[]).includes(char));
 
 /**
  * Whether one run of sockets satisfies the spec. The operator decides the count; colours
  * are always "at least", so `RGB` asks for a group holding one of each and does not care
  * what else is in there.
  */
-const satisfies = (
-  letters: readonly SocketColour[],
-  spec: SocketSpec,
-  operator: Operator,
-): boolean => {
+const satisfies = (letters: readonly SocketColour[], spec: SocketSpec, operator: Operator): boolean => {
   if (spec.count !== undefined && !compare(letters.length, spec.count, operator)) {
     return false;
   }
@@ -181,12 +183,18 @@ const matchGem = (condition: FilterCondition, value: unknown): boolean => {
   if (lower === "true" || lower === "false") {
     const transfigured = value !== "";
     const same = transfigured === (lower === "true");
-    return negated(condition.operator) ? !same : same;
+    return negated(condition.operator)
+      ? !same
+      : same;
   }
 
   const have = value.toLowerCase();
-  const same = condition.operator === "==" ? have === lower : have.includes(lower);
-  return negated(condition.operator) ? !same : same;
+  const same = condition.operator === "=="
+    ? have === lower
+    : have.includes(lower);
+  return negated(condition.operator)
+    ? !same
+    : same;
 };
 
 export const matchCondition = (condition: FilterCondition, item: FilterItem): boolean => {
@@ -212,10 +220,7 @@ export const matchCondition = (condition: FilterCondition, item: FilterItem): bo
   }
 };
 
-export function evaluateFilter(
-  blocks: readonly FilterBlock[],
-  item: FilterItem,
-): EvalResult {
+export function evaluateFilter(blocks: readonly FilterBlock[], item: FilterItem): EvalResult {
   const notes: Partial<Record<ApplyKey, string>> = {};
   const contributions: Contribution[] = [];
   const matched: MatchedBlock[] = [];

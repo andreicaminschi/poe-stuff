@@ -11,18 +11,22 @@ export const mapGGGItemDataToGGGItem = (data: GGGItemData): GGGItem =>
         name: data.name,
         baseType: data.type,
         displayText: data.text ?? data.name,
-        ...(data.disc === undefined ? {} : { variantTag: data.disc }),
+        ...(data.disc === undefined
+          ? {}
+          : { variantTag: data.disc }),
       }
     : {
         kind: "base",
         baseType: data.type,
-        ...(data.text === undefined ? {} : { displayText: data.text }),
-        ...(data.disc === undefined ? {} : { variantTag: data.disc }),
+        ...(data.text === undefined
+          ? {}
+          : { displayText: data.text }),
+        ...(data.disc === undefined
+          ? {}
+          : { variantTag: data.disc }),
       };
 
-export const mapGGGItemGroupDataToGGGItemGroup = (
-  data: GGGItemGroupData,
-): GGGItemGroup => ({
+export const mapGGGItemGroupDataToGGGItemGroup = (data: GGGItemGroupData): GGGItemGroup => ({
   id: data.id,
   label: data.label,
   items: data.entries.map(mapGGGItemDataToGGGItem),

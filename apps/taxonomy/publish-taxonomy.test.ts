@@ -75,7 +75,9 @@ describe("publishTaxonomy", () => {
 
     const published = await publishTaxonomy(lake, "3.29.1", table);
 
-    const written = await lake.readJson<{ items: Record<string, { variants: { name: string }[] }> }>(versionKey("3.29.1"));
+    const written = await lake.readJson<{ items: Record<string, { variants: { name: string }[] }> }>(
+      versionKey("3.29.1"),
+    );
     expect(written.items.gem?.variants.map((variant) => variant.name)).toEqual(["listed", "unpriceable"]);
     expect(published.variantsLeftOut).toBe(1);
     expect(published.rowsLeftOut).toBe(0);
@@ -97,7 +99,14 @@ describe("publishTaxonomy", () => {
     const table: Version = {
       ...emptyVersion,
       authored: {
-        "authored/a": { name: "A", baseType: "Ruby Ring", category: "rings", subcategory: null, reason: "r", listing: { name: "A" } },
+        "authored/a": {
+          name: "A",
+          baseType: "Ruby Ring",
+          category: "rings",
+          subcategory: null,
+          reason: "r",
+          listing: { name: "A" },
+        },
         "authored/b": { name: "B", baseType: "Ruby Ring", category: "rings", subcategory: null, reason: "r" },
       },
     };

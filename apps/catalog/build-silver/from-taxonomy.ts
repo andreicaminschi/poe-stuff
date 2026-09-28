@@ -8,10 +8,18 @@ const rowOf = (key: string, entry: TaxonomyEntry | TaxonomyAuthored, baseType: s
   category: entry.category,
   subcategory: entry.subcategory,
   baseTypes: [baseType],
-  ...(entry.unpriceable === true ? { unpriceable: true } : {}),
-  ...(entry.conditions === undefined ? {} : { conditions: entry.conditions }),
-  ...(entry.variants === undefined ? {} : { variants: entry.variants }),
-  ...(entry.listing === undefined ? {} : { listing: entry.listing }),
+  ...(entry.unpriceable === true
+    ? { unpriceable: true }
+    : {}),
+  ...(entry.conditions === undefined
+    ? {}
+    : { conditions: entry.conditions }),
+  ...(entry.variants === undefined
+    ? {}
+    : { variants: entry.variants }),
+  ...(entry.listing === undefined
+    ? {}
+    : { listing: entry.listing }),
 });
 
 /**
@@ -31,14 +39,13 @@ export function fromTaxonomy(taxonomy: Taxonomy): readonly Item[] {
   const items = Object.entries(taxonomy.items)
     .filter(
       ([key, entry]) =>
-        !replaced.has(key) &&
-        entry.excluded !== true &&
-        entry.quest !== true &&
-        entry.filterable !== false,
+        !replaced.has(key) && entry.excluded !== true && entry.quest !== true && entry.filterable !== false,
     )
     .map(([key, entry]) => ({
       ...rowOf(key, entry, entry.name),
-      ...(entry.displayName === undefined ? {} : { displayName: entry.displayName }),
+      ...(entry.displayName === undefined
+        ? {}
+        : { displayName: entry.displayName }),
     }));
 
   const authored = Object.entries(taxonomy.authored)

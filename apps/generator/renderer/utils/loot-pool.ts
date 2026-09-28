@@ -3,7 +3,12 @@ import type { BucketName, Style } from "@poe/filter-style/types";
 import type { CategoryPlan } from "@poe/filter-style/write-filter";
 import { placementWorth } from "./dearest-first.ts";
 
-export type Loot = { readonly name: string; readonly bucket: BucketName; readonly style: Style; readonly worth: number };
+export type Loot = {
+  readonly name: string;
+  readonly bucket: BucketName;
+  readonly style: Style;
+  readonly worth: number;
+};
 
 /** Every winning block of every category, as something that can drop. */
 export const lootPool = (plans: readonly CategoryPlan[]): readonly Loot[] =>

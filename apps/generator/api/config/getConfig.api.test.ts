@@ -48,7 +48,11 @@ describe("getConfig", () => {
   });
 
   it("keeps a saved category the defaults do not know", async () => {
-    const extra = { palette: { primary: "#111111", secondary: "#222222", icon: "Moon" }, disabled: ["T5"], wanted: ["x"] };
+    const extra = {
+      palette: { primary: "#111111", secondary: "#222222", icon: "Moon" },
+      disabled: ["T5"],
+      wanted: ["x"],
+    };
     await lake.writeJson("generator/config.json", { floors, categories: { extra } });
 
     expect((await getConfig(lake)).categories.extra).toEqual(extra);

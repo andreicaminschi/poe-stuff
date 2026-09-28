@@ -13,7 +13,9 @@ export function mix(primary: string, secondary: string, share: number): string {
 
 const channel = (value: number): number => {
   const unit = value / 255;
-  return unit <= 0.03928 ? unit / 12.92 : ((unit + 0.055) / 1.055) ** 2.4;
+  return unit <= 0.03928
+    ? unit / 12.92
+    : ((unit + 0.055) / 1.055) ** 2.4;
 };
 
 const luminance = (hex: string): number => {
@@ -29,7 +31,9 @@ export function contrast(one: string, other: string): number {
 
 /** Black or primary, whichever reads better on the background. */
 export const readable = (background: string, primary: string): string =>
-  contrast(background, "#000000") >= contrast(background, primary) ? "#000000" : primary;
+  contrast(background, "#000000") >= contrast(background, primary)
+    ? "#000000"
+    : primary;
 
 /** The game draws icons and beams in eleven named colours only. */
 export function nearestNamed(hex: string): IconColour {
@@ -40,5 +44,7 @@ export function nearestNamed(hex: string): IconColour {
   };
   const names = Object.keys(ICON_COLOURS) as IconColour[];
 
-  return names.reduce((best, name) => (distance(name) < distance(best) ? name : best));
+  return names.reduce((best, name) => (distance(name) < distance(best)
+    ? name
+    : best));
 }

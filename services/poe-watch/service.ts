@@ -1,8 +1,4 @@
-import {
-  DEFAULT_BASE_URL,
-  DEFAULT_USER_AGENT,
-  trimUrl,
-} from "./config.ts";
+import { DEFAULT_BASE_URL, DEFAULT_USER_AGENT, trimUrl } from "./config.ts";
 import { getCompactData } from "./get-compact-data.ts";
 import type { ItemData } from "./get-compact-data.types.ts";
 import type { ItemCorruptions } from "./get-corruption-data.types.ts";
@@ -26,10 +22,7 @@ export type PoeWatchServiceOptions = {
 export type PoeWatchService = {
   getCompactData(league: string): Promise<readonly ItemData[]>;
   getCorruptionData(league: string): Promise<readonly ItemCorruptions[]>;
-  getExchangeRatios(
-    league: string,
-    game: Game,
-  ): Promise<readonly ExchangeRatioItem[]>;
+  getExchangeRatios(league: string, game: Game): Promise<readonly ExchangeRatioItem[]>;
 };
 
 /**
@@ -49,13 +42,14 @@ export function createPoeWatchService({
   const context = {
     baseUrl: trimUrl(baseUrl),
     userAgent,
-    ...(cache === undefined ? {} : { cache }),
+    ...(cache === undefined
+      ? {}
+      : { cache }),
   };
 
   return {
     getCompactData: (league) => getCompactData(league, context),
     getCorruptionData: (league) => getCorruptionData(league, context),
-    getExchangeRatios: (league, game) =>
-      getExchangeRatios(league, game, context),
+    getExchangeRatios: (league, game) => getExchangeRatios(league, game, context),
   };
 }

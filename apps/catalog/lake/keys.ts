@@ -19,20 +19,15 @@ export const BRONZE_FILES = {
 
 export const runPrefix = (runId: string): string => `${ROOT}/run=${runId}`;
 
-const stageKey = (runId: string, stage: Stage, file: string): string =>
-  `${runPrefix(runId)}/${stage}/${file}`;
+const stageKey = (runId: string, stage: Stage, file: string): string => `${runPrefix(runId)}/${stage}/${file}`;
 
-export const bronzeKey = (runId: string, file: string): string =>
-  stageKey(runId, "bronze", file);
+export const bronzeKey = (runId: string, file: string): string => stageKey(runId, "bronze", file);
 
-export const silverKey = (runId: string, file: string): string =>
-  stageKey(runId, "silver", file);
+export const silverKey = (runId: string, file: string): string => stageKey(runId, "silver", file);
 
-export const silverPrefix = (runId: string): string =>
-  `${runPrefix(runId)}/silver`;
+export const silverPrefix = (runId: string): string => `${runPrefix(runId)}/silver`;
 
-export const goldKey = (runId: string, file: string): string =>
-  stageKey(runId, "gold", file);
+export const goldKey = (runId: string, file: string): string => stageKey(runId, "gold", file);
 
 export const goldPrefix = (runId: string): string => `${runPrefix(runId)}/gold`;
 
@@ -41,8 +36,6 @@ export const GOLD_FILES = {
   categories: "catalog.categories.json",
 } as const;
 
-export const latestKey = (league: string, file: string): string =>
-  `${ROOT}/latest/${slug(league)}.${file}`;
+export const latestKey = (league: string, file: string): string => `${ROOT}/latest/${slug(league)}.${file}`;
 
-export const manifestKey = (runId: string): string =>
-  `${runPrefix(runId)}/manifest.json`;
+export const manifestKey = (runId: string): string => `${runPrefix(runId)}/manifest.json`;

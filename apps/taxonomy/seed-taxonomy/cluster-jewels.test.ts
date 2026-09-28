@@ -68,11 +68,15 @@ describe("clusterJewelVariants", () => {
   });
 
   it("refuses a size it has no passive buckets for", () => {
-    expect(() => clusterJewelVariants(jewel("Huge"))).toThrow('cluster jewel Small: no passive buckets for size "Huge"');
+    expect(() => clusterJewelVariants(jewel("Huge"))).toThrow(
+      "cluster jewel Small: no passive buckets for size \"Huge\"",
+    );
   });
 
   it("writes an empty list for a jewel with no enchants", () => {
-    const jewels = { Small: { size: "Small", name: "Small Cluster Jewel", passive_skills: [] } } as unknown as ClusterJewels;
+    const jewels = {
+      Small: { size: "Small", name: "Small Cluster Jewel", passive_skills: [] },
+    } as unknown as ClusterJewels;
 
     expect(clusterJewelVariants(jewels)).toEqual({ Small: [] });
   });

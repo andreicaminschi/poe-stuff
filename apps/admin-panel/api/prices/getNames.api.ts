@@ -21,7 +21,11 @@ export async function getListingNames(poeWatch: PoeWatchService, league: string)
 export async function getExchangeNames(poeWatch: PoeWatchService, league: string): Promise<readonly PriceName[]> {
   const ratios = await poeWatch.getExchangeRatios(league, "poe1");
 
-  return [...new Set(ratios.map((ratio) => ratio.name))].map((name) => ({ name, label: "exchange", listing: { name } }));
+  return [...new Set(ratios.map((ratio) => ratio.name))].map((name) => ({
+    name,
+    label: "exchange",
+    listing: { name },
+  }));
 }
 
 /** Every corruption outcome PoeWatch prices, once per unique and outcome, the most listed. */
@@ -46,7 +50,9 @@ export async function getCorruptionNames(poeWatch: PoeWatchService, league: stri
 
   return [...best.values()].map(({ name, outcome }) => ({
     name: `${name} (${outcome.name})`,
-    label: `corruption · ${Math.round(outcome.mean)}c · ${outcome.daily}/d${outcome.lowConfidence ? " · low" : ""}`,
+    label: `corruption · ${Math.round(outcome.mean)}c · ${outcome.daily}/d${outcome.lowConfidence
+      ? " · low"
+      : ""}`,
     listing: { name, corruption: outcome.name },
   }));
 }

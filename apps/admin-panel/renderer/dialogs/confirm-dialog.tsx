@@ -10,7 +10,7 @@ export function ConfirmDialog() {
     <Modal
       title="Are you sure?"
       onClose={() => confirmation.settle(false)}
-      footer={
+      footer={(
         <>
           <button type="button" className="btn" onClick={() => confirmation.settle(false)}>
             Cancel
@@ -19,7 +19,7 @@ export function ConfirmDialog() {
             OK
           </button>
         </>
-      }
+      )}
     >
       <p className="grp">{confirmation.message}</p>
     </Modal>

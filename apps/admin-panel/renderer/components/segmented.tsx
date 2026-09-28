@@ -17,7 +17,9 @@ export function Segmented<T extends string>({
           type="button"
           role="radio"
           aria-checked={option === value}
-          className={option === value ? "on" : ""}
+          className={option === value
+            ? "on"
+            : ""}
           disabled={disabled}
           onClick={() => onChange(option)}
         >

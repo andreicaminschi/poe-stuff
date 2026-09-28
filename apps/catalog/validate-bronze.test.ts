@@ -32,7 +32,9 @@ describe("validateBronze", () => {
   it("refuses an empty trade list, naming the file", async () => {
     await writeBronze(lake, "r_1", { "ggg_items.json": [] });
 
-    await expect(run()).rejects.toThrow("catalog/run=r_1/bronze/ggg_items.json is not valid bronze:\n  <root>: the item list has no groups");
+    await expect(run()).rejects.toThrow(
+      "catalog/run=r_1/bronze/ggg_items.json is not valid bronze:\n  <root>: the item list has no groups",
+    );
   });
 
   it("accepts an empty corruptions list", async () => {
@@ -48,7 +50,10 @@ describe("validateBronze", () => {
   });
 
   it("refuses a taxonomy row carrying the old price key", async () => {
-    const taxonomy = { ...BRONZE["taxonomy_items.json"], items: { a: { name: "A", category: "c", subcategory: null, price: {} } } };
+    const taxonomy = {
+      ...BRONZE["taxonomy_items.json"],
+      items: { a: { name: "A", category: "c", subcategory: null, price: {} } },
+    };
     await writeBronze(lake, "r_1", { "taxonomy_items.json": taxonomy });
 
     await expect(run()).rejects.toThrow("items.a.price: carries the old `price` key");
@@ -64,7 +69,7 @@ describe("validateBronze", () => {
     const compact = Array.from({ length: 7 }, () => ({ name: "x", category: "c" }));
     await writeBronze(lake, "r_1", { "poe-watch_compact.json": compact });
 
-    await expect(run()).rejects.toThrow(/\n  4\.id: [^\n]+\n  \.\.\.and 2 more$/);
+    await expect(run()).rejects.toThrow(/\n {2}4\.id: [^\n]+\n {2}\.\.\.and 2 more$/);
   });
 
   it("stops at a missing file", async () => {

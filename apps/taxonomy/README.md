@@ -193,12 +193,12 @@ A condition is structured. Nothing anywhere holds a line of filter text.
 { "condition": "BaseType", "operator": "==", "value": null }
 ```
 
-| Field | Means |
-| --- | --- |
-| `condition` | The `.filter` condition name, spelled as [docs/item-filter-syntax.md](../../docs/item-filter-syntax.md) spells it. |
-| `operator` | Defaults to `==`. Present so `MapTier >= 11` and `GemLevel >= 20` can be written when they are needed. |
-| `value` | A literal: string, number, boolean, or list of strings. **`null` removes** the condition an earlier level authored. |
-| `from` | Reads the value off the taxonomy row instead. `name` is the row's name. `baseTypes` is `[name]` on a plain row and `[baseType]` on an authored row. Nothing else. |
+| Field       | Means                                                                                                                                                             |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `condition` | The `.filter` condition name, spelled as [docs/item-filter-syntax.md](../../docs/item-filter-syntax.md) spells it.                                                |
+| `operator`  | Defaults to `==`. Present so `MapTier >= 11` and `GemLevel >= 20` can be written when they are needed.                                                            |
+| `value`     | A literal: string, number, boolean, or list of strings. **`null` removes** the condition an earlier level authored.                                               |
+| `from`      | Reads the value off the taxonomy row instead. `name` is the row's name. `baseTypes` is `[name]` on a plain row and `[baseType]` on an authored row. Nothing else. |
 
 `value` and `from` are the two ways to say the same thing, so a condition carries exactly one
 of them.
@@ -270,11 +270,11 @@ with a rarity, and a filter names the base, so `authored/leather-belt` ("Leather
 Uniques") is every unique that rolls on Leather Belt. The rows sit under `unique`, which
 carries `Rarity == Unique`:
 
-| Path | Record | Holds |
-| --- | --- | --- |
-| `unique/regular` | `Foulborn == false` | a row per base that carries plain uniques, `authored/<base>` |
-| `unique/foulborn` | `Foulborn == true` | a row per base that carries foulborn uniques, `authored/foulborn-<base>` |
-| `unique/fragments` | — | Adorned Pieces and Utmost Pieces, which replace the `UniqueFragment` ids |
+| Path               | Record              | Holds                                                                    |
+| ------------------ | ------------------- | ------------------------------------------------------------------------ |
+| `unique/regular`   | `Foulborn == false` | a row per base that carries plain uniques, `authored/<base>`             |
+| `unique/foulborn`  | `Foulborn == true`  | a row per base that carries foulborn uniques, `authored/foulborn-<base>` |
+| `unique/fragments` | —                   | Adorned Pieces and Utmost Pieces, which replace the `UniqueFragment` ids |
 
 **A base row** carries `BaseType == from:baseTypes` and two variants:
 
@@ -295,12 +295,12 @@ another on the ground.
 
 **Where each part comes from:**
 
-| Part | Source |
-| --- | --- |
-| Which uniques exist | RePoE's `uniques.json`: names and item classes, **no base** |
+| Part                     | Source                                                             |
+| ------------------------ | ------------------------------------------------------------------ |
+| Which uniques exist      | RePoE's `uniques.json`: names and item classes, **no base**        |
 | Which base each rolls on | GGG's trade item list, as the catalog's `with-uniques.ts` reads it |
-| `normal` prices | PoeWatch `/compact` |
-| `corrupted` prices | PoeWatch `/corruptions` |
+| `normal` prices          | PoeWatch `/compact`                                                |
+| `corrupted` prices       | PoeWatch `/corruptions`                                            |
 
 - **`/corruptions` has gaps.** `all=true` is the whole set, and asking per id adds nothing.
   It prices no outcomes for unique flasks, unique maps or most jewels, so those bases have no
@@ -340,7 +340,7 @@ both wrote is a repeat and fails validation. A seed may also write authored rows
   three real rows — an enchant is a form of the jewel the way a level is a form of a gem.
   `listing: { name, passives, itemLevel }`. The buckets are PoeWatch's conventions, fixed in
   the seed: small `2, 3`, medium `4, 5, 6`, large `8, 9-11, 12`; item level `1, 50, 68, 75,
-  84`.
+84`.
 
 ```json
 "Metadata/.../SupportGemAwakenedAddedChaos": [
@@ -364,9 +364,11 @@ written in PoeWatch's own field names. A listing matches when every written key 
 it; among the matches, the most-listed one is read.
 
 ```json
-{ "name": "level 6",
-  "conditions": [ { "condition": "GemLevel", "operator": ">=", "value": 6 } ],
-  "listing": { "gemLevel": 6, "gemQuality": 20, "gemIsCorrupted": false } }
+{
+  "name": "level 6",
+  "conditions": [{ "condition": "GemLevel", "operator": ">=", "value": 6 }],
+  "listing": { "gemLevel": 6, "gemQuality": 20, "gemIsCorrupted": false }
+}
 ```
 
 The keys are `gemLevel`, `gemQuality`, `gemIsCorrupted`, `linkCount`, `itemLevel`, `mapTier`,
@@ -399,15 +401,15 @@ conditions and never reads them, and the selector keeps it that way.
 Beside `category` and `subcategory`, an entry may state three things the sources get wrong.
 **All three are absent on almost every row, and absent means take the sources' answer.**
 
-| Field | Says |
-| --- | --- |
-| `filterable` | A `.filter` cannot name this row. The client rejects `Alpine Shaman` while `Bearded Shaman` drops, and nothing but the client knows. |
-| `tradable` | The trade site lists this name. RePoE marks the blighted map trade proxy untradable while the site lists 145 names against it. |
-| `tradedOnExchange` | The same, for the Currency Exchange. |
-| `displayName` | An internal name the admin panel shows and edits. `init` seeds it as the RePoE name. Nothing that resolves conditions, fills `from` or prices a row reads it — those read `name`. |
-| `excluded` | Nobody wants this row drawn. It is real and nameable, stays in its category's `.json`, and never reaches a `.filterable.json`. An authored row may carry it too. |
-| `quest` | A quest item. It is drawn, and it needs no `listing`: `publish` keeps it without one, and the catalog copies the flag onto its row. An authored row may carry it too. |
-| `unpriceable` | No market prices this row, but it can drop. It is drawn, and it needs no `listing`: `publish` keeps it without one, and the catalog copies the flag onto its row. An authored row may carry it too. |
+| Field              | Says                                                                                                                                                                                                |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `filterable`       | A `.filter` cannot name this row. The client rejects `Alpine Shaman` while `Bearded Shaman` drops, and nothing but the client knows.                                                                |
+| `tradable`         | The trade site lists this name. RePoE marks the blighted map trade proxy untradable while the site lists 145 names against it.                                                                      |
+| `tradedOnExchange` | The same, for the Currency Exchange.                                                                                                                                                                |
+| `displayName`      | An internal name the admin panel shows and edits. `init` seeds it as the RePoE name. Nothing that resolves conditions, fills `from` or prices a row reads it — those read `name`.                   |
+| `excluded`         | Nobody wants this row drawn. It is real and nameable, stays in its category's `.json`, and never reaches a `.filterable.json`. An authored row may carry it too.                                    |
+| `quest`            | A quest item. It is drawn, and it needs no `listing`: `publish` keeps it without one, and the catalog copies the flag onto its row. An authored row may carry it too.                               |
+| `unpriceable`      | No market prices this row, but it can drop. It is drawn, and it needs no `listing`: `publish` keeps it without one, and the catalog copies the flag onto its row. An authored row may carry it too. |
 
 ## Authored rows
 
@@ -539,11 +541,10 @@ Write classifier eval cases off a league's published catalog, into
 `.s3/taxonomy/evals/<promoted version>/cases.json`:
 
 ```bash
-yarn taxonomy:eval-cases --league=Allflame
+yarn taxonomy:build-eval-cases --league=Allflame
 ```
 
-It takes the first 3 rows by key per category path, and every distinct sample item
-`samplesOf` builds for them, with Rarity cut to one non-unique value and `Unique`. A case is
+It takes every distinct sample item `buildSamples` builds for the catalog's rows. A case is
 `{ item, matches }`: `item` is the `FilterItem` the classifier gets, and `matches` is every
 PoeWatch entry it is, as the catalog's `{ source, id, name }` links.
 

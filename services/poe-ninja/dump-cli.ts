@@ -33,7 +33,9 @@ const flag = (name: string): string | undefined => {
   if (joined !== undefined) return joined.slice(name.length + 3);
 
   const at = args.indexOf(`--${name}`);
-  return at < 0 ? undefined : args[at + 1];
+  return at < 0
+    ? undefined
+    : args[at + 1];
 };
 
 const league = flag("league");
@@ -42,8 +44,9 @@ if (league === undefined) {
 }
 
 const exchange = args.includes("--exchange");
-const out =
-  flag("out") ?? (exchange ? DEFAULT_EXCHANGE_OUT : DEFAULT_ITEMS_OUT);
+const out = flag("out") ?? (exchange
+  ? DEFAULT_EXCHANGE_OUT
+  : DEFAULT_ITEMS_OUT);
 
 const cacheDir = flag("cache-dir");
 
@@ -64,9 +67,7 @@ const ninja = createPoeNinjaService({
  */
 const leagues = await ninja.getLeagues();
 if (!leagues.some((known) => known.id === league)) {
-  throw new Error(
-    `no such league on poe.ninja: ${league}. Known: ${leagues.map((known) => known.id).join(", ")}`,
-  );
+  throw new Error(`no such league on poe.ninja: ${league}. Known: ${leagues.map((known) => known.id).join(", ")}`);
 }
 
 console.error(`fetching ${league}…`);
@@ -80,7 +81,9 @@ const byType = (rows: readonly NinjaItem[]): string[] => {
     const count = counts.get(type) ?? 0;
     // An empty type is normal — four of the 28 are empty in a healthy league — so it is
     // marked rather than hidden, and a reader can see which four they were.
-    return `  ${type.padEnd(20)}${String(count).padStart(7)}${count === 0 ? "  (empty)" : ""}`;
+    return `  ${type.padEnd(20)}${String(count).padStart(7)}${count === 0
+      ? "  (empty)"
+      : ""}`;
   });
 };
 
@@ -102,19 +105,12 @@ if (exchange) {
   const rows = await ninja.getExchangeRatios(league);
   await writeFile(out, `${JSON.stringify(rows, null, 1)}\n`);
 
-  console.error(
-    [`${rows.length} exchange rows`, ...rates(rows), "", `wrote ${out}`].join("\n"),
-  );
+  console.error([`${rows.length} exchange rows`, ...rates(rows), "", `wrote ${out}`].join("\n"));
 } else {
   const rows = await ninja.getLeagueItems(league);
   await writeFile(out, `${JSON.stringify(rows, null, 1)}\n`);
 
   console.error(
-    [
-      `${rows.length} rows across ${ITEM_TYPES.length} types`,
-      ...byType(rows),
-      "",
-      `wrote ${out}`,
-    ].join("\n"),
+    [`${rows.length} rows across ${ITEM_TYPES.length} types`, ...byType(rows), "", `wrote ${out}`].join("\n"),
   );
 }

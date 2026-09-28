@@ -13,9 +13,5 @@ import type { RepoeContext } from "./types.ts";
  * id, no envelope around it. The name is the singular `Essence`, unlike the other two.
  */
 export async function getEssences(context: RepoeContext): Promise<Essences> {
-  return call<Essences>(
-    `${context.baseUrl}/pob-data/poe1/Essence.min.json`,
-    currentHour(),
-    context,
-  );
+  return call<Essences>(`${context.baseUrl}/pob-data/poe1/Essence.min.json`, currentHour(), context);
 }

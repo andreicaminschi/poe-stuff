@@ -25,7 +25,10 @@ describe("matchCondition", () => {
 
   describe("numbers", () => {
     it("matches exactly at a greater-or-equal edge and not one below", () => {
-      expect([hits("ItemLevel >= 84", { ItemLevel: 84 }), hits("ItemLevel >= 84", { ItemLevel: 83 })]).toEqual([true, false]);
+      expect([hits("ItemLevel >= 84", { ItemLevel: 84 }), hits("ItemLevel >= 84", { ItemLevel: 83 })]).toEqual([
+        true,
+        false,
+      ]);
     });
 
     it("excludes the edge under strictly-greater", () => {
@@ -39,7 +42,10 @@ describe("matchCondition", () => {
 
   describe("rarity", () => {
     it("walks the ladder under a comparison", () => {
-      expect([hits("Rarity >= Rare", { Rarity: "Unique" }), hits("Rarity >= Rare", { Rarity: "Magic" })]).toEqual([true, false]);
+      expect([hits("Rarity >= Rare", { Rarity: "Unique" }), hits("Rarity >= Rare", { Rarity: "Magic" })]).toEqual([
+        true,
+        false,
+      ]);
     });
 
     it("never matches a rarity the ladder does not know under a comparison", () => {
@@ -51,25 +57,34 @@ describe("matchCondition", () => {
     });
 
     it("matches every other rarity under a negated list", () => {
-      expect([hits("Rarity != Unique", { Rarity: "Rare" }), hits("Rarity != Unique", { Rarity: "Unique" })]).toEqual([true, false]);
+      expect([hits("Rarity != Unique", { Rarity: "Rare" }), hits("Rarity != Unique", { Rarity: "Unique" })]).toEqual([
+        true,
+        false,
+      ]);
     });
   });
 
   describe("strings", () => {
     it("matches part of the name under plain equality", () => {
-      expect(hits('BaseType "Stone Ring"', { BaseType: "Two-Stone Ring" })).toBe(true);
+      expect(hits("BaseType \"Stone Ring\"", { BaseType: "Two-Stone Ring" })).toBe(true);
     });
 
     it("needs the whole name under double equals, ignoring case", () => {
-      expect([hits('BaseType == "stone ring"', { BaseType: "Two-Stone Ring" }), hits('BaseType == "two-stone ring"', { BaseType: "Two-Stone Ring" })]).toEqual([false, true]);
+      expect([
+        hits("BaseType == \"stone ring\"", { BaseType: "Two-Stone Ring" }),
+        hits("BaseType == \"two-stone ring\"", { BaseType: "Two-Stone Ring" }),
+      ]).toEqual([false, true]);
     });
 
     it("matches every name under an empty quoted value", () => {
-      expect(hits('BaseType ""', { BaseType: "Anything" })).toBe(true);
+      expect(hits("BaseType \"\"", { BaseType: "Anything" })).toBe(true);
     });
 
     it("matches when none of the names is part of the item's under negation", () => {
-      expect([hits("Class != Ring Amulet", { Class: "Belts" }), hits("Class != Ring Amulet", { Class: "Rings" })]).toEqual([true, false]);
+      expect([
+        hits("Class != Ring Amulet", { Class: "Belts" }),
+        hits("Class != Ring Amulet", { Class: "Rings" }),
+      ]).toEqual([true, false]);
     });
   });
 
@@ -79,7 +94,10 @@ describe("matchCondition", () => {
     });
 
     it("matches None only for an item with no influence", () => {
-      expect([hits("HasInfluence None", { HasInfluence: [] }), hits("HasInfluence None", { HasInfluence: ["None"] })]).toEqual([true, false]);
+      expect([
+        hits("HasInfluence None", { HasInfluence: [] }),
+        hits("HasInfluence None", { HasInfluence: ["None"] }),
+      ]).toEqual([true, false]);
     });
 
     it("flips under negation", () => {
@@ -93,7 +111,10 @@ describe("matchCondition", () => {
     });
 
     it("makes SocketGroup find one group that satisfies the spec alone", () => {
-      expect([hits("SocketGroup >= 3GG", { SocketGroup: "RGB GG" }), hits("SocketGroup >= 3GG", { SocketGroup: "RGG B" })]).toEqual([false, true]);
+      expect([
+        hits("SocketGroup >= 3GG", { SocketGroup: "RGB GG" }),
+        hits("SocketGroup >= 3GG", { SocketGroup: "RGG B" }),
+      ]).toEqual([false, true]);
     });
 
     it("treats colours as at least, ignoring extra sockets", () => {
@@ -106,13 +127,19 @@ describe("matchCondition", () => {
 
     it("never matches SocketGroup on an item with no sockets, even when asking for fewer than three", () => {
       // groups list is empty
-      expect([hits("SocketGroup < 3", { SocketGroup: "" }), hits("Sockets < 3", { Sockets: "" })]).toEqual([false, true]);
+      expect([hits("SocketGroup < 3", { SocketGroup: "" }), hits("Sockets < 3", { Sockets: "" })]).toEqual([
+        false,
+        true,
+      ]);
     });
   });
 
   describe("counted mods", () => {
     it("counts item mods that contain any listed name", () => {
-      expect([hits('HasExplicitMod >=2 "of Haast" Tyrannical', { HasExplicitMod: ["Tyrannical", "of Haast"] }), hits('HasExplicitMod >=2 "of Haast" Tyrannical', { HasExplicitMod: ["Tyrannical"] })]).toEqual([true, false]);
+      expect([
+        hits("HasExplicitMod >=2 \"of Haast\" Tyrannical", { HasExplicitMod: ["Tyrannical", "of Haast"] }),
+        hits("HasExplicitMod >=2 \"of Haast\" Tyrannical", { HasExplicitMod: ["Tyrannical"] }),
+      ]).toEqual([true, false]);
     });
 
     it("counts one mod once even when it contains two listed names", () => {
@@ -120,13 +147,19 @@ describe("matchCondition", () => {
     });
 
     it("matches a negated line only when no mod is listed", () => {
-      expect([hits('HasExplicitMod != "x"', { HasExplicitMod: [] }), hits('HasExplicitMod != "x"', { HasExplicitMod: ["x"] })]).toEqual([true, false]);
+      expect([
+        hits("HasExplicitMod != \"x\"", { HasExplicitMod: [] }),
+        hits("HasExplicitMod != \"x\"", { HasExplicitMod: ["x"] }),
+      ]).toEqual([true, false]);
     });
   });
 
   describe("transfigured gem", () => {
     it("treats True as any transfigured gem and an empty name as none", () => {
-      expect([hits("TransfiguredGem True", { TransfiguredGem: "Frostblink of Wintry Blast" }), hits("TransfiguredGem True", { TransfiguredGem: "" })]).toEqual([true, false]);
+      expect([
+        hits("TransfiguredGem True", { TransfiguredGem: "Frostblink of Wintry Blast" }),
+        hits("TransfiguredGem True", { TransfiguredGem: "" }),
+      ]).toEqual([true, false]);
     });
 
     it("matches False only on a gem that is not transfigured", () => {
@@ -195,6 +228,6 @@ describe("evaluateFilter", () => {
   });
 
   it("refuses two duplicate note keys in one block", () => {
-    expect(() => parseFilter("Show\n#@ tier=T1 verb=take tier=T2")).toThrow('note key "tier" appears twice');
+    expect(() => parseFilter("Show\n#@ tier=T1 verb=take tier=T2")).toThrow("note key \"tier\" appears twice");
   });
 });

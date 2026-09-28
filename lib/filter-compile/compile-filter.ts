@@ -21,7 +21,9 @@ export type Skip = { readonly key: string; readonly variant?: string; readonly p
 export type Compiled = { readonly text: string; readonly blocks: number; readonly skipped: readonly Skip[] };
 
 function recordOf(categories: CategoryRecords, row: CompileRow) {
-  return row.subcategory === null ? undefined : categories[`${row.category}/${row.subcategory}`];
+  return row.subcategory === null
+    ? undefined
+    : categories[`${row.category}/${row.subcategory}`];
 }
 
 /** Rows in category order, each category's subcategories ranked, every catch-all last. */
@@ -34,7 +36,9 @@ function orderRows(rows: readonly CompileRow[], categories: CategoryRecords): re
     .map((row, index) => {
       const record = recordOf(categories, row);
       const rank = record?.order ?? Number.MAX_SAFE_INTEGER;
-      const category = record?.catchAll === true ? Number.MAX_VALUE : (firstSeen.get(row.category) ?? 0);
+      const category = record?.catchAll === true
+        ? Number.MAX_VALUE
+        : (firstSeen.get(row.category) ?? 0);
       return { row, index, category, rank };
     })
     .sort((a, b) => a.category - b.category || a.rank - b.rank || a.index - b.index)
@@ -51,10 +55,7 @@ function blockOf(row: CompileRow, form: Form): Block {
   const written = conditionLines(form.conditions);
   if ("problem" in written) return written;
 
-  const note = formatNote(
-    { tier: "varies", verb: "check" },
-    ownerNote(row.key, form.variant),
-  );
+  const note = formatNote({ tier: "varies", verb: "check" }, ownerNote(row.key, form.variant));
 
   return { text: ["Show", ...written.lines.map((line) => `  ${line}`), `  ${note}`].join("\n") };
 }
@@ -92,14 +93,22 @@ export function compileFilter(rows: readonly CompileRow[], categories: CategoryR
       const block = blockOf(row, form);
 
       if ("problem" in block) {
-        skipped.push({ key: row.key, ...(form.variant === undefined ? {} : { variant: form.variant }), problem: block.problem });
+        skipped.push({
+          key: row.key,
+          ...(form.variant === undefined
+            ? {}
+            : { variant: form.variant }),
+          problem: block.problem,
+        });
       } else {
         texts.push(block.text);
       }
     }
   }
 
-  const text = texts.length === 0 ? "" : `${texts.join("\n\n")}\n`;
+  const text = texts.length === 0
+    ? ""
+    : `${texts.join("\n\n")}\n`;
   const parsed = parseFilter(text);
 
   if (parsed.length !== texts.length) {

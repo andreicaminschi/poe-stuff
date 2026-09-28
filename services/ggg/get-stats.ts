@@ -8,7 +8,9 @@ export const mapGGGStatDataToGGGStat = (data: GGGStatData): GGGStat => ({
   id: data.id,
   text: data.text,
   type: data.type,
-  ...(data.option === undefined ? {} : { options: data.option.options }),
+  ...(data.option === undefined
+    ? {}
+    : { options: data.option.options }),
 });
 
 /**
@@ -37,7 +39,5 @@ export async function getStats({
     cacheSalt: String(Math.floor(Date.now() / HOUR_MS)),
   });
 
-  return response.result.flatMap((group) =>
-    group.entries.map(mapGGGStatDataToGGGStat),
-  );
+  return response.result.flatMap((group) => group.entries.map(mapGGGStatDataToGGGStat));
 }

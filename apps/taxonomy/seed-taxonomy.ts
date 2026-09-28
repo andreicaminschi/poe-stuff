@@ -3,13 +3,7 @@ import type { Gems } from "@poe/repoe/get-gems.types";
 import type { RepoeService } from "@poe/repoe/service";
 import { clusterJewelVariants } from "./seed-taxonomy/cluster-jewels.ts";
 import { gemVariants } from "./seed-taxonomy/gem-variants.ts";
-import type {
-  AuthoredRow,
-  AuthoredTable,
-  AuthoredVariant,
-  TaxonomyTable,
-  VariantTable,
-} from "./types.ts";
+import type { AuthoredRow, AuthoredTable, AuthoredVariant, TaxonomyTable, VariantTable } from "./types.ts";
 
 /** What every seed is handed: the version's items, and the game's data, fetched once. */
 export type SeedInputs = {
@@ -66,14 +60,8 @@ export type Seeded = {
  * writing one authored row is a bug, and throws: a row cannot be joined. Both tables are
  * rebuilt whole, so a key a seed stopped writing is gone.
  */
-export async function seedTaxonomy(
-  items: TaxonomyTable,
-  repoe: RepoeService,
-): Promise<Seeded> {
-  const [gems, clusterJewels] = await Promise.all([
-    repoe.getGems(),
-    repoe.getClusterJewels(),
-  ]);
+export async function seedTaxonomy(items: TaxonomyTable, repoe: RepoeService): Promise<Seeded> {
+  const [gems, clusterJewels] = await Promise.all([repoe.getGems(), repoe.getClusterJewels()]);
   const inputs: SeedInputs = { items, gems, clusterJewels };
 
   const variants: Record<string, readonly AuthoredVariant[]> = {};

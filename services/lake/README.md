@@ -11,10 +11,10 @@ key layout, because that layout is the app's contract with its readers.
 
 ## Public API
 
-| Import | Exports | Contract |
-| --- | --- | --- |
-| `@poe/lake/service` | `createLakeService` | Takes an optional `root` (default `.s3`). Returns a `Lake`. |
-| `@poe/lake/types` | `Lake`, `LakeServiceOptions` | Types only. |
+| Import              | Exports                      | Contract                                                    |
+| ------------------- | ---------------------------- | ----------------------------------------------------------- |
+| `@poe/lake/service` | `createLakeService`          | Takes an optional `root` (default `.s3`). Returns a `Lake`. |
+| `@poe/lake/types`   | `Lake`, `LakeServiceOptions` | Types only.                                                 |
 
 `Lake` has `readJson`, `writeJson`, `writeJsonAtomic`, `exists`, `list` and `clear`.
 

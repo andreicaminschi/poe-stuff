@@ -3,12 +3,12 @@ import type { Condition } from "../../api/taxonomy/types.ts";
 export type ConditionRow =
   | { readonly kind: "single"; readonly index: number; readonly condition: Condition }
   | {
-      readonly kind: "between";
-      readonly low: number;
-      readonly high: number;
-      readonly from: Condition;
-      readonly to: Condition;
-    };
+    readonly kind: "between";
+    readonly low: number;
+    readonly high: number;
+    readonly from: Condition;
+    readonly to: Condition;
+  };
 
 const OPPOSITE: Readonly<Record<string, string>> = { ">=": "<=", "<=": ">=" };
 
@@ -20,15 +20,17 @@ export function betweenRows(conditions: readonly Condition[]): readonly Conditio
   conditions.forEach((condition, index) => {
     if (paired.has(index)) return;
 
-    const partnerOperator = typeof condition.value === "number" ? OPPOSITE[condition.operator ?? ""] : undefined;
+    const partnerOperator = typeof condition.value === "number"
+      ? OPPOSITE[condition.operator ?? ""]
+      : undefined;
     const partner = conditions.findIndex(
       (other, at) =>
-        partnerOperator !== undefined &&
-        at > index &&
-        !paired.has(at) &&
-        other.condition === condition.condition &&
-        other.operator === partnerOperator &&
-        typeof other.value === "number",
+        partnerOperator !== undefined
+        && at > index
+        && !paired.has(at)
+        && other.condition === condition.condition
+        && other.operator === partnerOperator
+        && typeof other.value === "number",
     );
     const other = conditions[partner];
 

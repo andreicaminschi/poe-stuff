@@ -25,7 +25,7 @@ export function AuthorModal({ replaces }: { readonly replaces: string }) {
     <Modal
       title="Author a replacement row"
       onClose={closeDialog}
-      footer={
+      footer={(
         <>
           <button type="button" className="btn" onClick={closeDialog}>
             Cancel
@@ -42,8 +42,9 @@ export function AuthorModal({ replaces }: { readonly replaces: string }) {
                 baseType: baseType.trim(),
                 classification: {
                   category,
-                  subcategory:
-                    category === source?.classification.category ? source.classification.subcategory : null,
+                  subcategory: category === source?.classification.category
+                    ? source.classification.subcategory
+                    : null,
                 },
                 reason: reason.trim(),
                 replaces: [replaces],
@@ -55,7 +56,7 @@ export function AuthorModal({ replaces }: { readonly replaces: string }) {
             Add row
           </button>
         </>
-      }
+      )}
     >
       <div className="grp">
         <div className="fld">
@@ -90,7 +91,9 @@ export function AuthorModal({ replaces }: { readonly replaces: string }) {
           <label>Replaces</label>
           <span className="mono faint">{replaces}</span>
         </div>
-        {problem === undefined ? null : <p className="err">{problem}</p>}
+        {problem === undefined
+          ? null
+          : <p className="err">{problem}</p>}
       </div>
     </Modal>
   );

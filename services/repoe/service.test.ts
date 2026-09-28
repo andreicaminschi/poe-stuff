@@ -12,7 +12,7 @@ let fetchMock: jest.Mock<typeof fetch>;
 
 beforeEach(async () => {
   dir = await mkdtemp(join(tmpdir(), "repoe-service-"));
-  fetchMock = jest.fn<typeof fetch>(async () => new Response('{"k":1}'));
+  fetchMock = jest.fn<typeof fetch>(async () => new Response("{\"k\":1}"));
   globalThis.fetch = fetchMock;
 });
 
@@ -22,8 +22,7 @@ afterEach(async () => {
 });
 
 const requestedUrl = () => fetchMock.mock.calls[0]?.[0];
-const requestedHeaders = () =>
-  (fetchMock.mock.calls[0]?.[1] as RequestInit).headers;
+const requestedHeaders = () => (fetchMock.mock.calls[0]?.[1] as RequestInit).headers;
 
 describe("createRepoeService", () => {
   it.each<[keyof RepoeService, string]>([

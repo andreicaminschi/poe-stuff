@@ -1,5 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import { samplesOf } from "./samples-of.ts";
+import { buildSamples } from "./build-samples.ts";
 import type { SampleCategories, SampleRow } from "./types.ts";
 
 const row = (key: string, subcategory: string | null = "skill"): SampleRow => ({
@@ -11,9 +11,9 @@ const row = (key: string, subcategory: string | null = "skill"): SampleRow => ({
 });
 
 const brief = (categories: SampleCategories, rows: readonly SampleRow[]) =>
-  [...samplesOf(rows, categories)].map(({ row: one, item, reject }) => ({ key: one.key, item, reject }));
+  [...buildSamples(rows, categories)].map(({ row: one, item, reject }) => ({ key: one.key, item, reject }));
 
-describe("samplesOf", () => {
+describe("buildSamples", () => {
   it("yields nothing for rows whose path has no sample sets", () => {
     expect(brief({}, [row("a")])).toEqual([]);
   });
@@ -54,13 +54,17 @@ describe("samplesOf", () => {
 
     expect(brief(categories, [row("a")])).toEqual([
       { key: "a", item: { Quality: 20 }, reject: undefined },
-      { key: "a", item: { Quality: 20, Corrupted: true }, reject: '{"Corrupted":true}' },
+      { key: "a", item: { Quality: 20, Corrupted: true }, reject: "{\"Corrupted\":true}" },
     ]);
   });
 
   it("skips a reject that builds the same item as an earlier sample", () => {
     const categories: SampleCategories = {
-      "gems/skill": { conditions: [], samples: [{ Quality: { values: [20] } }], rejects: [{ Quality: { values: [20] } }] },
+      "gems/skill": {
+        conditions: [],
+        samples: [{ Quality: { values: [20] } }],
+        rejects: [{ Quality: { values: [20] } }],
+      },
     };
 
     expect(brief(categories, [row("a")])).toEqual([{ key: "a", item: { Quality: 20 }, reject: undefined }]);

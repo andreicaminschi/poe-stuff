@@ -15,7 +15,11 @@ describe("sharedConditions", () => {
   });
 
   it("keeps only what every item has, in the first item's order", () => {
-    const items = [ggg("a", { conditions: [ilvl, rare] }), ggg("b", { conditions: [rare, ilvl] }), ggg("c", { conditions: [rare] })];
+    const items = [
+      ggg("a", { conditions: [ilvl, rare] }),
+      ggg("b", { conditions: [rare, ilvl] }),
+      ggg("c", { conditions: [rare] }),
+    ];
 
     expect(sharedConditions(items)).toEqual([rare]);
   });

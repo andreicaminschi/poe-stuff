@@ -7,6 +7,10 @@ export const conditionOrigins = (classification: Classification, item?: string, 
   ...(classification.subcategory === null
     ? {}
     : { subcategory: `${classification.category}/${classification.subcategory}` }),
-  ...(item === undefined ? {} : { item }),
-  ...(variant === undefined ? {} : { variant }),
+  ...(item === undefined
+    ? {}
+    : { item }),
+  ...(variant === undefined
+    ? {}
+    : { variant }),
 });

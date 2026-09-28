@@ -16,9 +16,13 @@ async function chooseReportPath(): Promise<string | undefined> {
     filters: [{ name: "CSV", extensions: ["csv"] }],
   };
   const window = BrowserWindow.getFocusedWindow();
-  const result = window === null ? await dialog.showSaveDialog(options) : await dialog.showSaveDialog(window, options);
+  const result = window === null
+    ? await dialog.showSaveDialog(options)
+    : await dialog.showSaveDialog(window, options);
 
-  return result.canceled ? undefined : result.filePath;
+  return result.canceled
+    ? undefined
+    : result.filePath;
 }
 
 const service = createPanelService(

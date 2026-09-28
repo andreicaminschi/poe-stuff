@@ -12,9 +12,7 @@ import type { Item } from "../item.ts";
  * share a name now that each metadata id is its own row. A diff between two runs then shows
  * what changed rather than what moved.
  */
-export function groupByCategory(
-  items: readonly Item[],
-): ReadonlyMap<string, readonly Item[]> {
+export function groupByCategory(items: readonly Item[]): ReadonlyMap<string, readonly Item[]> {
   const groups = Map.groupBy(items, (item) => slug(item.category));
 
   for (const [category, rows] of groups) {

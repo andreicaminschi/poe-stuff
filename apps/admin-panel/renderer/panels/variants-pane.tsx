@@ -38,10 +38,14 @@ export function VariantsPane({
 
   const change = (next: readonly Variant[]) => editItem({ ...item, variants: next });
   const found = variants.findIndex((variant) => variant.name === selected);
-  const index = found === -1 ? 0 : found;
+  const index = found === -1
+    ? 0
+    : found;
   const current = variants[index];
   const update = (next: Variant) => {
-    change(variants.map((variant, at) => (at === index ? next : variant)));
+    change(variants.map((variant, at) => (at === index
+      ? next
+      : variant)));
     if (next.name !== current?.name) setSelected(next.name);
   };
   const duplicate = current !== undefined && variants.filter((variant) => variant.name === current.name).length > 1;
@@ -53,21 +57,25 @@ export function VariantsPane({
       <div className="subhead">
         <div className="title">{displayName(item)}</div>
         <div className="id">
-          {variants.length === 0 ? "No variants. The row resolves once, as itself." : `${variants.length} variants`}
+          {variants.length === 0
+            ? "No variants. The row resolves once, as itself."
+            : `${variants.length} variants`}
         </div>
       </div>
 
       <div className="grp">
         <h4>Variants</h4>
-        {variants.length > 8 ? (
-          <input
-            type="text"
-            placeholder="Filter…"
-            className="gap"
-            value={filter}
-            onChange={(event) => setFilter(event.target.value)}
-          />
-        ) : null}
+        {variants.length > 8
+          ? (
+              <input
+                type="text"
+                placeholder="Filter…"
+                className="gap"
+                value={filter}
+                onChange={(event) => setFilter(event.target.value)}
+              />
+            )
+          : null}
         {variants
           .filter((variant) => needle === "" || variant.name.toLowerCase().includes(needle))
           .map((variant) => (
@@ -75,104 +83,124 @@ export function VariantsPane({
               key={variant.name}
               role="button"
               tabIndex={0}
-              className={`variant${variant.name === current?.name ? " on" : ""}`}
+              className={`variant${variant.name === current?.name
+                ? " on"
+                : ""}`}
               onClick={() => setSelected(variant.name)}
               onKeyDown={(event) => {
                 if (event.key === "Enter") setSelected(variant.name);
               }}
             >
               <span className="vn">{variant.name}</span>
-              <span className="vp">{variant.conditions.length} cond.</span>
-              {editable ? (
-                <button
-                  type="button"
-                  className="btn icon"
-                  title="Delete"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    change(variants.filter((other) => other.name !== variant.name));
-                  }}
-                >
-                  ×
-                </button>
-              ) : null}
+              <span className="vp">
+                {variant.conditions.length}
+                {" "}
+                cond.
+              </span>
+              {editable
+                ? (
+                    <button
+                      type="button"
+                      className="btn icon"
+                      title="Delete"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        change(variants.filter((other) => other.name !== variant.name));
+                      }}
+                    >
+                      ×
+                    </button>
+                  )
+                : null}
             </div>
           ))}
-        {editable ? (
-          <button
-            type="button"
-            className="btn tiny ghost wide"
-            onClick={() => {
-              const created: Variant = { name: freshName(variants), conditions: [] };
-              change([...variants, created]);
-              setSelected(created.name);
-            }}
-          >
-            + Variant
-          </button>
-        ) : null}
-        {editable ? (
-          <button type="button" className="btn tiny ghost wide" onClick={() => openDialog({ kind: "discover" })}>
-            Discover from PoeWatch
-          </button>
-        ) : null}
+        {editable
+          ? (
+              <button
+                type="button"
+                className="btn tiny ghost wide"
+                onClick={() => {
+                  const created: Variant = { name: freshName(variants), conditions: [] };
+                  change([...variants, created]);
+                  setSelected(created.name);
+                }}
+              >
+                + Variant
+              </button>
+            )
+          : null}
+        {editable
+          ? (
+              <button type="button" className="btn tiny ghost wide" onClick={() => openDialog({ kind: "discover" })}>
+                Discover from PoeWatch
+              </button>
+            )
+          : null}
       </div>
 
-      {current === undefined ? null : (
-        <div className="vsel">
-          <div className="vselcap">
-            <span className="dot" />
-            Editing <b>{current.name}</b>
-          </div>
-          <div className="grp">
-            <div className="fld">
-              <label htmlFor="variant-name">Name</label>
-              <input
-                id="variant-name"
-                type="text"
-                value={current.name}
-                disabled={!editable}
-                onChange={(event) => update({ ...current, name: event.target.value })}
-              />
+      {current === undefined
+        ? null
+        : (
+            <div className="vsel">
+              <div className="vselcap">
+                <span className="dot" />
+                Editing
+                {" "}
+                <b>{current.name}</b>
+              </div>
+              <div className="grp">
+                <div className="fld">
+                  <label htmlFor="variant-name">Name</label>
+                  <input
+                    id="variant-name"
+                    type="text"
+                    value={current.name}
+                    disabled={!editable}
+                    onChange={(event) => update({ ...current, name: event.target.value })}
+                  />
+                </div>
+                {duplicate
+                  ? <p className="err">Two variants share this name.</p>
+                  : null}
+                <div className="fld">
+                  <label htmlFor="variant-listed">Listed as</label>
+                  <ListingPicker
+                    id="variant-listed"
+                    placeholder="Required: pick a PoeWatch listing"
+                    listing={current.listing}
+                    options={priceOptions}
+                    disabled={!editable}
+                    onPick={(listing) => update(withListing(current, listing))}
+                  />
+                </div>
+                <p className="note">Required. The exact listing this variant prices off.</p>
+              </div>
+              <div className="grp">
+                <h4>Conditions</h4>
+                <ConditionsEditor
+                  own={current.conditions}
+                  {...(editable
+                    ? { onChange: (conditions) => update({ ...current, conditions }) }
+                    : {})}
+                  {...(resolution === undefined
+                    ? {}
+                    : {
+                        resolved: {
+                          label: "Conditions applied to this variant",
+                          conditions: resolution.conditions,
+                          removed: resolution.removed,
+                          problems: resolution.problems,
+                          origins: conditionOrigins(item.classification, displayName(item), current.name),
+                        },
+                      })}
+                  level="variant"
+                  names={names}
+                  row={fromValues(item)}
+                  valueOptions={valueOptions}
+                />
+              </div>
             </div>
-            {duplicate ? <p className="err">Two variants share this name.</p> : null}
-            <div className="fld">
-              <label htmlFor="variant-listed">Listed as</label>
-              <ListingPicker
-                id="variant-listed"
-                placeholder="Required: pick a PoeWatch listing"
-                listing={current.listing}
-                options={priceOptions}
-                disabled={!editable}
-                onPick={(listing) => update(withListing(current, listing))}
-              />
-            </div>
-            <p className="note">Required. The exact listing this variant prices off.</p>
-          </div>
-          <div className="grp">
-            <h4>Conditions</h4>
-            <ConditionsEditor
-              own={current.conditions}
-              {...(editable ? { onChange: (conditions) => update({ ...current, conditions }) } : {})}
-              {...(resolution === undefined
-                ? {}
-                : {
-                    resolved: {
-                      label: "Conditions applied to this variant",
-                      conditions: resolution.conditions,
-                      removed: resolution.removed,
-                      problems: resolution.problems,
-                      origins: conditionOrigins(item.classification, displayName(item), current.name),
-                    },
-                  })}
-              level="variant"
-              names={names}
-              row={fromValues(item)}
-              valueOptions={valueOptions}
-            />
-          </div>
-        </div>
-      )}
+          )}
     </div>
   );
 }

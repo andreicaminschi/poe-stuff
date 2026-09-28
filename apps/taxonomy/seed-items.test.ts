@@ -10,7 +10,9 @@ describe("seedItems", () => {
   it("writes one row per base, named after it, classed by its item class, with no subcategory", () => {
     const table = seedItems({ Ring: base("Ruby Ring", "Ring") } as BaseItems, {} as Gems);
 
-    expect(table).toEqual({ Ring: { name: "Ruby Ring", displayName: "Ruby Ring", category: "Ring", subcategory: null } });
+    expect(table).toEqual({
+      Ring: { name: "Ruby Ring", displayName: "Ruby Ring", category: "Ring", subcategory: null },
+    });
   });
 
   it("leaves out bases with no name and quest items", () => {
@@ -24,7 +26,9 @@ describe("seedItems", () => {
   });
 
   it("keeps names that merely contain the letters MTX or WIP", () => {
-    expect(Object.keys(seedItems({ A: base("SWIPE", "Ring"), B: base("Ring WIP", "Ring") } as BaseItems, {} as Gems))).toEqual(["A"]);
+    expect(
+      Object.keys(seedItems({ A: base("SWIPE", "Ring"), B: base("Ring WIP", "Ring") } as BaseItems, {} as Gems)),
+    ).toEqual(["A"]);
   });
 
   it("adds a transfigured gem under its own key, classed by the base gem's item class", () => {

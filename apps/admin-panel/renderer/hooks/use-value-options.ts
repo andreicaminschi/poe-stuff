@@ -9,8 +9,7 @@ const CLASSES = FILTER_CLASSES.map((value) => ({ value }));
 export function useValueOptions(): ValueOptions {
   const draft = useDraft();
 
-  return useMemo(
-    () => ({ Class: CLASSES, BaseType: draft === undefined ? [] : baseTypeOptions(draft) }),
-    [draft],
-  );
+  return useMemo(() => ({ Class: CLASSES, BaseType: draft === undefined
+    ? []
+    : baseTypeOptions(draft) }), [draft]);
 }

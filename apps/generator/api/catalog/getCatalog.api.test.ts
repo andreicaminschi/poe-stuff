@@ -18,14 +18,23 @@ afterEach(async () => {
   await rm(root, { recursive: true, force: true });
 });
 
-const row = { key: "Mirror", name: "Mirror of Kalandra", category: "Currency", subcategory: null, baseTypes: ["Mirror of Kalandra"] };
+const row = {
+  key: "Mirror",
+  name: "Mirror of Kalandra",
+  category: "Currency",
+  subcategory: null,
+  baseTypes: ["Mirror of Kalandra"],
+};
 
 describe("getCatalog", () => {
   it("reads the league's rows and category table from the slugged keys", async () => {
     await lake.writeJson("catalog/latest/hc-allflame.catalog.json", [row]);
     await lake.writeJson("catalog/latest/hc-allflame.catalog.categories.json", { Currency: { conditions: [] } });
 
-    expect(await getCatalog(lake, "HC Allflame")).toEqual({ rows: [row], categories: { Currency: { conditions: [] } } });
+    expect(await getCatalog(lake, "HC Allflame")).toEqual({
+      rows: [row],
+      categories: { Currency: { conditions: [] } },
+    });
   });
 
   it("rejects when the category table was never published", async () => {

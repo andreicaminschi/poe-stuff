@@ -30,10 +30,7 @@ describe("categoryLayers", () => {
 
 describe("resolvePath", () => {
   it("composes a category and subcategory path, leaving references unfilled", () => {
-    const result = resolvePath(
-      { a: { conditions: [{ condition: "BaseType", from: "name" }] } },
-      "a",
-    );
+    const result = resolvePath({ a: { conditions: [{ condition: "BaseType", from: "name" }] } }, "a");
 
     expect(result.applied).toEqual([{ condition: "BaseType", from: "name", level: "category" }]);
   });
@@ -87,7 +84,9 @@ describe("resolveForms", () => {
   it("carries what a variant removed", () => {
     const [form] = resolveForms(categories, row, [{ name: "any", conditions: [{ condition: "Rarity", value: null }] }]);
 
-    expect(form?.removed).toEqual([{ condition: "Rarity", value: "Unique", level: "subcategory", removedBy: "variant" }]);
+    expect(form?.removed).toEqual([
+      { condition: "Rarity", value: "Unique", level: "subcategory", removedBy: "variant" },
+    ]);
   });
 
   it("carries a fill problem onto the form", () => {
@@ -103,7 +102,7 @@ describe("resolveForms", () => {
       { name: "c", conditions: [{ condition: "Corrupted", value: true }] },
     ]);
 
-    expect(forms.map((f) => f.problems)).toEqual([[], [], ['resolves the same as variant "a"']]);
+    expect(forms.map((f) => f.problems)).toEqual([[], [], ["resolves the same as variant \"a\""]]);
   });
 
   it("counts two variants as the same even when the levels their conditions came from differ", () => {
@@ -112,7 +111,7 @@ describe("resolveForms", () => {
       { name: "b", conditions: [{ condition: "Rarity", value: "Unique" }] },
     ]);
 
-    expect(forms[1]?.problems).toEqual(['resolves the same as variant "a"']);
+    expect(forms[1]?.problems).toEqual(["resolves the same as variant \"a\""]);
   }); // signature drops level and overrides
 
   it("does not report a duplicate when both variants share the same name", () => {

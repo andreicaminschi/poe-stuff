@@ -10,8 +10,7 @@ beforeEach(() => {
   globalThis.fetch = fetchMock;
 });
 
-const answer = (body: unknown) =>
-  fetchMock.mockResolvedValue(new Response(JSON.stringify(body)));
+const answer = (body: unknown) => fetchMock.mockResolvedValue(new Response(JSON.stringify(body)));
 
 describe("getCorruptionData", () => {
   it("asks for every item's corruptions in an encoded league", async () => {
@@ -19,9 +18,7 @@ describe("getCorruptionData", () => {
 
     await getCorruptionData("A&B", context);
 
-    expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      "https://pw.test/corruptions?league=A%26B&all=true",
-    );
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("https://pw.test/corruptions?league=A%26B&all=true");
   });
 
   it("returns the bare array unchanged", async () => {

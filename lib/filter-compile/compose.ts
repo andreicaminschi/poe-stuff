@@ -37,7 +37,9 @@ export function composeTrace(layers: readonly Layer[]): Composed {
       byKey.set(key, {
         ...condition,
         level,
-        ...(earlier === undefined ? {} : { overrides: [...(earlier.overrides ?? []), earlier.level] }),
+        ...(earlier === undefined
+          ? {}
+          : { overrides: [...(earlier.overrides ?? []), earlier.level] }),
       });
     }
   }

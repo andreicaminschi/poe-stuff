@@ -9,9 +9,7 @@ describe("sampleQuery", () => {
   it("words the known properties in plain English", () => {
     const item = { GemLevel: 21, Quality: 20, Corrupted: true, LinkedSockets: 6, MapTier: 16, ItemLevel: 86 };
 
-    expect(sampleQuery("X", item)).toBe(
-      "X, gem level 21, quality 20, corrupted, 6 links, map tier 16, item level 86",
-    );
+    expect(sampleQuery("X", item)).toBe("X, gem level 21, quality 20, corrupted, 6 links, map tier 16, item level 86");
   });
 
   it("drops a worded property whose value is zero or false", () => {

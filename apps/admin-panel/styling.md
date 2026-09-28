@@ -7,14 +7,24 @@ committed copy of the vocabulary — copy values from here, not from there.
 
 ```css
 :root {
-  --ground:#0e1013; --bg:#14161a; --panel:#1b1e24; --panel-2:#22262e;
-  --line:#2f3540; --line-soft:#242932;
-  --text:#dde1e7; --dim:#8d96a4; --faint:#5e6674;
-  --accent:#c8a15a; --accent-dim:#6d5a33;
-  --take:#74c882; --check:#5fb4d9; --gamble:#a85ae6; --danger:#e2735d;
-  --ui:"Barlow Semi Condensed","Segoe UI",system-ui,sans-serif;
-  --loot:Gelasio,Georgia,"Times New Roman",serif;
-  --mono:"IBM Plex Mono",Consolas,monospace;
+  --ground: #0e1013;
+  --bg: #14161a;
+  --panel: #1b1e24;
+  --panel-2: #22262e;
+  --line: #2f3540;
+  --line-soft: #242932;
+  --text: #dde1e7;
+  --dim: #8d96a4;
+  --faint: #5e6674;
+  --accent: #c8a15a;
+  --accent-dim: #6d5a33;
+  --take: #74c882;
+  --check: #5fb4d9;
+  --gamble: #a85ae6;
+  --danger: #e2735d;
+  --ui: "Barlow Semi Condensed", "Segoe UI", system-ui, sans-serif;
+  --loot: Gelasio, Georgia, "Times New Roman", serif;
+  --mono: "IBM Plex Mono", Consolas, monospace;
 }
 ```
 
@@ -44,13 +54,13 @@ its own colour. Use `box-shadow:0 0 0 2px var(--accent)` or a border colour swap
 
 ## Type scale
 
-| Use | Size | Weight |
-| --- | --- | --- |
-| Body / rows | 15px | 400 |
-| Controls, labels, inputs | 13px | 400 |
-| Secondary, hints, notes | 12px | 400 |
-| Section heading | 11px, `letter-spacing:.1em`, uppercase, `--faint` | 500–600 |
-| Mono values | 10–12px | 400 |
+| Use                      | Size                                              | Weight  |
+| ------------------------ | ------------------------------------------------- | ------- |
+| Body / rows              | 15px                                              | 400     |
+| Controls, labels, inputs | 13px                                              | 400     |
+| Secondary, hints, notes  | 12px                                              | 400     |
+| Section heading          | 11px, `letter-spacing:.1em`, uppercase, `--faint` | 500–600 |
+| Mono values              | 10–12px                                           | 400     |
 
 Headings are `font-weight:600`, `margin:0`. Body line-height is 1.5.
 

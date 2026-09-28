@@ -54,9 +54,7 @@ describe("composeTrace", () => {
     ]);
 
     expect(result.applied).toEqual([]);
-    expect(result.removed).toEqual([
-      { condition: "Corrupted", value: true, level: "subcategory", removedBy: "item" },
-    ]);
+    expect(result.removed).toEqual([{ condition: "Corrupted", value: true, level: "subcategory", removedBy: "item" }]);
   }); // overrides dropped from the removed record
 
   it("ignores a null removal when nothing earlier set that condition", () => {
@@ -78,7 +76,13 @@ describe("composeTrace", () => {
 
   it("keeps the order in which each condition was first set, even after it is overridden", () => {
     const result = composeTrace([
-      { level: "category", conditions: [{ condition: "Class", value: "Rings" }, { condition: "Rarity", value: "Rare" }] },
+      {
+        level: "category",
+        conditions: [
+          { condition: "Class", value: "Rings" },
+          { condition: "Rarity", value: "Rare" },
+        ],
+      },
       { level: "item", conditions: [{ condition: "Class", value: "Amulets" }] },
     ]);
 
@@ -90,7 +94,13 @@ describe("compose", () => {
   it("returns only the applied conditions", () => {
     const layers = [
       { level: "category" as const, conditions: [{ condition: "Corrupted", value: true }] },
-      { level: "item" as const, conditions: [{ condition: "Corrupted", value: null }, { condition: "Rarity", value: "Rare" }] },
+      {
+        level: "item" as const,
+        conditions: [
+          { condition: "Corrupted", value: null },
+          { condition: "Rarity", value: "Rare" },
+        ],
+      },
     ];
 
     expect(compose(layers)).toEqual([{ condition: "Rarity", value: "Rare", level: "item" }]);

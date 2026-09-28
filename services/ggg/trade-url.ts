@@ -27,7 +27,9 @@ export type TradeSearch = {
  */
 export function tradeSearchUrl(search: TradeSearch): string {
   const misc = {
-    ...(search.foulborn === undefined ? {} : { mutated: { option: String(search.foulborn) } }),
+    ...(search.foulborn === undefined
+      ? {}
+      : { mutated: { option: String(search.foulborn) } }),
     ...(search.corrupted === undefined
       ? {}
       : { corrupted: { option: String(search.corrupted) } }),
@@ -36,8 +38,12 @@ export function tradeSearchUrl(search: TradeSearch): string {
   const query = {
     query: {
       status: { option: "securable" },
-      ...(search.name === undefined ? {} : { name: search.name }),
-      ...(search.type === undefined ? {} : { type: search.type }),
+      ...(search.name === undefined
+        ? {}
+        : { name: search.name }),
+      ...(search.type === undefined
+        ? {}
+        : { type: search.type }),
       ...(Object.keys(misc).length === 0
         ? {}
         : { filters: { misc_filters: { filters: misc } } }),

@@ -8,7 +8,7 @@ of characters. Written 2026-08-15, no prior data-analysis background assumed.
 ## The core idea
 
 Count how often two things appear together, and compare that to how often they
-*would* appear together if they had nothing to do with each other.
+_would_ appear together if they had nothing to do with each other.
 
 Worked example:
 
@@ -59,7 +59,7 @@ function extractFeatures(character) {
   const f = [];
 
   f.push(`class:${character.class}`);
-  f.push(`level:${Math.floor(character.level / 10) * 10}s`);  // 90s, 80s...
+  f.push(`level:${Math.floor(character.level / 10) * 10}s`); // 90s, 80s...
 
   for (const item of character.items) {
     if (item.name) f.push(`unique:${item.name}`);
@@ -77,7 +77,7 @@ function extractFeatures(character) {
     f.push(`passive:${node}`);
   }
 
-  return [...new Set(f)];   // dedupe: "has it", not "how many"
+  return [...new Set(f)]; // dedupe: "has it", not "how many"
 }
 ```
 
@@ -90,7 +90,7 @@ get pruned away. Strip the digits:
 
 ```js
 function normalizeMod(text) {
-  return text.replace(/[0-9]+(\.[0-9]+)?/g, '#').trim();
+  return text.replace(/[0-9]+(\.[0-9]+)?/g, "#").trim();
   // "+37% to Fire Resistance"  ->  "+#% to Fire Resistance"
 }
 ```
@@ -114,13 +114,13 @@ invisible to every stage that follows, no matter how good the math is. This is
 the single biggest limit on what the whole pipeline can find. Add everything:
 
 ```js
-for (const mod of item.implicitMods  ?? []) f.push(`implicit:${normalizeMod(mod)}`);
-for (const mod of item.enchantMods   ?? []) f.push(`enchant:${normalizeMod(mod)}`);
-for (const mod of item.craftedMods   ?? []) f.push(`crafted:${normalizeMod(mod)}`);
+for (const mod of item.implicitMods ?? []) f.push(`implicit:${normalizeMod(mod)}`);
+for (const mod of item.enchantMods ?? []) f.push(`enchant:${normalizeMod(mod)}`);
+for (const mod of item.craftedMods ?? []) f.push(`crafted:${normalizeMod(mod)}`);
 for (const mod of item.fracturedMods ?? []) f.push(`fractured:${normalizeMod(mod)}`);
-if (item.corrupted)  f.push('flag:corrupted');
+if (item.corrupted) f.push("flag:corrupted");
 if (item.influences) for (const k of Object.keys(item.influences)) f.push(`influence:${k}`);
-if (item.quality)    f.push(`quality:${item.baseType}:${item.quality}`);
+if (item.quality) f.push(`quality:${item.baseType}:${item.quality}`);
 
 // gem levels - Enlighten 3 vs 4 is exactly the kind of luxury split worth seeing
 if (gem.properties) f.push(`gem:${gem.baseType}:${gemLevel(gem)}`);
@@ -141,13 +141,13 @@ for (const c of allCharacters) {
 
 Result is deliberately dumb and repetitive:
 
-| character | feature |
-|---|---|
-| Bob | skill:Cyclone |
-| Bob | unique:Brass Dome |
-| Bob | mod:+#% to Fire Resistance |
-| Alice | skill:Cyclone |
-| Alice | unique:Headhunter |
+| character | feature                    |
+| --------- | -------------------------- |
+| Bob       | skill:Cyclone              |
+| Bob       | unique:Brass Dome          |
+| Bob       | mod:+#% to Fire Resistance |
+| Alice     | skill:Cyclone              |
+| Alice     | unique:Headhunter          |
 
 **Save this to a file.** Stage 1 is the slow, fiddly stage and everything after
 it is fast. Checkpointing here means experimenting later never requires
@@ -158,7 +158,7 @@ re-parsing the raw data.
 ## (2) Count singles
 
 ```js
-const total = new Set(rows.map(r => r[0])).size;   // number of characters
+const total = new Set(rows.map((r) => r[0])).size; // number of characters
 
 const single = new Map();
 for (const [id, feat] of rows) {
@@ -198,10 +198,10 @@ for (const [id, feat] of rows) {
 
 const pair = new Map();
 for (const feats of byChar.values()) {
-  feats.sort();                                  // so A|B and B|A collide
+  feats.sort(); // so A|B and B|A collide
   for (let i = 0; i < feats.length; i++) {
     for (let j = i + 1; j < feats.length; j++) {
-      const k = feats[i] + '|' + feats[j];
+      const k = feats[i] + "|" + feats[j];
       pair.set(k, (pair.get(k) ?? 0) + 1);
     }
   }
@@ -220,16 +220,19 @@ fine. This is the stage that becomes expensive as the dataset grows.
 const results = [];
 for (const [k, both] of pair) {
   if (both < MIN) continue;
-  const [a, b] = k.split('|');
-  const na = single.get(a), nb = single.get(b);
+  const [a, b] = k.split("|");
+  const na = single.get(a),
+    nb = single.get(b);
 
   const expected = (na / total) * (nb / total) * total;
-  const lift     = both / expected;
+  const lift = both / expected;
 
   results.push({
-    a, b, both,
+    a,
+    b,
+    both,
     lift,
-    aThenB: both / na,     // of characters with A, share that also have B
+    aThenB: both / na, // of characters with A, share that also have B
     bThenA: both / nb,
   });
 }
@@ -250,10 +253,10 @@ symmetric score hides that entirely.
 
 Output is a table:
 
-| A | B | both | lift | A->B | B->A |
-|---|---|---|---|---|---|
-| skill:Cyclone | unique:Brass Dome | 312 | 25.4 | 0.41 | 0.88 |
-| mod:+#% Chaos Res | passive:Chaos Inoculation | 890 | 8.1 | 0.22 | 0.79 |
+| A                 | B                         | both | lift | A->B | B->A |
+| ----------------- | ------------------------- | ---- | ---- | ---- | ---- |
+| skill:Cyclone     | unique:Brass Dome         | 312  | 25.4 | 0.41 | 0.88 |
+| mod:+#% Chaos Res | passive:Chaos Inoculation | 890  | 8.1  | 0.22 | 0.79 |
 
 **As a sorted list.** Dump to CSV, open in Excel, filter by prefix — `skill:` in
 column A and `unique:` in column B answers "which items go with which skills".
@@ -275,7 +278,7 @@ Early output will be things like "characters with Chaos Inoculation have 1 life"
 — a perfect correlation and completely useless, because it is a game mechanic
 rather than a player choice.
 
-**Fix:** compute lift *within* a single class or ascendancy, then compare it to
+**Fix:** compute lift _within_ a single class or ascendancy, then compare it to
 the lift across all characters. A link much stronger inside one group than
 overall is a genuine finding. One that is equally strong everywhere is usually
 just a rule of the game.
@@ -313,28 +316,30 @@ data.
 
 With A = the build (`skill:Cast when Damage Taken`) and B = the thing tested:
 
-| | the ring | the corrupted implicit |
-|---|---|---|
-| **A->B** — share of the build that has it | 0.99 | 0.31 |
-| **B->A** — share of its owners running this build | 0.72 | **0.96** |
-| **lift** | 45 | **310** |
+|                                                   | the ring | the corrupted implicit |
+| ------------------------------------------------- | -------- | ---------------------- |
+| **A->B** — share of the build that has it         | 0.99     | 0.31                   |
+| **B->A** — share of its owners running this build | 0.72     | **0.96**               |
+| **lift**                                          | 45       | **310**                |
 
 The second row is the tell. Only 31% of the build carries the implicit, so it is
 clearly optional — but 96% of everyone in the game who has that implicit is
 running this one build. Nobody else wants it.
 
 ```js
-const luxury = results.filter(r =>
-  r.lift > 10 &&                          // strongly associated
-  r.aThenB > 0.10 && r.aThenB < 0.70 &&   // optional, not a requirement
-  r.bThenA > 0.80                         // but almost exclusive to this build
+const luxury = results.filter(
+  (r) =>
+    r.lift > 10 && // strongly associated
+    r.aThenB > 0.1 &&
+    r.aThenB < 0.7 && // optional, not a requirement
+    r.bThenA > 0.8, // but almost exclusive to this build
 );
 ```
 
 Reading the three cases:
 
 - **A->B near 1.0** — a requirement. Mostly already known.
-- **A->B moderate + B->A near 1.0** — *optional but exclusive*. The luxury/tech
+- **A->B moderate + B->A near 1.0** — _optional but exclusive_. The luxury/tech
   band, and where unknown findings live.
 - **A->B moderate + B->A moderate** — a generically popular thing. Less
   interesting.
@@ -353,15 +358,14 @@ function profile(anchor) {
   const G = inGroup.length;
 
   const counts = new Map();
-  for (const [, feats] of inGroup)
-    for (const f of feats) counts.set(f, (counts.get(f) ?? 0) + 1);
+  for (const [, feats] of inGroup) for (const f of feats) counts.set(f, (counts.get(f) ?? 0) + 1);
 
   return [...counts]
     .filter(([f, n]) => f !== anchor && n >= 10)
     .map(([f, n]) => ({
       feature: f,
-      share:      n / G,                              // how much of the group has it
-      enrichment: (n / G) / (single.get(f) / total),  // versus everyone else
+      share: n / G, // how much of the group has it
+      enrichment: n / G / (single.get(f) / total), // versus everyone else
       n,
     }))
     .sort((a, b) => b.enrichment - a.enrichment);
@@ -370,14 +374,14 @@ function profile(anchor) {
 
 Bucketing the output by `share` turns a wall of numbers into something readable:
 
-| share | meaning | example |
-|---|---|---|
-| 0.90 - 1.00 | **core** — the build's definition | the ring itself |
-| 0.50 - 0.90 | **standard** | the usual support gems |
+| share                         | meaning                              | example                |
+| ----------------------------- | ------------------------------------ | ---------------------- |
+| 0.90 - 1.00                   | **core** — the build's definition    | the ring itself        |
+| 0.50 - 0.90                   | **standard**                         | the usual support gems |
 | 0.10 - 0.50 + high enrichment | **luxury / tech** — discoveries here | the corrupted implicit |
-| < 0.10 | experimental, or noise | |
+| < 0.10                        | experimental, or noise               |                        |
 
-The top band describes what the build *is*. The luxury band describes what
+The top band describes what the build _is_. The luxury band describes what
 experienced players know that the build guide left out.
 
 ### Upgrade, or just a variant?
@@ -388,7 +392,7 @@ further along than the have-nots:
 
 ```js
 // within the group only, split by whether they have the feature
-const withIt    = inGroup.filter(([, f]) => f.includes(feature));
+const withIt = inGroup.filter(([, f]) => f.includes(feature));
 const withoutIt = inGroup.filter(([, f]) => !f.includes(feature));
 // compare: median level, ladder rank, count of OTHER high-enrichment items
 ```
@@ -403,15 +407,15 @@ counting cannot see it.
 
 ### Analyze items, not only characters
 
-Questions about a property *of an item* want a second table:
+Questions about a property _of an item_ want a second table:
 `(item_instance, property)`, one row per actual copy of an item in the snapshot,
 each labelled with its owner's archetype. Then the distribution can be compared
 across owners:
 
-| copies of the ring | rare implicit | other implicit | no implicit |
-|---|---|---|---|
-| held by CWDT builds | 31% | 12% | 57% |
-| held by everyone else | 2% | 9% | 89% |
+| copies of the ring    | rare implicit | other implicit | no implicit |
+| --------------------- | ------------- | -------------- | ----------- |
+| held by CWDT builds   | 31%           | 12%            | 57%         |
+| held by everyone else | 2%            | 9%             | 89%         |
 
 This generalises into an automatic discovery pass: for every unique item, diff
 the mod distribution of the top-ranked owners' copies against the median

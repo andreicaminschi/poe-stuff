@@ -8,20 +8,26 @@ const row = (baseTypes: string[], uniques: CatalogRow["uniques"]): CatalogRow =>
   category: "armour",
   subcategory: null,
   baseTypes,
-  ...(uniques === undefined ? {} : { uniques }),
+  ...(uniques === undefined
+    ? {}
+    : { uniques }),
 });
 
 const listing = { name: "Kaom's Heart", meanPrice: 10, corrupted: false };
 
 describe("priceLists", () => {
   it("files a group with no subcategory under the regular path", () => {
-    const lists = priceLists([row(["Glorious Plate"], [{ category: "unique", subcategory: null, listings: [listing] }])]);
+    const lists = priceLists([
+      row(["Glorious Plate"], [{ category: "unique", subcategory: null, listings: [listing] }]),
+    ]);
 
     expect(lists.get(listKey("Glorious Plate", "regular"))).toEqual([listing]);
   });
 
   it("files a group under its subcategory as the path", () => {
-    const lists = priceLists([row(["Glorious Plate"], [{ category: "unique", subcategory: "foulborn", listings: [listing] }])]);
+    const lists = priceLists([
+      row(["Glorious Plate"], [{ category: "unique", subcategory: "foulborn", listings: [listing] }]),
+    ]);
 
     expect([...lists.keys()]).toEqual(["Glorious Plate|foulborn"]);
   });

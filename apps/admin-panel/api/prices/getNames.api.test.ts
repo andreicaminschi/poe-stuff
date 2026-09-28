@@ -2,7 +2,13 @@ import { describe, expect, it } from "@jest/globals";
 import { getCorruptionNames, getExchangeNames, getListingNames } from "./getNames.api.ts";
 import { listing, poeWatch } from "./prices.test-helpers.ts";
 
-const outcome = (name: string, daily: number, extra: object = {}) => ({ name, mean: 99.6, daily, lowConfidence: false, ...extra });
+const outcome = (name: string, daily: number, extra: object = {}) => ({
+  name,
+  mean: 99.6,
+  daily,
+  lowConfidence: false,
+  ...extra,
+});
 
 describe("getListingNames", () => {
   it("labels each listing with its category, rounded price and daily volume, keeping duplicates", async () => {

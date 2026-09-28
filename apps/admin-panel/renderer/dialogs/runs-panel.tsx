@@ -24,13 +24,18 @@ export function RunsPanel() {
   useEffect(load, [load]);
 
   const build = async () => {
-    if (force.length > 0 && !(await confirm(`Refetching ${force.join(", ")} overwrites what that hour's run recorded. Go on?`))) {
+    if (
+      force.length > 0
+      && !(await confirm(`Refetching ${force.join(", ")} overwrites what that hour's run recorded. Go on?`))
+    ) {
       return;
     }
     setStatus("running");
     setLog("");
     const result = await window.panel.buildCatalog(LEAGUE, force);
-    setStatus(result.ok ? "done" : "failed");
+    setStatus(result.ok
+      ? "done"
+      : "failed");
     setLog(result.log);
     load();
   };
@@ -38,12 +43,18 @@ export function RunsPanel() {
   const publish = async (run: RunSummary) => {
     if (!(await confirm(`Make ${run.id} the current ${run.league} catalog?`))) return;
     const result = await window.panel.publishCatalog(run.league, run.hour);
-    setStatus(result.ok ? "done" : "failed");
+    setStatus(result.ok
+      ? "done"
+      : "failed");
     setLog(result.log);
   };
 
   const toggle = (source: CatalogSource) =>
-    setForce((current) => (current.includes(source) ? current.filter((other) => other !== source) : [...current, source]));
+    setForce((current) =>
+      current.includes(source)
+        ? current.filter((other) => other !== source)
+        : [...current, source],
+    );
 
   return (
     <Modal title={`Catalog — ${LEAGUE}`} onClose={onClose} wide>
@@ -54,7 +65,9 @@ export function RunsPanel() {
           <span className="faint">Refetch:</span>
           {CATALOG_SOURCES.map((source) => (
             <label className="check" key={source}>
-              <input type="checkbox" checked={force.includes(source)} onChange={() => toggle(source)} /> {source}
+              <input type="checkbox" checked={force.includes(source)} onChange={() => toggle(source)} />
+              {" "}
+              {source}
             </label>
           ))}
           <span className="sp" />
@@ -63,25 +76,48 @@ export function RunsPanel() {
             Build catalog
           </button>
         </div>
-        {log === "" ? null : (
-          <details open={status === "failed"}>
-            <summary className="note">Output</summary>
-            <pre className="log">{log}</pre>
-          </details>
-        )}
+        {log === ""
+          ? null
+          : (
+              <details open={status === "failed"}>
+                <summary className="note">Output</summary>
+                <pre className="log">{log}</pre>
+              </details>
+            )}
       </div>
 
       <div className="grp">
         <h4>Runs</h4>
-        {error === undefined ? null : <p className="err">{error}</p>}
-        {runs === undefined ? <p className="note">Loading…</p> : null}
-        {runs?.length === 0 ? <p className="note">No runs yet.</p> : null}
+        {error === undefined
+          ? null
+          : <p className="err">{error}</p>}
+        {runs === undefined
+          ? <p className="note">Loading…</p>
+          : null}
+        {runs?.length === 0
+          ? <p className="note">No runs yet.</p>
+          : null}
         {runs?.map((run) => (
           <div className="variant" key={run.id}>
             <span className="vn mono">{hourLabel(run.hour)}</span>
-            <span className="vp">taxonomy {run.taxonomyVersion ?? "?"}</span>
-            <span className={`pill ${run.built ? "done" : "failed"}`}>{run.built ? "built" : "incomplete"}</span>
-            <button type="button" className="btn tiny" disabled={!run.built || status === "running"} onClick={() => void publish(run)}>
+            <span className="vp">
+              taxonomy
+              {run.taxonomyVersion ?? "?"}
+            </span>
+            <span className={`pill ${run.built
+              ? "done"
+              : "failed"}`}
+            >
+              {run.built
+                ? "built"
+                : "incomplete"}
+            </span>
+            <button
+              type="button"
+              className="btn tiny"
+              disabled={!run.built || status === "running"}
+              onClick={() => void publish(run)}
+            >
               Publish
             </button>
           </div>

@@ -23,9 +23,13 @@ export function CategoryBranch({
         selected={node.path === selection}
         onSelect={onSelect}
         onEdit={onEdit}
-        {...(node.children.length === 0 ? {} : { collapsed, onToggle: () => setCollapsed(!collapsed) })}
+        {...(node.children.length === 0
+          ? {}
+          : { collapsed, onToggle: () => setCollapsed(!collapsed) })}
       />
-      {(collapsed ? [] : node.children).map((child) => (
+      {(collapsed
+        ? []
+        : node.children).map((child) => (
         <CategoryLine
           key={child.path}
           node={child}

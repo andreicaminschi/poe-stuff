@@ -39,10 +39,7 @@ export type DuplicateReport = {
  */
 export const knownDuplicates = (): readonly KnownDuplicate[] =>
   JSON.parse(
-    readFileSync(
-      new URL("find-duplicates/known-duplicates.json", import.meta.url),
-      "utf8",
-    ),
+    readFileSync(new URL("find-duplicates/known-duplicates.json", import.meta.url), "utf8"),
   ) as KnownDuplicate[];
 
 const unique = (values: readonly string[]) => [...new Set(values)].sort();
@@ -71,8 +68,7 @@ export function findDuplicates(
       categories: unique(group.map((row) => row.category)),
     }));
 
-  const order = (a: DuplicateName, b: DuplicateName) =>
-    b.ids.length - a.ids.length || a.name.localeCompare(b.name);
+  const order = (a: DuplicateName, b: DuplicateName) => b.ids.length - a.ids.length || a.name.localeCompare(b.name);
 
   /** The record for a clash, or nothing when it covers fewer ids than were found. */
   const settled = (clash: DuplicateName): KnownDuplicate | undefined => {
@@ -91,7 +87,9 @@ export function findDuplicates(
     known: clashes
       .flatMap((clash) => {
         const entry = settled(clash);
-        return entry === undefined ? [] : [{ ...clash, reason: entry.reason }];
+        return entry === undefined
+          ? []
+          : [{ ...clash, reason: entry.reason }];
       })
       .sort(order),
   };

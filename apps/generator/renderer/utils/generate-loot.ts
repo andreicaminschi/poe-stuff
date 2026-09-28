@@ -5,7 +5,9 @@ export const LOOT_COUNT = 10;
 
 const uniform = (list: readonly Loot[]): readonly Loot[] => {
   const one = list[Math.floor(Math.random() * list.length)];
-  return one === undefined ? [] : [one];
+  return one === undefined
+    ? []
+    : [one];
 };
 
 const shuffle = (list: readonly Loot[]): readonly Loot[] => {
@@ -27,7 +29,9 @@ export const randomLoot = (pool: readonly Loot[]): readonly Loot[] => weighted(p
 export function valuableLoot(pool: readonly Loot[]): readonly Loot[] {
   const of = (bucket: string) => pool.filter((one) => one.bucket === bucket);
   const t1 = shuffle(of("T1"));
-  const twoT1 = t1.length >= 2 ? t1.slice(0, 2) : [...uniform(t1), ...uniform(t1)];
+  const twoT1 = t1.length >= 2
+    ? t1.slice(0, 2)
+    : [...uniform(t1), ...uniform(t1)];
   const sure = [...uniform(of("T0")), ...twoT1];
 
   return shuffle([...sure, ...weighted(pool, LOOT_COUNT - sure.length)]);

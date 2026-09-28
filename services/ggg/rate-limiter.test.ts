@@ -116,9 +116,7 @@ describe("createLimiter", () => {
       track(limiter, 3);
       await jest.advanceTimersByTimeAsync(0);
 
-      expect(limiter.explainWait()).toBe(
-        "spreading out the 1s budget, 2 of 4 spent",
-      );
+      expect(limiter.explainWait()).toBe("spreading out the 1s budget, 2 of 4 spent");
     });
   });
 

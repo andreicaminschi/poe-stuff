@@ -3,7 +3,9 @@ import type { CategoryNode } from "../types.ts";
 function caretOf(toggles: boolean, collapsed: boolean): string {
   if (!toggles) return "";
 
-  return collapsed ? "▸" : "▾";
+  return collapsed
+    ? "▸"
+    : "▾";
 }
 
 export function CategoryLine({
@@ -27,28 +29,45 @@ export function CategoryLine({
     <div
       role="button"
       tabIndex={0}
-      className={`cat${sub ? " sub" : ""}${selected ? " on" : ""}${node.authored ? "" : " bare"}`}
+      className={`cat${sub
+        ? " sub"
+        : ""}${selected
+        ? " on"
+        : ""}${node.authored
+        ? ""
+        : " bare"}`}
       onClick={() => onSelect(node.path)}
       onKeyDown={(event) => {
         if (event.key === "Enter") onSelect(node.path);
       }}
     >
-      {sub ? null : (
-        <button
-          type="button"
-          className="caret"
-          aria-label={collapsed ? "Expand" : "Collapse"}
-          aria-expanded={onToggle === undefined ? undefined : !collapsed}
-          disabled={onToggle === undefined}
-          onClick={(event) => {
-            event.stopPropagation();
-            onToggle?.();
-          }}
-        >
-          {caretOf(onToggle !== undefined, collapsed === true)}
-        </button>
-      )}
-      <span className="n" title={node.authored ? node.path : `${node.path} has no category record`}>
+      {sub
+        ? null
+        : (
+            <button
+              type="button"
+              className="caret"
+              aria-label={collapsed
+                ? "Expand"
+                : "Collapse"}
+              aria-expanded={onToggle === undefined
+                ? undefined
+                : !collapsed}
+              disabled={onToggle === undefined}
+              onClick={(event) => {
+                event.stopPropagation();
+                onToggle?.();
+              }}
+            >
+              {caretOf(onToggle !== undefined, collapsed === true)}
+            </button>
+          )}
+      <span
+        className="n"
+        title={node.authored
+          ? node.path
+          : `${node.path} has no category record`}
+      >
         {node.label}
       </span>
       <button

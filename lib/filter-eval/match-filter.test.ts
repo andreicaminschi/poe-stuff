@@ -36,7 +36,12 @@ describe("compileFilter", () => {
   });
 
   it("walks base-type blocks and generic blocks in file order", () => {
-    const filter = filterOf(["Show", "Quality > 5"], ["Show", 'BaseType == "Coral Ring"', "Continue"], ["Show", "Continue"], ["Hide"]);
+    const filter = filterOf(
+      ["Show", "Quality > 5"],
+      ["Show", "BaseType == \"Coral Ring\"", "Continue"],
+      ["Show", "Continue"],
+      ["Hide"],
+    );
 
     const result = compileFilter(filter)({ BaseType: "coral ring", Quality: 0 });
 
@@ -75,14 +80,14 @@ describe("compileFilter", () => {
       ["Rarity >= Rare", { Rarity: "unique" }],
       ["Rarity Normal Magic", { Rarity: "MAGIC" }],
       ["Rarity ! Unique", { Rarity: "Rare" }],
-      ['Class "ring"', { Class: "Rings" }],
+      ["Class \"ring\"", { Class: "Rings" }],
       ["Class != Ring", { Class: "Belts" }],
-      ['BaseType == "Coral Ring"', { BaseType: "coral ring" }],
+      ["BaseType == \"Coral Ring\"", { BaseType: "coral ring" }],
       ["HasInfluence None", { HasInfluence: [] }],
       ["HasInfluence != Elder", { HasInfluence: ["Shaper"] }],
       ["SocketGroup >= 3GG", { SocketGroup: "RGG B" }],
       ["Sockets < 3", { Sockets: "" }],
-      ['HasExplicitMod >=2 "of Haast" Tyrannical', { HasExplicitMod: ["Tyrannical", "of Haast"] }],
+      ["HasExplicitMod >=2 \"of Haast\" Tyrannical", { HasExplicitMod: ["Tyrannical", "of Haast"] }],
       ["TransfiguredGem True", { TransfiguredGem: "" }],
       ["TransfiguredGem == wintry", { TransfiguredGem: "Wintry" }],
       ["TransfiguredGem != Wintry", { TransfiguredGem: "Other" }],

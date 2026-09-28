@@ -1,6 +1,12 @@
 import { describe, it, expect, jest, beforeEach, afterAll } from "@jest/globals";
 import type { CatalogRow } from "@poe/filter-style/types";
-import { DEFAULT_CONFIG, STACK_FLOORS, type Catalog, type GeneratorApi, type GeneratorConfig } from "../api/generator-api.ts";
+import {
+  DEFAULT_CONFIG,
+  STACK_FLOORS,
+  type Catalog,
+  type GeneratorApi,
+  type GeneratorConfig,
+} from "../api/generator-api.ts";
 import { useSession } from "./session-store.ts";
 
 const row = (key: string, category: string, meanPrice: number): CatalogRow => ({
@@ -13,7 +19,11 @@ const row = (key: string, category: string, meanPrice: number): CatalogRow => ({
 });
 const catalog: Catalog = {
   rows: [row("Mirror of Kalandra", "Currency", 90000), row("Gold", "Gold", 1), row("Map", "maps", 2)],
-  categories: { Currency: { conditions: [] }, Gold: { conditions: [], tiering: "stack-size" }, maps: { conditions: [] } },
+  categories: {
+    Currency: { conditions: [] },
+    Gold: { conditions: [], tiering: "stack-size" },
+    maps: { conditions: [] },
+  },
 };
 const floors = { T0: 9, T1: 8, T2: 7, T3: 6, T4: 5, T5: 4 };
 const config: GeneratorConfig = { floors, categories: {} };
@@ -48,7 +58,13 @@ describe("boot", () => {
   it("loads the catalog and config, marks the config saved and opens Currency first", async () => {
     await useSession.getState().boot();
 
-    expect(useSession.getState()).toMatchObject({ booting: false, catalog, config, saved: config, category: "Currency" });
+    expect(useSession.getState()).toMatchObject({
+      booting: false,
+      catalog,
+      config,
+      saved: config,
+      category: "Currency",
+    });
   });
 
   it("opens no category when the catalog holds no items", async () => {
@@ -226,7 +242,7 @@ describe("writeFilter", () => {
 
     await useSession.getState().writeFilter();
 
-    expect(useSession.getState().status).toBe("Wrote 0 blocks, 9 skipped to C:/out.filter") // fixture rows lack conditions;
+    expect(useSession.getState().status).toBe("Wrote 0 blocks, 9 skipped to C:/out.filter"); // fixture rows lack conditions;
     expect(useSession.getState().busy).toBe(false);
   });
 

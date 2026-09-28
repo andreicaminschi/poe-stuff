@@ -29,7 +29,9 @@ describe("conditionsProblem", () => {
   });
 
   it("refuses a condition name that is not a filter condition", () => {
-    expect(conditionsProblem([{ condition: "NotACondition", value: 1 }])).toBe('"NotACondition" is not a filter condition');
+    expect(conditionsProblem([{ condition: "NotACondition", value: 1 }])).toBe(
+      "\"NotACondition\" is not a filter condition",
+    );
   });
 
   it("refuses a condition with both a value and a from", () => {
@@ -43,12 +45,14 @@ describe("conditionsProblem", () => {
   });
 
   it("counts an undefined value as missing", () => {
-    expect(conditionsProblem([{ condition: "BaseType", value: undefined }])).toBe("BaseType has neither value nor from");
+    expect(conditionsProblem([{ condition: "BaseType", value: undefined }])).toBe(
+      "BaseType has neither value nor from",
+    );
   });
 
   it("refuses a from that is not a row field", () => {
     expect(conditionsProblem([{ condition: "BaseType", from: "category" }])).toBe(
-      'BaseType reads from "category", which is not a row field. Known: name, baseTypes',
+      "BaseType reads from \"category\", which is not a row field. Known: name, baseTypes",
     );
   });
 
@@ -90,13 +94,21 @@ describe("conditionsProblem", () => {
   });
 
   it("refuses both Class and BaseType in one list", () => {
-    expect(conditionsProblem([{ condition: "Class", value: "Rings" }, { condition: "BaseType", from: "name" }])).toMatch(
-      /^authors both Class and BaseType/,
-    );
+    expect(
+      conditionsProblem([
+        { condition: "Class", value: "Rings" },
+        { condition: "BaseType", from: "name" },
+      ]),
+    ).toMatch(/^authors both Class and BaseType/);
   });
 
   it("allows Class beside a BaseType that is removed with null", () => {
-    expect(conditionsProblem([{ condition: "Class", value: "Rings" }, { condition: "BaseType", value: null }])).toBeNull();
+    expect(
+      conditionsProblem([
+        { condition: "Class", value: "Rings" },
+        { condition: "BaseType", value: null },
+      ]),
+    ).toBeNull();
   });
 });
 
@@ -104,7 +116,9 @@ const problemOf = (path: string, record: unknown) => collectCategoryTable({ [pat
 
 describe("collectCategoryTable", () => {
   it("accepts a top-level category and a subcategory", () => {
-    expect(collectCategoryTable({ rings: { conditions: [] }, "rings/magic": { conditions: [] } }, "categories")).toEqual([]);
+    expect(
+      collectCategoryTable({ rings: { conditions: [] }, "rings/magic": { conditions: [] } }, "categories"),
+    ).toEqual([]);
   });
 
   it.each([
@@ -143,7 +157,9 @@ describe("collectCategoryTable", () => {
   });
 
   it("refuses a catch-all flag that is not a boolean", () => {
-    expect(problemOf("rings/rest", { conditions: [], catchAll: "yes" })).toBe("catchAll must be a boolean when it is present");
+    expect(problemOf("rings/rest", { conditions: [], catchAll: "yes" })).toBe(
+      "catchAll must be a boolean when it is present",
+    );
   });
 
   describe("order", () => {
@@ -158,7 +174,9 @@ describe("collectCategoryTable", () => {
     });
 
     it("refuses an order that is not a finite number", () => {
-      expect(problemOf("rings/magic", { conditions: [], order: Infinity })).toBe("order must be a number when it is present");
+      expect(problemOf("rings/magic", { conditions: [], order: Infinity })).toBe(
+        "order must be a number when it is present",
+      );
     });
 
     it("accepts a negative order", () => {
@@ -172,7 +190,9 @@ describe("collectCategoryTable", () => {
     });
 
     it("refuses hints on a subcategory", () => {
-      expect(problemOf("rings/magic", { conditions: [], hints: ["check"] })).toMatch(/^hints belong on a top-level category/);
+      expect(problemOf("rings/magic", { conditions: [], hints: ["check"] })).toMatch(
+        /^hints belong on a top-level category/,
+      );
     });
 
     it("refuses hints that are not a list", () => {
@@ -180,7 +200,9 @@ describe("collectCategoryTable", () => {
     });
 
     it("names the hints it does not know", () => {
-      expect(problemOf("rings", { conditions: [], hints: ["check", "sell"] })).toBe("hints must be check or gamble, not sell");
+      expect(problemOf("rings", { conditions: [], hints: ["check", "sell"] })).toBe(
+        "hints must be check or gamble, not sell",
+      );
     });
 
     it("refuses the same hint twice", () => {
@@ -212,11 +234,11 @@ describe("collectCategoryTable", () => {
     });
 
     it("refuses a property that is not a filter condition", () => {
-      expect(sub([{ Colour: { values: ["red"] } }])).toBe('samples names "Colour", which is not a filter condition');
+      expect(sub([{ Colour: { values: ["red"] } }])).toBe("samples names \"Colour\", which is not a filter condition");
     });
 
     it("refuses a condition name in the wrong case", () => {
-      expect(sub([{ rarity: { values: ["Rare"] } }])).toBe('samples names "rarity", which is not a filter condition');
+      expect(sub([{ rarity: { values: ["Rare"] } }])).toBe("samples names \"rarity\", which is not a filter condition");
     });
 
     it("refuses a property that is not an object", () => {
@@ -233,7 +255,7 @@ describe("collectCategoryTable", () => {
 
     it("refuses a from it cannot read", () => {
       expect(sub([{ BaseType: { from: "category" } }])).toBe(
-        'samples BaseType reads from "category". Known: name, baseTypes, conditions',
+        "samples BaseType reads from \"category\". Known: name, baseTypes, conditions",
       );
     });
 
@@ -247,16 +269,16 @@ describe("collectCategoryTable", () => {
 
     it("refuses a rarity outside the game's four", () => {
       expect(sub([{ Rarity: { values: ["Legendary"] } }])).toBe(
-        'samples Rarity takes one of Normal, Magic, Rare, Unique, not "Legendary"',
+        "samples Rarity takes one of Normal, Magic, Rare, Unique, not \"Legendary\"",
       );
     });
 
     it("refuses a number written as text", () => {
-      expect(sub([{ ItemLevel: { values: ["84"] } }])).toBe('samples ItemLevel takes a number, not "84"');
+      expect(sub([{ ItemLevel: { values: ["84"] } }])).toBe("samples ItemLevel takes a number, not \"84\"");
     });
 
     it("refuses a boolean written as text", () => {
-      expect(sub([{ Corrupted: { values: ["true"] } }])).toBe('samples Corrupted takes true or false, not "true"');
+      expect(sub([{ Corrupted: { values: ["true"] } }])).toBe("samples Corrupted takes true or false, not \"true\"");
     });
 
     it("refuses an influence the game does not have", () => {
@@ -268,11 +290,13 @@ describe("collectCategoryTable", () => {
     });
 
     it("refuses an empty list for a counted condition", () => {
-      expect(sub([{ HasEnchantment: { values: [[]] } }])).toBe("samples HasEnchantment takes text or a list of text, not []");
+      expect(sub([{ HasEnchantment: { values: [[]] } }])).toBe(
+        "samples HasEnchantment takes text or a list of text, not []",
+      );
     });
 
     it("refuses a list for a text condition", () => {
-      expect(sub([{ BaseType: { values: [["a"]] } }])).toBe('samples BaseType takes text, not ["a"]');
+      expect(sub([{ BaseType: { values: [["a"]] } }])).toBe("samples BaseType takes text, not [\"a\"]");
     });
 
     it("labels a bad reject set as rejects", () => {
@@ -285,6 +309,8 @@ describe("collectCategoryTable", () => {
 
 describe("validateCategoryTable", () => {
   it("throws the first problem with its source", () => {
-    expect(() => validateCategoryTable({ "a/b/c": { conditions: [] } }, "categories")).toThrow('categories: "a/b/c" is not a category path');
+    expect(() => validateCategoryTable({ "a/b/c": { conditions: [] } }, "categories")).toThrow(
+      "categories: \"a/b/c\" is not a category path",
+    );
   });
 });

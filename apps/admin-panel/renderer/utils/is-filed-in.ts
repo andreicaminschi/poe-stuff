@@ -5,7 +5,7 @@ export function isFiledIn(row: Item, path: string): boolean {
   const [category, subcategory] = path.split("/");
 
   return (
-    row.classification.category === category &&
-    (subcategory === undefined || row.classification.subcategory === subcategory)
+    row.classification.category === category
+    && (subcategory === undefined || row.classification.subcategory === subcategory)
   );
 }

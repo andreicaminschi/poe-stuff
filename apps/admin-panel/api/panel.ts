@@ -35,7 +35,9 @@ export function createPanelService(
 ): PanelApi {
   const lake = createLakeService({ root: join(repo, ".s3") });
   const poeWatch = createPoeWatchService({
-    ...(userAgent === undefined ? {} : { userAgent }),
+    ...(userAgent === undefined
+      ? {}
+      : { userAgent }),
     cache: fileCache<CachedResponse>(join(repo, ".s3", ".cache")),
   });
   let building = false;

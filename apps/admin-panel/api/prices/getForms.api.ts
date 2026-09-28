@@ -20,31 +20,53 @@ export type Form = {
   readonly lowConfidence: boolean;
 };
 
-const number = (value: number | null | undefined): number | undefined => (value === null ? undefined : value);
+const number = (value: number | null | undefined): number | undefined => (value === null
+  ? undefined
+  : value);
 
 const gemKeys = (listing: ItemData): Pick<Form, "gemLevel" | "gemQuality" | "gemIsCorrupted"> =>
   Object.fromEntries(
     Object.entries({
-      gemLevel: "gemLevel" in listing ? listing.gemLevel : undefined,
-      gemQuality: "gemQuality" in listing ? listing.gemQuality : undefined,
-      gemIsCorrupted: "gemIsCorrupted" in listing ? listing.gemIsCorrupted : undefined,
+      gemLevel: "gemLevel" in listing
+        ? listing.gemLevel
+        : undefined,
+      gemQuality: "gemQuality" in listing
+        ? listing.gemQuality
+        : undefined,
+      gemIsCorrupted: "gemIsCorrupted" in listing
+        ? listing.gemIsCorrupted
+        : undefined,
     }).filter(([, value]) => value !== undefined && value !== null),
   );
 
 function toForm(listing: ItemData): Form {
   const query = listingQuery(listing);
   const itemLevel = number(listing.itemLevel);
-  const linkCount = "linkCount" in listing ? number(listing.linkCount) : undefined;
-  const mapTier = "mapTier" in listing ? number(listing.mapTier) : undefined;
+  const linkCount = "linkCount" in listing
+    ? number(listing.linkCount)
+    : undefined;
+  const mapTier = "mapTier" in listing
+    ? number(listing.mapTier)
+    : undefined;
 
   return {
     query,
     frame: listing.frame,
-    ...(itemLevel === undefined ? {} : { itemLevel }),
-    ...(linkCount === undefined ? {} : { linkCount }),
-    ...(listing.category === "gem" ? gemKeys(listing) : {}),
-    ...(mapTier === undefined ? {} : { mapTier }),
-    influences: listing.influences === "" ? [] : listing.influences.split(","),
+    ...(itemLevel === undefined
+      ? {}
+      : { itemLevel }),
+    ...(linkCount === undefined
+      ? {}
+      : { linkCount }),
+    ...(listing.category === "gem"
+      ? gemKeys(listing)
+      : {}),
+    ...(mapTier === undefined
+      ? {}
+      : { mapTier }),
+    influences: listing.influences === ""
+      ? []
+      : listing.influences.split(","),
     synthesised: query.synthesised === true,
     mean: listing.mean,
     daily: listing.daily,

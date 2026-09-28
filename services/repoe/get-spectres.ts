@@ -17,9 +17,5 @@ import type { RepoeContext } from "./types.ts";
  * absolute numbers, so a row is worth nothing without that table.
  */
 export async function getSpectres(context: RepoeContext): Promise<Spectres> {
-  return call<Spectres>(
-    `${context.baseUrl}/pob-data/poe1/Spectres.json`,
-    currentHour(),
-    context,
-  );
+  return call<Spectres>(`${context.baseUrl}/pob-data/poe1/Spectres.json`, currentHour(), context);
 }

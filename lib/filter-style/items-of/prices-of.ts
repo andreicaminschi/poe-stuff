@@ -15,7 +15,9 @@ function gambleOf(outcomes: readonly UniqueListing[] | undefined, take: number):
   if (outcomes === undefined) return {};
 
   const gamble = Math.max(...outcomes.map(priceOf));
-  return gamble > take ? { gamble } : {};
+  return gamble > take
+    ? { gamble }
+    : {};
 }
 
 function fromList(worth: Worth, list: readonly UniqueListing[]): Prices {
@@ -25,7 +27,9 @@ function fromList(worth: Worth, list: readonly UniqueListing[]): Prices {
   const check = Math.max(...prices);
 
   if (worth.corrupted) return { check };
-  return { take, ...(check > take ? { check } : {}), ...gambleOf(worth.outcomes, take) };
+  return { take, ...(check > take
+    ? { check }
+    : {}), ...gambleOf(worth.outcomes, take) };
 }
 
 /**

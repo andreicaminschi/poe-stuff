@@ -1,11 +1,7 @@
 import { cacheKey } from "@util/cache/cache-key";
 import { sleep } from "@util/cache/sleep";
 import { GggHttpError } from "./errors.ts";
-import {
-  parseRetryAfter,
-  parseRules,
-  parseState,
-} from "./parse-rate-limit-headers.ts";
+import { parseRetryAfter, parseRules, parseState } from "./parse-rate-limit-headers.ts";
 import type { CallEvent, RateLimiter, ResponseCache } from "./types.ts";
 
 /**
@@ -67,12 +63,7 @@ export type CallOptions = {
  * consuming it here would leave nothing to send; keying every stream the same would
  * quietly serve one request's answer to another.
  */
-function requestKey(
-  url: string,
-  method: string,
-  body: RequestInit["body"],
-  salt: string | undefined,
-): string {
+function requestKey(url: string, method: string, body: RequestInit["body"], salt: string | undefined): string {
   if (body !== undefined && body !== null && typeof body !== "string") {
     throw new TypeError("call can only cache a request whose body is a string");
   }
@@ -89,19 +80,8 @@ function requestKey(
  *
  * The body is asserted, not validated — callers that care hand the result to a schema.
  */
-export async function call<T = unknown>(
-  url: string,
-  options: CallOptions,
-): Promise<T> {
-  const {
-    userAgent,
-    limiter,
-    retries = 0,
-    init,
-    onEvent = noop,
-    cache,
-    cacheSalt,
-  } = options;
+export async function call<T = unknown>(url: string, options: CallOptions): Promise<T> {
+  const { userAgent, limiter, retries = 0, init, onEvent = noop, cache, cacheSalt } = options;
   const method = init?.method ?? "GET";
   const key = cache && requestKey(url, method, init?.body, cacheSalt);
 
@@ -169,11 +149,7 @@ export async function call<T = unknown>(
       return body;
     }
 
-    const error = new GggHttpError(
-      url,
-      response.status,
-      RETRYABLE.has(response.status),
-    );
+    const error = new GggHttpError(url, response.status, RETRYABLE.has(response.status));
     if (!error.retryable || attempt >= retries) throw error;
 
     const backoff = backoffMs(attempt);
@@ -189,11 +165,7 @@ export async function call<T = unknown>(
 }
 
 /** Folds whatever the response says about our budget back into the limiter. */
-function applyRateLimits(
-  limiter: RateLimiter,
-  response: Response,
-  onEvent: (event: CallEvent) => void,
-): void {
+function applyRateLimits(limiter: RateLimiter, response: Response, onEvent: (event: CallEvent) => void): void {
   // The server's own limits win over whatever we were paced at. A missing header parses
   // to an empty list, which is not an instruction to drop the rules we already have.
   const rules = parseRules(response.headers.get("x-rate-limit-ip"));
@@ -224,16 +196,15 @@ function applyRateLimits(
   }
 
   if (response.status === 429) {
-    const retryAfter = parseRetryAfter(
-      response.headers.get("retry-after"),
-      Date.now(),
-    );
+    const retryAfter = parseRetryAfter(response.headers.get("retry-after"), Date.now());
     const seconds = retryAfter ?? FALLBACK_BAN_SECONDS;
     limiter.penalize(seconds);
     onEvent({
       type: "penalize",
       seconds,
-      source: retryAfter === undefined ? "fallback" : "retry-after",
+      source: retryAfter === undefined
+        ? "fallback"
+        : "retry-after",
     });
   }
 }

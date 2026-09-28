@@ -25,7 +25,9 @@ describe("stageWorking", () => {
   });
 
   it("copies the draft, applies the ledger and then the unsaved edits, the edits winning", async () => {
-    await temp.lake.writeJson(`admin-panel/ledger/${ID}.json`, [entry(1, { items: { a: gggItem("a", { name: "ledger" }) } })]);
+    await temp.lake.writeJson(`admin-panel/ledger/${ID}.json`, [
+      entry(1, { items: { a: gggItem("a", { name: "ledger" }) } }),
+    ]);
 
     staged = await stageWorking(temp.lake, ID, { items: { a: gggItem("a", { name: "unsaved" }) } });
 
@@ -41,7 +43,9 @@ describe("stageWorking", () => {
 
     staged = await stageWorking(temp.lake, ID, { categories: { currency: null } });
 
-    await expect(temp.lake.readJson(`taxonomy/versions/${ID}/categories.json`)).resolves.toEqual({ currency: { conditions: [] } });
+    await expect(temp.lake.readJson(`taxonomy/versions/${ID}/categories.json`)).resolves.toEqual({
+      currency: { conditions: [] },
+    });
     await expect(temp.lake.readJson(`admin-panel/ledger/${ID}.json`)).resolves.toHaveLength(1);
   });
 
@@ -50,7 +54,9 @@ describe("stageWorking", () => {
 
     const copy = createLakeService({ root: staged });
     await expect(copy.exists(`admin-panel/ledger/${ID}.json`)).resolves.toBe(false);
-    await expect(copy.readJson(`taxonomy/versions/${ID}/categories.json`)).resolves.toEqual({ currency: { conditions: [] } });
+    await expect(copy.readJson(`taxonomy/versions/${ID}/categories.json`)).resolves.toEqual({
+      currency: { conditions: [] },
+    });
   });
 
   it("fails when the edits target a version that is not the newest draft", async () => {

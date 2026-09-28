@@ -18,8 +18,9 @@ export function RarityValue({
             checked={value.includes(rarity)}
             disabled={disabled}
             onChange={(event) =>
-              onChange(RARITIES.filter((other) => (other === rarity ? event.target.checked : value.includes(other))))
-            }
+              onChange(RARITIES.filter((other) => (other === rarity
+                ? event.target.checked
+                : value.includes(other))))}
           />
           {rarity}
         </label>

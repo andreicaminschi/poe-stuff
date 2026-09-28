@@ -46,15 +46,18 @@ describe("collectVersion", () => {
 
     expect(problems.map((problem) => problem.problem)).toEqual([
       "has unknown fields: extra",
-      'baseType "Nope" is not the name of any seed row',
+      "baseType \"Nope\" is not the name of any seed row",
     ]);
   });
 
   it("checks authored base types against the rejects list", () => {
-    const problems = collectVersion(files({ "authored.manual": { "authored/a": authoredRow("Ruby Ring") } }), new Set(["Ruby Ring"]));
+    const problems = collectVersion(
+      files({ "authored.manual": { "authored/a": authoredRow("Ruby Ring") } }),
+      new Set(["Ruby Ring"]),
+    );
 
     expect(problems).toEqual([
-      { file: "authored.manual", key: "authored/a", problem: 'baseType "Ruby Ring" is one the client rejects' },
+      { file: "authored.manual", key: "authored/a", problem: "baseType \"Ruby Ring\" is one the client rejects" },
     ]);
   });
 

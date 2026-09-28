@@ -2,7 +2,7 @@
  * Writes classifier eval cases off one league's published catalog.
  *
  * ```
- * yarn taxonomy:eval-cases --league=<league> [--root=<dir>]
+ * yarn taxonomy:build-eval-cases --league=<league> [--root=<dir>]
  * ```
  *
  * Reads `catalog/latest/<league>.catalog.json` and its categories, and writes
@@ -13,7 +13,7 @@
 import { createLakeService } from "@poe/lake/service";
 import type { CategoryRecords } from "@poe/filter-compile/resolve-row";
 import type { SampleCategories } from "@poe/filter-validate/types";
-import { evalCases, type EvalRow } from "./eval-cases.ts";
+import { buildEvalCases, type EvalRow } from "./build-eval-cases.ts";
 import { latestKey, PREFIX } from "./lake.ts";
 import { flag } from "./cli-args.ts";
 import { slug } from "./slug.ts";
@@ -23,7 +23,7 @@ async function main(): Promise<void> {
   const league = flag(args, "league");
 
   if (league === undefined) {
-    throw new Error("usage: eval-cases-cli.ts --league=<league> [--root=<dir>]");
+    throw new Error("usage: build-eval-cases-cli.ts --league=<league> [--root=<dir>]");
   }
 
   const lake = createLakeService({ root: flag(args, "root") });
@@ -33,7 +33,7 @@ async function main(): Promise<void> {
     `catalog/latest/${slug(league)}.catalog.categories.json`,
   );
 
-  const cases = evalCases(rows, categories);
+  const cases = buildEvalCases(rows, categories);
   await lake.writeJsonAtomic(`${PREFIX}/evals/${version}/cases.json`, { version, league, cases });
 
   const unmatched = cases.filter((one) => one.matches.length === 0).length;
@@ -41,6 +41,8 @@ async function main(): Promise<void> {
 }
 
 main().catch((error: unknown) => {
-  process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
+  process.stderr.write(`${error instanceof Error
+    ? error.message
+    : String(error)}\n`);
   process.exitCode = 1;
 });

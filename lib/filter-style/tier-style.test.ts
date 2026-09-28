@@ -39,7 +39,13 @@ describe("tierStyle", () => {
     it("draws on a fifth of the secondary with no icon or beam", () => {
       const style = tierStyle(palette, "T2");
 
-      expect([style.size, style.background, style.text, style.icon, style.beam]).toEqual(["L", "#cc0033", "#0000ff", null, null]);
+      expect([style.size, style.background, style.text, style.icon, style.beam]).toEqual([
+        "L",
+        "#cc0033",
+        "#0000ff",
+        null,
+        null,
+      ]);
     });
   });
 

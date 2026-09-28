@@ -11,10 +11,7 @@ export type TaxonomyService = {
   getCategories(version?: string): Promise<TaxonomyCategories>;
 };
 
-export function createTaxonomyService({
-  root,
-  prefix = DEFAULT_PREFIX,
-}: TaxonomyServiceOptions = {}): TaxonomyService {
+export function createTaxonomyService({ root, prefix = DEFAULT_PREFIX }: TaxonomyServiceOptions = {}): TaxonomyService {
   const lake = createLakeService({ root });
 
   return {

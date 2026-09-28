@@ -14,12 +14,6 @@ import type { RepoeContext } from "./types.ts";
  * envelope around it. Three rows, and the passives under them are the point: each one pairs
  * the enchant's mod text with the passive's name.
  */
-export async function getClusterJewels(
-  context: RepoeContext,
-): Promise<ClusterJewels> {
-  return call<ClusterJewels>(
-    `${context.baseUrl}/cluster_jewels.json`,
-    currentHour(),
-    context,
-  );
+export async function getClusterJewels(context: RepoeContext): Promise<ClusterJewels> {
+  return call<ClusterJewels>(`${context.baseUrl}/cluster_jewels.json`, currentHour(), context);
 }

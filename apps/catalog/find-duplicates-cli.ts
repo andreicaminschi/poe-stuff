@@ -40,9 +40,7 @@ async function main(): Promise<void> {
 
   // The manifest already records every key the stage wrote, so the report needs no way to
   // list the lake — it reads back exactly what silver said it produced.
-  const keys = silver.steps
-    .flatMap((step) => step.keys)
-    .filter((key) => !key.endsWith(".unpriced.json"));
+  const keys = silver.steps.flatMap((step) => step.keys).filter((key) => !key.endsWith(".unpriced.json"));
 
   const rows: Item[] = [];
   for (const key of keys) rows.push(...(await lake.readJson<Item[]>(key)));
@@ -59,6 +57,8 @@ async function main(): Promise<void> {
 }
 
 main().catch((error: unknown) => {
-  process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
+  process.stderr.write(`${error instanceof Error
+    ? error.message
+    : String(error)}\n`);
   process.exitCode = 1;
 });

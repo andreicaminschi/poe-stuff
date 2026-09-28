@@ -9,8 +9,7 @@ import type { CachedResponse } from "./types.ts";
 
 const URL = "https://repoe.test/base_items.json";
 
-const jsonResponse = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), { status });
+const jsonResponse = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status });
 
 let dir: string;
 let fetchMock: jest.Mock<typeof fetch>;
@@ -48,9 +47,7 @@ describe("call", () => {
   it("throws an error naming the URL and status on a non-2xx answer", async () => {
     fetchMock.mockResolvedValue(jsonResponse({}, 404));
 
-    const error = await call(URL, "1", { baseUrl: "", userAgent: "u" }).catch(
-      (e: unknown) => e,
-    );
+    const error = await call(URL, "1", { baseUrl: "", userAgent: "u" }).catch((e: unknown) => e);
 
     expect(error).toBeInstanceOf(RepoeHttpError);
     expect(error).toMatchObject({ url: URL, status: 404 });
@@ -59,9 +56,7 @@ describe("call", () => {
   it("rejects a body that is not JSON with a parse error naming the URL", async () => {
     fetchMock.mockResolvedValue(new Response("", { status: 200 }));
 
-    const error = await call(URL, "1", { baseUrl: "", userAgent: "u" }).catch(
-      (e: unknown) => e,
-    );
+    const error = await call(URL, "1", { baseUrl: "", userAgent: "u" }).catch((e: unknown) => e);
 
     expect(error).toMatchObject({ name: "RepoeParseError", url: URL });
   });

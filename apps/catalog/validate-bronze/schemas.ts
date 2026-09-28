@@ -29,9 +29,7 @@ const gggItems = z
       items: z.array(gggItem),
     }),
   )
-  .min(1, "the item list has no groups") satisfies z.ZodType<
-  readonly GGGItemGroup[]
->;
+  .min(1, "the item list has no groups") satisfies z.ZodType<readonly GGGItemGroup[]>;
 
 type ValidatedCompactItem = Pick<ItemData, "id" | "name"> & {
   readonly category: string;
@@ -45,9 +43,7 @@ const poeWatchCompact = z
       category: z.string(),
     }),
   )
-  .min(1, "the compact dump has no items") satisfies z.ZodType<
-  readonly ValidatedCompactItem[]
->;
+  .min(1, "the compact dump has no items") satisfies z.ZodType<readonly ValidatedCompactItem[]>;
 
 type ValidatedRatio = Pick<ExchangeRatioItem, "name" | "category"> & {
   readonly price?: Pick<ExchangeRatioPrice, "chaos">;
@@ -61,9 +57,7 @@ const poeWatchRatios = z
       price: z.looseObject({ chaos: z.number() }).optional(),
     }),
   )
-  .min(1, "the exchange has no items") satisfies z.ZodType<
-  readonly ValidatedRatio[]
->;
+  .min(1, "the exchange has no items") satisfies z.ZodType<readonly ValidatedRatio[]>;
 
 type ValidatedCorruptions = Pick<ItemCorruptions, "item_id"> & {
   readonly corruptions: readonly Pick<CorruptionOutcome, "name" | "mean">[];
@@ -72,24 +66,18 @@ type ValidatedCorruptions = Pick<ItemCorruptions, "item_id"> & {
 const poeWatchCorruptions = z.array(
   z.looseObject({
     item_id: z.number(),
-    corruptions: z.array(
-      z.looseObject({ name: z.string(), mean: z.number() }),
-    ),
+    corruptions: z.array(z.looseObject({ name: z.string(), mean: z.number() })),
   }),
 ) satisfies z.ZodType<readonly ValidatedCorruptions[]>;
 
 const condition = z.looseObject({
   condition: z.string(),
   operator: z.string().optional(),
-  value: z
-    .union([z.string(), z.number(), z.boolean(), z.array(z.string()), z.null()])
-    .optional(),
+  value: z.union([z.string(), z.number(), z.boolean(), z.array(z.string()), z.null()]).optional(),
   from: z.string().optional(),
 });
 
-const renamed = z
-  .never({ error: "carries the old `price` key. Publish a taxonomy newer than 3.29.4." })
-  .optional();
+const renamed = z.never({ error: "carries the old `price` key. Publish a taxonomy newer than 3.29.4." }).optional();
 
 const variants = z
   .array(z.looseObject({ name: z.string(), conditions: z.array(condition), price: renamed }))

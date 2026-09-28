@@ -43,15 +43,15 @@ export async function fanOut<Name extends string, Result>(
       try {
         results[at] = await job(name);
       } catch (error) {
-        const reason = error instanceof Error ? error.message : String(error);
+        const reason = error instanceof Error
+          ? error.message
+          : String(error);
         throw new Error(`poe-ninja: ${name} failed: ${reason}`, { cause: error });
       }
     }
   };
 
-  await Promise.all(
-    Array.from({ length: Math.min(CONCURRENCY, names.length) }, worker),
-  );
+  await Promise.all(Array.from({ length: Math.min(CONCURRENCY, names.length) }, worker));
 
   return results;
 }

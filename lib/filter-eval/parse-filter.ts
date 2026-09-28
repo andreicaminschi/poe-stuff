@@ -35,16 +35,7 @@ const KEYWORDS: ReadonlyMap<string, Keyword> = new Map([
   ["minimal", "Minimal"],
 ]);
 
-const OPERATORS: ReadonlySet<string> = new Set([
-  "=",
-  "==",
-  "!",
-  "!=",
-  "<",
-  "<=",
-  ">",
-  ">=",
-]);
+const OPERATORS: ReadonlySet<string> = new Set(["=", "==", "!", "!=", "<", "<=", ">", ">="]);
 
 /** A note key. Deliberately narrow — the note format has one spelling. */
 const NOTE_KEY = /^[a-z][a-z0-9-]*$/;
@@ -89,7 +80,7 @@ const splitComment = (raw: string): Split => {
 
   for (let at = 0; at < raw.length; at += 1) {
     const char = raw[at];
-    if (char === '"') quoted = !quoted;
+    if (char === "\"") quoted = !quoted;
     else if (char === "#" && !quoted) {
       return { code: raw.slice(0, at), comment: raw.slice(at + 1).trim() };
     }
@@ -115,8 +106,8 @@ const tokenize = (rest: string, line: number): string[] => {
       continue;
     }
 
-    if (char === '"') {
-      const close = rest.indexOf('"', at + 1);
+    if (char === "\"") {
+      const close = rest.indexOf("\"", at + 1);
       if (close === -1) fail(line, `unterminated quote in ${JSON.stringify(rest)}`);
       tokens.push(rest.slice(at + 1, close));
       at = close + 1;
@@ -126,7 +117,7 @@ const tokenize = (rest: string, line: number): string[] => {
     let end = at;
     while (end < rest.length) {
       const next = rest[end];
-      if (next === undefined || next === '"' || /\s/.test(next)) break;
+      if (next === undefined || next === "\"" || /\s/.test(next)) break;
       end += 1;
     }
     tokens.push(rest.slice(at, end));
@@ -138,21 +129,13 @@ const tokenize = (rest: string, line: number): string[] => {
 
 const isEquality = (operator: Operator): boolean => (EQUALITY_OPERATORS as readonly string[]).includes(operator);
 
-const requireEqualityOperator = (
-  name: ConditionName,
-  operator: Operator,
-  line: number,
-): void => {
+const requireEqualityOperator = (name: ConditionName, operator: Operator, line: number): void => {
   if (!isEquality(operator)) {
     fail(line, `${name} does not take the operator "${operator}"`);
   }
 };
 
-const requireOneValue = (
-  name: ConditionName,
-  values: readonly string[],
-  line: number,
-): string => {
+const requireOneValue = (name: ConditionName, values: readonly string[], line: number): string => {
   const [only] = values;
   if (values.length !== 1 || only === undefined) {
     fail(line, `${name} takes exactly one value, got ${values.length}`);
@@ -187,11 +170,7 @@ const SOCKET_SPEC = /^(\d+)?([A-Za-z]*)$/;
  * Read `5GGG` into a count of five and three greens. Either half may be missing, but not
  * both — the sample writes `Sockets >= 3` and `Sockets >= AAAA` about equally.
  */
-const parseSocketSpec = (
-  name: ConditionName,
-  values: readonly string[],
-  line: number,
-): SocketSpec => {
+const parseSocketSpec = (name: ConditionName, values: readonly string[], line: number): SocketSpec => {
   const value = requireOneValue(name, values, line);
   const found = SOCKET_SPEC.exec(value);
   const digits = found?.[1];
@@ -206,23 +185,19 @@ const parseSocketSpec = (
     if (!(SOCKET_COLOURS as readonly string[]).includes(letter)) {
       fail(
         line,
-        `${name} does not know the socket colour ${JSON.stringify(letter)}: ` +
-          `it takes ${SOCKET_COLOURS.join(", ")}`,
+        `${name} does not know the socket colour ${JSON.stringify(letter)}: ` + `it takes ${SOCKET_COLOURS.join(", ")}`,
       );
     }
     const colour = letter as SocketColour;
     colours[colour] = (colours[colour] ?? 0) + 1;
   }
 
-  return digits === undefined ? { colours } : { count: Number(digits), colours };
+  return digits === undefined
+    ? { colours }
+    : { count: Number(digits), colours };
 };
 
-const parseCondition = (
-  name: ConditionName,
-  rest: string,
-  line: number,
-  comment: string,
-): FilterCondition => {
+const parseCondition = (name: ConditionName, rest: string, line: number, comment: string): FilterCondition => {
   const entry = CONDITIONS[name];
   const { kind } = entry;
 
@@ -232,7 +207,9 @@ const parseCondition = (
   // and `HasExplicitMod =0 "..."` for none of them. The sample writes it that way 111
   // times and spaces it out never, but the syntax doc spaces it, so both are read.
   const head = tokens[0];
-  const glued = kind === "counted" && head !== undefined ? GLUED_COUNT.exec(head) : null;
+  const glued = kind === "counted" && head !== undefined
+    ? GLUED_COUNT.exec(head)
+    : null;
 
   let operator: Operator;
   let values: readonly string[];
@@ -244,8 +221,12 @@ const parseCondition = (
     values = tokens.slice(1);
   } else {
     const hasOperator = head !== undefined && OPERATORS.has(head);
-    operator = (hasOperator ? head : "=") as Operator;
-    values = tokens.slice(hasOperator ? 1 : 0);
+    operator = (hasOperator
+      ? head
+      : "=") as Operator;
+    values = tokens.slice(hasOperator
+      ? 1
+      : 0);
 
     // Spaced form. Only a written operator introduces a count, so a bare leading number
     // stays a name — nothing in the grammar says `HasEnchantment 2 "x"` means anything.
@@ -326,10 +307,7 @@ const parseCondition = (
  * throws rather than starting the freehand, so `Tier=T1` and `verb=Take` are caught instead
  * of being quietly swallowed as prose.
  */
-const parseNote = (
-  rest: string,
-  line: number,
-): { pairs: Note[]; freehand: string } => {
+const parseNote = (rest: string, line: number): { pairs: Note[]; freehand: string } => {
   const pairs: Note[] = [];
   let freehand = "";
   let at = 0;
@@ -354,8 +332,8 @@ const parseNote = (
 
     // A quoted value so a condition can hold spaces: `cond="AreaLevel >= 68"`.
     let value: string;
-    if (rest[at] === '"') {
-      const close = rest.indexOf('"', at + 1);
+    if (rest[at] === "\"") {
+      const close = rest.indexOf("\"", at + 1);
       if (close === -1) fail(line, `unterminated quote in note ${JSON.stringify(rest.trim())}`);
       value = rest.slice(at + 1, close);
       at = close + 1;

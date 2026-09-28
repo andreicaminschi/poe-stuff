@@ -45,10 +45,14 @@ export function Categories() {
             type="button"
             role="tab"
             aria-selected={view === value}
-            className={view === value ? "on" : ""}
+            className={view === value
+              ? "on"
+              : ""}
             onClick={() => setView(value)}
           >
-            {label} <span className="mono faint">{counts[value]}</span>
+            {label}
+            {" "}
+            <span className="mono faint">{counts[value]}</span>
           </button>
         ))}
       </div>
@@ -57,7 +61,9 @@ export function Categories() {
           <CategoryBranch
             key={node.path}
             node={node}
-            {...(selection === undefined ? {} : { selection })}
+            {...(selection === undefined
+              ? {}
+              : { selection })}
             onSelect={select}
             onEdit={edit}
           />

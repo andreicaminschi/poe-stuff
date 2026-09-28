@@ -29,7 +29,10 @@ describe("fromTaxonomy", () => {
 
   it("leaves out an item an authored row replaces, even when that authored row is excluded", () => {
     const rows = fromTaxonomy(
-      taxonomyOf({ a: entry("A") }, { "authored/x": { ...entry("X"), baseType: "A", replaces: ["a"], excluded: true } }),
+      taxonomyOf(
+        { a: entry("A") },
+        { "authored/x": { ...entry("X"), baseType: "A", replaces: ["a"], excluded: true } },
+      ),
     );
 
     expect(rows).toEqual([]);
@@ -51,14 +54,18 @@ describe("fromTaxonomy", () => {
   });
 
   it("copies unpriceable only when it is true", () => {
-    const rows = fromTaxonomy(taxonomyOf({ a: entry("A", { unpriceable: false }), b: entry("B", { unpriceable: true }) }));
+    const rows = fromTaxonomy(
+      taxonomyOf({ a: entry("A", { unpriceable: false }), b: entry("B", { unpriceable: true }) }),
+    );
 
     expect(rows.map((row) => row.unpriceable)).toEqual([undefined, true]);
   });
 
   it("copies conditions, variants, listing and an item's display name, but not an authored row's", () => {
     const extra = { conditions: [{ condition: "Rarity" }], variants: [], listing: { name: "L" }, displayName: "D" };
-    const rows = fromTaxonomy(taxonomyOf({ a: entry("A", extra) }, { "authored/x": { ...entry("X", extra), baseType: "B" } }));
+    const rows = fromTaxonomy(
+      taxonomyOf({ a: entry("A", extra) }, { "authored/x": { ...entry("X", extra), baseType: "B" } }),
+    );
 
     expect(rows).toEqual([
       { key: "a", name: "A", category: "c", subcategory: null, baseTypes: ["A"], ...extra },

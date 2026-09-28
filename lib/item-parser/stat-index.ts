@@ -81,10 +81,7 @@ export const statKey = (text: string) =>
  * several stat types — explicit, implicit, fractured, crafted — and choosing between
  * them here would be this file inventing a preference it cannot see.
  */
-export function statIndex<T>(
-  items: Iterable<T>,
-  textOf: (item: T) => string,
-): StatIndex<T> {
+export function statIndex<T>(items: Iterable<T>, textOf: (item: T) => string): StatIndex<T> {
   const byKey = Map.groupBy(items, (item) => statKey(textOf(item)));
 
   return { find: (text) => byKey.get(statKey(text)) ?? [] };

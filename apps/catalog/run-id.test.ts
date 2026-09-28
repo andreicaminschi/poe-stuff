@@ -9,7 +9,7 @@ describe("runId", () => {
 
 describe("previousHour", () => {
   it("answers the hour before the one now running", () => {
-    expect(previousHour(Date.UTC(2025, 0, 1, 10, 30) )).toBe(Date.UTC(2025, 0, 1, 9) / 1000);
+    expect(previousHour(Date.UTC(2025, 0, 1, 10, 30))).toBe(Date.UTC(2025, 0, 1, 9) / 1000);
   });
 
   it("answers the hour before even at the exact top of an hour", () => {

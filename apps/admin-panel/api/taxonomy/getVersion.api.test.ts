@@ -54,7 +54,10 @@ describe("getVersion", () => {
   });
 
   it("lets a manual authored row replace a seeded one with the same key", async () => {
-    await seedDraft(temp.lake, ID, { "authored.seeded": { u: unique }, "authored.manual": { u: { ...unique, reason: "manual" } } });
+    await seedDraft(temp.lake, ID, {
+      "authored.seeded": { u: unique },
+      "authored.manual": { u: { ...unique, reason: "manual" } },
+    });
 
     const draft = await getVersion(temp.lake, ID);
 
@@ -83,7 +86,9 @@ describe("getVersion", () => {
   });
 
   it("defaults a category to chaos tiering and drops its empty lists", async () => {
-    await seedDraft(temp.lake, ID, { categories: { currency: { conditions: [], hints: [], samples: [], catchAll: false } } });
+    await seedDraft(temp.lake, ID, {
+      categories: { currency: { conditions: [], hints: [], samples: [], catchAll: false } },
+    });
 
     const draft = await getVersion(temp.lake, ID);
 

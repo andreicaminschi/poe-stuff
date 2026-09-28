@@ -6,5 +6,7 @@ export function useSelectedItem(): Item | undefined {
   const draft = useDraft();
   const key = useSession((state) => state.selectedKey);
 
-  return key === undefined ? undefined : draft?.items[key];
+  return key === undefined
+    ? undefined
+    : draft?.items[key];
 }

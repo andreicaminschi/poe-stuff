@@ -21,28 +21,36 @@ export function ValueEditor({
 
   switch (kindOf(condition)) {
     case "text":
-      return options === undefined ? (
-        <input
-          type="text"
-          value={typeof condition.value === "string" ? condition.value : ""}
-          disabled={disabled}
-          onChange={(event) => set(event.target.value)}
-        />
-      ) : (
-        <ComboBox
-          value={typeof condition.value === "string" ? condition.value : ""}
-          options={options}
-          disabled={disabled}
-          onChange={set}
-        />
-      );
+      return options === undefined
+        ? (
+            <input
+              type="text"
+              value={typeof condition.value === "string"
+                ? condition.value
+                : ""}
+              disabled={disabled}
+              onChange={(event) => set(event.target.value)}
+            />
+          )
+        : (
+            <ComboBox
+              value={typeof condition.value === "string"
+                ? condition.value
+                : ""}
+              options={options}
+              disabled={disabled}
+              onChange={set}
+            />
+          );
     case "number":
       return (
         <input
           type="text"
           inputMode="numeric"
           className="mono"
-          value={typeof condition.value === "number" ? String(condition.value) : ""}
+          value={typeof condition.value === "number"
+            ? String(condition.value)
+            : ""}
           disabled={disabled}
           onChange={(event) => {
             const parsed = Number(event.target.value);
@@ -53,7 +61,9 @@ export function ValueEditor({
     case "flag":
       return (
         <select
-          value={condition.value === true ? "true" : "false"}
+          value={condition.value === true
+            ? "true"
+            : "false"}
           disabled={disabled}
           onChange={(event) => set(event.target.value === "true")}
         >
@@ -64,10 +74,14 @@ export function ValueEditor({
     case "list":
       return (
         <ListValue
-          value={Array.isArray(condition.value) ? condition.value : []}
+          value={Array.isArray(condition.value)
+            ? condition.value
+            : []}
           disabled={disabled}
           onChange={(value) => set(value)}
-          {...(options === undefined ? {} : { options })}
+          {...(options === undefined
+            ? {}
+            : { options })}
         />
       );
     case "from-name":

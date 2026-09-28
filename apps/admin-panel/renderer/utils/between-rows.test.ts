@@ -41,7 +41,10 @@ describe("betweenRows", () => {
       { condition: "ItemLevel", operator: "<=", value: 3 },
     ]);
 
-    expect(rows).toMatchObject([{ kind: "between", low: 0, high: 1 }, { kind: "single", index: 2 }]);
+    expect(rows).toMatchObject([
+      { kind: "between", low: 0, high: 1 },
+      { kind: "single", index: 2 },
+    ]);
   });
 
   it("keeps a condition that sits between the pair in its place after the between row", () => {
@@ -51,7 +54,10 @@ describe("betweenRows", () => {
       { condition: "ItemLevel", operator: "<=", value: 2 },
     ]);
 
-    expect(rows).toMatchObject([{ kind: "between", low: 0, high: 2 }, { kind: "single", index: 1 }]);
+    expect(rows).toMatchObject([
+      { kind: "between", low: 0, high: 2 },
+      { kind: "single", index: 1 },
+    ]);
   });
 
   it("returns no rows for no conditions", () => {

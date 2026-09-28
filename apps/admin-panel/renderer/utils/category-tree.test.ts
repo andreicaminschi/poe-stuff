@@ -28,12 +28,24 @@ describe("categoryTree", () => {
   it("adds the top level of a recorded subcategory even when the top has no record", () => {
     const tree = categoryTree(draftOf([], [category("maps/boss")]));
 
-    expect(tree.nodes[0]).toMatchObject({ path: "maps", authored: false, children: [{ path: "maps/boss", authored: true }] });
+    expect(tree.nodes[0]).toMatchObject({
+      path: "maps",
+      authored: false,
+      children: [{ path: "maps/boss", authored: true }],
+    });
   });
 
   it("sorts tops and children by label, not by path", () => {
     const tree = categoryTree(
-      draftOf([], [category("a", { name: "Zeta" }), category("b", { name: "Alpha" }), category("b/z", { name: "A" }), category("b/a", { name: "B" })]),
+      draftOf(
+        [],
+        [
+          category("a", { name: "Zeta" }),
+          category("b", { name: "Alpha" }),
+          category("b/z", { name: "A" }),
+          category("b/a", { name: "B" }),
+        ],
+      ),
     );
 
     expect(tree.nodes.map((node) => node.path)).toEqual(["b", "a"]);

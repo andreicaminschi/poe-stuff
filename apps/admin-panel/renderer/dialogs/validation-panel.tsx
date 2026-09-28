@@ -15,7 +15,9 @@ export function ValidationPanel() {
     <Modal title="Validation" onClose={closeDialog} wide>
       <div className="grp">
         <h4>Rule problems</h4>
-        {validation.rows.length === 0 ? <p className="note">None. Nothing blocks a publish.</p> : null}
+        {validation.rows.length === 0
+          ? <p className="note">None. Nothing blocks a publish.</p>
+          : null}
         {validation.rows.map((problem) => (
           <button
             type="button"
@@ -25,7 +27,9 @@ export function ValidationPanel() {
           >
             <span className="mono faint">
               {problem.area}
-              {problem.seeded ? " (seeded)" : ""}
+              {problem.seeded
+                ? " (seeded)"
+                : ""}
             </span>
             <span className="mono">{problem.key}</span>
             <span className="danger">{problem.problem}</span>
@@ -35,7 +39,9 @@ export function ValidationPanel() {
 
       <div className="grp">
         <h4>Resolution</h4>
-        {validation.resolution.length === 0 ? <p className="note">Every drawable row resolves.</p> : null}
+        {validation.resolution.length === 0
+          ? <p className="note">Every drawable row resolves.</p>
+          : null}
         {validation.resolution.map((resolution) => (
           <button
             type="button"
@@ -45,7 +51,9 @@ export function ValidationPanel() {
           >
             <span className="mono">
               {resolution.key}
-              {resolution.variant === undefined ? "" : ` · ${resolution.variant}`}
+              {resolution.variant === undefined
+                ? ""
+                : ` · ${resolution.variant}`}
             </span>
             <span className="danger">{resolution.problems.join("; ")}</span>
           </button>
@@ -55,8 +63,8 @@ export function ValidationPanel() {
       <div className="grp">
         <h4>Categories with no conditions</h4>
         <p className="note">
-          Drawable rows are filed here and nothing says how a filter names them. Most never reach a filter — the
-          catalog decides that.
+          Drawable rows are filed here and nothing says how a filter names them. Most never reach a filter — the catalog
+          decides that.
         </p>
         {validation.unauthored.map(({ path, rows }) => (
           <button
@@ -69,12 +77,18 @@ export function ValidationPanel() {
             }}
           >
             <span className="mono">{path}</span>
-            <span className="mono faint">{rows} rows</span>
+            <span className="mono faint">
+              {rows}
+              {" "}
+              rows
+            </span>
           </button>
         ))}
       </div>
 
-      {clean ? <p className="note pad">Ready to publish.</p> : null}
+      {clean
+        ? <p className="note pad">Ready to publish.</p>
+        : null}
     </Modal>
   );
 }

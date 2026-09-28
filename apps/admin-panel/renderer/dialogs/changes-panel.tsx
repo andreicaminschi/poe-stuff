@@ -11,7 +11,9 @@ import { replayLedger } from "../utils/replay-ledger.ts";
 function categoryChangeLabel(before: Draft | undefined, path: string, deleted: boolean): string {
   if (deleted) return "deleted";
 
-  return before?.categories[path] === undefined ? "new category" : "category";
+  return before?.categories[path] === undefined
+    ? "new category"
+    : "category";
 }
 
 export function ChangesPanel() {
@@ -22,7 +24,9 @@ export function ChangesPanel() {
   const closeDialog = useSession((state) => state.closeDialog);
 
   const befores = useMemo(
-    () => (base === undefined ? [] : ledger.map((_entry, at) => replayLedger(base, ledger.slice(0, at)))),
+    () => (base === undefined
+      ? []
+      : ledger.map((_entry, at) => replayLedger(base, ledger.slice(0, at)))),
     [base, ledger],
   );
 
@@ -30,11 +34,22 @@ export function ChangesPanel() {
 
   return (
     <Modal title="Changes" onClose={closeDialog} wide>
-      {entries.length === 0 ? <p className="note pad">No saved changes since the last publish.</p> : null}
+      {entries.length === 0
+        ? <p className="note pad">No saved changes since the last publish.</p>
+        : null}
       {entries.map(({ entry, before }) => (
         <div className="grp" key={entry.seq}>
           <h4>
-            #{entry.seq} · {entry.action} · {new Date(entry.at).toLocaleString()}
+            #
+            {entry.seq}
+            {" "}
+            ·
+            {" "}
+            {entry.action}
+            {" "}
+            ·
+            {" "}
+            {new Date(entry.at).toLocaleString()}
           </h4>
           {Object.entries(entry.changes.items ?? {}).map(([key, item]) => (
             <div className="change" key={key}>

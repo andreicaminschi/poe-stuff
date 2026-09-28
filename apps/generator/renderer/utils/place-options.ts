@@ -8,10 +8,14 @@ export function placeOptions(config: GeneratorConfig, key: string, record: Categ
   const stack = record?.tiering === "stack-size";
 
   return {
-    floors: category.floors ?? (stack ? STACK_FLOORS : config.floors),
+    floors: category.floors ?? (stack
+      ? STACK_FLOORS
+      : config.floors),
     disabled: category.disabled,
     hints: record?.hints ?? [],
     wanted: category.wanted,
-    ...(stack ? { tiering: "stack-size" as const } : {}),
+    ...(stack
+      ? { tiering: "stack-size" as const }
+      : {}),
   };
 }

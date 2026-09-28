@@ -7,5 +7,7 @@ export function useDraft(): Draft | undefined {
   const saved = useSession((state) => state.saved);
   const changes = useSession((state) => state.changes);
 
-  return useMemo(() => (saved === undefined ? undefined : applyChanges(saved, changes)), [saved, changes]);
+  return useMemo(() => (saved === undefined
+    ? undefined
+    : applyChanges(saved, changes)), [saved, changes]);
 }

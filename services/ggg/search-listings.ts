@@ -2,9 +2,7 @@ import { call } from "./call.ts";
 import type { GGGListingSearch } from "./search-listings.types.ts";
 import type { GGGSearchResponseData, GggContext } from "./types.ts";
 
-export const mapGGGSearchResponseDataToGGGListingSearch = (
-  data: GGGSearchResponseData,
-): GGGListingSearch => ({
+export const mapGGGSearchResponseDataToGGGListingSearch = (data: GGGSearchResponseData): GGGListingSearch => ({
   searchId: data.id,
   hashes: data.result,
   matchCount: data.total,

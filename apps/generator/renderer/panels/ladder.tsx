@@ -18,26 +18,38 @@ export function Ladder() {
   if (category === undefined || placed === undefined || config === undefined) return null;
 
   const options = placeOptions(config, category.key, category.record);
-  const unit = options.tiering === "stack-size" ? " stack" : "c";
+  const unit = options.tiering === "stack-size"
+    ? " stack"
+    : "c";
   const { palette, disabled } = category.config;
   const byBucket = Map.groupBy(placed.placed, (one) => one.bucket);
   const countOf = (name: BucketName): number => byBucket.get(name)?.length ?? 0;
 
   const rangeOf = (name: BucketName): string => {
     const bucket = placed.ladder.find((one) => one.name === name);
-    return bucket === undefined ? "" : span(bucket, unit);
+    return bucket === undefined
+      ? ""
+      : span(bucket, unit);
   };
 
   return (
     <div className="ladder">
-      <Rung name="All" range="every tier" count={placed.placed.length} selected={selected === null} onSelect={() => selectBucket(null)} />
+      <Rung
+        name="All"
+        range="every tier"
+        count={placed.placed.length}
+        selected={selected === null}
+        onSelect={() => selectBucket(null)}
+      />
       {TIERS.map((name) => {
         const enabled = !disabled.includes(name);
         return (
           <Rung
             key={name}
             name={name}
-            range={enabled ? rangeOf(name) : `off · ${options.floors[name]}${unit}`}
+            range={enabled
+              ? rangeOf(name)
+              : `off · ${options.floors[name]}${unit}`}
             size={tierStyle(palette, name).size}
             count={countOf(name)}
             selected={selected === name}
@@ -47,9 +59,30 @@ export function Ladder() {
           />
         );
       })}
-      <Rung name={WANT} range="manual list" size="S" count={countOf(WANT)} selected={selected === WANT} onSelect={() => selectBucket(WANT)} />
-      <Rung name={UNPRICED} range="flagged in taxonomy" size={tierStyle(palette, UNPRICED).size} count={countOf(UNPRICED)} selected={selected === UNPRICED} onSelect={() => selectBucket(UNPRICED)} />
-      <Rung name={HIDDEN} range={rangeOf(HIDDEN)} size="XS" count={countOf(HIDDEN)} selected={selected === HIDDEN} onSelect={() => selectBucket(HIDDEN)} />
+      <Rung
+        name={WANT}
+        range="manual list"
+        size="S"
+        count={countOf(WANT)}
+        selected={selected === WANT}
+        onSelect={() => selectBucket(WANT)}
+      />
+      <Rung
+        name={UNPRICED}
+        range="flagged in taxonomy"
+        size={tierStyle(palette, UNPRICED).size}
+        count={countOf(UNPRICED)}
+        selected={selected === UNPRICED}
+        onSelect={() => selectBucket(UNPRICED)}
+      />
+      <Rung
+        name={HIDDEN}
+        range={rangeOf(HIDDEN)}
+        size="XS"
+        count={countOf(HIDDEN)}
+        selected={selected === HIDDEN}
+        onSelect={() => selectBucket(HIDDEN)}
+      />
     </div>
   );
 }

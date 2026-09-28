@@ -15,7 +15,7 @@ describe("searchListings", () => {
     const [url, init] = fetchMock.mock.calls[0]!;
     expect(url).toBe("https://trade.test/api/search/Hardcore%20Allflame");
     expect(init?.method).toBe("POST");
-    expect(init?.body).toBe('{"query":{"type":"Ring"}}');
+    expect(init?.body).toBe("{\"query\":{\"type\":\"Ring\"}}");
     expect(init?.headers).toMatchObject({ "content-type": "application/json" });
   });
 

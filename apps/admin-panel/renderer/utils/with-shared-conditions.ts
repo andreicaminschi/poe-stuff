@@ -7,8 +7,8 @@ export const withSharedConditions = (item: Item, before: readonly Condition[], a
   conditions: [
     ...item.conditions.filter(
       (condition) =>
-        !before.some((shared) => sameCondition(shared, condition)) ||
-        after.some((shared) => sameCondition(shared, condition)),
+        !before.some((shared) => sameCondition(shared, condition))
+        || after.some((shared) => sameCondition(shared, condition)),
     ),
     ...after.filter((shared) => !item.conditions.some((condition) => sameCondition(shared, condition))),
   ],

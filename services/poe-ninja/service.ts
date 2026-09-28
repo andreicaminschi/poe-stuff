@@ -27,14 +27,8 @@ export type PoeNinjaService = {
   getLeagues(): Promise<readonly EconomyLeague[]>;
   getLeagueItems(league: string): Promise<readonly NinjaItem[]>;
   getExchangeRatios(league: string): Promise<readonly NinjaExchangeItem[]>;
-  getItemOverview(
-    league: string,
-    type: ItemType,
-  ): Promise<readonly ItemOverviewLine[]>;
-  getExchangeOverview(
-    league: string,
-    type: ExchangeType,
-  ): Promise<ExchangeOverviewResponse>;
+  getItemOverview(league: string, type: ItemType): Promise<readonly ItemOverviewLine[]>;
+  getExchangeOverview(league: string, type: ExchangeType): Promise<ExchangeOverviewResponse>;
 };
 
 /**
@@ -58,7 +52,9 @@ export function createPoeNinjaService({
   const context = {
     baseUrl: trimUrl(baseUrl),
     userAgent,
-    ...(cache === undefined ? {} : { cache }),
+    ...(cache === undefined
+      ? {}
+      : { cache }),
   };
 
   return {
@@ -66,7 +62,6 @@ export function createPoeNinjaService({
     getLeagueItems: (league) => getLeagueItems(league, context),
     getExchangeRatios: (league) => getExchangeRatios(league, context),
     getItemOverview: (league, type) => getItemOverview(league, type, context),
-    getExchangeOverview: (league, type) =>
-      getExchangeOverview(league, type, context),
+    getExchangeOverview: (league, type) => getExchangeOverview(league, type, context),
   };
 }

@@ -22,13 +22,18 @@ const report = (event: PipelineEvent): void => {
   const wrote =
     first === undefined
       ? ""
-      : ` -> ${event.keys.length > 1 ? `${event.keys.length} files under ${first.replace(/[^/]+$/, "")}` : first}`;
+      : ` -> ${event.keys.length > 1
+        ? `${event.keys.length} files under ${first.replace(/[^/]+$/, "")}`
+        : first}`;
 
   process.stdout.write(`${event.id}: ${event.rows} rows${wrote}\n`);
 };
 
 function parseSources(named: string): Force {
-  const sources = named.split(",").map((source) => source.trim()).filter(Boolean);
+  const sources = named
+    .split(",")
+    .map((source) => source.trim())
+    .filter(Boolean);
   const unknown = sources.filter((source) => !SOURCES.includes(source));
 
   if (unknown.length > 0) {
@@ -72,7 +77,9 @@ async function main(): Promise<void> {
       ggg: createGGGService({ userAgent }),
       poeWatch: createPoeWatchService({ userAgent }),
       taxonomy: createTaxonomyService({ root }),
-      ...(taxonomyVersion === undefined ? {} : { taxonomyVersion }),
+      ...(taxonomyVersion === undefined
+        ? {}
+        : { taxonomyVersion }),
     },
     { onEvent: report, force },
   );
@@ -81,6 +88,8 @@ async function main(): Promise<void> {
 }
 
 main().catch((error: unknown) => {
-  process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
+  process.stderr.write(`${error instanceof Error
+    ? error.message
+    : String(error)}\n`);
   process.exitCode = 1;
 });

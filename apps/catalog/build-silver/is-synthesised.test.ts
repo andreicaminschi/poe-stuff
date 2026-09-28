@@ -6,11 +6,11 @@ const iconWith = (options: string): string =>
 
 describe("isSynthesised", () => {
   it("reads a synthesised icon as synthesised", () => {
-    expect(isSynthesised(iconWith('[25,14,{"f":"x","synthesised":true}]'))).toBe(true);
+    expect(isSynthesised(iconWith("[25,14,{\"f\":\"x\",\"synthesised\":true}]"))).toBe(true);
   });
 
   it("reads an icon whose options say false as not synthesised", () => {
-    expect(isSynthesised(iconWith('[25,14,{"synthesised":false}]'))).toBe(false);
+    expect(isSynthesised(iconWith("[25,14,{\"synthesised\":false}]"))).toBe(false);
   });
 
   it("reads an icon with no image segment as not synthesised", () => {
@@ -22,6 +22,6 @@ describe("isSynthesised", () => {
   });
 
   it("reads the flag with a space after the colon as not synthesised", () => {
-    expect(isSynthesised(iconWith('{"synthesised": true}'))).toBe(false); // exact substring match
+    expect(isSynthesised(iconWith("{\"synthesised\": true}"))).toBe(false); // exact substring match
   });
 });

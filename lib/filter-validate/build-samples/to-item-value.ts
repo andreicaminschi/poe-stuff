@@ -2,7 +2,9 @@ import { CONDITIONS, type ConditionName } from "@poe/filter-eval/filter-ast";
 
 const countedValue = (value: unknown): unknown => {
   if (typeof value === "string") return [value];
-  return Array.isArray(value) && value.every((one) => typeof one === "string") ? value : undefined;
+  return Array.isArray(value) && value.every((one) => typeof one === "string")
+    ? value
+    : undefined;
 };
 
 /**
@@ -14,11 +16,21 @@ export function toItemValue(name: ConditionName, value: unknown): unknown {
 
   if (kind === "enums") {
     if (typeof value !== "string") return undefined;
-    return value.toLowerCase() === "none" ? [] : [value];
+    return value.toLowerCase() === "none"
+      ? []
+      : [value];
   }
   if (kind === "counted") return countedValue(value);
-  if (kind === "gem" && typeof value === "boolean") return value ? "transfigured" : "";
-  if (kind === "boolean") return typeof value === "boolean" ? value : undefined;
-  if (kind === "numeric") return typeof value === "number" ? value : undefined;
-  return typeof value === "string" ? value : undefined;
+  if (kind === "gem" && typeof value === "boolean") return value
+    ? "transfigured"
+    : "";
+  if (kind === "boolean") return typeof value === "boolean"
+    ? value
+    : undefined;
+  if (kind === "numeric") return typeof value === "number"
+    ? value
+    : undefined;
+  return typeof value === "string"
+    ? value
+    : undefined;
 }

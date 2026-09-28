@@ -4,5 +4,18 @@
       "source": { "source": "github", "repo": "DietrichGebert/ponytail" }
     }
   },
-  "enabledPlugins": { "ponytail@ponytail": true }
+  "enabledPlugins": { "ponytail@ponytail": true },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_response.filePath // .tool_input.file_path // empty' | tr -d '\\r' | { read -r f; case \"$f\" in *.ts|*.tsx) yarn eslint --fix \"$f\";; esac; } >/dev/null 2>&1 || true"
+          }
+        ]
+      }
+    ]
+  }
 }

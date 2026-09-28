@@ -1,4 +1,4 @@
-import { sampleSets } from "../samples-of/sample-sets.ts";
+import { sampleSets } from "../build-samples/sample-sets.ts";
 import type { SampleCategories, SampleRow } from "../types.ts";
 
 /** The properties a row's sample sets give more than one value. */

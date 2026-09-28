@@ -8,8 +8,10 @@ type Value = string | number | boolean | readonly string[];
 function listText(value: Value): string | undefined {
   if (typeof value === "number" || typeof value === "boolean") return undefined;
 
-  const values = typeof value === "string" ? [value] : value;
-  if (values.length === 0 || values.some((one) => one === "" || one.includes('"'))) return undefined;
+  const values = typeof value === "string"
+    ? [value]
+    : value;
+  if (values.length === 0 || values.some((one) => one === "" || one.includes("\""))) return undefined;
 
   return values.map((one) => `"${one}"`).join(" ");
 }
@@ -23,7 +25,9 @@ function bareText(value: Value): string | undefined {
 function orderedText(value: Value, order: readonly string[]): string | undefined {
   if (typeof value === "number" || typeof value === "boolean") return undefined;
 
-  const values = typeof value === "string" ? value.split(/\s+/) : value;
+  const values = typeof value === "string"
+    ? value.split(/\s+/)
+    : value;
   if (values.length === 0 || values.some((one) => !order.includes(one))) return undefined;
 
   return values.join(" ");
@@ -32,15 +36,21 @@ function orderedText(value: Value, order: readonly string[]): string | undefined
 function booleanText(value: Value): string | undefined {
   if (typeof value !== "boolean") return undefined;
 
-  return value ? "True" : "False";
+  return value
+    ? "True"
+    : "False";
 }
 
 const gemText = (value: Value): string | undefined =>
-  typeof value === "boolean" ? booleanText(value) : listText(value);
+  typeof value === "boolean"
+    ? booleanText(value)
+    : listText(value);
 
 function valueText(kind: ConditionKind, value: Value, order: readonly string[]): string | undefined {
   if (kind === "boolean") return booleanText(value);
-  if (kind === "numeric") return typeof value === "number" ? String(value) : undefined;
+  if (kind === "numeric") return typeof value === "number"
+    ? String(value)
+    : undefined;
   if (kind === "ordered") return orderedText(value, order);
   if (kind === "sockets") return bareText(value);
   if (kind === "gem") return gemText(value);
@@ -63,11 +73,15 @@ export function conditionLine(condition: Condition): LineResult {
   if (value === undefined || value === null) return { problem: `${name} has no value` };
 
   const spec = CONDITIONS[name];
-  const order = "order" in spec ? spec.order : [];
+  const order = "order" in spec
+    ? spec.order
+    : [];
   const text = valueText(spec.kind, value, order);
   if (text === undefined) return { problem: `${name} cannot hold ${JSON.stringify(value)}` };
 
-  const operator = condition.operator === undefined ? "" : `${condition.operator} `;
+  const operator = condition.operator === undefined
+    ? ""
+    : `${condition.operator} `;
 
   return { line: `${name} ${operator}${text}` };
 }

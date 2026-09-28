@@ -26,7 +26,7 @@ describe("groupByCategory", () => {
   });
 
   it("refuses two categories whose names share a slug", () => {
-    expect(() => groupByCategory([row("a", "A", "Gems"), row("b", "B", "gems!")])).toThrow('both slug to "gems"');
+    expect(() => groupByCategory([row("a", "A", "Gems"), row("b", "B", "gems!")])).toThrow("both slug to \"gems\"");
   });
 
   it("leaves the rows it was handed in their order", () => {

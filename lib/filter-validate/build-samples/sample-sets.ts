@@ -6,5 +6,7 @@ export function sampleSets(
   category: string,
   subcategory: string | null,
 ): readonly SampleSet[] | undefined {
-  return subcategory === null ? undefined : categories[`${category}/${subcategory}`]?.samples;
+  return subcategory === null
+    ? undefined
+    : categories[`${category}/${subcategory}`]?.samples;
 }

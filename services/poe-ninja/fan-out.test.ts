@@ -24,7 +24,11 @@ describe("fanOut", () => {
   });
 
   it("returns results in name order even when later names finish first", async () => {
-    const waits = new Map([["a", 30], ["b", 10], ["c", 0]]);
+    const waits = new Map([
+      ["a", 30],
+      ["b", 10],
+      ["c", 0],
+    ]);
 
     const results = await fanOut(["a", "b", "c"], async (name) => {
       await new Promise((done) => setTimeout(done, waits.get(name)));
@@ -68,7 +72,7 @@ describe("fanOut", () => {
 
   it("stringifies a thrown non-error into the message", async () => {
     const error = (await fanOut(["x"], async () => {
-      throw "plain"; // eslint-disable-line @typescript-eslint/only-throw-error
+      throw "plain";
     }).catch((caught: unknown) => caught)) as Error;
 
     expect(error.message).toBe("poe-ninja: x failed: plain");

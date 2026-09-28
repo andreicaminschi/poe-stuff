@@ -12,7 +12,9 @@ export function parseSamples(text: string, label = "Samples"): ParsedSamples {
   try {
     value = JSON.parse(text);
   } catch (error) {
-    return { problem: `${label} is not JSON: ${error instanceof Error ? error.message : String(error)}` };
+    return { problem: `${label} is not JSON: ${error instanceof Error
+      ? error.message
+      : String(error)}` };
   }
 
   if (!Array.isArray(value) || !value.every(isSet)) return { problem: `${label} must be a list of objects.` };

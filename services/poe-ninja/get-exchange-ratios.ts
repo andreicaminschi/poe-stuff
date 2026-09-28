@@ -1,6 +1,12 @@
 import { fanOut } from "./fan-out.ts";
 import { getExchangeOverview } from "./get-exchange-overview.ts";
-import { EXCHANGE_TYPES, type ExchangeItemMeta, type ExchangeLine, type ExchangeType, type PoeNinjaContext } from "./types.ts";
+import {
+  EXCHANGE_TYPES,
+  type ExchangeItemMeta,
+  type ExchangeLine,
+  type ExchangeType,
+  type PoeNinjaContext,
+} from "./types.ts";
 import type { NinjaExchangeItem } from "./get-exchange-ratios.types.ts";
 
 /**
@@ -99,9 +105,7 @@ export async function getExchangeRatios(
     // whatever the new unit is worth — which is exactly the kind of failure that has to
     // be loud rather than absorbed.
     if (book.core.primary !== CHAOS) {
-      throw new Error(
-        `poe-ninja: ${type} is quoted in ${book.core.primary}, not ${CHAOS}`,
-      );
+      throw new Error(`poe-ninja: ${type} is quoted in ${book.core.primary}, not ${CHAOS}`);
     }
 
     const names = new Map<string, ExchangeItemMeta>();
@@ -112,9 +116,7 @@ export async function getExchangeRatios(
     // that does not exist rather than a free divine.
     const perChaos = book.core.rates[book.core.secondary] ?? 0;
 
-    return book.lines.flatMap((line) =>
-      toExchangeItem(line, names.get(line.id), EXCHANGE_CATEGORIES[type], perChaos),
-    );
+    return book.lines.flatMap((line) => toExchangeItem(line, names.get(line.id), EXCHANGE_CATEGORIES[type], perChaos));
   });
 
   return perType.flat();
@@ -136,12 +138,16 @@ function toExchangeItem(
   if (meta === undefined) return [];
 
   const chaos = line.primaryValue;
-  const divine = divinePerChaos === 0 ? 0 : chaos * divinePerChaos;
+  const divine = divinePerChaos === 0
+    ? 0
+    : chaos * divinePerChaos;
   const side = (value: number) => ({
     ...emptySide,
     value,
     chaosValue: chaos,
-    ...(divinePerChaos === 0 ? {} : { divineValue: divine }),
+    ...(divinePerChaos === 0
+      ? {}
+      : { divineValue: divine }),
     volume: line.volumePrimaryValue,
     change24H: line.sparkline?.totalChange ?? 0,
   });

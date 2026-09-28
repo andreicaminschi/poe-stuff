@@ -51,14 +51,15 @@ describe("commitLedger", () => {
 
   it("empties the ledger and appends its entries to the archive of earlier commits", async () => {
     await temp.lake.writeJson(ARCHIVE, [entry(1)]);
-    await temp.lake.writeJson(`admin-panel/ledger/${ID}.json`, [
-      entry(1, { items: { u: authoredItem("u") } }),
-    ]);
+    await temp.lake.writeJson(`admin-panel/ledger/${ID}.json`, [entry(1, { items: { u: authoredItem("u") } })]);
 
     await commitLedger(temp.lake, ID);
 
     await expect(getLedger(temp.lake, ID)).resolves.toEqual([]);
-    await expect(temp.lake.readJson(ARCHIVE)).resolves.toEqual([entry(1), entry(1, { items: { u: authoredItem("u") } })]);
+    await expect(temp.lake.readJson(ARCHIVE)).resolves.toEqual([
+      entry(1),
+      entry(1, { items: { u: authoredItem("u") } }),
+    ]);
   });
 
   it("refuses to commit a version that is not the newest draft and keeps its ledger", async () => {

@@ -7,9 +7,7 @@ export async function promoteTaxonomy(lake: Lake, version: string): Promise<read
   }
 
   if (!(await lake.exists(categoriesKey(version)))) {
-    throw new Error(
-      `${version} was published before categories had their own file. Publish a new version.`,
-    );
+    throw new Error(`${version} was published before categories had their own file. Publish a new version.`);
   }
 
   await lake.writeJsonAtomic(latestCategoriesKey(), await lake.readJson<unknown>(categoriesKey(version)));

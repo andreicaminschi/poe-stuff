@@ -20,7 +20,7 @@ notes, not a design document.
 
 ## Structure
 
-````markdown
+```markdown
 # <Feature name>
 
 ## The goal
@@ -70,9 +70,9 @@ One block per real risk. Plain English, no severity ratings.
 
 A table. One row per thing that could be built and checked on its own.
 
-| # | What | Done when |
-| --- | --- | --- |
-| 1 | <short name> | <how you can tell it works> |
+| #   | What         | Done when                   |
+| --- | ------------ | --------------------------- |
+| 1   | <short name> | <how you can tell it works> |
 
 ## Notes for whoever builds it
 
@@ -83,4 +83,4 @@ The technical detail, out of the reader's way. Bullets, file paths allowed here.
 ## What this was based on
 
 <One line: what was read. One line: what was assumed rather than checked.>
-````
+```

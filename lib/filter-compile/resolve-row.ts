@@ -30,12 +30,16 @@ export function categoryLayers(
 ): readonly Layer[] {
   const paths: readonly (readonly ["category" | "subcategory", string])[] = [
     ["category", category],
-    ...(subcategory === null ? [] : [["subcategory", `${category}/${subcategory}`] as const]),
+    ...(subcategory === null
+      ? []
+      : [["subcategory", `${category}/${subcategory}`] as const]),
   ];
 
   return paths.flatMap(([level, path]) => {
     const record = categories[path];
-    return record === undefined ? [] : [{ level, conditions: record.conditions }];
+    return record === undefined
+      ? []
+      : [{ level, conditions: record.conditions }];
   });
 }
 
@@ -50,7 +54,9 @@ function formOf(variant: string | undefined, composed: Composed, row: FromSource
   const filled = fillFrom(composed.applied, row);
 
   return {
-    ...(variant === undefined ? {} : { variant }),
+    ...(variant === undefined
+      ? {}
+      : { variant }),
     conditions: filled.conditions,
     removed: composed.removed,
     problems: filled.problems,

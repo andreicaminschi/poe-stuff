@@ -40,10 +40,7 @@ describe("createGGGService", () => {
     await jest.advanceTimersByTimeAsync(1_000);
     await service.fetchCurrencyHour(1);
 
-    expect(fetchMock.mock.calls.map((c) => c[0])).toEqual([
-      "https://t.test/api/data/stats",
-      "https://c.test/cx/1",
-    ]);
+    expect(fetchMock.mock.calls.map((c) => c[0])).toEqual(["https://t.test/api/data/stats", "https://c.test/cx/1"]);
   });
 
   it("opens at one request per second before the server names its limits", async () => {

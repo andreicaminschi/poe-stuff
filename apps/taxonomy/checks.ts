@@ -9,5 +9,7 @@ export const unknownFields = (value: Record<string, unknown>, known: readonly st
 /** The first of these fields that is present and not a boolean, as a problem. */
 export function optionalBooleanProblem(value: Record<string, unknown>, fields: readonly string[]): string | null {
   const wrong = fields.find((field) => value[field] !== undefined && typeof value[field] !== "boolean");
-  return wrong === undefined ? null : `${wrong} must be a boolean when it is present`;
+  return wrong === undefined
+    ? null
+    : `${wrong} must be a boolean when it is present`;
 }

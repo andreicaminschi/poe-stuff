@@ -11,13 +11,11 @@ export type VersionProblem = RowProblem & {
   readonly file: SourceFile;
 };
 
-const keysOf = (value: unknown): readonly string[] =>
-  isObject(value) ? Object.keys(value) : [];
+const keysOf = (value: unknown): readonly string[] => (isObject(value)
+  ? Object.keys(value)
+  : []);
 
-function inFile(
-  file: SourceFile,
-  run: () => readonly RowProblem[],
-): readonly VersionProblem[] {
+function inFile(file: SourceFile, run: () => readonly RowProblem[]): readonly VersionProblem[] {
   try {
     return run().map((problem) => ({ ...problem, file }));
   } catch (error) {
@@ -29,10 +27,7 @@ function inFile(
   }
 }
 
-export function collectVersion(
-  files: VersionFiles,
-  rejected: ReadonlySet<string>,
-): readonly VersionProblem[] {
+export function collectVersion(files: VersionFiles, rejected: ReadonlySet<string>): readonly VersionProblem[] {
   const known = new Set([
     ...keysOf(files.items),
     ...keysOf(files["authored.seeded"]),
@@ -51,11 +46,7 @@ export function collectVersion(
       ...collectAuthoredTable(files["authored.manual"], "authored.manual"),
       ...collectBaseTypes(files["authored.manual"], seeds, rejected),
     ]),
-    ...inFile("variants.seeded", () =>
-      collectVariantTable(files["variants.seeded"], known, "variants.seeded"),
-    ),
-    ...inFile("variants.manual", () =>
-      collectVariantTable(files["variants.manual"], known, "variants.manual"),
-    ),
+    ...inFile("variants.seeded", () => collectVariantTable(files["variants.seeded"], known, "variants.seeded")),
+    ...inFile("variants.manual", () => collectVariantTable(files["variants.manual"], known, "variants.manual")),
   ];
 }

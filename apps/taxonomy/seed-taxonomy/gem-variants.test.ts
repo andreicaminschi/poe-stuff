@@ -44,7 +44,8 @@ describe("gemVariants", () => {
   });
 
   it("writes each form's conditions and PoeWatch listing", () => {
-    const [first] = gemVariants({ SkillGemFireball: gemRow }, { SkillGemFireball: gem(20) } as Gems).SkillGemFireball ?? [];
+    const [first] =
+      gemVariants({ SkillGemFireball: gemRow }, { SkillGemFireball: gem(20) } as Gems).SkillGemFireball ?? [];
 
     expect(first).toEqual({
       name: "1/0",

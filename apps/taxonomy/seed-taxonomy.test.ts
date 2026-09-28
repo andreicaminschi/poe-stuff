@@ -12,7 +12,9 @@ const repoeOf = (gems: unknown, clusterJewels: unknown) =>
 
 const items = { SkillGemFireball: { name: "Fireball", category: "skill-gems", subcategory: null } };
 const gems = { SkillGemFireball: { gameId: "SkillGemFireball", naturalMaxLevel: 20 } };
-const jewels = { Small: { size: "Small", name: "Small Cluster Jewel", passive_skills: [{ name: "Fire", stat_text: ["x"] }] } };
+const jewels = {
+  Small: { size: "Small", name: "Small Cluster Jewel", passive_skills: [{ name: "Fire", stat_text: ["x"] }] },
+};
 
 describe("seedTaxonomy", () => {
   it("runs every seed and counts the keys each one wrote", async () => {

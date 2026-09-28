@@ -38,14 +38,14 @@ services/poe-watch/
 
 ## Public API
 
-| Entry point | Exports | Contract |
-| --- | --- | --- |
-| `@poe/poe-watch/service` | `createPoeWatchService`, `PoeWatchService`, `PoeWatchServiceOptions` | Three endpoints bound to one base URL, user agent and cache. Every option has a default. |
-| `@poe/poe-watch/get-compact-data.types` | `ItemData`, `ItemCategory`, `ItemCommon`, `ExchangePair`, `PerfectPrice`, `CompactResponse`, and the 31 per-category rows | `ItemData` is a union discriminated on `category`; narrow before reaching a category's own fields. |
-| `@poe/poe-watch/get-corruption-data.types` | `ItemCorruptions`, `CorruptionOutcome` | `item_id` joins to `ItemData.id`, though the two endpoints are separate snapshots and a few ids never resolve. |
+| Entry point                                | Exports                                                                                                                       | Contract                                                                                                                                                                     |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@poe/poe-watch/service`                   | `createPoeWatchService`, `PoeWatchService`, `PoeWatchServiceOptions`                                                          | Three endpoints bound to one base URL, user agent and cache. Every option has a default.                                                                                     |
+| `@poe/poe-watch/get-compact-data.types`    | `ItemData`, `ItemCategory`, `ItemCommon`, `ExchangePair`, `PerfectPrice`, `CompactResponse`, and the 31 per-category rows     | `ItemData` is a union discriminated on `category`; narrow before reaching a category's own fields.                                                                           |
+| `@poe/poe-watch/get-corruption-data.types` | `ItemCorruptions`, `CorruptionOutcome`                                                                                        | `item_id` joins to `ItemData.id`, though the two endpoints are separate snapshots and a few ids never resolve.                                                               |
 | `@poe/poe-watch/get-exchange-ratios.types` | `ExchangeRatioItem`, `ExchangeRatioPrice`, `ExchangeRatioSide`, `ExchangeRatioHistoryPoint`, `ExchangeRatiosResponse`, `Game` | `price.chaos` is the number to read: a volume-weighted mean of trades over a few hours, restated in Chaos. A side that never traded comes back as zeroes rather than absent. |
-| `@poe/poe-watch/errors` | `PoeWatchHttpError` | Carries `url`, `status`. |
-| `@poe/poe-watch/types` | `PoeWatchContext`, `ResponseCache`, `CachedResponse` | Types only. `ResponseCache` is what `PoeWatchServiceOptions.cache` takes. |
+| `@poe/poe-watch/errors`                    | `PoeWatchHttpError`                                                                                                           | Carries `url`, `status`.                                                                                                                                                     |
+| `@poe/poe-watch/types`                     | `PoeWatchContext`, `ResponseCache`, `CachedResponse`                                                                          | Types only. `ResponseCache` is what `PoeWatchServiceOptions.cache` takes.                                                                                                    |
 
 ### Not exported
 
@@ -102,11 +102,11 @@ for (const item of outcomes.slice(0, 1)) {
 **This package reads no environment.** Nothing here touches `process.env`, there is no
 `.env` to load, and every knob is an argument to `createPoeWatchService`.
 
-| Option | Holds | Default |
-| --- | --- | --- |
-| `baseUrl` | Base of the PoeWatch API, trailing slash stripped | `https://api.poe.watch` |
-| `userAgent` | `user-agent` sent on every request | `poe-stuff/1.0` |
-| `cache` | A `ResponseCache` answering calls from previous ones. Its presence is the whole switch | absent — every call re-downloads |
+| Option      | Holds                                                                                  | Default                          |
+| ----------- | -------------------------------------------------------------------------------------- | -------------------------------- |
+| `baseUrl`   | Base of the PoeWatch API, trailing slash stripped                                      | `https://api.poe.watch`          |
+| `userAgent` | `user-agent` sent on every request                                                     | `poe-stuff/1.0`                  |
+| `cache`     | A `ResponseCache` answering calls from previous ones. Its presence is the whole switch | absent — every call re-downloads |
 
 `userAgent` has a default here, unlike `@poe/ggg`, because PoeWatch publishes no
 requirement about it. Naming a real contact is still the polite thing to send.

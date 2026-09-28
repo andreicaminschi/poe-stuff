@@ -1,4 +1,4 @@
-import { pathOf } from "./samples-of/path-of.ts";
+import { formatPath } from "./build-samples/format-path.ts";
 import type { UnfilteredRow } from "./types.ts";
 
 export type UnfilteredGroup = {
@@ -9,7 +9,7 @@ export type UnfilteredGroup = {
 
 /** Unfiltered rows grouped by category path, the most samples first. */
 export function groupUnfiltered(rows: readonly UnfilteredRow[]): readonly UnfilteredGroup[] {
-  const groups = Map.groupBy(rows, pathOf);
+  const groups = Map.groupBy(rows, formatPath);
 
   return [...groups]
     .map(([path, members]) => ({

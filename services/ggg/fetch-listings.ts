@@ -13,15 +13,13 @@ export const createFetchPageRequest = (
   url: `${tradeApiUrl}/fetch/${hashes.join(",")}?query=${encodeURIComponent(searchId)}`,
 });
 
-export function pageHashes(
-  hashes: readonly string[],
-  maxPages?: number,
-): readonly (readonly string[])[] {
+export function pageHashes(hashes: readonly string[], maxPages?: number): readonly (readonly string[])[] {
   if (maxPages !== undefined && !(maxPages > 0)) {
     throw new RangeError(`maxPages must be positive, got ${maxPages}`);
   }
-  const wanted =
-    maxPages === undefined ? hashes : hashes.slice(0, maxPages * HASHES_PER_PAGE);
+  const wanted = maxPages === undefined
+    ? hashes
+    : hashes.slice(0, maxPages * HASHES_PER_PAGE);
 
   const pages: string[][] = [];
   for (let start = 0; start < wanted.length; start += HASHES_PER_PAGE) {

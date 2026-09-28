@@ -22,9 +22,7 @@ const FIELDS = [
 const PREFIX = "authored/";
 
 const isAuthoredKey = (key: string): boolean =>
-  key.startsWith(PREFIX) &&
-  key.length > PREFIX.length &&
-  slug(key.slice(PREFIX.length)) === key.slice(PREFIX.length);
+  key.startsWith(PREFIX) && key.length > PREFIX.length && slug(key.slice(PREFIX.length)) === key.slice(PREFIX.length);
 
 function rowProblem(key: string, value: unknown): string | null {
   if (!isAuthoredKey(key)) {
@@ -75,15 +73,10 @@ function rowProblem(key: string, value: unknown): string | null {
   return null;
 }
 
-export const collectAuthoredTable = (
-  value: unknown,
-  source: string,
-): readonly RowProblem[] => collect(value, source, rowProblem);
+export const collectAuthoredTable = (value: unknown, source: string): readonly RowProblem[] =>
+  collect(value, source, rowProblem);
 
-export function validateAuthoredTable(
-  value: unknown,
-  source: string,
-): AuthoredTable {
+export function validateAuthoredTable(value: unknown, source: string): AuthoredTable {
   throwFirst(source, collectAuthoredTable(value, source));
 
   return value as Readonly<Record<string, AuthoredRow>>;

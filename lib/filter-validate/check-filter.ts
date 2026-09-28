@@ -8,16 +8,10 @@ import { rowLookup } from "./find-fall-through/row-lookup.ts";
 import { groupBlind, groupHits, groupRejected } from "./find-fall-through/tally.ts";
 import type { Blind, Hit, Rejected } from "./find-fall-through/types.ts";
 import { variedProperties } from "./find-fall-through/varied-properties.ts";
-import { samplesOf } from "./samples-of.ts";
-import { pathOf } from "./samples-of/path-of.ts";
-import { sampleSets } from "./samples-of/sample-sets.ts";
-import type {
-  FallThroughReport,
-  SampleCategories,
-  SampleRow,
-  UnfilteredReport,
-  UnfilteredRow,
-} from "./types.ts";
+import { buildSamples } from "./build-samples.ts";
+import { formatPath } from "./build-samples/format-path.ts";
+import { sampleSets } from "./build-samples/sample-sets.ts";
+import type { FallThroughReport, SampleCategories, SampleRow, UnfilteredReport, UnfilteredRow } from "./types.ts";
 
 export type FilterCheck = {
   readonly unfiltered: UnfilteredReport;
@@ -27,7 +21,7 @@ export type FilterCheck = {
 const unsampledOf = (rows: readonly SampleRow[], categories: SampleCategories): readonly string[] =>
   [
     ...new Set(
-      rows.filter((row) => sampleSets(categories, row.category, row.subcategory) === undefined).map(pathOf),
+      rows.filter((row) => sampleSets(categories, row.category, row.subcategory) === undefined).map(formatPath),
     ),
   ].sort();
 
@@ -66,8 +60,8 @@ export function checkFilter(
   let judged = 0;
   let judgedUnfiltered = 0;
 
-  for (const { row, item, reject } of samplesOf(rows, categories)) {
-    const catchAll = categories[pathOf(row)]?.catchAll === true;
+  for (const { row, item, reject } of buildSamples(rows, categories)) {
+    const catchAll = categories[formatPath(row)]?.catchAll === true;
     if (reject !== undefined) {
       if (catchAll) continue;
       const taken = judgeReject(row, item, reject, match(item).winner, rowOf);

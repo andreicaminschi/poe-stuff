@@ -47,11 +47,17 @@ describe("buildSilver", () => {
       ["Amber Ring", undefined, undefined],
       ["Ruby Ring", 5, "Kaom"],
     ]);
-    expect((await lake.readJson<Item[]>("catalog/run=r_1/silver/rings.unpriced.json")).map((row) => row.key)).toEqual(["unlisted"]);
+    expect((await lake.readJson<Item[]>("catalog/run=r_1/silver/rings.unpriced.json")).map((row) => row.key)).toEqual([
+      "unlisted",
+    ]);
   });
 
   it("never files a row with variants as unpriced", async () => {
-    const taxonomy = { version: "1", authored: {}, items: { g: { name: "Gem", category: "Gems", subcategory: null, variants: [{ name: "v", conditions: [] }] } } };
+    const taxonomy = {
+      version: "1",
+      authored: {},
+      items: { g: { name: "Gem", category: "Gems", subcategory: null, variants: [{ name: "v", conditions: [] }] } },
+    };
     await writeBronze(lake, "r_1", { "taxonomy_items.json": taxonomy });
 
     expect((await run()).keys).toEqual(["catalog/run=r_1/silver/gems.json"]);

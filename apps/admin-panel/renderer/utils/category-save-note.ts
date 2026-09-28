@@ -1,5 +1,9 @@
 /** What Save does to an edited category, when it does more than write the record. */
-export function categorySaveNote(from: string, moved: string | undefined, renamed: string | undefined): string | undefined {
+export function categorySaveNote(
+  from: string,
+  moved: string | undefined,
+  renamed: string | undefined,
+): string | undefined {
   if (moved !== undefined && renamed !== undefined) {
     return `Saving moves this subcategory to ${moved}, then renames it to ${renamed}, with every row filed in it. Undo reverts one step at a time.`;
   }

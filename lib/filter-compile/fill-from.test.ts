@@ -23,7 +23,7 @@ describe("fillFrom", () => {
   it("reports an authored value when the condition also reads from the row", () => {
     const result = fillFrom([{ condition: "BaseType", value: "Other", from: "name", level: "item" }], row);
 
-    expect(result.problems).toEqual(['BaseType has both a value and from "name"']);
+    expect(result.problems).toEqual(["BaseType has both a value and from \"name\""]);
   });
 
   it("leaves conditions without a reference untouched", () => {
@@ -39,7 +39,7 @@ describe("fillFrom", () => {
   });
 
   it("reports a quote in the name when a condition reads it", () => {
-    const result = fillFrom([{ condition: "BaseType", from: "name", level: "item" }], { ...row, name: 'A "B"' });
+    const result = fillFrom([{ condition: "BaseType", from: "name", level: "item" }], { ...row, name: "A \"B\"" });
 
     expect(result.problems).toEqual(["has a quote in its name, which a .filter line cannot hold"]);
   });
@@ -59,7 +59,7 @@ describe("fillFrom", () => {
   it("reports a quote in any base type when a condition reads them", () => {
     const result = fillFrom([{ condition: "BaseType", from: "baseTypes", level: "item" }], {
       ...row,
-      baseTypes: ["Fine", 'Bad "one"'],
+      baseTypes: ["Fine", "Bad \"one\""],
     });
 
     expect(result.problems).toEqual(["has a quote in a base type, which a .filter line cannot hold"]);
@@ -69,7 +69,7 @@ describe("fillFrom", () => {
     const result = fillFrom([{ condition: "BaseType", from: "key", level: "item" }], row);
 
     expect(result.conditions).toEqual([]);
-    expect(result.problems).toEqual(['reads "key", which is not name or baseTypes']);
+    expect(result.problems).toEqual(["reads \"key\", which is not name or baseTypes"]);
   });
 
   it("lists name problems before base type problems before unknown references", () => {
@@ -85,7 +85,7 @@ describe("fillFrom", () => {
     expect(result.problems).toEqual([
       "reads its name, which is empty",
       "reads its base types, which are empty",
-      'reads "other", which is not name or baseTypes',
+      "reads \"other\", which is not name or baseTypes",
     ]);
   });
 

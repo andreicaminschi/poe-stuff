@@ -3,12 +3,11 @@ import type { Lake } from "@poe/lake/types";
 import type { Manifest, Stage, StageRecord } from "../types.ts";
 
 /** The run's manifest, or nothing when the run has never finished a stage. */
-export async function readManifest(
-  lake: Lake,
-  runId: string,
-): Promise<Manifest | undefined> {
+export async function readManifest(lake: Lake, runId: string): Promise<Manifest | undefined> {
   const key = manifestKey(runId);
-  return (await lake.exists(key)) ? lake.readJson<Manifest>(key) : undefined;
+  return (await lake.exists(key))
+    ? lake.readJson<Manifest>(key)
+    : undefined;
 }
 
 /**
@@ -17,11 +16,7 @@ export async function readManifest(
  * Returns a new manifest rather than writing into the one it was handed, so a stage cannot
  * quietly amend what an earlier one reported.
  */
-export const withStage = (
-  manifest: Manifest,
-  stage: Stage,
-  record: StageRecord,
-): Manifest => ({
+export const withStage = (manifest: Manifest, stage: Stage, record: StageRecord): Manifest => ({
   ...manifest,
   stages: { ...manifest.stages, [stage]: record },
 });

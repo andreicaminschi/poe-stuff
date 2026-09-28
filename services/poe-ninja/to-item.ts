@@ -45,7 +45,9 @@ const UNKNOWN_FOOTPRINT = 1;
 
 /** The item, with the roll poe.ninja priced it at in brackets, as PoeWatch spells it. */
 const withVariant = (name: string, variant: string | undefined): string =>
-  variant === undefined || variant === "" ? name : `${name} (${variant})`;
+  variant === undefined || variant === ""
+    ? name
+    : `${name} (${variant})`;
 
 /**
  * A name with any trailing parenthesised group taken off.
@@ -55,8 +57,7 @@ const withVariant = (name: string, variant: string | undefined): string =>
  * inside the first. Nested brackets are not cosmetic: a reader stripping ` (...)` off the
  * end with a bracket-free pattern strips nothing at all from `a (b (c))`.
  */
-const withoutTrailingParens = (name: string): string =>
-  name.replace(/\s*\([^()]*\)\s*$/, "").trim();
+const withoutTrailingParens = (name: string): string => name.replace(/\s*\([^()]*\)\s*$/, "").trim();
 
 /**
  * The gem the game means, out of the way poe.ninja writes a Vaal transfiguration.
@@ -78,7 +79,9 @@ const gemName = (line: ItemOverviewLine): string => {
   const base = line.baseType ?? outer;
   const at = inner.lastIndexOf(" of ");
 
-  return at < 0 ? outer : `${base}${inner.slice(at)}`;
+  return at < 0
+    ? outer
+    : `${base}${inner.slice(at)}`;
 };
 
 /** The name of the item this row prices, spelled the way the game spells it. */
@@ -108,10 +111,7 @@ export function itemName(line: ItemOverviewLine, rule: TypeRule): string {
  *
  * Empty on every type but `BaseType`, where `variant` is a roll and not an influence.
  */
-export function influencesOf(
-  line: ItemOverviewLine,
-  rule: TypeRule,
-): string {
+export function influencesOf(line: ItemOverviewLine, rule: TypeRule): string {
   if (rule.influence !== true) return "";
   if (line.variant === undefined || line.variant === "") return "";
 
@@ -124,9 +124,7 @@ export function influencesOf(
 }
 
 /** The modifier texts, or `null` where the row carries none — PoeWatch's own shape. */
-const modifiers = (
-  lines: readonly { readonly text: string }[] | undefined,
-): readonly string[] | null =>
+const modifiers = (lines: readonly { readonly text: string }[] | undefined): readonly string[] | null =>
   lines === undefined || lines.length === 0
     ? null
     : lines.map((modifier) => modifier.text);
@@ -136,7 +134,9 @@ const links = (value: number | string | undefined): number | undefined => {
   if (value === undefined || value === "") return undefined;
 
   const count = Number(value);
-  return Number.isFinite(count) ? count : undefined;
+  return Number.isFinite(count)
+    ? count
+    : undefined;
 };
 
 /**
@@ -146,10 +146,7 @@ const links = (value: number | string | undefined): number | undefined => {
  * it is the question that was asked, and it is the only trustworthy answer to what this
  * row is. See `item-types.ts`.
  */
-export function mapItemOverviewLineToNinjaItem(
-  line: ItemOverviewLine,
-  type: ItemType,
-): NinjaItem {
+export function mapItemOverviewLineToNinjaItem(line: ItemOverviewLine, type: ItemType): NinjaItem {
   const rule = TYPE_RULES[type];
   const price = line.chaosValue;
   const spark = line.sparkLine;
@@ -179,19 +176,22 @@ export function mapItemOverviewLineToNinjaItem(
     // which no threshold here is anywhere near.
     daily: line.count,
     change: spark?.totalChange ?? null,
-    history:
-      spark === undefined
-        ? null
-        : spark.data.filter((point): point is number => point !== null),
+    history: spark === undefined
+      ? null
+      : spark.data.filter((point): point is number => point !== null),
     sevenDaysHistory: spark?.data ?? null,
     lowConfidence: line.count < LOW_CONFIDENCE_COUNT,
     implicits: modifiers(line.implicitModifiers),
     explicits: modifiers(line.explicitModifiers),
-    itemLevel: rule.itemLevel === true ? (line.levelRequired ?? null) : null,
+    itemLevel: rule.itemLevel === true
+      ? (line.levelRequired ?? null)
+      : null,
     width: UNKNOWN_FOOTPRINT,
     height: UNKNOWN_FOOTPRINT,
     category: rule.category,
-    ...(linkCount === undefined ? {} : { linkCount }),
+    ...(linkCount === undefined
+      ? {}
+      : { linkCount }),
     ...(gem
       ? {
           gemLevel: line.gemLevel ?? 1,
@@ -203,7 +203,9 @@ export function mapItemOverviewLineToNinjaItem(
     // Never a number. poe.ninja publishes no map tier; a map's name carries it, as
     // `Map (Tier 16)`, and reading it out of the name would be this package inventing a
     // field rather than reporting one.
-    ...(rule.category === "maps" ? { mapTier: null } : {}),
+    ...(rule.category === "maps"
+      ? { mapTier: null }
+      : {}),
     ninjaType: type,
   };
 }

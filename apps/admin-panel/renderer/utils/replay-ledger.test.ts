@@ -14,7 +14,12 @@ describe("replayLedger", () => {
 
     const next = replayLedger(base, [
       { seq: 1, at: "t", action: "delete-category", changes: { categories: { gems: null } } },
-      { seq: 2, at: "t", action: "save-category", changes: { categories: { gems: category("gems", { name: "Gems" }) } } },
+      {
+        seq: 2,
+        at: "t",
+        action: "save-category",
+        changes: { categories: { gems: category("gems", { name: "Gems" }) } },
+      },
     ]);
 
     expect(next.categories["gems"]?.name).toBe("Gems");

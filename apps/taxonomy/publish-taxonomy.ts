@@ -49,11 +49,7 @@ function foldRows<T extends Publishable>(rows: Readonly<Record<string, T>>, tabl
   return { rows: Object.fromEntries(kept), rowsLeftOut, variantsLeftOut };
 }
 
-export async function publishTaxonomy(
-  lake: Lake,
-  version: string,
-  table: Version,
-): Promise<Published> {
+export async function publishTaxonomy(lake: Lake, version: string, table: Version): Promise<Published> {
   const registry = await readRegistry(lake);
   assertPublishable(registry, version);
 

@@ -24,13 +24,13 @@ Show
 	#@ tier=T0 verb=check family=uniques-by-base bucket unique:Heavy Belt
 ```
 
-| Part | Rule |
-| --- | --- |
-| Keyword | `Show`, `Hide` or `Minimal`, alone on the line. A trailing `#` comment is fine. |
-| Conditions | One per line, any order. A trailing `#` comment is kept as provenance. |
-| Actions | Optional, skipped, any order among the conditions. |
-| `Continue` | Optional. Must come **before** the note. |
-| `#@` note | Required, and must be the **last line of the block**. |
+| Part       | Rule                                                                            |
+| ---------- | ------------------------------------------------------------------------------- |
+| Keyword    | `Show`, `Hide` or `Minimal`, alone on the line. A trailing `#` comment is fine. |
+| Conditions | One per line, any order. A trailing `#` comment is kept as provenance.          |
+| Actions    | Optional, skipped, any order among the conditions.                              |
+| `Continue` | Optional. Must come **before** the note.                                        |
+| `#@` note  | Required, and must be the **last line of the block**.                           |
 
 Four rules that reject a filter outright:
 
@@ -55,11 +55,11 @@ ordinary comment and is ignored — there is no fuzzy prefix matching.
 
 ### Keys
 
-| Key | Required | Values |
-| --- | --- | --- |
-| `tier` | yes | `T0` `T1` `T2` `T3` `T4` `T5` `varies` `hidden` `want` |
-| `verb` | yes | `take` `check` `gamble` |
-| `family` | no | `bases` `corruptible-uniques` `div-cards` `foulborn` `fragments` `gems` `maps` `misc` `stackables` `unique-maps` `uniques-by-base` |
+| Key      | Required | Values                                                                                                                             |
+| -------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `tier`   | yes      | `T0` `T1` `T2` `T3` `T4` `T5` `varies` `hidden` `want`                                                                             |
+| `verb`   | yes      | `take` `check` `gamble`                                                                                                            |
+| `family` | no       | `bases` `corruptible-uniques` `div-cards` `foulborn` `fragments` `gems` `maps` `misc` `stackables` `unique-maps` `uniques-by-base` |
 
 None of them repeat. An unknown key throws. A known key with an off-list value throws.
 
@@ -123,16 +123,16 @@ So a freehand must not start with a word containing `=`. Lead with a plain word.
 Condition names come from [docs/item-filter-syntax.md](../../docs/item-filter-syntax.md);
 all 61 are supported. Each compares one of eight ways.
 
-| Kind | Written | Item holds |
-| --- | --- | --- |
-| `boolean` | `Corrupted True` | `boolean` |
-| `numeric` | `StackSize >= 5` | `number` |
-| `ordered` | `Rarity > Magic`, `Rarity Normal Magic Rare` | `string` |
-| `strings` | `BaseType "Chaos Orb" "Divine Orb"` | `string` |
-| `enums` | `HasInfluence Shaper Elder` | `string[]` |
-| `sockets` | `SocketGroup >= 5GGG` | `string`, e.g. `"RGB BB"` |
-| `counted` | `HasExplicitMod >=2 "of Haast" "of Tzteosh"` | `string[]` |
-| `gem` | `TransfiguredGem True`, `TransfiguredGem "Leap Slam"` | `string` |
+| Kind      | Written                                               | Item holds                |
+| --------- | ----------------------------------------------------- | ------------------------- |
+| `boolean` | `Corrupted True`                                      | `boolean`                 |
+| `numeric` | `StackSize >= 5`                                      | `number`                  |
+| `ordered` | `Rarity > Magic`, `Rarity Normal Magic Rare`          | `string`                  |
+| `strings` | `BaseType "Chaos Orb" "Divine Orb"`                   | `string`                  |
+| `enums`   | `HasInfluence Shaper Elder`                           | `string[]`                |
+| `sockets` | `SocketGroup >= 5GGG`                                 | `string`, e.g. `"RGB BB"` |
+| `counted` | `HasExplicitMod >=2 "of Haast" "of Tzteosh"`          | `string[]`                |
+| `gem`     | `TransfiguredGem True`, `TransfiguredGem "Leap Slam"` | `string`                  |
 
 Rules worth knowing before emitting:
 
@@ -140,7 +140,7 @@ Rules worth knowing before emitting:
   exactly one value when comparing with `<` `<=` `>` `>=`.
 - **`strings` and `enums` match any of the listed values.** `!` and `!=` flip the whole
   condition, so none may match.
-- **`sockets`**: the operator applies to the count, colours are always *at least*.
+- **`sockets`**: the operator applies to the count, colours are always _at least_.
   `>= 5GGG` is five or more sockets with three or more green. Either half may be left out —
   `Sockets >= 3` and `Sockets >= AAAA` are both valid. Letters are `R G B A D W`.
 - **`counted`**: the count may be glued (`>=2`) or spaced (`>= 2`). No count means one or
@@ -204,10 +204,7 @@ import { formatCondition, formatNote } from "@poe/filter-eval/format-note";
 formatCondition("AreaLevel >= 68", "generated by bucket unique:Heavy Belt");
 // AreaLevel >= 68 # generated by bucket unique:Heavy Belt
 
-formatNote(
-  { tier: "T0", verb: "check", family: "uniques-by-base" },
-  "bucket unique:Heavy Belt",
-);
+formatNote({ tier: "T0", verb: "check", family: "uniques-by-base" }, "bucket unique:Heavy Belt");
 // #@ tier=T0 verb=check family=uniques-by-base bucket unique:Heavy Belt
 ```
 
@@ -227,12 +224,12 @@ const result = evaluateFilter(blocks, { Rarity: "Unique", BaseType: "Heavy Belt"
 `parseFilter` throwing is the first half of validation — every message names the line.
 `result` is the second half:
 
-| Field | Holds |
-| --- | --- |
-| `verdict` | `Show`, `Hide`, `Minimal`, or `none` if nothing stopped the walk |
-| `notes` | the merged note, later blocks beating earlier ones |
+| Field           | Holds                                                            |
+| --------------- | ---------------------------------------------------------------- |
+| `verdict`       | `Show`, `Hide`, `Minimal`, or `none` if nothing stopped the walk |
+| `notes`         | the merged note, later blocks beating earlier ones               |
 | `contributions` | every note in the order given, each tagged with its block's line |
-| `matched` | every block that matched, with its line, keyword and freehand |
+| `matched`       | every block that matched, with its line, keyword and freehand    |
 
 `contributions` and `matched` are what a failing assertion should print: they name the block
 that set a value, rather than only the value that came out wrong.
@@ -258,13 +255,13 @@ matter.
 
 ## Entry points
 
-| Import | Gives |
-| --- | --- |
-| `@poe/filter-eval/parse-filter` | `parseFilter` |
-| `@poe/filter-eval/evaluate-filter` | `evaluateFilter`, `matchCondition` |
-| `@poe/filter-eval/match-filter` | `compileFilter` |
-| `@poe/filter-eval/format-note` | `formatNote`, `formatCondition` |
-| `@poe/filter-eval/filter-ast` | `CONDITIONS`, `APPLY_KEYS`, `REQUIRED_KEYS`, `FilterItem` and the rest of the types |
+| Import                             | Gives                                                                               |
+| ---------------------------------- | ----------------------------------------------------------------------------------- |
+| `@poe/filter-eval/parse-filter`    | `parseFilter`                                                                       |
+| `@poe/filter-eval/evaluate-filter` | `evaluateFilter`, `matchCondition`                                                  |
+| `@poe/filter-eval/match-filter`    | `compileFilter`                                                                     |
+| `@poe/filter-eval/format-note`     | `formatNote`, `formatCondition`                                                     |
+| `@poe/filter-eval/filter-ast`      | `CONDITIONS`, `APPLY_KEYS`, `REQUIRED_KEYS`, `FilterItem` and the rest of the types |
 
 `APPLY_KEYS` is the one place the note vocabulary lives. Adding a key is a line there.
 

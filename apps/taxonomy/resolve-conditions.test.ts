@@ -13,7 +13,13 @@ const version: Version = {
   },
   categories: { rings: { conditions: [{ condition: "Class", value: "Rings" }, baseTypeFrom] } },
   authored: {
-    "authored/mirror": { name: "Mirror Ring", baseType: "Ruby Ring", category: "rings", subcategory: null, reason: "r" },
+    "authored/mirror": {
+      name: "Mirror Ring",
+      baseType: "Ruby Ring",
+      category: "rings",
+      subcategory: null,
+      reason: "r",
+    },
   },
   variants: {},
 };
@@ -50,7 +56,7 @@ describe("resolveRow", () => {
   });
 
   it("throws for a key the version does not have", () => {
-    expect(() => resolveRow(version, "Ghost")).toThrow('"Ghost" is not an item or an authored row in this version');
+    expect(() => resolveRow(version, "Ghost")).toThrow("\"Ghost\" is not an item or an authored row in this version");
   });
 });
 
@@ -76,18 +82,28 @@ describe("resolutionProblems", () => {
   it("reports a variant that resolves the same as an earlier one", () => {
     const repeated: Version = {
       ...version,
-      variants: { Ring: [{ name: "a", conditions: [] }, { name: "b", conditions: [] }] },
+      variants: {
+        Ring: [
+          { name: "a", conditions: [] },
+          { name: "b", conditions: [] },
+        ],
+      },
     };
 
     expect(resolutionProblems(repeated)).toEqual([
-      expect.objectContaining({ key: "Ring", variant: "b", problems: ['resolves the same as variant "a"'] }),
+      expect.objectContaining({ key: "Ring", variant: "b", problems: ["resolves the same as variant \"a\""] }),
     ]);
   });
 
   it("skips rows that are excluded or not filterable", () => {
     const repeated: Version = {
       ...version,
-      variants: { Hidden: [{ name: "a", conditions: [] }, { name: "b", conditions: [] }] },
+      variants: {
+        Hidden: [
+          { name: "a", conditions: [] },
+          { name: "b", conditions: [] },
+        ],
+      },
     };
 
     expect(resolutionProblems(repeated)).toEqual([]);

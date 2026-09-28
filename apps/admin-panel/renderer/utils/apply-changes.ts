@@ -1,10 +1,7 @@
 import type { Draft } from "../../api/taxonomy/types.ts";
 import type { Changes } from "../types.ts";
 
-function overlay<T>(
-  base: Readonly<Record<string, T>>,
-  over: Readonly<Record<string, T | null>>,
-): Record<string, T> {
+function overlay<T>(base: Readonly<Record<string, T>>, over: Readonly<Record<string, T | null>>): Record<string, T> {
   const next: Record<string, T> = { ...base };
 
   for (const [key, value] of Object.entries(over)) {

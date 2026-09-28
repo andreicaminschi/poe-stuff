@@ -15,19 +15,22 @@ export function renameCategory(draft: Draft, from: string, to: Category): Catego
   }
 
   const taken =
-    draft.categories[to.path] !== undefined ||
-    Object.keys(draft.categories).some((path) => path.startsWith(`${to.path}/`)) ||
-    Object.values(draft.items).some(
+    draft.categories[to.path] !== undefined
+    || Object.keys(draft.categories).some((path) => path.startsWith(`${to.path}/`))
+    || Object.values(draft.items).some(
       (item) =>
-        item.classification.category === nextCategory &&
-        (nextSubcategory === undefined || item.classification.subcategory === nextSubcategory),
+        item.classification.category === nextCategory
+        && (nextSubcategory === undefined || item.classification.subcategory === nextSubcategory),
     );
   const problem = newCategoryProblem(to.path.split("/").at(-1) ?? "", to.path, taken);
   if (problem !== undefined) return { problem };
 
   const items = Object.fromEntries(
     Object.values(draft.items)
-      .filter((item) => item.classification.category === category && (!sub || item.classification.subcategory === subcategory))
+      .filter(
+        (item) =>
+          item.classification.category === category && (!sub || item.classification.subcategory === subcategory),
+      )
       .map((item): [string, Item] => [
         item.key,
         {
@@ -39,7 +42,9 @@ export function renameCategory(draft: Draft, from: string, to: Category): Catego
       ]),
   );
 
-  const children = sub ? [] : Object.entries(draft.categories).filter(([path]) => path.startsWith(`${from}/`));
+  const children = sub
+    ? []
+    : Object.entries(draft.categories).filter(([path]) => path.startsWith(`${from}/`));
   const categories = {
     [from]: null,
     ...Object.fromEntries(children.map(([path]) => [path, null])),

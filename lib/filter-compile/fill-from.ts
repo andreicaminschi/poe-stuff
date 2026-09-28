@@ -16,14 +16,14 @@ function filled(condition: ResolvedCondition, row: FromSource): ResolvedConditio
 
 function nameProblems(row: FromSource): readonly string[] {
   if (row.name.length === 0) return ["reads its name, which is empty"];
-  if (row.name.includes('"')) return ["has a quote in its name, which a .filter line cannot hold"];
+  if (row.name.includes("\"")) return ["has a quote in its name, which a .filter line cannot hold"];
 
   return [];
 }
 
 function baseTypeProblems(row: FromSource): readonly string[] {
   if (row.baseTypes.length === 0) return ["reads its base types, which are empty"];
-  if (row.baseTypes.some((baseType) => baseType.includes('"'))) {
+  if (row.baseTypes.some((baseType) => baseType.includes("\""))) {
     return ["has a quote in a base type, which a .filter line cannot hold"];
   }
 
@@ -45,11 +45,17 @@ export function fillFrom(conditions: readonly ResolvedCondition[], row: FromSour
   const both = conditions.filter((condition) => condition.from !== undefined && condition.value !== undefined);
 
   return {
-    conditions: conditions.filter((condition) => !unknown.includes(condition)).map((condition) => filled(condition, row)),
+    conditions: conditions
+      .filter((condition) => !unknown.includes(condition))
+      .map((condition) => filled(condition, row)),
     problems: [
       ...both.map((condition) => `${condition.condition} has both a value and from "${String(condition.from)}"`),
-      ...(reads("name") ? nameProblems(row) : []),
-      ...(reads("baseTypes") ? baseTypeProblems(row) : []),
+      ...(reads("name")
+        ? nameProblems(row)
+        : []),
+      ...(reads("baseTypes")
+        ? baseTypeProblems(row)
+        : []),
       ...unknown.map((condition) => `reads "${String(condition.from)}", which is not name or baseTypes`),
     ],
   };

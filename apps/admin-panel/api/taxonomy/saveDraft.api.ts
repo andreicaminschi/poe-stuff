@@ -24,14 +24,30 @@ const toItemRow = (item: GggItem): ItemRow => ({
     : { displayName: item.displayName.trim() }),
   category: item.classification.category,
   subcategory: item.classification.subcategory,
-  ...(item.filterable === undefined ? {} : { filterable: item.filterable }),
-  ...(item.tradable === undefined ? {} : { tradable: item.tradable }),
-  ...(item.tradedOnExchange === undefined ? {} : { tradedOnExchange: item.tradedOnExchange }),
-  ...(item.excluded === true ? { excluded: true } : {}),
-  ...(item.quest === true ? { quest: true } : {}),
-  ...(item.unpriceable === true ? { unpriceable: true } : {}),
-  ...(item.conditions.length === 0 ? {} : { conditions: item.conditions }),
-  ...(item.listing === undefined ? {} : { listing: item.listing }),
+  ...(item.filterable === undefined
+    ? {}
+    : { filterable: item.filterable }),
+  ...(item.tradable === undefined
+    ? {}
+    : { tradable: item.tradable }),
+  ...(item.tradedOnExchange === undefined
+    ? {}
+    : { tradedOnExchange: item.tradedOnExchange }),
+  ...(item.excluded === true
+    ? { excluded: true }
+    : {}),
+  ...(item.quest === true
+    ? { quest: true }
+    : {}),
+  ...(item.unpriceable === true
+    ? { unpriceable: true }
+    : {}),
+  ...(item.conditions.length === 0
+    ? {}
+    : { conditions: item.conditions }),
+  ...(item.listing === undefined
+    ? {}
+    : { listing: item.listing }),
 });
 
 const toAuthoredRow = (item: AuthoredItem): AuthoredRow => ({
@@ -39,24 +55,50 @@ const toAuthoredRow = (item: AuthoredItem): AuthoredRow => ({
   baseType: item.baseType,
   category: item.classification.category,
   subcategory: item.classification.subcategory,
-  ...(item.replaces.length === 0 ? {} : { replaces: item.replaces }),
+  ...(item.replaces.length === 0
+    ? {}
+    : { replaces: item.replaces }),
   reason: item.reason,
-  ...(item.excluded === true ? { excluded: true } : {}),
-  ...(item.quest === true ? { quest: true } : {}),
-  ...(item.unpriceable === true ? { unpriceable: true } : {}),
-  ...(item.conditions.length === 0 ? {} : { conditions: item.conditions }),
-  ...(item.listing === undefined ? {} : { listing: item.listing }),
+  ...(item.excluded === true
+    ? { excluded: true }
+    : {}),
+  ...(item.quest === true
+    ? { quest: true }
+    : {}),
+  ...(item.unpriceable === true
+    ? { unpriceable: true }
+    : {}),
+  ...(item.conditions.length === 0
+    ? {}
+    : { conditions: item.conditions }),
+  ...(item.listing === undefined
+    ? {}
+    : { listing: item.listing }),
 });
 
 const toCategoryRecord = (category: Category): CategoryRecord => ({
   conditions: category.conditions,
-  ...(category.name === undefined ? {} : { name: category.name }),
-  ...(category.tiering === "chaos" ? {} : { tiering: category.tiering }),
-  ...(category.hints === undefined || category.hints.length === 0 ? {} : { hints: category.hints }),
-  ...(category.samples === undefined || category.samples.length === 0 ? {} : { samples: category.samples }),
-  ...(category.rejects === undefined || category.rejects.length === 0 ? {} : { rejects: category.rejects }),
-  ...(category.catchAll === true ? { catchAll: true } : {}),
-  ...(category.order === undefined ? {} : { order: category.order }),
+  ...(category.name === undefined
+    ? {}
+    : { name: category.name }),
+  ...(category.tiering === "chaos"
+    ? {}
+    : { tiering: category.tiering }),
+  ...(category.hints === undefined || category.hints.length === 0
+    ? {}
+    : { hints: category.hints }),
+  ...(category.samples === undefined || category.samples.length === 0
+    ? {}
+    : { samples: category.samples }),
+  ...(category.rejects === undefined || category.rejects.length === 0
+    ? {}
+    : { rejects: category.rejects }),
+  ...(category.catchAll === true
+    ? { catchAll: true }
+    : {}),
+  ...(category.order === undefined
+    ? {}
+    : { order: category.order }),
 });
 
 function patch<T, U>(

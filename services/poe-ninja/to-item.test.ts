@@ -38,7 +38,10 @@ describe("itemName", () => {
 
   it("drops the roll's own trailing brackets so they never nest", () => {
     expect(
-      itemName(line({ name: "Locus of Corruption (Tier 3)", baseType: "Chronicle of Atzoatl" }), TYPE_RULES.IncursionTemple),
+      itemName(
+        line({ name: "Locus of Corruption (Tier 3)", baseType: "Chronicle of Atzoatl" }),
+        TYPE_RULES.IncursionTemple,
+      ),
     ).toBe("Chronicle of Atzoatl (Locus of Corruption)");
   });
 
@@ -48,7 +51,10 @@ describe("itemName", () => {
 
   it("rebuilds a bracketed Vaal transfiguration from the last ' of ' inside the bracket", () => {
     expect(
-      itemName(line({ name: "Vaal Rain of Arrows (Rain of Arrows of Saturation)", baseType: "Vaal Rain of Arrows" }), TYPE_RULES.SkillGem),
+      itemName(
+        line({ name: "Vaal Rain of Arrows (Rain of Arrows of Saturation)", baseType: "Vaal Rain of Arrows" }),
+        TYPE_RULES.SkillGem,
+      ),
     ).toBe("Vaal Rain of Arrows of Saturation");
   });
 
@@ -151,6 +157,12 @@ describe("mapItemOverviewLineToNinjaItem", () => {
   it("stamps every row one slot big and with the type it was asked under", () => {
     const item = mapItemOverviewLineToNinjaItem(line({ itemType: "Body Armour" }), "UniqueArmour");
 
-    expect(item).toMatchObject({ width: 1, height: 1, ninjaType: "UniqueArmour", group: "bodyarmour", category: "armour" });
+    expect(item).toMatchObject({
+      width: 1,
+      height: 1,
+      ninjaType: "UniqueArmour",
+      group: "bodyarmour",
+      category: "armour",
+    });
   });
 });

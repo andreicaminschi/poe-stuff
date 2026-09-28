@@ -17,12 +17,6 @@ import type { PoeNinjaContext } from "./types.ts";
  *
  * Answers with a bare array, no envelope.
  */
-export function getLeagues(
-  context: PoeNinjaContext,
-): Promise<readonly EconomyLeague[]> {
-  return fetchJson<readonly EconomyLeague[]>(
-    `${GAME_PATH}/api/economy/leagues`,
-    {},
-    context,
-  );
+export function getLeagues(context: PoeNinjaContext): Promise<readonly EconomyLeague[]> {
+  return fetchJson<readonly EconomyLeague[]>(`${GAME_PATH}/api/economy/leagues`, {}, context);
 }

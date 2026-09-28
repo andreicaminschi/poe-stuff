@@ -13,7 +13,9 @@ describe("DEFAULT_CONFIG", () => {
   });
 
   it("starts every category with no tier disabled and nothing wanted", () => {
-    const touched = Object.values(DEFAULT_CONFIG.categories).filter((one) => one.disabled.length > 0 || one.wanted.length > 0);
+    const touched = Object.values(DEFAULT_CONFIG.categories).filter(
+      (one) => one.disabled.length > 0 || one.wanted.length > 0,
+    );
 
     expect(touched).toEqual([]);
   });

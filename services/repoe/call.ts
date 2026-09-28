@@ -17,11 +17,7 @@ import type { RepoeContext } from "./types.ts";
  *
  * The body is asserted, not validated: callers that care hand the result to a schema.
  */
-export async function call<T>(
-  url: string,
-  salt: string,
-  { userAgent, cache }: RepoeContext,
-): Promise<T> {
+export async function call<T>(url: string, salt: string, { userAgent, cache }: RepoeContext): Promise<T> {
   const key = cache && cacheKey("repoe", url, salt);
 
   if (cache && key) {
@@ -52,5 +48,4 @@ export async function call<T>(
 }
 
 /** The hour every endpoint salts its cache key with. */
-export const currentHour = (): string =>
-  String(Math.floor(Date.now() / 3_600_000));
+export const currentHour = (): string => String(Math.floor(Date.now() / 3_600_000));

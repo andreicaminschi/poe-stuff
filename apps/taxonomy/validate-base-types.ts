@@ -6,9 +6,9 @@ export function seedNames(items: unknown): ReadonlySet<string> {
   if (!isObject(items)) return new Set();
 
   return new Set(
-    Object.values(items).flatMap((row) =>
-      isObject(row) && typeof row.name === "string" ? [row.name] : [],
-    ),
+    Object.values(items).flatMap((row) => (isObject(row) && typeof row.name === "string"
+      ? [row.name]
+      : [])),
   );
 }
 

@@ -16,7 +16,11 @@ describe("groupUnfiltered", () => {
   });
 
   it("groups rows by category, or by category and subcategory", () => {
-    const groups = groupUnfiltered([row("a", "gems", null, 1), row("b", "gems", "skill", 1), row("c", "gems", "skill", 1)]);
+    const groups = groupUnfiltered([
+      row("a", "gems", null, 1),
+      row("b", "gems", "skill", 1),
+      row("c", "gems", "skill", 1),
+    ]);
 
     expect(groups.map((one) => [one.path, one.rows.map((r) => r.key)])).toEqual([
       ["gems/skill", ["b", "c"]],

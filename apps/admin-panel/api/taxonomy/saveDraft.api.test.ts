@@ -4,7 +4,8 @@ import { authoredItem, category, gggItem, variant } from "./draft.test-helpers.t
 import { saveDraft } from "./saveDraft.api.ts";
 
 const ID = "3.29.2";
-const read = (temp: TempLake, file: string) => temp.lake.readJson<Record<string, unknown>>(`taxonomy/versions/${ID}/${file}.json`);
+const read = (temp: TempLake, file: string) =>
+  temp.lake.readJson<Record<string, unknown>>(`taxonomy/versions/${ID}/${file}.json`);
 
 describe("saveDraft", () => {
   let temp: TempLake;
@@ -27,7 +28,9 @@ describe("saveDraft", () => {
 
   describe("items", () => {
     it("rewrites only the changed game item and keeps the rest of the file", async () => {
-      await saveDraft(temp.lake, ID, { items: { a: gggItem("a", { classification: { category: "maps", subcategory: "t16" } }) } });
+      await saveDraft(temp.lake, ID, {
+        items: { a: gggItem("a", { classification: { category: "maps", subcategory: "t16" } }) },
+      });
 
       await expect(read(temp, "items")).resolves.toEqual({
         a: { name: "a", category: "maps", subcategory: "t16" },
@@ -45,12 +48,19 @@ describe("saveDraft", () => {
 
       const items = await read(temp, "items");
       expect(items["a"]).toEqual({ name: "a", category: "currency", subcategory: null });
-      expect(items["b"]).toEqual({ name: "b", displayName: "Bee", category: "currency", subcategory: null, filterable: false, tradable: true });
+      expect(items["b"]).toEqual({
+        name: "b",
+        displayName: "Bee",
+        category: "currency",
+        subcategory: null,
+        filterable: false,
+        tradable: true,
+      });
     });
 
     it("refuses a game item the draft does not have, and writes nothing", async () => {
       await expect(saveDraft(temp.lake, ID, { items: { z: gggItem("z"), u: authoredItem("u") } })).rejects.toThrow(
-        '"z" is not an item. Author a row instead.',
+        "\"z\" is not an item. Author a row instead.",
       );
       await expect(read(temp, "authored.manual")).resolves.toEqual({});
     });
@@ -114,7 +124,9 @@ describe("saveDraft", () => {
     });
 
     it("stores a chaos-tiered category with no tiering and drops empty lists", async () => {
-      await saveDraft(temp.lake, ID, { categories: { gems: category("gems", { hints: [], samples: [], rejects: [], catchAll: false }) } });
+      await saveDraft(temp.lake, ID, {
+        categories: { gems: category("gems", { hints: [], samples: [], rejects: [], catchAll: false }) },
+      });
 
       expect((await read(temp, "categories"))["gems"]).toEqual({ conditions: [] });
     });

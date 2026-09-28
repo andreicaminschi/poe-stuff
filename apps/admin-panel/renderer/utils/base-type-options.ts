@@ -25,6 +25,8 @@ export function baseTypeOptions(draft: Draft): readonly ValueOption[] {
     .sort((a, b) => a.localeCompare(b))
     .map((value) => {
       const rows = authoredBy.get(value);
-      return rows === undefined ? { value } : { value, label: `authored: ${rows.join(", ")}` };
+      return rows === undefined
+        ? { value }
+        : { value, label: `authored: ${rows.join(", ")}` };
     });
 }

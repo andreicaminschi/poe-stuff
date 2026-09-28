@@ -1,5 +1,11 @@
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from "electron";
-import { API_NAMES, PROGRESS_CHANNEL, type PanelApi, type PanelEvents, type ValidateProgress } from "./api/panel-api.ts";
+import {
+  API_NAMES,
+  PROGRESS_CHANNEL,
+  type PanelApi,
+  type PanelEvents,
+  type ValidateProgress,
+} from "./api/panel-api.ts";
 
 const calls = Object.fromEntries(
   API_NAMES.map((name) => [name, (...args: unknown[]) => ipcRenderer.invoke(name, ...args)]),

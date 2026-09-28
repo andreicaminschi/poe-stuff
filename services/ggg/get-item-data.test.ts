@@ -27,9 +27,12 @@ describe("mapGGGItemDataToGGGItem", () => {
   });
 
   it("shows a unique with no text by its name", () => {
-    expect(
-      mapGGGItemDataToGGGItem({ name: "HH", type: "Belt", flags: { unique: true } }),
-    ).toEqual({ kind: "unique", name: "HH", baseType: "Belt", displayText: "HH" });
+    expect(mapGGGItemDataToGGGItem({ name: "HH", type: "Belt", flags: { unique: true } })).toEqual({
+      kind: "unique",
+      name: "HH",
+      baseType: "Belt",
+      displayText: "HH",
+    });
   });
 
   it("reads a unique flag with no name as a base", () => {
@@ -58,15 +61,16 @@ describe("getItemData", () => {
     const groups = await getItemData(context);
 
     expect(fetchMock.mock.calls[0]![0]).toBe("https://trade.test/api/data/items");
-    expect(groups).toEqual([
-      { id: "g", label: "Gems", items: [{ kind: "base", baseType: "Fireball" }] },
-    ]);
+    expect(groups).toEqual([{ id: "g", label: "Gems", items: [{ kind: "base", baseType: "Fireball" }] }]);
   });
 
   it("serves a cached answer only inside the hour that stored it", async () => {
     jest.useFakeTimers({ now: 3_600_000 * 10 + 1 });
     const store = new Map();
-    const cache = { get: async (k: string) => store.get(k), set: async (k: string, v: unknown) => void store.set(k, v) };
+    const cache = {
+      get: async (k: string) => store.get(k),
+      set: async (k: string, v: unknown) => void store.set(k, v),
+    };
     const fetchMock = stubFetch({ result: [] }, { result: [] });
 
     await getItemData({ ...context, cache });

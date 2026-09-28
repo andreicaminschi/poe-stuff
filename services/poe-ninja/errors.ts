@@ -12,9 +12,9 @@ export class PoeNinjaHttpError extends Error {
   readonly attempts: number;
 
   constructor(url: string, status: number, attempts: number) {
-    super(
-      `poe-ninja ${status} for ${url}${attempts > 1 ? ` (${attempts} attempts)` : ""}`,
-    );
+    super(`poe-ninja ${status} for ${url}${attempts > 1
+      ? ` (${attempts} attempts)`
+      : ""}`);
     this.name = "PoeNinjaHttpError";
     this.url = url;
     this.status = status;

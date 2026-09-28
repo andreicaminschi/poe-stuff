@@ -1,5 +1,5 @@
 import { readOwnerNote } from "@poe/filter-compile/owner-note";
-import { pathOf } from "../samples-of/path-of.ts";
+import { formatPath } from "../build-samples/format-path.ts";
 import type { BlindGroup, PathPair, RejectedGroup, SampleRow } from "../types.ts";
 import type { Blind, Bucket, Flagged, Hit, Rejected } from "./types.ts";
 
@@ -13,20 +13,24 @@ function tally<T, G extends { readonly count: number }>(
   for (const entry of entries) {
     const id = idOf(entry);
     const earlier = groups.get(id);
-    groups.set(id, earlier === undefined ? groupOf(entry) : { ...earlier, count: earlier.count + 1 });
+    groups.set(id, earlier === undefined
+      ? groupOf(entry)
+      : { ...earlier, count: earlier.count + 1 });
   }
   return [...groups.values()].sort((a, b) => b.count - a.count);
 }
 
-const otherPathOf = (other: SampleRow | undefined): string => (other === undefined ? "" : pathOf(other));
+const formatOtherPath = (other: SampleRow | undefined): string => (other === undefined
+  ? ""
+  : formatPath(other));
 
 export const groupHits = (hits: readonly Hit[], bucket: Bucket): readonly PathPair[] =>
   tally(
     hits.filter((hit) => hit.bucket === bucket),
-    ({ own, other }) => `${pathOf(own)}\n${otherPathOf(other)}`,
+    ({ own, other }) => `${formatPath(own)}\n${formatOtherPath(other)}`,
     ({ own, other, item }) => ({
-      own: pathOf(own),
-      other: otherPathOf(other),
+      own: formatPath(own),
+      other: formatOtherPath(other),
       count: 1,
       example: { ownKey: own.key, otherKey: other?.key ?? "", item },
     }),
@@ -43,13 +47,13 @@ const exampleOf = ({ row, block, item }: Flagged, isKey: IsKey) => ({
 export const groupBlind = (blinds: readonly Blind[], isKey: IsKey): readonly BlindGroup[] =>
   tally(
     blinds,
-    ({ row, property }) => `${pathOf(row)}\n${property}`,
-    (blind) => ({ path: pathOf(blind.row), property: blind.property, count: 1, example: exampleOf(blind, isKey) }),
+    ({ row, property }) => `${formatPath(row)}\n${property}`,
+    (blind) => ({ path: formatPath(blind.row), property: blind.property, count: 1, example: exampleOf(blind, isKey) }),
   );
 
 export const groupRejected = (rejected: readonly Rejected[], isKey: IsKey): readonly RejectedGroup[] =>
   tally(
     rejected,
-    ({ row, reject }) => `${pathOf(row)}\n${reject}`,
-    (one) => ({ path: pathOf(one.row), reject: one.reject, count: 1, example: exampleOf(one, isKey) }),
+    ({ row, reject }) => `${formatPath(row)}\n${reject}`,
+    (one) => ({ path: formatPath(one.row), reject: one.reject, count: 1, example: exampleOf(one, isKey) }),
   );

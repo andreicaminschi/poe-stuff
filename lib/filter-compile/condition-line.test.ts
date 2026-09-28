@@ -4,7 +4,7 @@ import { conditionLine } from "./condition-line.ts";
 describe("conditionLine", () => {
   describe("lookup", () => {
     it("refuses a condition the filter language does not know", () => {
-      expect(conditionLine({ condition: "Nope", value: 1 })).toEqual({ problem: '"Nope" is not a filter condition' });
+      expect(conditionLine({ condition: "Nope", value: 1 })).toEqual({ problem: "\"Nope\" is not a filter condition" });
     });
 
     it("accepts any casing and writes the canonical name", () => {
@@ -29,13 +29,13 @@ describe("conditionLine", () => {
   describe("string lists", () => {
     it("quotes a single string", () => {
       expect(conditionLine({ condition: "BaseType", operator: "==", value: "Vaal Regalia" })).toEqual({
-        line: 'BaseType == "Vaal Regalia"',
+        line: "BaseType == \"Vaal Regalia\"",
       });
     });
 
     it("quotes each entry of a list, space separated", () => {
       expect(conditionLine({ condition: "Class", value: ["Rings", "Amulets"] })).toEqual({
-        line: 'Class "Rings" "Amulets"',
+        line: "Class \"Rings\" \"Amulets\"",
       });
     });
 
@@ -44,8 +44,8 @@ describe("conditionLine", () => {
     });
 
     it("refuses a string containing a quote", () => {
-      expect(conditionLine({ condition: "BaseType", value: 'A "B"' })).toEqual({
-        problem: 'BaseType cannot hold "A \\"B\\""',
+      expect(conditionLine({ condition: "BaseType", value: "A \"B\"" })).toEqual({
+        problem: "BaseType cannot hold \"A \\\"B\\\"\"",
       });
     });
 
@@ -54,7 +54,7 @@ describe("conditionLine", () => {
     });
 
     it("refuses an empty string, which would match every item", () => {
-      expect(conditionLine({ condition: "BaseType", value: "" })).toEqual({ problem: 'BaseType cannot hold ""' });
+      expect(conditionLine({ condition: "BaseType", value: "" })).toEqual({ problem: "BaseType cannot hold \"\"" });
     });
   });
 
@@ -64,7 +64,7 @@ describe("conditionLine", () => {
     });
 
     it("refuses a numeric string", () => {
-      expect(conditionLine({ condition: "ItemLevel", value: "80" })).toEqual({ problem: 'ItemLevel cannot hold "80"' });
+      expect(conditionLine({ condition: "ItemLevel", value: "80" })).toEqual({ problem: "ItemLevel cannot hold \"80\"" });
     });
   });
 
@@ -78,7 +78,9 @@ describe("conditionLine", () => {
     });
 
     it("refuses the string True", () => {
-      expect(conditionLine({ condition: "Corrupted", value: "True" })).toEqual({ problem: 'Corrupted cannot hold "True"' });
+      expect(conditionLine({ condition: "Corrupted", value: "True" })).toEqual({
+        problem: "Corrupted cannot hold \"True\"",
+      });
     });
   });
 
@@ -88,7 +90,9 @@ describe("conditionLine", () => {
     });
 
     it("writes a list bare and space separated", () => {
-      expect(conditionLine({ condition: "Rarity", value: ["Normal", "Magic"] })).toEqual({ line: "Rarity Normal Magic" });
+      expect(conditionLine({ condition: "Rarity", value: ["Normal", "Magic"] })).toEqual({
+        line: "Rarity Normal Magic",
+      });
     });
 
     it("refuses an empty list", () => {
@@ -100,7 +104,9 @@ describe("conditionLine", () => {
     });
 
     it("refuses a value outside the rarity order", () => {
-      expect(conditionLine({ condition: "Rarity", value: "Legendary" })).toEqual({ problem: 'Rarity cannot hold "Legendary"' });
+      expect(conditionLine({ condition: "Rarity", value: "Legendary" })).toEqual({
+        problem: "Rarity cannot hold \"Legendary\"",
+      });
     });
   });
 
@@ -114,7 +120,9 @@ describe("conditionLine", () => {
     });
 
     it("refuses a list", () => {
-      expect(conditionLine({ condition: "SocketGroup", value: ["RGB"] })).toEqual({ problem: 'SocketGroup cannot hold ["RGB"]' });
+      expect(conditionLine({ condition: "SocketGroup", value: ["RGB"] })).toEqual({
+        problem: "SocketGroup cannot hold [\"RGB\"]",
+      });
     });
   });
 
@@ -125,12 +133,14 @@ describe("conditionLine", () => {
 
     it("quotes a gem name", () => {
       expect(conditionLine({ condition: "TransfiguredGem", value: "Arc of Surging" })).toEqual({
-        line: 'TransfiguredGem "Arc of Surging"',
+        line: "TransfiguredGem \"Arc of Surging\"",
       });
     });
 
     it("refuses a number", () => {
-      expect(conditionLine({ condition: "TransfiguredGem", value: 1 })).toEqual({ problem: "TransfiguredGem cannot hold 1" });
+      expect(conditionLine({ condition: "TransfiguredGem", value: 1 })).toEqual({
+        problem: "TransfiguredGem cannot hold 1",
+      });
     });
   });
 });

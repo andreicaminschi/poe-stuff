@@ -6,7 +6,12 @@ import { categoryPlans } from "./category-plans.ts";
 import { placeOptions } from "./place-options.ts";
 
 const item = (name: string, category: string, take: number): Item => ({ name, key: name, category, prices: { take } });
-const items = [item("Wisdom", "Currency", 0.1), item("Mirror", "Currency", 90000), item("Coins", "Gold", 1), item("Odd", "unknown", 5)];
+const items = [
+  item("Wisdom", "Currency", 0.1),
+  item("Mirror", "Currency", 90000),
+  item("Coins", "Gold", 1),
+  item("Odd", "unknown", 5),
+];
 const categories = { Gold: { conditions: [], tiering: "stack-size" as const } };
 
 describe("categoryPlans", () => {

@@ -5,13 +5,7 @@ import { join } from "node:path";
 import { fileCache } from "@util/cache/file-cache";
 import { call } from "./call.ts";
 import { GggHttpError } from "./errors.ts";
-import type {
-  CachedResponse,
-  CallEvent,
-  RateLimiter,
-  RateLimiterRule,
-  RateLimitState,
-} from "./types.ts";
+import type { CachedResponse, CallEvent, RateLimiter, RateLimiterRule, RateLimitState } from "./types.ts";
 
 const URL_ = "https://example.test/api/thing";
 const UA = "test-agent/1.0 (contact: a@b.test)";
@@ -22,11 +16,12 @@ let fetchMock: jest.Mock<typeof fetch>;
 
 function reply(...replies: Reply[]) {
   for (const r of replies) {
-    fetchMock.mockImplementationOnce(async () =>
-      new Response(JSON.stringify(r.body ?? {}), {
-        status: r.status ?? 200,
-        headers: r.headers ?? {},
-      }),
+    fetchMock.mockImplementationOnce(
+      async () =>
+        new Response(JSON.stringify(r.body ?? {}), {
+          status: r.status ?? 200,
+          headers: r.headers ?? {},
+        }),
     );
   }
 }
@@ -262,8 +257,7 @@ describe("call", () => {
       await result;
 
       expect(events).toContainEqual({ type: "retry", url: URL_, status: 408, backoffMs: 500 });
-      expect(events.filter((e) => e.type === "request").map((e) => (e as { attempt: number }).attempt))
-        .toEqual([0, 1]);
+      expect(events.filter((e) => e.type === "request").map((e) => (e as { attempt: number }).attempt)).toEqual([0, 1]);
     });
   });
 
@@ -300,8 +294,10 @@ describe("call", () => {
       await call(URL_, { userAgent: UA, cache, onEvent: (e) => events.push(e) });
       await call(URL_, { userAgent: UA, cache, onEvent: (e) => events.push(e) });
 
-      expect(events.filter((e) => e.type === "cache").map((e) => (e as { result: string }).result))
-        .toEqual(["stored", "hit"]);
+      expect(events.filter((e) => e.type === "cache").map((e) => (e as { result: string }).result)).toEqual([
+        "stored",
+        "hit",
+      ]);
     });
 
     it("never stores a failed answer", async () => {

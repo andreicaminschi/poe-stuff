@@ -67,14 +67,14 @@ describe("buildVersion", () => {
 
   it("names the version file and key in the first problem it finds", () => {
     expect(() => buildVersion("3.29.1", files({ items: { Ring: { name: "" } } }), new Set())).toThrow(
-      'taxonomy/versions/3.29.1/items.json: "Ring" name must be a non-empty string',
+      "taxonomy/versions/3.29.1/items.json: \"Ring\" name must be a non-empty string",
     );
   });
 
   it("refuses an authored base type that no seed row carries", () => {
     expect(() =>
       buildVersion("3.29.1", files({ "authored.manual": { "authored/a": authoredRow("A", "Nope") } }), new Set()),
-    ).toThrow('3.29.1 authored: "authored/a" baseType "Nope" is not the name of any seed row');
+    ).toThrow("3.29.1 authored: \"authored/a\" baseType \"Nope\" is not the name of any seed row");
   });
 
   it("refuses an authored base type the client rejects", () => {
@@ -86,7 +86,7 @@ describe("buildVersion", () => {
   it("refuses variants on a key that is neither an item nor an authored row", () => {
     expect(() =>
       buildVersion("3.29.1", files({ "variants.manual": { Ghost: [{ name: "v", conditions: [] }] } }), new Set()),
-    ).toThrow('"Ghost" is not an item or an authored row');
+    ).toThrow("\"Ghost\" is not an item or an authored row");
   });
 });
 

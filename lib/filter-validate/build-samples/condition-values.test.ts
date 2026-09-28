@@ -18,7 +18,10 @@ const row = (extra: Partial<SampleRow>): SampleRow => ({
 
 describe("conditionValues", () => {
   it("collects every value the category, subcategory and row resolve to", () => {
-    const values = conditionValues(categories, row({ conditions: [{ condition: "Quality", operator: ">=", value: 20 }] }));
+    const values = conditionValues(
+      categories,
+      row({ conditions: [{ condition: "Quality", operator: ">=", value: 20 }] }),
+    );
 
     expect(Object.fromEntries(values)).toEqual({ Class: ["Skill Gems"], GemLevel: [1], Quality: [20] });
   });
@@ -38,7 +41,10 @@ describe("conditionValues", () => {
   });
 
   it("fills a value read off the row's name", () => {
-    const values = conditionValues(categories, row({ conditions: [{ condition: "BaseType", operator: "==", from: "name" }] }));
+    const values = conditionValues(
+      categories,
+      row({ conditions: [{ condition: "BaseType", operator: "==", from: "name" }] }),
+    );
 
     expect(values.get("BaseType")).toEqual(["Arc"]);
   });

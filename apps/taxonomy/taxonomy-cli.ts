@@ -7,12 +7,7 @@ import { publishTaxonomy } from "./publish-taxonomy.ts";
 import { readVersionFiles } from "./read-version-files.ts";
 import { readRejectedBaseTypes } from "./rejected-base-types.ts";
 import { highestDraft, readRegistry, versionNumber } from "./registry.ts";
-import {
-  resolutionProblems,
-  resolveCategory,
-  resolveRow,
-  unauthoredCategories,
-} from "./resolve-conditions.ts";
+import { resolutionProblems, resolveCategory, resolveRow, unauthoredCategories } from "./resolve-conditions.ts";
 import type { Lake } from "@poe/lake/types";
 import { seedItems } from "./seed-items.ts";
 import { collectVersion } from "./validate-version.ts";
@@ -29,9 +24,7 @@ const json = (value: unknown): void => {
 async function list(lake: Lake): Promise<void> {
   const registry = await readRegistry(lake);
   const highest = highestDraft(registry);
-  const rows = Object.entries(registry.versions).sort(
-    ([a], [b]) => versionNumber(b) - versionNumber(a),
-  );
+  const rows = Object.entries(registry.versions).sort(([a], [b]) => versionNumber(b) - versionNumber(a));
 
   if (rows.length === 0) {
     process.stdout.write("no versions exist\n");
@@ -39,8 +32,12 @@ async function list(lake: Lake): Promise<void> {
   }
 
   for (const [version, entry] of rows) {
-    const zombie = entry.state === "draft" && version !== highest ? " (overtaken)" : "";
-    const from = entry.parent === undefined ? "" : ` from ${entry.parent}`;
+    const zombie = entry.state === "draft" && version !== highest
+      ? " (overtaken)"
+      : "";
+    const from = entry.parent === undefined
+      ? ""
+      : ` from ${entry.parent}`;
     process.stdout.write(`${version}\t${entry.state}${zombie}${from}\n`);
   }
 }
@@ -120,14 +117,10 @@ async function main(): Promise<void> {
   }
 
   if (command === "publish") {
-    const published = await publishTaxonomy(
-      lake,
-      named,
-      await versionTable(lake, named, readRejectedBaseTypes()),
-    );
+    const published = await publishTaxonomy(lake, named, await versionTable(lake, named, readRejectedBaseTypes()));
     process.stdout.write(
-      `published ${named} -> ${published.keys.join(", ")}\n` +
-        `left out ${published.rowsLeftOut} rows and ${published.variantsLeftOut} variants with no listing\n`,
+      `published ${named} -> ${published.keys.join(", ")}\n`
+      + `left out ${published.rowsLeftOut} rows and ${published.variantsLeftOut} variants with no listing\n`,
     );
     return;
   }
@@ -145,6 +138,8 @@ async function main(): Promise<void> {
 }
 
 main().catch((error: unknown) => {
-  process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
+  process.stderr.write(`${error instanceof Error
+    ? error.message
+    : String(error)}\n`);
   process.exitCode = 1;
 });

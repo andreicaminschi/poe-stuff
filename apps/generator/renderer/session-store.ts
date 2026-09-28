@@ -38,7 +38,9 @@ export type Session = {
   dismissError(): void;
 };
 
-const message = (error: unknown): string => (error instanceof Error ? error.message : String(error));
+const message = (error: unknown): string => (error instanceof Error
+  ? error.message
+  : String(error));
 
 export const useSession = create<Session>((set, get) => {
   /** Busy while it runs; a failure becomes the error banner. */
@@ -65,7 +67,9 @@ export const useSession = create<Session>((set, get) => {
         const [catalog, config] = await Promise.all([window.generator.getCatalog(), window.generator.getConfig()]);
         const items = itemsOf(catalog.rows);
         const [category] = topCategories(items);
-        set({ catalog, items, config, saved: config, booting: false, ...(category === undefined ? {} : { category }) });
+        set({ catalog, items, config, saved: config, booting: false, ...(category === undefined
+          ? {}
+          : { category }) });
       } catch (error) {
         set({ booting: false, error: message(error) });
       }
@@ -85,7 +89,9 @@ export const useSession = create<Session>((set, get) => {
       get().editCategory((config, key) =>
         withCategory(config, key, (one) => ({
           ...one,
-          disabled: one.disabled.includes(tier) ? one.disabled.filter((name) => name !== tier) : [...one.disabled, tier],
+          disabled: one.disabled.includes(tier)
+            ? one.disabled.filter((name) => name !== tier)
+            : [...one.disabled, tier],
         })),
       );
     },
@@ -105,14 +111,21 @@ export const useSession = create<Session>((set, get) => {
         return;
       }
       set({
-        config: withCategory(config, category, (one) => ({ ...one, floors: { ...(one.floors ?? STACK_FLOORS), [tier]: value } })),
+        config: withCategory(config, category, (one) => ({
+          ...one,
+          floors: { ...(one.floors ?? STACK_FLOORS), [tier]: value },
+        })),
         status: undefined,
       });
     },
 
     addWanted(name) {
       get().editCategory((config, key) =>
-        withCategory(config, key, (one) => (one.wanted.includes(name) ? one : { ...one, wanted: [...one.wanted, name] })),
+        withCategory(config, key, (one) =>
+          one.wanted.includes(name)
+            ? one
+            : { ...one, wanted: [...one.wanted, name] },
+        ),
       );
     },
 
@@ -140,7 +153,9 @@ export const useSession = create<Session>((set, get) => {
         const plans = categoryPlans(items, catalog.categories, config);
         const written = writeFilter({ rows: catalog.rows, categories: catalog.categories, plans });
         const saved = await window.generator.saveFilter(written.text);
-        const skipped = written.skipped.length === 0 ? "" : `, ${written.skipped.length} skipped`;
+        const skipped = written.skipped.length === 0
+          ? ""
+          : `, ${written.skipped.length} skipped`;
         if ("path" in saved) set({ status: `Wrote ${written.blocks.length} blocks${skipped} to ${saved.path}` });
       });
     },

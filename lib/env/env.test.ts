@@ -47,9 +47,7 @@ describe("requireEnv", () => {
   });
 
   it("throws a message naming the missing variable", () => {
-    expect(() => requireEnv(NAME)).toThrow(
-      `Missing ${NAME}. Run with: node --env-file=apps/<name>/.env <script>`,
-    );
+    expect(() => requireEnv(NAME)).toThrow(`Missing ${NAME}. Run with: node --env-file=apps/<name>/.env <script>`);
   });
 
   it("throws for an empty string just as for an unset variable", () => {

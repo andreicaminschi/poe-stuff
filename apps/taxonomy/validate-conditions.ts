@@ -11,11 +11,11 @@ const CLASS = "Class";
 const BASE_TYPE = "BaseType";
 
 const isLiteral = (value: unknown): boolean =>
-  value === null ||
-  typeof value === "string" ||
-  typeof value === "number" ||
-  typeof value === "boolean" ||
-  (Array.isArray(value) && value.every((entry) => typeof entry === "string"));
+  value === null
+  || typeof value === "string"
+  || typeof value === "number"
+  || typeof value === "boolean"
+  || (Array.isArray(value) && value.every((entry) => typeof entry === "string"));
 
 function conditionProblem(value: unknown): string | null {
   if (!isObject(value)) return "is not an object";
@@ -116,19 +116,30 @@ function sampleValueProblem(name: string, value: unknown): string | null {
 
   switch (entry.kind) {
     case "counted":
-      return typeof value === "string" || (Array.isArray(value) && value.length > 0 && value.every((one) => typeof one === "string"))
+      return typeof value === "string"
+        || (Array.isArray(value) && value.length > 0 && value.every((one) => typeof one === "string"))
         ? null
         : `${name} takes text or a list of text, not ${JSON.stringify(value)}`;
     case "boolean":
-      return typeof value === "boolean" ? null : `${name} takes true or false, not ${JSON.stringify(value)}`;
+      return typeof value === "boolean"
+        ? null
+        : `${name} takes true or false, not ${JSON.stringify(value)}`;
     case "numeric":
-      return typeof value === "number" ? null : `${name} takes a number, not ${JSON.stringify(value)}`;
+      return typeof value === "number"
+        ? null
+        : `${name} takes a number, not ${JSON.stringify(value)}`;
     case "ordered":
-      return entry.order.includes(value as never) ? null : `${name} takes one of ${entry.order.join(", ")}, not ${JSON.stringify(value)}`;
+      return entry.order.includes(value as never)
+        ? null
+        : `${name} takes one of ${entry.order.join(", ")}, not ${JSON.stringify(value)}`;
     case "enums":
-      return entry.values.includes(value as never) ? null : `${name} takes one of ${entry.values.join(", ")}, not ${JSON.stringify(value)}`;
+      return entry.values.includes(value as never)
+        ? null
+        : `${name} takes one of ${entry.values.join(", ")}, not ${JSON.stringify(value)}`;
     default:
-      return typeof value === "string" ? null : `${name} takes text, not ${JSON.stringify(value)}`;
+      return typeof value === "string"
+        ? null
+        : `${name} takes text, not ${JSON.stringify(value)}`;
   }
 }
 
@@ -182,12 +193,21 @@ const PATH = new RegExp(`^${NAME}(?:/${NAME})?$`);
 
 function categoryProblem(path: string, record: unknown): string | null {
   if (!PATH.test(path)) {
-    return 'is not a category path — expected "category" or "category/subcategory", with no spaces at either end of a name';
+    return "is not a category path — expected \"category\" or \"category/subcategory\", with no spaces at either end of a name";
   }
 
   if (!isObject(record)) return "is not an object";
 
-  const extra = unknownFields(record, ["conditions", "name", "tiering", "hints", "samples", "rejects", "catchAll", "order"]);
+  const extra = unknownFields(record, [
+    "conditions",
+    "name",
+    "tiering",
+    "hints",
+    "samples",
+    "rejects",
+    "catchAll",
+    "order",
+  ]);
 
   if (extra.length > 0) return `has unknown fields: ${extra.join(", ")}`;
 
@@ -206,7 +226,8 @@ function categoryProblem(path: string, record: unknown): string | null {
   if (record.order !== undefined) {
     if (!path.includes("/")) return "order belongs on a subcategory";
     if (record.catchAll === true) return "a catchAll subcategory always compiles last, so it takes no order";
-    if (typeof record.order !== "number" || !Number.isFinite(record.order)) return "order must be a number when it is present";
+    if (typeof record.order !== "number" || !Number.isFinite(record.order))
+      return "order must be a number when it is present";
   }
 
   const hints = hintsProblem(path, record.hints);
@@ -224,15 +245,10 @@ function categoryProblem(path: string, record: unknown): string | null {
   return conditionsProblem(record.conditions);
 }
 
-export const collectCategoryTable = (
-  value: unknown,
-  source: string,
-): readonly RowProblem[] => collect(value, source, categoryProblem);
+export const collectCategoryTable = (value: unknown, source: string): readonly RowProblem[] =>
+  collect(value, source, categoryProblem);
 
-export function validateCategoryTable(
-  value: unknown,
-  source: string,
-): CategoryTable {
+export function validateCategoryTable(value: unknown, source: string): CategoryTable {
   throwFirst(source, collectCategoryTable(value, source));
 
   return value as CategoryTable;

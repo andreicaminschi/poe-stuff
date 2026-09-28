@@ -9,5 +9,7 @@ export function useRows(): readonly Item[] {
   const selection = useSession((state) => state.selection);
   const view = useSession((state) => state.view);
 
-  return useMemo(() => (draft === undefined ? [] : rowsIn(draft, selection, view)), [draft, selection, view]);
+  return useMemo(() => (draft === undefined
+    ? []
+    : rowsIn(draft, selection, view)), [draft, selection, view]);
 }

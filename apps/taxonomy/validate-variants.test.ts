@@ -37,30 +37,34 @@ describe("collectVariantTable", () => {
   });
 
   it("refuses the same name twice in one list", () => {
-    expect(problemOf([variant(), variant()])).toBe('authors variant "20/20" twice');
+    expect(problemOf([variant(), variant()])).toBe("authors variant \"20/20\" twice");
   });
 
   it("requires conditions on every variant, even an empty list", () => {
-    expect(problemOf([{ name: "20/20" }])).toBe('variant "20/20" conditions is not a list');
+    expect(problemOf([{ name: "20/20" }])).toBe("variant \"20/20\" conditions is not a list");
   });
 
   it("refuses an unpriceable flag that is not a boolean", () => {
-    expect(problemOf([variant({ unpriceable: 1 })])).toBe('variant "20/20" unpriceable must be a boolean when it is present');
+    expect(problemOf([variant({ unpriceable: 1 })])).toBe(
+      "variant \"20/20\" unpriceable must be a boolean when it is present",
+    );
   });
 
   it("refuses a variant that is unpriceable and still has a listing", () => {
     expect(problemOf([variant({ unpriceable: true, listing: { gemLevel: 20 } })])).toBe(
-      'variant "20/20" is unpriceable and has a listing',
+      "variant \"20/20\" is unpriceable and has a listing",
     );
   });
 
   it("prefixes a listing problem with the variant's name", () => {
-    expect(problemOf([variant({ listing: {} })])).toBe('variant "20/20" listing matches nothing');
+    expect(problemOf([variant({ listing: {} })])).toBe("variant \"20/20\" listing matches nothing");
   });
 });
 
 describe("validateVariantTable", () => {
   it("throws the first problem with its source", () => {
-    expect(() => validateVariantTable({ Gem: [] }, known, "variants.manual")).toThrow('variants.manual: "Gem" authors no variants');
+    expect(() => validateVariantTable({ Gem: [] }, known, "variants.manual")).toThrow(
+      "variants.manual: \"Gem\" authors no variants",
+    );
   });
 });

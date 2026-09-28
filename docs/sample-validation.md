@@ -16,7 +16,7 @@ flowchart LR
     T[("Published taxonomy<br/>rows + categories")]:::source
     C["filter-compile<br/>compileFilter()"]:::lib
     P["filter-eval<br/>parseFilter()"]:::eval
-    S["samplesOf()<br/>fake items"]:::lib
+    S["buildSamples()<br/>fake items"]:::lib
     K["checkFilter()<br/>one walk, one matcher"]:::lib
     R1[/"unfiltered report"/]:::out
     R2[/"fall-through report"/]:::out
@@ -28,6 +28,7 @@ flowchart LR
 ```
 
 Two things come out of the same taxonomy:
+
 - The **filter** is what the rows say, written as `.filter` lines.
 - The **samples** are what the subcategories say items look like.
 
@@ -39,19 +40,19 @@ Two things come out of the same taxonomy:
 
 A subcategory record in the taxonomy can carry:
 
-| Field | Meaning |
-| --- | --- |
-| `samples` | A list of **sample sets**. Each set is `{ ConditionName: property }`. |
-| `rejects` | Sets laid **over** each sample. Their own path must *not* take the result. |
-| `catchAll` | This path is a fallback. It may overlap its siblings. |
+| Field      | Meaning                                                                    |
+| ---------- | -------------------------------------------------------------------------- |
+| `samples`  | A list of **sample sets**. Each set is `{ ConditionName: property }`.      |
+| `rejects`  | Sets laid **over** each sample. Their own path must _not_ take the result. |
+| `catchAll` | This path is a fallback. It may overlap its siblings.                      |
 
 A property is either literal values or a pointer to the row:
 
 ```jsonc
 {
-  "BaseType":  { "from": "name" },          // the row's name
-  "ItemLevel": { "values": [1, 68, 86] },   // three literal values
-  "Rarity":    { "from": "conditions" }     // whatever the row's conditions hold
+  "BaseType": { "from": "name" }, // the row's name
+  "ItemLevel": { "values": [1, 68, 86] }, // three literal values
+  "Rarity": { "from": "conditions" }, // whatever the row's conditions hold
 }
 ```
 
@@ -96,7 +97,7 @@ flowchart TD
 - **Row values are forgiving on purpose.** A property read off the row with no usable values is left out, so the product just gets smaller. A row simply may not hold that condition.
 - `from: "conditions"` calls `conditionValues`, which runs `resolveForms` from `@poe/filter-compile`. It collects every value the row and its variants hold for that condition. It runs lazily, once per row.
 
-### The generator: `samplesOf`
+### The generator: `buildSamples`
 
 ```mermaid
 flowchart TD
@@ -129,7 +130,7 @@ flowchart TD
 
 ### One walk, one matcher
 
-`checkFilter` compiles the blocks once with `compileFilterEvery`, which returns the winner **and** every other block that matched. Then it walks `samplesOf` once. Each sample is matched once, and that one result feeds both reports.
+`checkFilter` compiles the blocks once with `compileFilterEvery`, which returns the winner **and** every other block that matched. Then it walks `buildSamples` once. Each sample is matched once, and that one result feeds both reports.
 
 `findUnfiltered` and `findFallThrough` are one-line wrappers that return one half each.
 
@@ -145,13 +146,14 @@ That's how a matched block is traced back to a row, and a row to a path.
 ### Unfiltered: did anything take it?
 
 For each normal sample, ask whether any block won.
+
 - No winner means the item falls off the end of the filter, and the game shows it with default styling.
 - A `Hide` block **counts as taking** the item.
 - Reject samples are ignored here. Catch-all samples are included.
 
 It also lists `unsampled`: paths that have rows but no sample sets, so nobody checks them.
 
-### Fall-through: did the *right* thing take it?
+### Fall-through: did the _right_ thing take it?
 
 This is the blind-spot checker. Each question has its own judge in `find-fall-through/`.
 
@@ -210,13 +212,13 @@ Blind and overlap are **not** exclusive. One sample can report both.
 
 ### What each bucket means in plain words
 
-| Bucket | Meaning | Usual fix |
-| --- | --- | --- |
-| **own-miss** | No block from the item's own path matched it at all. | The path's conditions are too narrow for this sampled state. Add a rule. |
-| **fall-through** | Its own path matched, but an earlier block from another path won. | Block order, or the other path is too broad. |
-| **overlap** | Its own path won, but another path also matched. Harmless today, a trap after reordering. | Tighten one of the two. |
-| **blind** | The samples vary a property (e.g. `Corrupted: true/false`), but the winning block never asks about it. Both states land in the same block. | Add a variant that splits on that property, or stop varying it. |
-| **rejected** | A reject sample (an item the path must never take) was taken by the path. | The path's conditions miss an exclusion. |
+| Bucket           | Meaning                                                                                                                                    | Usual fix                                                                |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
+| **own-miss**     | No block from the item's own path matched it at all.                                                                                       | The path's conditions are too narrow for this sampled state. Add a rule. |
+| **fall-through** | Its own path matched, but an earlier block from another path won.                                                                          | Block order, or the other path is too broad.                             |
+| **overlap**      | Its own path won, but another path also matched. Harmless today, a trap after reordering.                                                  | Tighten one of the two.                                                  |
+| **blind**        | The samples vary a property (e.g. `Corrupted: true/false`), but the winning block never asks about it. Both states land in the same block. | Add a variant that splits on that property, or stop varying it.          |
+| **rejected**     | A reject sample (an item the path must never take) was taken by the path.                                                                  | The path's conditions miss an exclusion.                                 |
 
 ### Grouping
 
@@ -237,8 +239,8 @@ flowchart LR
     BAR["renderer<br/>version-bar.tsx"]:::ui
     CF["checkFilter"]:::lib
     CSV["reportCsv / sampleQuery"]:::lib
-    EV["apps/taxonomy<br/>eval-cases"]:::app
-    SO["samplesOf"]:::lib
+    EV["apps/taxonomy<br/>build-eval-cases"]:::app
+    SO["buildSamples"]:::lib
 
     API -- "runs yarn catalog:validate" --> CLI
     CLI --> CF
@@ -259,7 +261,8 @@ When the run ends, the panel reads the JSON file back. Its Filter check dialog s
 **Verdict: both halves are in good shape.** Sample generation was already clean. The check is now one walk with one small judge per question.
 
 What holds it together:
-- `samplesOf` and its helpers are small and pure, and each one can be tested alone.
+
+- `buildSamples` and its helpers are small and pure, and each one can be tested alone.
 - Samples stream through a generator, and the lib reads no files and no environment.
 - Which samples exist lives in the taxonomy, not in code.
 - `conditionValues` reuses `filter-compile`'s `resolveForms`, so samples and the compiled filter cannot disagree about a row's conditions.

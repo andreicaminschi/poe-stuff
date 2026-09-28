@@ -2,8 +2,7 @@ import { describe, it, expect } from "@jest/globals";
 import { readFileSync } from "node:fs";
 import { parseItem, property } from "./parse-item.ts";
 
-const sample = (name: string) =>
-  readFileSync(new URL(`../../data/sample-items/${name}.txt`, import.meta.url), "utf8");
+const sample = (name: string) => readFileSync(new URL(`../../data/sample-items/${name}.txt`, import.meta.url), "utf8");
 
 describe("parseItem", () => {
   it("reports an empty item and nothing else for blank text", () => {
@@ -13,12 +12,12 @@ describe("parseItem", () => {
   it("reads a rare ring's header, requirements, properties and mods", () => {
     const item = parseItem(sample("rare-ring"));
 
-    expect([item.name, item.baseType, item.requirements.map((r) => r.name), property(item, "Item Level")?.numbers]).toEqual([
-      "Maelström Circle",
-      "Amethyst Ring",
-      ["Level"],
-      [85],
-    ]);
+    expect([
+      item.name,
+      item.baseType,
+      item.requirements.map((r) => r.name),
+      property(item, "Item Level")?.numbers,
+    ]).toEqual(["Maelström Circle", "Amethyst Ring", ["Level"], [85]]);
     expect(item.mods.map((mod) => mod.header.affix)).toEqual(["implicit", "prefix", "prefix", "suffix", "suffix"]);
   });
 

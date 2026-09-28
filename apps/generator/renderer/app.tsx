@@ -28,15 +28,19 @@ export function App() {
   return (
     <div className="app">
       <TopBar />
-      {error === undefined ? null : (
-        <div className="banner">
-          <pre>{error}</pre>
-          <button type="button" className="btn" onClick={dismissError} aria-label="Dismiss">
-            ×
-          </button>
-        </div>
-      )}
-      {status === undefined ? null : <div className="banner quiet">{status}</div>}
+      {error === undefined
+        ? null
+        : (
+            <div className="banner">
+              <pre>{error}</pre>
+              <button type="button" className="btn" onClick={dismissError} aria-label="Dismiss">
+                ×
+              </button>
+            </div>
+          )}
+      {status === undefined
+        ? null
+        : <div className="banner quiet">{status}</div>}
       <div className="cols">
         <div className="side">
           <Ladder />

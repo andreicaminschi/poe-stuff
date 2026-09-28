@@ -58,8 +58,7 @@ export type SampleValue = string | number | boolean | readonly string[];
 
 /** One sample per value, or the value read off the row. */
 export type SampleProperty =
-  | { readonly values: readonly SampleValue[] }
-  | { readonly from: "name" | "baseTypes" | "conditions" };
+  { readonly values: readonly SampleValue[] } | { readonly from: "name" | "baseTypes" | "conditions" };
 
 /** Keyed by filter condition name. Its samples are the cartesian product. */
 export type SampleSet = Readonly<Record<string, SampleProperty>>;
@@ -118,11 +117,6 @@ export type Registry = {
 };
 
 export type SourceFile =
-  | "items"
-  | "categories"
-  | "authored.seeded"
-  | "authored.manual"
-  | "variants.seeded"
-  | "variants.manual";
+  "items" | "categories" | "authored.seeded" | "authored.manual" | "variants.seeded" | "variants.manual";
 
 export type VersionFiles = Readonly<Record<SourceFile, unknown>>;

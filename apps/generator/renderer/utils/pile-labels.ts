@@ -16,7 +16,9 @@ const hits = (a: Box, b: Box): boolean => a.x < b.x + b.w && b.x < a.x + a.w && 
 
 function spotFor(placed: readonly Piled[], w: number, h: number, gx: number, gy: number): Box | undefined {
   for (let step = 0; step < STEPS; step += 1) {
-    const y = gy - h / 2 + (step % 2 === 0 ? 1 : -1) * Math.ceil(step / 2) * 2;
+    const y = gy - h / 2 + (step % 2 === 0
+      ? 1
+      : -1) * Math.ceil(step / 2) * 2;
     const row = placed.filter((one) => one.y < y + h && y < one.y + one.h);
     const free = [gx - w / 2, ...row.flatMap((one) => [one.x + one.w, one.x - w])]
       .filter((x) => Math.abs(x + w / 2 - gx) < REACH)
@@ -42,7 +44,11 @@ export function pileLabels(
   for (const drop of drops) {
     const px = drop.style.fontSize * PIXELS_PER_POINT;
     const h = Math.round(px * LINE) + 2;
-    const w = Math.round(measure(drop.name, px) + px * PAD * 2 + (drop.style.icon === null ? 0 : px * (ICON + 0.3)) + 2);
+    const w = Math.round(
+      measure(drop.name, px) + px * PAD * 2 + (drop.style.icon === null
+        ? 0
+        : px * (ICON + 0.3)) + 2,
+    );
     const gx = width / 2 + (Math.random() - 0.5) * 240;
     const gy = height / 2 + (Math.random() - 0.5) * 120;
     const spot = spotFor(placed, w, h, gx, gy) ?? { x: gx - w / 2, y: gy - h / 2, w, h };

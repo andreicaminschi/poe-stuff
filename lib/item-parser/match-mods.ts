@@ -29,12 +29,7 @@
 
 import { statIndex } from "./stat-index.ts";
 import { derollText, invertScaling } from "./mod-text.ts";
-import type {
-  ItemMod,
-  PublishedStat,
-  ResolvedMod,
-  StatMatch,
-} from "./types.ts";
+import type { ItemMod, PublishedStat, ResolvedMod, StatMatch } from "./types.ts";
 
 /** One published stat, with an option already chosen when it has any. */
 type IndexedStat = {
@@ -57,7 +52,9 @@ const META = /[.*+?^${}()|[\]\\]/g;
  * a monster's — is published as `explicit` or not published at all, and guessing `explicit`
  * for something GGG never published costs nothing because there is no candidate either way.
  */
-const defaultType = (mod: ItemMod) => (mod.header.affix === "implicit" ? "implicit" : "explicit");
+const defaultType = (mod: ItemMod) => (mod.header.affix === "implicit"
+  ? "implicit"
+  : "explicit");
 
 /**
  * Every stat as one indexable entry, with an `option` list expanded into an entry each.
@@ -99,7 +96,9 @@ function alignValues(statText: string, itemText: string): readonly number[] | un
 
   const found = new RegExp(`^${pattern}$`, "i").exec(itemText.trim());
 
-  return found === undefined || found === null ? undefined : found.slice(1).map(Number);
+  return found === undefined || found === null
+    ? undefined
+    : found.slice(1).map(Number);
 }
 
 /** A matcher over one snapshot of the published stat list. */
@@ -133,9 +132,7 @@ export function modMatcher(stats: readonly PublishedStat[]): ModMatcher {
 
   return {
     match(mod) {
-      const wanted = new Set(
-        mod.header.qualifiers.map((word) => word.toLowerCase()).filter((word) => types.has(word)),
-      );
+      const wanted = new Set(mod.header.qualifiers.map((word) => word.toLowerCase()).filter((word) => types.has(word)));
       if (wanted.size === 0) wanted.add(defaultType(mod));
 
       const joined = mod.lines.map((line) => line.text).join("\n");

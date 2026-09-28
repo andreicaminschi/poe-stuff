@@ -19,10 +19,7 @@ import type { ItemData } from "./get-compact-data.types.ts";
  *
  * The envelope carries nothing but `items`, so the array is what comes back.
  */
-export async function getCompactData(
-  league: string,
-  context: PoeWatchContext,
-): Promise<readonly ItemData[]> {
+export async function getCompactData(league: string, context: PoeWatchContext): Promise<readonly ItemData[]> {
   const body = await call<CompactResponse>(
     `${context.baseUrl}/compact?league=${encodeURIComponent(league)}&all=true`,
     currentHour(),

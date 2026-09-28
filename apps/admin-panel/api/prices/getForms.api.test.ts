@@ -38,7 +38,11 @@ describe("getForms", () => {
   });
 
   it("carries only the gem fields a gem has", async () => {
-    const [gem] = await getForms(poeWatch({ compact: [listing({ category: "gem", gemLevel: 21 })] }), "L", "Tabula Rasa");
+    const [gem] = await getForms(
+      poeWatch({ compact: [listing({ category: "gem", gemLevel: 21 })] }),
+      "L",
+      "Tabula Rasa",
+    );
     const [armour] = await getForms(poeWatch({ compact: [listing({ gemLevel: 21 })] }), "L", "Tabula Rasa");
 
     expect(gem).toMatchObject({ gemLevel: 21 });
@@ -48,7 +52,11 @@ describe("getForms", () => {
   });
 
   it("marks a synthesised form from its icon", async () => {
-    const [form] = await getForms(poeWatch({ compact: [listing({ icon: icon({ synthesised: true }) })] }), "L", "Tabula Rasa");
+    const [form] = await getForms(
+      poeWatch({ compact: [listing({ icon: icon({ synthesised: true }) })] }),
+      "L",
+      "Tabula Rasa",
+    );
 
     expect(form?.synthesised).toBe(true);
   });

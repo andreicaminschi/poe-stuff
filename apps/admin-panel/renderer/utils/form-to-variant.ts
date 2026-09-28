@@ -17,7 +17,9 @@ const FIELDS: readonly {
   { key: "linkCount", condition: "LinkedSockets", operator: ">=", label: (value) => `${value}L` },
   { key: "gemLevel", condition: "GemLevel", operator: ">=", label: (value) => `L${value}` },
   { key: "gemQuality", condition: "Quality", operator: ">=", label: (value) => `Q${value}` },
-  { key: "gemIsCorrupted", condition: "Corrupted", label: (value) => (value === true ? "corrupted" : "clean") },
+  { key: "gemIsCorrupted", condition: "Corrupted", label: (value) => (value === true
+    ? "corrupted"
+    : "clean") },
   { key: "mapTier", condition: "MapTier", operator: "==", label: (value) => `T${value}` },
 ];
 
@@ -25,10 +27,14 @@ const influenceKey = (form: Form): string => [...form.influences].sort().join(",
 
 const nextLevelUp = (form: Form, siblings: readonly Form[]): number | undefined => {
   const above = siblings.flatMap((other) =>
-    other.itemLevel !== undefined && form.itemLevel !== undefined && other.itemLevel > form.itemLevel ? [other.itemLevel] : [],
+    other.itemLevel !== undefined && form.itemLevel !== undefined && other.itemLevel > form.itemLevel
+      ? [other.itemLevel]
+      : [],
   );
 
-  return above.length === 0 ? undefined : Math.min(...above);
+  return above.length === 0
+    ? undefined
+    : Math.min(...above);
 };
 
 const rarityConditions = (form: Form, siblings: readonly Form[]): Condition[] => {
@@ -50,8 +56,7 @@ const rarityConditions = (form: Form, siblings: readonly Form[]): Condition[] =>
  * told apart by rarity.
  */
 export function formToVariant(form: Form, siblings: readonly Form[]): Variant {
-  const differs = (read: (other: Form) => unknown): boolean =>
-    siblings.some((other) => read(other) !== read(form));
+  const differs = (read: (other: Form) => unknown): boolean => siblings.some((other) => read(other) !== read(form));
   const keys = FIELDS.filter(({ key }) => form[key] !== undefined && differs((other) => other[key]));
 
   const rarity = RARITIES[form.frame];
@@ -59,7 +64,9 @@ export function formToVariant(form: Form, siblings: readonly Form[]): Variant {
     ...rarityConditions(form, siblings),
     ...keys.flatMap(({ key, condition, operator }): Condition[] => {
       const value = form[key] as number | boolean;
-      const ceiling = key === "itemLevel" ? nextLevelUp(form, siblings) : undefined;
+      const ceiling = key === "itemLevel"
+        ? nextLevelUp(form, siblings)
+        : undefined;
       if (ceiling !== undefined) {
         return [
           { condition, operator: ">=", value },
@@ -67,13 +74,17 @@ export function formToVariant(form: Form, siblings: readonly Form[]): Variant {
         ];
       }
 
-      return [{ condition, ...(operator === undefined ? {} : { operator }), value }];
+      return [{ condition, ...(operator === undefined
+        ? {}
+        : { operator }), value }];
     }),
   ];
   const labels = keys.map(({ key, label }) => label(form[key] as number | boolean));
 
   if (differs(influenceKey)) {
-    const influences = form.influences.length === 0 ? ["None"] : form.influences.map(titleCase);
+    const influences = form.influences.length === 0
+      ? ["None"]
+      : form.influences.map(titleCase);
     conditions.push({ condition: "HasInfluence", value: influences });
     if (form.influences.length > 0) labels.push(form.influences.join("/"));
   }
@@ -84,7 +95,9 @@ export function formToVariant(form: Form, siblings: readonly Form[]): Variant {
   }
 
   return {
-    name: labels.length === 0 ? (rarity ?? "variant").toLowerCase() : labels.join(" "),
+    name: labels.length === 0
+      ? (rarity ?? "variant").toLowerCase()
+      : labels.join(" "),
     conditions,
     listing: form.query,
   };

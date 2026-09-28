@@ -20,7 +20,9 @@ describe("variedProperties", () => {
   });
 
   it("does not count a value read off the row as varied", () => {
-    const categories: SampleCategories = { "gems/skill": { conditions: [], samples: [{ BaseType: { from: "baseTypes" } }] } };
+    const categories: SampleCategories = {
+      "gems/skill": { conditions: [], samples: [{ BaseType: { from: "baseTypes" } }] },
+    };
 
     expect(variedProperties(categories, row)).toEqual([]);
   });

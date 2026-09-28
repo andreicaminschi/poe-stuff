@@ -7,7 +7,7 @@ describe("parseSamples", () => {
   });
 
   it("reads a list of objects", () => {
-    expect(parseSamples('[{"Rarity":"Rare"},{}]')).toEqual({ samples: [{ Rarity: "Rare" }, {}] });
+    expect(parseSamples("[{\"Rarity\":\"Rare\"},{}]")).toEqual({ samples: [{ Rarity: "Rare" }, {}] });
   });
 
   it("reports text that is not JSON under the given label", () => {

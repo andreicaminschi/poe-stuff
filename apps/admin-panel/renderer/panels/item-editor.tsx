@@ -27,7 +27,9 @@ export function ItemEditor() {
 
   const variants = item?.variants ?? [];
   const hasVariants = variants.length > 0;
-  const own = hasVariants ? undefined : resolution?.[0];
+  const own = hasVariants
+    ? undefined
+    : resolution?.[0];
 
   const foot = (
     <EditorFoot
@@ -59,7 +61,9 @@ export function ItemEditor() {
           type="button"
           role="tab"
           aria-selected={tab === "item"}
-          className={tab === "item" ? "on" : ""}
+          className={tab === "item"
+            ? "on"
+            : ""}
           onClick={() => setTab("item")}
         >
           Item
@@ -68,36 +72,54 @@ export function ItemEditor() {
           type="button"
           role="tab"
           aria-selected={tab === "variants"}
-          className={tab === "variants" ? "on" : ""}
+          className={tab === "variants"
+            ? "on"
+            : ""}
           onClick={() => setTab("variants")}
         >
-          Variants <span className="mono faint">{variants.length}</span>
+          Variants
+          {" "}
+          <span className="mono faint">{variants.length}</span>
         </button>
       </div>
 
       <div className="panes">
-        {item === undefined ? <p className="note pad">Pick an item.</p> : null}
-        {item !== undefined && tab === "item" ? (
-          <ItemPane
-            item={item}
-            {...(own === undefined
-              ? {}
-              : {
-                  resolved: {
-                    label: "Conditions applied to this item",
-                    conditions: own.conditions,
-                    removed: own.removed,
-                    problems: own.problems,
-                    origins: conditionOrigins(item.classification, displayName(item)),
-                  },
-                })}
-            {...(hasVariants ? { resolveNote: "This row resolves once per variant. See the Variants tab." } : {})}
-            hasVariants={hasVariants}
-          />
-        ) : null}
-        {item !== undefined && tab === "variants" ? (
-          <VariantsPane key={item.key} item={item} {...(resolution === undefined ? {} : { resolutions: resolution })} />
-        ) : null}
+        {item === undefined
+          ? <p className="note pad">Pick an item.</p>
+          : null}
+        {item !== undefined && tab === "item"
+          ? (
+              <ItemPane
+                item={item}
+                {...(own === undefined
+                  ? {}
+                  : {
+                      resolved: {
+                        label: "Conditions applied to this item",
+                        conditions: own.conditions,
+                        removed: own.removed,
+                        problems: own.problems,
+                        origins: conditionOrigins(item.classification, displayName(item)),
+                      },
+                    })}
+                {...(hasVariants
+                  ? { resolveNote: "This row resolves once per variant. See the Variants tab." }
+                  : {})}
+                hasVariants={hasVariants}
+              />
+            )
+          : null}
+        {item !== undefined && tab === "variants"
+          ? (
+              <VariantsPane
+                key={item.key}
+                item={item}
+                {...(resolution === undefined
+                  ? {}
+                  : { resolutions: resolution })}
+              />
+            )
+          : null}
       </div>
 
       {foot}

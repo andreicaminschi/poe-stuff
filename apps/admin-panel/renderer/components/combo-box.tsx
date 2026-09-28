@@ -8,7 +8,9 @@ function matching(options: readonly ValueOption[], value: string): readonly Valu
   if (needle === "") return options.slice(0, SHOWN);
 
   return options
-    .filter((option) => option.value.toLowerCase().includes(needle) || option.label?.toLowerCase().includes(needle) === true)
+    .filter(
+      (option) => option.value.toLowerCase().includes(needle) || option.label?.toLowerCase().includes(needle) === true,
+    )
     .slice(0, SHOWN);
 }
 
@@ -42,7 +44,9 @@ export function ComboBox({
 }) {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
-  const matches = open ? matching(options, value) : [];
+  const matches = open
+    ? matching(options, value)
+    : [];
 
   const choose = (picked: string) => {
     onChange(picked);
@@ -98,25 +102,31 @@ export function ComboBox({
           setOpen(false);
         }}
       />
-      {matches.length === 0 || disabled === true ? null : (
-        <ul className="combo-list" role="listbox">
-          {matches.map((option, at) => (
-            <li
-              key={option.value}
-              role="option"
-              aria-selected={at === active}
-              className={at === active ? "on" : ""}
-              onMouseDown={(event) => {
-                event.preventDefault();
-                choose(option.value);
-              }}
-            >
-              <span>{option.value}</span>
-              {option.label === undefined ? null : <span className="faint">{option.label}</span>}
-            </li>
-          ))}
-        </ul>
-      )}
+      {matches.length === 0 || disabled === true
+        ? null
+        : (
+            <ul className="combo-list" role="listbox">
+              {matches.map((option, at) => (
+                <li
+                  key={option.value}
+                  role="option"
+                  aria-selected={at === active}
+                  className={at === active
+                    ? "on"
+                    : ""}
+                  onMouseDown={(event) => {
+                    event.preventDefault();
+                    choose(option.value);
+                  }}
+                >
+                  <span>{option.value}</span>
+                  {option.label === undefined
+                    ? null
+                    : <span className="faint">{option.label}</span>}
+                </li>
+              ))}
+            </ul>
+          )}
     </div>
   );
 }

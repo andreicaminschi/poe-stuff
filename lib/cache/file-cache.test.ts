@@ -53,7 +53,7 @@ describe("fileCache", () => {
       await cache.set("k", { a: [1, 2] });
 
       expect(await cache.get("k")).toEqual({ a: [1, 2] });
-      expect(await readFile(join(root, "k.json"), "utf8")).toBe('{"a":[1,2]}');
+      expect(await readFile(join(root, "k.json"), "utf8")).toBe("{\"a\":[1,2]}");
     });
 
     it("overwrites the previous value under the same key", async () => {
@@ -70,7 +70,7 @@ describe("fileCache", () => {
 
       await cache.set("b", "v");
 
-      expect(await readFile(join(root, "deep", "b.json"), "utf8")).toBe('"v"');
+      expect(await readFile(join(root, "deep", "b.json"), "utf8")).toBe("\"v\"");
     });
 
     it("refuses a key with a slash or one that climbs with dot-dot", async () => {

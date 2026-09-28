@@ -8,7 +8,10 @@ const published = { state: "published" as const, createdAt: at, publishedAt: at 
 
 describe("toVersionList", () => {
   it("orders versions by their last number, newest first, not as strings", () => {
-    const list = toVersionList({ next: 11, versions: { "3.29.2": published, "3.29.10": published, "3.29.9": published } }, undefined);
+    const list = toVersionList(
+      { next: 11, versions: { "3.29.2": published, "3.29.10": published, "3.29.9": published } },
+      undefined,
+    );
 
     expect(list.versions.map((version) => version.id)).toEqual(["3.29.10", "3.29.9", "3.29.2"]);
   });

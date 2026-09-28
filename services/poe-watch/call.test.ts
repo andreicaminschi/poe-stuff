@@ -9,8 +9,7 @@ import type { CachedResponse } from "./types.ts";
 
 const URL_A = "https://api.poe.watch/compact?league=X&all=true";
 
-const jsonResponse = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), { status });
+const jsonResponse = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status });
 
 let dir: string;
 let fetchMock: jest.Mock<typeof fetch>;
@@ -58,9 +57,7 @@ describe("call", () => {
   it("throws an HTTP error naming the URL and status on a 503", async () => {
     fetchMock.mockResolvedValue(new Response("down", { status: 503 }));
 
-    const error = await call(URL_A, "1", { baseUrl: "", userAgent: "u" }).catch(
-      (e: unknown) => e,
-    );
+    const error = await call(URL_A, "1", { baseUrl: "", userAgent: "u" }).catch((e: unknown) => e);
 
     expect(error).toBeInstanceOf(PoeWatchHttpError);
     expect(error).toMatchObject({ url: URL_A, status: 503 });
@@ -70,9 +67,7 @@ describe("call", () => {
     fetchMock.mockResolvedValue(new Response("", { status: 404 }));
     const cache = fileCache<CachedResponse>(dir);
 
-    await expect(
-      call(URL_A, "1", { baseUrl: "", userAgent: "u", cache }),
-    ).rejects.toThrow("poewatch 404 for " + URL_A);
+    await expect(call(URL_A, "1", { baseUrl: "", userAgent: "u", cache })).rejects.toThrow("poewatch 404 for " + URL_A);
 
     expect(await readdir(dir)).toEqual([]);
   });
@@ -80,9 +75,7 @@ describe("call", () => {
   it("lets a network failure reach the caller unchanged", async () => {
     fetchMock.mockRejectedValue(new TypeError("fetch failed"));
 
-    await expect(
-      call(URL_A, "1", { baseUrl: "", userAgent: "u" }),
-    ).rejects.toThrow("fetch failed");
+    await expect(call(URL_A, "1", { baseUrl: "", userAgent: "u" })).rejects.toThrow("fetch failed");
   });
 
   it("answers the second call with the same URL and hour from the cache", async () => {
@@ -129,9 +122,7 @@ describe("call", () => {
 
     await call(URL_A, "1", { baseUrl: "", userAgent: "u", cache });
 
-    expect(writes).toEqual([
-      { url: URL_A, status: 200, body: { n: 1 }, storedAt: "2026-01-02T03:04:05.000Z" },
-    ]);
+    expect(writes).toEqual([{ url: URL_A, status: 200, body: { n: 1 }, storedAt: "2026-01-02T03:04:05.000Z" }]);
   });
 
   it("serves a cached entry even when it recorded an error status", async () => {

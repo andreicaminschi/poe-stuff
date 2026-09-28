@@ -24,7 +24,7 @@ describe("collectAuthoredTable", () => {
     ["a trailing dash", "authored/mirror-"],
     ["a second slash", "authored/a/b"],
   ])("refuses a key with %s", (_label, key) => {
-    expect(problemOf(key, row())).toBe('is not keyed "authored/" followed by a slug');
+    expect(problemOf(key, row())).toBe("is not keyed \"authored/\" followed by a slug");
   });
 
   it("refuses a row that is not an object", () => {
@@ -80,6 +80,8 @@ describe("validateAuthoredTable", () => {
   });
 
   it("throws the first problem with its source", () => {
-    expect(() => validateAuthoredTable({ bad: row() }, "authored.manual")).toThrow('authored.manual: "bad" is not keyed');
+    expect(() => validateAuthoredTable({ bad: row() }, "authored.manual")).toThrow(
+      "authored.manual: \"bad\" is not keyed",
+    );
   });
 });

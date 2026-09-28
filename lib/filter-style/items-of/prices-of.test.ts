@@ -4,7 +4,9 @@ import { pricesOf } from "./prices-of.ts";
 const one = (meanPrice: number | undefined, corrupted = false) => ({
   name: "x",
   corrupted,
-  ...(meanPrice === undefined ? {} : { meanPrice }),
+  ...(meanPrice === undefined
+    ? {}
+    : { meanPrice }),
 });
 
 describe("pricesOf", () => {
@@ -40,7 +42,10 @@ describe("pricesOf", () => {
     });
 
     it("counts a form without a price as zero", () => {
-      expect(pricesOf({ list: [one(undefined), one(8)], unique: true, corrupted: false })).toEqual({ take: 0, check: 8 });
+      expect(pricesOf({ list: [one(undefined), one(8)], unique: true, corrupted: false })).toEqual({
+        take: 0,
+        check: 8,
+      });
     });
 
     it("gives a corrupted list only a check at its dearest form", () => {
@@ -54,7 +59,12 @@ describe("pricesOf", () => {
 
   describe("with corruption outcomes", () => {
     it("adds a gamble at the best outcome when it beats the take", () => {
-      const prices = pricesOf({ list: [one(3)], outcomes: [one(1, true), one(50, true)], unique: true, corrupted: false });
+      const prices = pricesOf({
+        list: [one(3)],
+        outcomes: [one(1, true), one(50, true)],
+        unique: true,
+        corrupted: false,
+      });
 
       expect(prices).toEqual({ take: 3, gamble: 50 });
     });

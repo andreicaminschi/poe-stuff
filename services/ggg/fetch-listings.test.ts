@@ -1,10 +1,5 @@
 import { afterEach, describe, it, expect, jest } from "@jest/globals";
-import {
-  createFetchPageRequest,
-  fetchAllListings,
-  fetchListings,
-  pageHashes,
-} from "./fetch-listings.ts";
+import { createFetchPageRequest, fetchAllListings, fetchListings, pageHashes } from "./fetch-listings.ts";
 import { context, stubFetch } from "./endpoints.test-helpers.ts";
 
 const hashes = (n: number) => Array.from({ length: n }, (_, i) => `h${i}`);
@@ -60,7 +55,10 @@ describe("fetchAllListings", () => {
 
     const pages = await fetchAllListings(hashes(15), "S", context);
 
-    expect(pages.map((p) => [p.page, p.listings])).toEqual([[0, [1]], [1, [2]]]);
+    expect(pages.map((p) => [p.page, p.listings])).toEqual([
+      [0, [1]],
+      [1, [2]],
+    ]);
     expect(fetchMock.mock.calls.map((c) => c[0])).toEqual([
       `https://trade.test/api/fetch/${hashes(10).join(",")}?query=S`,
       "https://trade.test/api/fetch/h10,h11,h12,h13,h14?query=S",

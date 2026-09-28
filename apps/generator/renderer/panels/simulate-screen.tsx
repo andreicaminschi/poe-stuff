@@ -19,7 +19,10 @@ export function SimulateScreen() {
   const [piled, setPiled] = useState<readonly Piled[]>([]);
 
   const pool = useMemo(
-    () => (catalog === undefined || config === undefined ? [] : lootPool(categoryPlans(items, catalog.categories, config))),
+    () =>
+      catalog === undefined || config === undefined
+        ? []
+        : lootPool(categoryPlans(items, catalog.categories, config)),
     [items, catalog, config],
   );
 
@@ -40,7 +43,11 @@ export function SimulateScreen() {
         </button>
         <span className="label">Simulate</span>
         <span className="sp" />
-        <span className="count">{piled.length === 0 ? "" : `${piled.length} dropped · ${hidden} hidden`}</span>
+        <span className="count">
+          {piled.length === 0
+            ? ""
+            : `${piled.length} dropped · ${hidden} hidden`}
+        </span>
         <button type="button" className="btn" onClick={() => void drop(randomLoot)}>
           Generate loot
         </button>
@@ -49,7 +56,9 @@ export function SimulateScreen() {
         </button>
       </div>
       <div className="floor" ref={floor}>
-        {piled.length === 0 ? <div className="hint">Generate some loot to see how it drops.</div> : null}
+        {piled.length === 0
+          ? <div className="hint">Generate some loot to see how it drops.</div>
+          : null}
         {piled.map((one, at) => (
           <GroundBeam key={`beam-${at}`} drop={one} />
         ))}

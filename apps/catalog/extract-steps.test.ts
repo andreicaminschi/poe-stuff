@@ -48,7 +48,9 @@ describe("the PoeWatch extracts", () => {
   });
 
   it("store the corruption outcomes", async () => {
-    const result = await extractPoeWatchCorruptions.run(contextWith({ poeWatch: { getCorruptionData: async () => [] } }));
+    const result = await extractPoeWatchCorruptions.run(
+      contextWith({ poeWatch: { getCorruptionData: async () => [] } }),
+    );
 
     expect(result).toEqual({ keys: ["catalog/run=r_1/bronze/poe-watch_corruptions.json"], rows: 0 });
   });
@@ -65,7 +67,10 @@ describe("the PoeWatch extracts", () => {
 describe("extractTaxonomy", () => {
   it("reads the categories of the version the taxonomy answered with, not the one asked for", async () => {
     const getCategories = jest.fn(async (version: string) => ({ version, categories: {} }));
-    const taxonomy = { getTaxonomy: async () => ({ version: "3.29.4", items: { a: {}, b: {} }, authored: { c: {} } }), getCategories };
+    const taxonomy = {
+      getTaxonomy: async () => ({ version: "3.29.4", items: { a: {}, b: {} }, authored: { c: {} } }),
+      getCategories,
+    };
 
     const result = await extractTaxonomy.run(contextWith({ taxonomy, taxonomyVersion: "latest" }));
 

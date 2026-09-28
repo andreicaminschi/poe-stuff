@@ -13,8 +13,8 @@ describe("isModHeader", () => {
 
 describe("parseModHeader", () => {
   it("reads a crafted prefix into affix, name, tags and qualifiers", () => {
-    expect(parseModHeader('{ Master Crafted Prefix Modifier "Upgraded" — Gem }')).toEqual({
-      raw: 'Master Crafted Prefix Modifier "Upgraded" — Gem',
+    expect(parseModHeader("{ Master Crafted Prefix Modifier \"Upgraded\" — Gem }")).toEqual({
+      raw: "Master Crafted Prefix Modifier \"Upgraded\" — Gem",
       affix: "prefix",
       name: "Upgraded",
       tier: undefined,
@@ -25,7 +25,7 @@ describe("parseModHeader", () => {
   });
 
   it("reads the tier and every comma-separated tag", () => {
-    const header = parseModHeader('{ Suffix Modifier "of the Magma" (Tier: 2) — Elemental, Fire, Resistance }');
+    const header = parseModHeader("{ Suffix Modifier \"of the Magma\" (Tier: 2) — Elemental, Fire, Resistance }");
 
     expect([header.affix, header.name, header.tier, header.tags]).toEqual([
       "suffix",
@@ -70,9 +70,9 @@ describe("parseModLine", () => {
 describe("parseModSection", () => {
   it("groups the lines under each header and keeps a hybrid's lines together", () => {
     const { mods } = parseModSection([
-      '{ Prefix Modifier "Sapphire" (Tier: 10) — Mana }',
+      "{ Prefix Modifier \"Sapphire\" (Tier: 10) — Mana }",
       "+30(30-34) to maximum Mana",
-      '{ Suffix Modifier "of Radiance" (Tier: 1) — Attack }',
+      "{ Suffix Modifier \"of Radiance\" (Tier: 1) — Attack }",
       "17(16-20)% increased Global Accuracy Rating",
       "15% increased Light Radius",
     ]);
@@ -103,7 +103,15 @@ describe("parseModSection", () => {
 describe("suffixMod", () => {
   it("makes the suffix the header's only qualifier with affix other", () => {
     expect(suffixMod("Allocates Discipline and Training", "enchant")).toEqual({
-      header: { raw: "enchant", affix: "other", name: "", tier: undefined, tags: [], qualifiers: ["enchant"], extra: [] },
+      header: {
+        raw: "enchant",
+        affix: "other",
+        name: "",
+        tier: undefined,
+        tags: [],
+        qualifiers: ["enchant"],
+        extra: [],
+      },
       lines: [{ text: "Allocates Discipline and Training", rolls: [], unscalable: false }],
       reminders: [],
     });

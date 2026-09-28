@@ -12,8 +12,7 @@ const DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})-(\d{2})$/;
  * The hour is the raw id rather than a readable date, so nothing has to agree on a format
  * to address the same run. `run=` is the key's business and is added in `lake/keys.ts`.
  */
-export const runId = (league: string, hourId: number): string =>
-  `${slug(league)}_${hourId}`;
+export const runId = (league: string, hourId: number): string => `${slug(league)}_${hourId}`;
 
 /**
  * The last hour the exchange has published.
@@ -37,12 +36,7 @@ export function hourFromDate(date: string): number {
   }
 
   const [, year, month, day, hour] = match;
-  const ms = Date.UTC(
-    Number(year),
-    Number(month) - 1,
-    Number(day),
-    Number(hour),
-  );
+  const ms = Date.UTC(Number(year), Number(month) - 1, Number(day), Number(hour));
 
   if (Number.isNaN(ms) || dateFromHour(ms / 1_000) !== date) {
     throw new Error(`"${date}" is not a real date`);

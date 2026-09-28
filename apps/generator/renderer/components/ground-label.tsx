@@ -23,17 +23,19 @@ export function GroundLabel({ drop }: { readonly drop: Piled }) {
         opacity,
       }}
     >
-      {icon === null ? null : (
-        <svg
-          viewBox="0 0 24 24"
-          width={iconSize}
-          height={iconSize}
-          fill={ICON_COLOURS[icon.colour]}
-          style={{ marginRight: Math.round(drop.px * 0.3) }}
-        >
-          <path d={ICON_PATHS[icon.shape]} />
-        </svg>
-      )}
+      {icon === null
+        ? null
+        : (
+            <svg
+              viewBox="0 0 24 24"
+              width={iconSize}
+              height={iconSize}
+              fill={ICON_COLOURS[icon.colour]}
+              style={{ marginRight: Math.round(drop.px * 0.3) }}
+            >
+              <path d={ICON_PATHS[icon.shape]} />
+            </svg>
+          )}
       {drop.name}
     </span>
   );

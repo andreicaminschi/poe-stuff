@@ -30,21 +30,21 @@ Two endpoint classes, each with four nested tiers. Format is
 
 ### Search endpoint
 
-| Tier | Penalty | Sustained equivalent |
-|---|---|---|
-| 5 per 10s | 60s | 1,800/hr |
-| 15 per 60s | 300s | 900/hr |
-| 30 per 300s | 1,800s (30 min) | 360/hr |
-| **600 per 21,600s (6h)** | **3,600s (1h)** | **100/hr** |
+| Tier                     | Penalty         | Sustained equivalent |
+| ------------------------ | --------------- | -------------------- |
+| 5 per 10s                | 60s             | 1,800/hr             |
+| 15 per 60s               | 300s            | 900/hr               |
+| 30 per 300s              | 1,800s (30 min) | 360/hr               |
+| **600 per 21,600s (6h)** | **3,600s (1h)** | **100/hr**           |
 
 ### Fetch endpoint
 
-| Tier | Penalty | Sustained equivalent |
-|---|---|---|
-| 12 per 4s | 10s | 10,800/hr |
-| 16 per 12s | 300s | 4,800/hr |
-| 50 per 300s | 300s | 600/hr |
-| **1,000 per 21,600s (6h)** | **1,800s (30 min)** | **167/hr** |
+| Tier                       | Penalty             | Sustained equivalent |
+| -------------------------- | ------------------- | -------------------- |
+| 12 per 4s                  | 10s                 | 10,800/hr            |
+| 16 per 12s                 | 300s                | 4,800/hr             |
+| 50 per 300s                | 300s                | 600/hr               |
+| **1,000 per 21,600s (6h)** | **1,800s (30 min)** | **167/hr**           |
 
 **Only the 6h tier governs volume.** The three short windows govern burst
 shape and are nowhere near binding at this scale.
@@ -53,13 +53,13 @@ shape and are nowhere near binding at this scale.
 
 ## Key finding: fetch is the bottleneck, not search
 
-The endpoint with the *higher* limit is the constraint, because it's called 3×
+The endpoint with the _higher_ limit is the constraint, because it's called 3×
 per work unit.
 
-| Endpoint | 6h allowance | Calls per unit | Units per 6h |
-|---|---|---|---|
-| Search | 600 | 1 | 600 |
-| **Fetch** | **1,000** | **3** | **333 ← binds** |
+| Endpoint  | 6h allowance | Calls per unit | Units per 6h    |
+| --------- | ------------ | -------------- | --------------- |
+| Search    | 600          | 1              | 600             |
+| **Fetch** | **1,000**    | **3**          | **333 ← binds** |
 
 Theoretical ceiling: **1,333 work units/day per IP.**
 
@@ -124,17 +124,17 @@ From memory — **verify before sizing**:
 aws ec2 describe-instance-types --instance-types t4g.nano t4g.small t4g.medium t4g.large --query "InstanceTypes[].{Type:InstanceType,ENIs:NetworkInfo.MaximumNetworkInterfaces,IPsPerENI:NetworkInfo.Ipv4AddressesPerInterface}" --output table
 ```
 
-| Type | ENIs | IPv4/ENI | Slots | $/mo | $/slot |
-|---|---|---|---|---|---|
-| t4g.nano | 2 | 2 | 4 | $3.07 | $0.77 |
-| t4g.small | 3 | 4 | 12 | $12.26 | $1.02 |
-| t4g.medium | 3 | 6 | 18 | $24.53 | $1.36 |
-| t4g.large | 3 | 12 | 36 | $49.06 | $1.36 |
+| Type       | ENIs | IPv4/ENI | Slots | $/mo   | $/slot |
+| ---------- | ---- | -------- | ----- | ------ | ------ |
+| t4g.nano   | 2    | 2        | 4     | $3.07  | $0.77  |
+| t4g.small  | 3    | 4        | 12    | $12.26 | $1.02  |
+| t4g.medium | 3    | 6        | 18    | $24.53 | $1.36  |
+| t4g.large  | 3    | 12       | 36    | $49.06 | $1.36  |
 
 ### Networking
 
 - **Public subnet, EIPs attached directly. No NAT Gateway** — it costs
-  $32.85/mo *and* collapses every worker behind one address, defeating the
+  $32.85/mo _and_ collapses every worker behind one address, defeating the
   entire purpose.
 - **Amazon Linux 2023.** Its `ec2-net-utils` auto-configures secondary private
   IPs and creates per-ENI routing tables plus source-based `ip rule` entries.
@@ -151,14 +151,14 @@ aws ec2 describe-instance-types --instance-types t4g.nano t4g.small t4g.medium t
 
 ## Cost
 
-| Item | Qty | Rate | Monthly |
-|---|---|---|---|
-| t4g.small | 1 | $0.0168/hr | $12.26 |
-| Elastic IP, in use | 6 | $0.005/hr | $21.90 |
-| gp3 root, 8 GB | 1 | $0.08/GB-mo | $0.64 |
-| S3 (compressed pages, batched PUTs) | ~2 GB | $0.023/GB-mo | ~$1.00 |
-| Data transfer | — | ingress free | $0.00 |
-| **Total** | | | **≈ $36/mo** |
+| Item                                | Qty   | Rate         | Monthly      |
+| ----------------------------------- | ----- | ------------ | ------------ |
+| t4g.small                           | 1     | $0.0168/hr   | $12.26       |
+| Elastic IP, in use                  | 6     | $0.005/hr    | $21.90       |
+| gp3 root, 8 GB                      | 1     | $0.08/GB-mo  | $0.64        |
+| S3 (compressed pages, batched PUTs) | ~2 GB | $0.023/GB-mo | ~$1.00       |
+| Data transfer                       | —     | ingress free | $0.00        |
+| **Total**                           |       |              | **≈ $36/mo** |
 
 **The IPs are ~60% of the bill.** Since Feb 2024 AWS charges $0.005/hr for
 every public IPv4 in use — EIP or auto-assigned, attached or idle, no
@@ -169,12 +169,12 @@ Savings Plan cuts the instance ~28% (~$3/mo saved); everything else is fixed.
 
 Capacity scales linearly at **$3.65 per 800 work units/day**.
 
-| Work units/day | API calls/day | IPs | Instance | Monthly |
-|---|---|---|---|---|
-| 3,000 (today) | 12,000 | 6 | t4g.small | $34 |
-| 6,400 | 25,600 | 8 | t4g.small | $41 |
-| 9,600 | 38,400 | 12 | t4g.small | $56 |
-| 14,400 | 57,600 | 18 | t4g.medium | $90 |
+| Work units/day | API calls/day | IPs | Instance   | Monthly |
+| -------------- | ------------- | --- | ---------- | ------- |
+| 3,000 (today)  | 12,000        | 6   | t4g.small  | $34     |
+| 6,400          | 25,600        | 8   | t4g.small  | $41     |
+| 9,600          | 38,400        | 12  | t4g.small  | $56     |
+| 14,400         | 57,600        | 18  | t4g.medium | $90     |
 
 Aggregate burst ceiling is `5 × N_IPs` search calls per 10s — 30 at six IPs.
 Only relevant if the workload ever needs to fire a batch rather than trickle.
@@ -212,7 +212,7 @@ headers alongside a companion header reporting **current consumed state**. If
 so, treat the server's reported state as authoritative and reconcile local
 counters on every response.
 
-Local-only modeling *will* drift — retries, redirects, and requests that count
+Local-only modeling _will_ drift — retries, redirects, and requests that count
 against the limit but return errors all desync it. With a 6-hour rolling
 window the drift is invisible until the tier trips and costs 30–60 minutes.
 Header reconciliation makes the system self-correcting.
@@ -239,7 +239,7 @@ property of the AWS-managed NAT host, not the sandbox; concurrent invocations
 share addresses, warm environments keep theirs for hours, and there's no API
 to read or pin them. Forcing cold starts doesn't help — a new sandbox on the
 same host reuses the same egress IP. Inside a VPC it's strictly worse: Lambda
-uses Hyperplane ENIs shared across all concurrent executions (*fewer* IPs, not
+uses Hyperplane ENIs shared across all concurrent executions (_fewer_ IPs, not
 more), gets no auto-assigned public IP, and needs a NAT Gateway that collapses
 everything to one address.
 
@@ -249,7 +249,7 @@ chosen IP. ~$62/mo for 8 uncontrollable, unattributable addresses.
 
 **Fargate Spot, one task per request** — genuinely delivers a fresh public IP
 per invocation (each task gets its own ENI), and at ~$43/mo it was the leading
-candidate *until the rate limits were known*. Killed by the 6h tier: you
+candidate _until the rate limits were known_. Killed by the 6h tier: you
 cannot track a 6-hour rolling budget against addresses you didn't choose and
 won't see again, and a random draw can hand back an IP you burned earlier with
 no way to detect it. Against a tier costing 30–60 minutes, that blind spot is
@@ -265,6 +265,7 @@ egress-only IGW has no hourly or data fee), and a VPC's default /56 provides
 256 distinct /64s. Roughly $4/mo with effectively unlimited rotation.
 **Not applicable — the target API is IPv4-only.** Worth re-checking if that
 ever changes:
+
 > ```powershell
 > Resolve-DnsName api.example.com -Type AAAA
 > ```

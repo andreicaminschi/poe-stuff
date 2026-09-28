@@ -5,5 +5,7 @@ import { useDraft } from "./use-draft.ts";
 export function useConditionNames(): readonly string[] {
   const draft = useDraft();
 
-  return useMemo(() => (draft === undefined ? [] : conditionNames(draft)), [draft]);
+  return useMemo(() => (draft === undefined
+    ? []
+    : conditionNames(draft)), [draft]);
 }

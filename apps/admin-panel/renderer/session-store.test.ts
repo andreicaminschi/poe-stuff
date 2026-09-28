@@ -19,7 +19,7 @@ const base = draftOf(
   [category("gems"), category("gems/support")],
 );
 
-const deferred = <T,>() => {
+const deferred = <T>() => {
   let resolve!: (value: T) => void;
   const promise = new Promise<T>((settle) => (resolve = settle));
   return { promise, resolve };
@@ -89,7 +89,10 @@ describe("useSession", () => {
     });
 
     it("falls back to the current version when none is editable", async () => {
-      panel.getVersions.mockResolvedValue({ ...versions, versions: versions.versions.map((v) => ({ ...v, editable: false })) });
+      panel.getVersions.mockResolvedValue({
+        ...versions,
+        versions: versions.versions.map((v) => ({ ...v, editable: false })),
+      });
 
       await state().boot();
 
@@ -235,11 +238,20 @@ describe("useSession", () => {
 
     it("goes to a row's view, category and item tab", async () => {
       await loaded();
-      useSession.setState({ saved: draftOf([ggg("x", { ...at("gems", "support"), excluded: true })]), dialog: { kind: "runs" } });
+      useSession.setState({
+        saved: draftOf([ggg("x", { ...at("gems", "support"), excluded: true })]),
+        dialog: { kind: "runs" },
+      });
 
       await state().goTo("x");
 
-      expect(state()).toMatchObject({ view: "excluded", selection: "gems/support", selectedKey: "x", tab: "item", dialog: undefined });
+      expect(state()).toMatchObject({
+        view: "excluded",
+        selection: "gems/support",
+        selectedKey: "x",
+        tab: "item",
+        dialog: undefined,
+      });
     });
 
     it("stays put when going to a row that does not exist", async () => {
@@ -275,7 +287,11 @@ describe("useSession", () => {
 
       await state().save();
 
-      expect(panel.appendLedger.mock.calls[0]?.[1]).toMatchObject({ seq: 5, action: "save-items", changes: { items: { b: {} } } });
+      expect(panel.appendLedger.mock.calls[0]?.[1]).toMatchObject({
+        seq: 5,
+        action: "save-items",
+        changes: { items: { b: {} } },
+      });
       expect(state()).toMatchObject({ status: "Saved 1 edit.", changes: { items: {}, categories: {} } });
       expect(state().saved?.items["b"]?.listing).toEqual({ name: "b" });
     });
@@ -286,7 +302,7 @@ describe("useSession", () => {
 
       await state().save();
 
-      expect(state().error).toBe('Pick "Listed as" before saving: b');
+      expect(state().error).toBe("Pick \"Listed as\" before saving: b");
       expect(panel.appendLedger).not.toHaveBeenCalled();
     });
 
@@ -313,7 +329,9 @@ describe("useSession", () => {
   describe("undo", () => {
     it("pops the last entry and replays the rest", async () => {
       await loaded();
-      useSession.setState({ ledger: [{ seq: 1, at: "t", action: "delete-category", changes: { categories: { gems: null } } }] });
+      useSession.setState({
+        ledger: [{ seq: 1, at: "t", action: "delete-category", changes: { categories: { gems: null } } }],
+      });
 
       await state().undo();
 
@@ -349,7 +367,10 @@ describe("useSession", () => {
 
       await state().moveSubcategory("gems/support", category("skills/support"));
 
-      expect(state()).toMatchObject({ selection: "skills/support", status: "Moved gems/support to skills/support, 1 row." });
+      expect(state()).toMatchObject({
+        selection: "skills/support",
+        status: "Moved gems/support to skills/support, 1 row.",
+      });
     });
 
     it("shows a refused move as an error and writes nothing", async () => {
@@ -394,7 +415,12 @@ describe("useSession", () => {
 
       await state().deleteCategory("gems");
 
-      expect(state()).toMatchObject({ selection: undefined, selectedKey: undefined, checked: [], status: "Deleted gems." });
+      expect(state()).toMatchObject({
+        selection: undefined,
+        selectedKey: undefined,
+        checked: [],
+        status: "Deleted gems.",
+      });
     });
 
     it("keeps the selection when a subcategory of it is deleted", async () => {

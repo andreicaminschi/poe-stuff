@@ -8,7 +8,11 @@ export function missingListings(items: readonly Item[]): readonly string[] {
   return items
     .filter((item) => item.excluded !== true && item.quest !== true && item.unpriceable !== true)
     .flatMap((item) => [
-      ...(unlisted(item) && item.variants.length === 0 ? [item.name] : []),
-      ...item.variants.filter((variant) => variant.unpriceable !== true && unlisted(variant)).map((variant) => `${item.name} / ${variant.name}`),
+      ...(unlisted(item) && item.variants.length === 0
+        ? [item.name]
+        : []),
+      ...item.variants
+        .filter((variant) => variant.unpriceable !== true && unlisted(variant))
+        .map((variant) => `${item.name} / ${variant.name}`),
     ]);
 }

@@ -41,13 +41,14 @@ const FLAG_WORDS = 4;
 const SENTENCE_END = /[.,;:!?]$/;
 
 /** Whether a bare line reads as a flag — something short, named, and not a sentence. */
-export const isFlagLine = (line: string) =>
-  !SENTENCE_END.test(line) && line.split(/\s+/).length <= FLAG_WORDS;
+export const isFlagLine = (line: string) => !SENTENCE_END.test(line) && line.split(/\s+/).length <= FLAG_WORDS;
 
 /** Whether a bare line is a modifier the game suffixed rather than headed. */
 export const suffixedMod = (line: string) => {
   const match = SUFFIX_KIND.exec(line);
-  return match === null ? undefined : { text: match[1] ?? "", kind: match[2] ?? "" };
+  return match === null
+    ? undefined
+    : { text: match[1] ?? "", kind: match[2] ?? "" };
 };
 
 /** Whether a section is a `Key: Value` list rather than bare lines. */

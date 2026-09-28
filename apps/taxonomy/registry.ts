@@ -48,7 +48,9 @@ export function newestVersion(registry: Registry): string | undefined {
 export function highestDraft(registry: Registry): string | undefined {
   const newest = newestVersion(registry);
 
-  return newest !== undefined && registry.versions[newest]?.state === "draft" ? newest : undefined;
+  return newest !== undefined && registry.versions[newest]?.state === "draft"
+    ? newest
+    : undefined;
 }
 
 export function assertParentPublished(registry: Registry, parent: string): void {

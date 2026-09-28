@@ -23,18 +23,32 @@ const unique = (id: number, name: string, mean: number, daily: number, frame = 3
   ({ id, name, mean, daily, frame, lowConfidence: false, icon: "" }) as unknown as ItemData;
 
 const outcomes = (itemId: number, ...found: [string, number, number][]): ItemCorruptions =>
-  ({ item_id: itemId, corruptions: found.map(([name, mean, daily]) => ({ name, mean, daily, lowConfidence: false })) }) as unknown as ItemCorruptions;
+  ({
+    item_id: itemId,
+    corruptions: found.map(([name, mean, daily]) => ({ name, mean, daily, lowConfidence: false })),
+  }) as unknown as ItemCorruptions;
 
 describe("withUniques", () => {
   it("hangs a unique off the base the trade list says it rolls on", () => {
-    const [row] = withUniques([base("Leather Belt")], trade(["Headhunter", "Leather Belt"]), [unique(1, "Headhunter", 5000, 3)], []);
+    const [row] = withUniques(
+      [base("Leather Belt")],
+      trade(["Headhunter", "Leather Belt"]),
+      [unique(1, "Headhunter", 5000, 3)],
+      [],
+    );
 
     expect(row?.uniques).toEqual([
       {
         category: "unique",
         subcategory: null,
         listings: [
-          { name: "Headhunter", meanPrice: 5000, corrupted: false, lowConfidence: false, poeWatch: { source: "poeWatch:items", id: 1, name: "Headhunter" } },
+          {
+            name: "Headhunter",
+            meanPrice: 5000,
+            corrupted: false,
+            lowConfidence: false,
+            poeWatch: { source: "poeWatch:items", id: 1, name: "Headhunter" },
+          },
         ],
       },
     ]);
@@ -43,11 +57,18 @@ describe("withUniques", () => {
   it("returns a base with no uniques untouched", () => {
     const original = base("Rustic Sash");
 
-    expect(withUniques([original], trade(["Headhunter", "Leather Belt"]), [unique(1, "Headhunter", 1, 1)], [])[0]).toBe(original);
+    expect(withUniques([original], trade(["Headhunter", "Leather Belt"]), [unique(1, "Headhunter", 1, 1)], [])[0]).toBe(
+      original,
+    );
   });
 
   it("ignores a listing that is not unique-framed", () => {
-    const [row] = withUniques([base("Leather Belt")], trade(["Headhunter", "Leather Belt"]), [unique(1, "Headhunter", 1, 1, 2)], []);
+    const [row] = withUniques(
+      [base("Leather Belt")],
+      trade(["Headhunter", "Leather Belt"]),
+      [unique(1, "Headhunter", 1, 1, 2)],
+      [],
+    );
 
     expect(row?.uniques).toBeUndefined();
   });
@@ -97,7 +118,12 @@ describe("withUniques", () => {
   it("hangs a unique on every base it rolls on and on every row sharing a base name", () => {
     const rows = [base("Leather Belt"), { ...base("Leather Belt"), key: "other" }, base("Chain Belt")];
 
-    const result = withUniques(rows, trade(["Belt", "Leather Belt"], ["Belt", "Chain Belt"], ["Belt", "Chain Belt"]), [unique(1, "Belt", 1, 1)], []);
+    const result = withUniques(
+      rows,
+      trade(["Belt", "Leather Belt"], ["Belt", "Chain Belt"], ["Belt", "Chain Belt"]),
+      [unique(1, "Belt", 1, 1)],
+      [],
+    );
 
     expect(result.map((row) => row.uniques?.[0]?.listings.length)).toEqual([1, 1, 1]);
   });

@@ -51,8 +51,12 @@ function stackConditions(placement: Placement): readonly Condition[] {
   if (stack === undefined) return [];
 
   return [
-    ...(stack.floor === 0 ? [] : [{ condition: "StackSize", operator: ">=", value: stack.floor }]),
-    ...(stack.ceiling === undefined ? [] : [{ condition: "StackSize", operator: "<", value: stack.ceiling }]),
+    ...(stack.floor === 0
+      ? []
+      : [{ condition: "StackSize", operator: ">=", value: stack.floor }]),
+    ...(stack.ceiling === undefined
+      ? []
+      : [{ condition: "StackSize", operator: "<", value: stack.ceiling }]),
   ];
 }
 
@@ -68,7 +72,9 @@ function conditionsOf(
   const [form] = resolveForms(
     categories,
     { ...row, conditions: row.conditions ?? [] },
-    variant === undefined ? undefined : [{ name: variant.name, conditions: variant.conditions ?? [] }],
+    variant === undefined
+      ? undefined
+      : [{ name: variant.name, conditions: variant.conditions ?? [] }],
   );
   if (form === undefined) return { problem: "resolves to no form" };
 
@@ -92,7 +98,13 @@ function build(drawn: Drawn, rows: ReadonlyMap<string, CatalogRow>, categories: 
   const freehand = ownerNote(item.key, item.variant);
   const note = formatNote({ tier: NOTE_TIER[bucket], verb }, freehand);
   const actions = actionLines(tierStyle(palette, bucket, verb));
-  const text = [bucket === HIDDEN ? "Hide" : "Show", ...[...written.lines, ...actions].map((line) => `  ${line}`), `  ${note}`].join("\n");
+  const text = [
+    bucket === HIDDEN
+      ? "Hide"
+      : "Show",
+    ...[...written.lines, ...actions].map((line) => `  ${line}`),
+    `  ${note}`,
+  ].join("\n");
 
   return { block: { item, bucket, verb, conditions, freehand }, text };
 }
@@ -111,7 +123,9 @@ const rank = (drawn: Drawn): number =>
 export function writeFilter(input: WriteInput): Written {
   const rows = new Map(input.rows.map((row) => [row.key, row]));
   const drawn = input.plans
-    .flatMap(({ palette, placed }) => placed.placed.filter((one) => one.won).map((placement) => ({ placement, palette })))
+    .flatMap(({ palette, placed }) =>
+      placed.placed.filter((one) => one.won).map((placement) => ({ placement, palette })),
+    )
     .sort((a, b) => rank(a) - rank(b));
 
   const texts: string[] = [];
@@ -128,5 +142,7 @@ export function writeFilter(input: WriteInput): Written {
     blocks.push(built.block);
   }
 
-  return { text: texts.length === 0 ? "" : `${texts.join("\n\n")}\n`, blocks, skipped };
+  return { text: texts.length === 0
+    ? ""
+    : `${texts.join("\n\n")}\n`, blocks, skipped };
 }

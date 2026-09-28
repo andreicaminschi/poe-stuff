@@ -46,9 +46,13 @@ const prepare = (condition: FilterCondition, value: unknown): unknown => {
     case "strings":
     case "ordered":
     case "gem":
-      return typeof value === "string" ? value.toLowerCase() : undefined;
+      return typeof value === "string"
+        ? value.toLowerCase()
+        : undefined;
     case "enums":
-      return Array.isArray(value) ? (value as readonly string[]).map((one) => one.toLowerCase()) : undefined;
+      return Array.isArray(value)
+        ? (value as readonly string[]).map((one) => one.toLowerCase())
+        : undefined;
     default:
       return value;
   }
@@ -125,7 +129,9 @@ const enumsTest = (condition: FilterCondition, slot: number): Test => {
   return (slots) => {
     const have = slots[slot];
     if (!Array.isArray(have)) return false;
-    const any = wanted.some((want) => (want === "none" ? have.length === 0 : have.includes(want)));
+    const any = wanted.some((want) => (want === "none"
+      ? have.length === 0
+      : have.includes(want)));
     return any !== negate;
   };
 };
@@ -139,7 +145,7 @@ const gemTest = (condition: FilterCondition, slot: number): Test => {
     return (slots) => {
       const value = slots[slot];
       if (typeof value !== "string") return false;
-      return (value !== "" === want) !== negate;
+      return ((value !== "") === want) !== negate;
     };
   }
 
@@ -147,7 +153,9 @@ const gemTest = (condition: FilterCondition, slot: number): Test => {
   return (slots) => {
     const value = slots[slot];
     if (typeof value !== "string") return false;
-    return (exact ? value === lower : value.includes(lower)) !== negate;
+    return (exact
+      ? value === lower
+      : value.includes(lower)) !== negate;
   };
 };
 
@@ -180,7 +188,9 @@ const merge = (a: readonly number[], b: readonly number[]): number[] => {
   const out: number[] = [];
   let i = 0;
   let j = 0;
-  while (i < a.length && j < b.length) out.push(a[i]! < b[j]! ? a[i++]! : b[j++]!);
+  while (i < a.length && j < b.length) out.push(a[i]! < b[j]!
+    ? a[i++]!
+    : b[j++]!);
   while (i < a.length) out.push(a[i++]!);
   while (j < b.length) out.push(b[j++]!);
   return out;
@@ -238,8 +248,12 @@ function compileWalk(blocks: readonly FilterBlock[]): (item: FilterItem, every: 
       slots[i] = prepare(condition, item[condition.name]);
     }
 
-    const baseType = baseTypeSlot === undefined ? undefined : slots[baseTypeSlot];
-    const order = candidatesOf(typeof baseType === "string" ? baseType : undefined);
+    const baseType = baseTypeSlot === undefined
+      ? undefined
+      : slots[baseTypeSlot];
+    const order = candidatesOf(typeof baseType === "string"
+      ? baseType
+      : undefined);
 
     const matched: FilterBlock[] = [];
     let winner: FilterBlock | undefined;
@@ -258,7 +272,9 @@ function compileWalk(blocks: readonly FilterBlock[]): (item: FilterItem, every: 
       winner = block;
       if (!every) return { winner, matched };
     }
-    return winner === undefined ? { matched } : { winner, matched };
+    return winner === undefined
+      ? { matched }
+      : { winner, matched };
   };
 }
 

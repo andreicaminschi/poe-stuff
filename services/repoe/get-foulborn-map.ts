@@ -14,9 +14,5 @@ import type { RepoeContext } from "./types.ts";
  * no id for a unique either.
  */
 export async function getFoulbornMap(context: RepoeContext): Promise<FoulbornMap> {
-  return call<FoulbornMap>(
-    `${context.baseUrl}/pob-data/poe1/ModFoulbornMap.json`,
-    currentHour(),
-    context,
-  );
+  return call<FoulbornMap>(`${context.baseUrl}/pob-data/poe1/ModFoulbornMap.json`, currentHour(), context);
 }

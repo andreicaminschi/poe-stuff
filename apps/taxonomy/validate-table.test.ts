@@ -79,6 +79,6 @@ describe("collectTaxonomyTable", () => {
 
 describe("validateTaxonomyTable", () => {
   it("throws the first problem with its source", () => {
-    expect(() => validateTaxonomyTable({ Ring: "x" }, "items")).toThrow('items: "Ring" is not an object');
+    expect(() => validateTaxonomyTable({ Ring: "x" }, "items")).toThrow("items: \"Ring\" is not an object");
   });
 });

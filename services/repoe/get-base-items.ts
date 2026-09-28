@@ -19,9 +19,5 @@ import type { RepoeContext } from "./types.ts";
  * which `release_state` is what separates.
  */
 export async function getBaseItems(context: RepoeContext): Promise<BaseItems> {
-  return call<BaseItems>(
-    `${context.baseUrl}/base_items.json`,
-    currentHour(),
-    context,
-  );
+  return call<BaseItems>(`${context.baseUrl}/base_items.json`, currentHour(), context);
 }

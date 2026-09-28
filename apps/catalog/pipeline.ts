@@ -8,15 +8,7 @@ import { extractTaxonomy } from "./extract-taxonomy.ts";
 import { BRONZE_FILES, bronzeKey } from "./lake/keys.ts";
 import { readManifest, withStage, writeManifest } from "./pipeline/manifest.ts";
 import { validateBronze } from "./validate-bronze.ts";
-import type {
-  Manifest,
-  ManifestStep,
-  PipelineEvent,
-  Stage,
-  StageRecord,
-  Step,
-  StepContext,
-} from "./types.ts";
+import type { Manifest, ManifestStep, PipelineEvent, Stage, StageRecord, Step, StepContext } from "./types.ts";
 
 export const STEPS: readonly Step[] = [
   extractGGGItems,
@@ -30,7 +22,9 @@ export const STEPS: readonly Step[] = [
 ];
 
 export const SOURCES: readonly string[] = [
-  ...new Set(STEPS.flatMap((step) => (step.source === undefined ? [] : [step.source]))),
+  ...new Set(STEPS.flatMap((step) => (step.source === undefined
+    ? []
+    : [step.source]))),
 ];
 
 const STAGES: readonly { readonly stage: Stage; readonly reusable: boolean }[] = [
@@ -79,17 +73,11 @@ async function runStage(
 const mergeRecords = (old: StageRecord, fresh: StageRecord): StageRecord => ({
   ...fresh,
   steps: STEPS.flatMap(
-    (step) =>
-      fresh.steps.find((line) => line.id === step.id) ??
-      old.steps.find((line) => line.id === step.id) ??
-      [],
+    (step) => fresh.steps.find((line) => line.id === step.id) ?? old.steps.find((line) => line.id === step.id) ?? [],
   ),
 });
 
-function bronzePlan(
-  existing: StageRecord | undefined,
-  force: Force,
-): ((step: Step) => boolean) | undefined {
+function bronzePlan(existing: StageRecord | undefined, force: Force): ((step: Step) => boolean) | undefined {
   if (existing === undefined) return () => true;
   if (force.size === 0) return undefined;
 
@@ -126,22 +114,24 @@ export async function runPipeline(
     if (!STEPS.some((step) => step.stage === stage)) continue;
 
     const existing = manifest.stages[stage];
-    const include = reusable ? bronzePlan(existing, force) : () => true;
+    const include = reusable
+      ? bronzePlan(existing, force)
+      : () => true;
 
     if (include === undefined) {
       onEvent({ type: "stage-skipped", stage, reason: "already collected" });
     } else {
       const fresh = await runStage(stage, context, onEvent, include);
-      manifest = withStage(
-        manifest,
-        stage,
-        reusable && existing !== undefined ? mergeRecords(existing, fresh) : fresh,
-      );
+      manifest = withStage(manifest, stage, reusable && existing !== undefined
+        ? mergeRecords(existing, fresh)
+        : fresh);
     }
 
     if (stage === "bronze") {
       const taxonomyVersion = await taxonomyVersionOf(context);
-      manifest = taxonomyVersion === undefined ? manifest : { ...manifest, taxonomyVersion };
+      manifest = taxonomyVersion === undefined
+        ? manifest
+        : { ...manifest, taxonomyVersion };
     }
 
     await writeManifest(lake, manifest);

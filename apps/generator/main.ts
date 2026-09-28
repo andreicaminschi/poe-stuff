@@ -12,9 +12,14 @@ async function choosePath(): Promise<string | undefined> {
     defaultPath: join(app.getPath("documents"), "My Games", "Path of Exile", "poe-stuff.filter"),
     filters: [{ name: "Item filter", extensions: ["filter"] }],
   };
-  const result = window === undefined ? await dialog.showSaveDialog(options) : await dialog.showSaveDialog(window, options);
+  const result =
+    window === undefined
+      ? await dialog.showSaveDialog(options)
+      : await dialog.showSaveDialog(window, options);
 
-  return result.canceled ? undefined : result.filePath;
+  return result.canceled
+    ? undefined
+    : result.filePath;
 }
 
 const service = createGeneratorService(repoRoot(app.getAppPath()), choosePath);

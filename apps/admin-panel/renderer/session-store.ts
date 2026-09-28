@@ -82,7 +82,9 @@ export type Session = {
   dismissError(): void;
 };
 
-const message = (reason: unknown): string => (reason instanceof Error ? reason.message : String(reason));
+const message = (reason: unknown): string => (reason instanceof Error
+  ? reason.message
+  : String(reason));
 
 /** A question the in-app confirm dialog is asking, and how to answer it. */
 export type Confirmation = { readonly message: string; readonly settle: (ok: boolean) => void };
@@ -97,12 +99,20 @@ const BOOT_STEPS: readonly BootStep[] = [
 
 const countOf = (count: number, noun: string): string => `${count.toLocaleString("en")} ${noun}`;
 
-const plural = (count: number, noun: string): string => `${count} ${noun}${count === 1 ? "" : "s"}`;
+const plural = (count: number, noun: string): string => `${count} ${noun}${count === 1
+  ? ""
+  : "s"}`;
 
 const isUnder = (selection: string | undefined, path: string): boolean =>
   selection === path || selection?.startsWith(`${path}/`) === true;
 
-const NO_VERSION: Partial<Session> = { base: undefined, ledger: [], saved: undefined, selectedKey: undefined, checked: [] };
+const NO_VERSION: Partial<Session> = {
+  base: undefined,
+  ledger: [],
+  saved: undefined,
+  selectedKey: undefined,
+  checked: [],
+};
 
 export const useSession = create<Session>()((set, get) => {
   const run = async (task: () => Promise<void>): Promise<void> => {
@@ -146,17 +156,27 @@ export const useSession = create<Session>()((set, get) => {
   };
 
   const checkedState = (checked: readonly string[]): Partial<Session> =>
-    checked.length <= 1 ? { checked, selectedKey: checked[0] } : { checked };
+    checked.length <= 1
+      ? { checked, selectedKey: checked[0] }
+      : { checked };
 
   const mark = (id: string, state: BootState, detail?: string): void =>
     set((current) => ({
       bootSteps: current.bootSteps.map((step) =>
-        step.id === id ? { id: step.id, label: step.label, state, ...(detail === undefined ? {} : { detail }) } : step,
+        step.id === id
+          ? { id: step.id, label: step.label, state, ...(detail === undefined
+              ? {}
+              : { detail }) }
+          : step,
       ),
     }));
 
   /** One boot step: running, then done with a detail, or failed with the reason. */
-  const bootStep = async <T>(id: string, work: () => Promise<T>, detail: (result: T) => string): Promise<T | undefined> => {
+  const bootStep = async <T>(
+    id: string,
+    work: () => Promise<T>,
+    detail: (result: T) => string,
+  ): Promise<T | undefined> => {
     mark(id, "running");
     try {
       const result = await work();
@@ -213,7 +233,9 @@ export const useSession = create<Session>()((set, get) => {
       if (get().versions !== undefined || get().booting) return;
       set({ booting: true, bootSteps: BOOT_STEPS });
 
-      const list = await bootStep("versions", loadVersions, (versions) => countOf(versions.versions.length, "versions"));
+      const list = await bootStep("versions", loadVersions, (versions) =>
+        countOf(versions.versions.length, "versions"),
+      );
       if (list === undefined) {
         set({ booting: false });
         return;
@@ -240,9 +262,21 @@ export const useSession = create<Session>()((set, get) => {
       }
 
       const [listings, exchange, corruptions] = await Promise.all([
-        bootStep("listings", () => window.panel.getListingNames(), (names) => countOf(names.length, "names")),
-        bootStep("exchange", () => window.panel.getExchangeNames(), (names) => countOf(names.length, "names")),
-        bootStep("corruptions", () => window.panel.getCorruptionNames(), (names) => countOf(names.length, "outcomes")),
+        bootStep(
+          "listings",
+          () => window.panel.getListingNames(),
+          (names) => countOf(names.length, "names"),
+        ),
+        bootStep(
+          "exchange",
+          () => window.panel.getExchangeNames(),
+          (names) => countOf(names.length, "names"),
+        ),
+        bootStep(
+          "corruptions",
+          () => window.panel.getCorruptionNames(),
+          (names) => countOf(names.length, "outcomes"),
+        ),
       ]);
 
       set({
@@ -281,12 +315,16 @@ export const useSession = create<Session>()((set, get) => {
 
     async toggleCategory(path) {
       if (!(await leaveEdits())) return;
-      set((state) => ({ selection: state.selection === path ? undefined : path, selectedKey: undefined, checked: [] }));
+      set((state) => ({ selection: state.selection === path
+        ? undefined
+        : path, selectedKey: undefined, checked: [] }));
     },
 
     async selectItem(key, tab) {
       if (key !== get().selectedKey && !(await leaveEdits())) return;
-      set(tab === undefined ? { selectedKey: key } : { selectedKey: key, tab });
+      set(tab === undefined
+        ? { selectedKey: key }
+        : { selectedKey: key, tab });
     },
 
     async selectVariant(key, name) {
@@ -300,7 +338,9 @@ export const useSession = create<Session>()((set, get) => {
       if (!(await leaveEdits())) return;
       set((state) =>
         checkedState(
-          state.checked.includes(key) ? state.checked.filter((other) => other !== key) : [...state.checked, key],
+          state.checked.includes(key)
+            ? state.checked.filter((other) => other !== key)
+            : [...state.checked, key],
         ),
       );
     },
@@ -315,7 +355,9 @@ export const useSession = create<Session>()((set, get) => {
       const target = get().saved?.items[key];
       if (target === undefined) return;
       set({
-        view: target.excluded === true ? "excluded" : "included",
+        view: target.excluded === true
+          ? "excluded"
+          : "included",
         selection: pathOf(target.classification),
         selectedKey: key,
         checked: [],
@@ -370,7 +412,9 @@ export const useSession = create<Session>()((set, get) => {
         const rows = Object.keys(move.changes.items ?? {}).length;
         set((state) => ({
           status: `Moved ${from} to ${to.path}, ${plural(rows, "row")}.`,
-          ...(state.selection === from ? { selection: to.path } : {}),
+          ...(state.selection === from
+            ? { selection: to.path }
+            : {}),
         }));
       }),
 
@@ -453,7 +497,9 @@ export const useSession = create<Session>()((set, get) => {
         set({
           compiled,
           status: `Wrote ${compiled.blocks} blocks to ${compiled.path}. ${compiled.skipped.length} skipped.`,
-          ...(compiled.skipped.length > 0 ? { dialog: { kind: "compiled" as const } } : {}),
+          ...(compiled.skipped.length > 0
+            ? { dialog: { kind: "compiled" as const } }
+            : {}),
         });
       }),
 

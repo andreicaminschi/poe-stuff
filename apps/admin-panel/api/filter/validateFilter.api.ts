@@ -16,7 +16,9 @@ const PROGRESS = /^progress (\d+)\/(\d+) (.+)$/;
 
 const progressOf = (line: string): ValidateProgress | undefined => {
   const found = PROGRESS.exec(line.trim());
-  return found === null ? undefined : { step: Number(found[1]), total: Number(found[2]), label: found[3] ?? "" };
+  return found === null
+    ? undefined
+    : { step: Number(found[1]), total: Number(found[2]), label: found[3] ?? "" };
 };
 
 /**

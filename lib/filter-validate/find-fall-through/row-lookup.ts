@@ -9,7 +9,11 @@ export function rowLookup(rows: readonly SampleRow[]): RowOf {
   const rowsByKey = new Map(rows.map((row) => [row.key, row]));
   const isKey = (key: string) => rowsByKey.has(key);
   return (block) => {
-    const owner = block === undefined ? undefined : readOwnerNote(block.freehand, isKey);
-    return owner === undefined ? undefined : rowsByKey.get(owner.key);
+    const owner = block === undefined
+      ? undefined
+      : readOwnerNote(block.freehand, isKey);
+    return owner === undefined
+      ? undefined
+      : rowsByKey.get(owner.key);
   };
 }
