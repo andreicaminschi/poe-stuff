@@ -16,6 +16,7 @@ data/raw/
 # Superseded by .s3 — still listed so an old checkout does not start committing them.
 cache/
 logs/
+data/
 
 # Feature plans. Written before the work, kept locally, never pushed.
 docs/plans/
