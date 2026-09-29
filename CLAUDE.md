@@ -1,8 +1,8 @@
 # poe-stuff
 
 Yarn 4 workspace monorepo of TypeScript packages for Path of Exile item filters. Node runs
-the `.ts` files directly, so most packages need no build step. This is a fact about Node 26,
-not a rule against building — `apps/admin-panel` builds, and anything else may.
+the `.ts` files directly, so no package needs a build step. This is a fact about Node 26,
+not a rule against building.
 
 ## Purpose
 
@@ -15,11 +15,8 @@ second reads the filter language: `@poe/item-parser` turns one item's copied tex
 shape the language can be asked about, and `@poe/filter-eval` parses a `.filter` and decides
 which block takes an item.
 
-**`apps/generator` writes the styled `.filter`.** An earlier `apps/generator` did, as a proof of
-concept, and was deleted rather than reworked: it read tier floors in Chaos and nothing else,
-and a category whose rungs are stack sizes rather than prices does not fit that shape. The
-catalog still produces everything such a tool needs, so its replacement starts from
-`catalog.json`. The model is `@poe/filter-style`; the app draws it and writes the file.
+**Nothing writes the styled `.filter` yet.** The generator, the admin panel and the
+generator's model `@poe/filter-style` were deleted. A replacement starts from `catalog.json`.
 `yarn catalog:compile` writes an unstyled `.filter`, one `Show` block per row or variant, so
 the game client can say which condition lines it rejects. It checks the taxonomy and is not
 the product.
@@ -37,23 +34,9 @@ code goes:
 | `services/`         | backend                                    | One outside API, one object. Reads no environment.                                                                                                |
 | `lib/`              | anywhere — node today, a desktop app later | Pure. Imported, never runs on its own. No `process.env`, no database client, no cloud SDK.                                                        |
 | `apps/`             | backend                                    | Has a `main()`. Owns its `.env`. Never imported by anything.                                                                                      |
-| `apps/admin-panel/` | desktop                                    | Two halves. `main.ts` and `api/` are Electron's main process and follow the `apps/` rule. `renderer/` is the React window and never touches Node. |
-| `apps/generator/`   | desktop                                    | Shaped like `apps/admin-panel/`: the same two halves and the same rules.                                                                          |
 
 An app has a CLI and reads the environment; a lib has neither. If a new file needs
 `requireEnv`, it belongs in an app.
-
-**Where a new panel file goes.** Something the window draws goes in
-`apps/admin-panel/renderer/`. That folder is a project root of its own — a React app that
-could be deployed to a browser alone — so the one-folder-level rule starts again inside it.
-Inside it, `panels/` and `dialogs/` read the session store (`session-store.ts`) and the hooks
-in `hooks/`. `components/` take props only and never touch the store — that is what keeps them
-reusable. Something that reads a file or runs a command goes in
-`apps/admin-panel/api/<domain>/` as one `<action>.api.ts`, listed in `api/panel-api.ts`. `api/`
-is a root of its own the same way: one folder per domain, `util/` for what the domains share,
-and the contract and the service (`panel.ts`) at its root. The
-window imports types and constants from `api/`, never a function — a value import would pull
-Node into the window.
 
 ## Structure
 
@@ -66,17 +49,12 @@ services/taxonomy/     # @poe/taxonomy — one published version of the item tax
 services/lake/         # @poe/lake — JSON files under .s3, addressed by key. Has a README.md
 lib/filter-eval/       # @poe/filter-eval — parse and run a .filter. Depends on nothing. Has a README.md
 lib/filter-compile/    # @poe/filter-compile — compose a row's conditions and write them as .filter lines
-lib/filter-style/      # @poe/filter-style — items, placement, tier styles and the styled .filter
 lib/filter-validate/   # @poe/filter-validate — sample items off the taxonomy, and what a filter misses
 lib/item-parser/       # @poe/item-parser — one item's copied text, parsed and matched
 lib/cache/             # @util/cache — build-cache-key, create-file-cache, sleep
 lib/env/               # @util/env — requireEnv / optionalEnv. The only reader of process.env
-apps/item-inspect/     # @poe/item-inspect — paste an item, see how the parser read it
-apps/collector/        # README only. Replaces the deleted @poe/workers
 apps/catalog/          # the bronze/silver/gold pipeline. Replaces the deleted @poe/filterv2. Has a README.md
 apps/taxonomy/         # the hand-maintained classification table and the filter conditions. Has a README.md
-apps/generator/        # Electron app: tiers, styles and writes the .filter. Has a README.md
-apps/admin-panel/      # Electron + React panel over the taxonomy and the catalog. The one build. Has a README.md
 .s3/                   # local stand-in for object storage. Gitignored. Holds the only copy of the taxonomy
 data/sample-items/     # copied item text, the parser's fixtures. Two suites read this folder
 data/                  # everything else here is scratch and gitignored
@@ -119,8 +97,7 @@ filesystem and no environment, because a desktop client is the plan.
 | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `@poe/filter-eval`     | `@poe/filter-eval/parse-filter`, `/evaluate-filter`, `/match-filter`, `/filter-ast`, `/format-note`                                                                                | The `.filter` grammar as code: a parser, an evaluator that decides which block takes an item, and the `#@` note a generated block carries its bucket in. `buildFilterMatcher` answers the same question for bulk runs: it indexes the blocks once by `BaseType ==`, so a million items cost seconds rather than hours. `buildEveryMatchMatcher` does the same but keeps every matching block past the winner. **Depends on nothing, on purpose** — it is the independent reader that checks whatever wrote a filter, and sharing a types file with the writer would end that. See [lib/filter-eval/README.md](lib/filter-eval/README.md).                                                                                                                                                                                                                                         |
 | `@poe/filter-compile`  | `@poe/filter-compile/compose-layers`, `/fill-from-row`, `/write-condition-line`, `/resolve-row`, `/write-unstyled-filter`, `/owner-note`, `/types`                                                         | The one copy of how a row's conditions resolve: category, subcategory, item and variant laid over each other, `from: "name"` and `from: "baseTypes"` filled off the row, and a resolved condition written as a `.filter` line from `@poe/filter-eval`'s registry. `writeUnstyledFilter` writes the unstyled `.filter`, one block per row or variant with its key in the note, with each category's subcategories in their `order` and a `catchAll` one last; `catalog:compile`, `catalog:validate` and the taxonomy's eval cases all use it. `apps/taxonomy` validates with it, so what it reports and what compiles cannot disagree. `writeOwnerNote` and `readOwnerNote` are the one writer and reader of a block's `<key> <variant>` note; keys may hold spaces, so the reader takes the longest known key.                                                                                        |
-| `@poe/filter-style`    | `@poe/filter-style/items-of`, `/place`, `/tier-style`, `/write-filter`, `/types`                                                                                                   | The generator's model, pure so the window can recompute it on every edit. `itemsOf` reads catalog rows as the items a filter can tell apart; a unique row's price list is joined from its base row's `uniques`. `place` puts one category's items on its ladder: global floors, disabled tiers, Want to see, Unpriced (rows flagged `unpriceable`), Hidden, and the check and gamble hints. A `stack-size` category gets one block per tier with a `StackSize` range. `tierStyle` turns a palette and a tier into a label. `writeFilter` writes the styled `.filter`, and its test proves with `@poe/filter-eval` that every item lands in the block it was placed in.                                                                                                                                                                                                                     |
-| `@poe/filter-validate` | `@poe/filter-validate/build-samples`, `/format-path`, `/check-filter`, `/find-unfiltered`, `/find-fall-through`, `/group-unfiltered`, `/describe-sample`, `/sample-query`, `/report-csv`, `/types` | The filter validator, run by `yarn catalog:validate` and the admin panel's Validate filter. `buildSamples` yields, one at a time, the sample items a subcategory's `samples` sets build for every catalog row, plus its `rejects` laid over each, deduplicated per row so two rows building one item both show it. A top-level category holds no samples, and a sample set naming an unknown condition or a literal value that cannot fit it throws. `checkFilter` walks them once through `@poe/filter-eval`'s `buildEveryMatchMatcher` and returns both reports; `findUnfiltered` and `findFallThrough` return one half each. Unfiltered is the samples no block takes, grouped by row, plus the paths that have no sets. Fall-through is samples its own path misses, another path wins, another path also matches, or a reject sample its own path takes; a `catchAll` category may overlap its siblings. What to sample lives in the taxonomy, never here. |
+| `@poe/filter-validate` | `@poe/filter-validate/build-samples`, `/format-path`, `/check-filter`, `/find-unfiltered`, `/find-fall-through`, `/group-unfiltered`, `/describe-sample`, `/sample-query`, `/report-csv`, `/types` | The filter validator, run by `yarn catalog:validate`. `buildSamples` yields, one at a time, the sample items a subcategory's `samples` sets build for every catalog row, plus its `rejects` laid over each, deduplicated per row so two rows building one item both show it. A top-level category holds no samples, and a sample set naming an unknown condition or a literal value that cannot fit it throws. `checkFilter` walks them once through `@poe/filter-eval`'s `buildEveryMatchMatcher` and returns both reports; `findUnfiltered` and `findFallThrough` return one half each. Unfiltered is the samples no block takes, grouped by row, plus the paths that have no sets. Fall-through is samples its own path misses, another path wins, another path also matches, or a reject sample its own path takes; a `catchAll` category may overlap its siblings. What to sample lives in the taxonomy, never here. |
 | `@poe/item-parser`     | `@poe/item-parser/parse-item`, `/resolve-item`, `/to-filter-item`, `/match-mods`, `/mod-text`, `/parse-header`, `/parse-mods`, `/parse-properties`, `/sections`, `/types`          | One item's copied text, read back. `parseItem` is pure and needs nothing; `resolveItem` looks each modifier up in GGG's published stat list to get the ids the trade site knows it by; `toFilterItem` turns the result into the shape `@poe/filter-eval` asks conditions about. Nothing about any modifier is written down — matching is against published text, so a modifier that ships next league matches the day it appears.                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | `@util/cache`          | `@util/cache/build-cache-key`, `/create-file-cache`, `/sleep`                                                                                                                       | `buildCacheKey` for stable file and map keys. `createFileCache<T>` — JSON on disk, one file per key, backing every service's response cache. `sleep` is a promise around `setTimeout`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | `@util/env`            | `@util/env`                                                                                                                                                                        | `requireEnv` / `optionalEnv` — the only place `process.env` is read, so a missing variable fails with one message that names it. **The exception to the purity rule, and app-only**: no other library may import it.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
@@ -138,24 +115,22 @@ never learns where the input came from. The moment a lib names a service in its
 
 ## Apps
 
-Five are written. `apps/collector` holds a `README.md`
-naming what it will own, which POC it replaces, and what has to be decided first.
+Two are written.
 
 | App                                                | Replaces                 | Owns                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | -------------------------------------------------- | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`apps/item-inspect`](apps/item-inspect/README.md) | —                        | **Written.** Paste an item copied out of the game, see how the parser read it. The one consumer of `@poe/item-parser` today, and where its CLI lives now that `lib/` is pure.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| [`apps/collector`](apps/collector/README.md)       | `@poe/workers`, deleted  | The worker loop, the job handlers, the record of outstanding work, the writes into `.s3`, and the trade searches it collects.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | [`apps/catalog`](apps/catalog/README.md)           | `@poe/filterv2`, deleted | **Written.** The bronze/silver/gold pipeline over the taxonomy. **Its rows are the published taxonomy's drawable rows** — nothing `excluded`, nothing `quest`, nothing `filterable: false`, nothing an authored row replaces — and it invents or judges none. It collects PoeWatch and GGG's trade item list for one league-hour, writes a file per category, then gathers every row into `catalog.json` and `catalog.categories.json`. It carries the conditions the taxonomy authored and resolves none of them. It prices every row and variant off PoeWatch — the exchange first, listings second — and still hangs every unique off the base it rolls on under `uniques` — one group per path (`unique`, `unique/foulborn`), one listing per priced form inside it. The taxonomy now also authors one row per unique base (`unique/regular`, `unique/foulborn`, `unique/fragments`), which the catalog prices like any row, so a unique is priced in both places; which one a generator reads is undecided. `--force=taxonomy,poewatch` refetches only the named sources. `catalog:publish` copies one run's gold into `catalog/latest/`, and a run's manifest records the taxonomy version it used. Also `find-duplicates-cli.ts`, which reports the display names more than one metadata id carries. |
-| [`apps/taxonomy`](apps/taxonomy/README.md)         | —                        | **Written.** The hand-maintained tables: six JSON files per version under `.s3/taxonomy/versions/<v>/`, never in git. A version is `3.29.4` — created from a published parent, never overwritten, and only the newest can be published, while it is still a draft. `validate` and `resolve` answer in JSON for the admin panel. Nothing imports it — the catalog reads what it published through `@poe/taxonomy`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| [`apps/generator`](apps/generator/README.md)       | —                        | **Written.** The player's Electron app, shaped like the admin panel. It reads the published catalog and `.s3/generator/config.json`, shows each category's ladder, floors, want-to-see list and palette with a Take, Check and Gamble preview, drops simulated loot weighted toward cheap items, and writes the `.filter` to a path the player picks. The model is `@poe/filter-style`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| [`apps/admin-panel`](apps/admin-panel/README.md)   | —                        | **Written.** The desktop panel: browse and edit the newest draft, validate, publish, check what the compiled filter misses, build and publish a catalog. Every call is an `.api.ts` adapter that reads the lake or runs a yarn command. Imports no other app.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| [`apps/taxonomy`](apps/taxonomy/README.md)         | —                        | **Written.** The hand-maintained tables: six JSON files per version under `.s3/taxonomy/versions/<v>/`, never in git. A version is `3.29.4` — created from a published parent, never overwritten, and only the newest can be published, while it is still a draft. `validate` and `resolve` answer in JSON. Nothing imports it — the catalog reads what it published through `@poe/taxonomy`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 
 ## Deleted
 
 `packages/` is gone. It held two proofs of concept — `@poe/workers`, the collector, and
 `@poe/filterv2`, the item-list build — that nothing imported and neither typecheck nor jest
 read. Their design notes went with them: read `docs/pipeline.md` and `filterv2/notes.md` out
-of git history before rewriting either. `apps/collector` and `apps/catalog` replace them.
+of git history before rewriting either. `apps/catalog` replaces `@poe/filterv2`.
+
+`apps/generator`, `apps/admin-panel`, `lib/filter-style`, `apps/item-inspect` and
+`apps/collector` are gone too. The branch `backup/pre-cleanup` holds their last state.
 
 ## Storage
 
@@ -183,8 +158,8 @@ would not grow the repository forever. Back it up; nothing else does.
 .s3/catalog/latest/<league>.*.json  the published catalog, a real copy
 ```
 
-`apps/taxonomy`, `apps/catalog` and `apps/admin-panel` write here through `@poe/lake`, and
-agree on the key layout by convention. `apps/collector` is not built. Nothing in the tree
+`apps/taxonomy` and `apps/catalog` write here through `@poe/lake`, and
+agree on the key layout by convention. Nothing in the tree
 carries an S3 client any more: `@aws-sdk/client-s3` left with `@poe/workers`, which wrote to
 a real bucket named by `S3_URL` and `S3_BUCKET`.
 
@@ -241,11 +216,6 @@ Node 26 strips types to run `.ts`; `tsc` only type-checks (`noEmit`). Enforced b
 One root `tsconfig.json` (`include: ["apps/**/*.ts", "lib/**/*.ts", "services/**/*.ts"]`)
 checks every live package across boundaries. No project references, no per-package configs.
 
-**`apps/admin-panel` and `apps/generator` are the exceptions.** Each is built by electron-vite, has JSX, and checks
-itself with its own `tsconfig.json`; the root one excludes both. Run
-`yarn workspace @poe/admin-panel typecheck` or `yarn workspace @poe/generator typecheck`. Its tests are plain `.ts` and run under
-the root jest like everything else.
-
 Jest transforms with `@swc/jest` and emits real ESM, so it needs
 `--experimental-vm-modules` — that flag lives in the `test` script, not in a runner config.
 Tests are `*.test.ts` beside their source.
@@ -265,9 +235,9 @@ reads the environment either — `@util/env` exists to be imported by apps.
 
 | Var              | Holds                                                                                                                                                                                                                                          | Read by                                                                                                                                                                                                                         |
 | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `POE_USER_AGENT` | `user-agent` sent on every outbound request. Must name the app and a real contact address. No service reads it — they take `userAgent` as an option, and GGG refuses to default it, because a default would send a contact that does not exist | [apps/item-inspect/item-cli.ts](apps/item-inspect/item-cli.ts), [apps/catalog/catalog-cli.ts](apps/catalog/catalog-cli.ts), [apps/admin-panel/main.ts](apps/admin-panel/main.ts) (optional there, from `apps/admin-panel/.env`) |
+| `POE_USER_AGENT` | `user-agent` sent on every outbound request. Must name the app and a real contact address. No service reads it — they take `userAgent` as an option, and GGG refuses to default it, because a default would send a contact that does not exist | [apps/catalog/catalog-cli.ts](apps/catalog/catalog-cli.ts) |
 
-That is the whole surface: **one variable**, read by more than one app. `apps/taxonomy` reads
+That is the whole surface: **one variable**. `apps/taxonomy` reads
 none — it only ever touches files under the lake. Nothing else in the tree reads the
 environment at all, now that `@poe/workers` and its Redis, Postgres and S3 names are gone.
 
@@ -296,24 +266,6 @@ Run the tests, or one package's:
 
 ```bash
 yarn test services/ggg
-```
-
-Paste a copied item and see how the parser read it:
-
-```bash
-node --env-file=apps/item-inspect/.env apps/item-inspect/item-cli.ts data/sample-items/rare-ring.txt
-```
-
-Open the admin panel:
-
-```bash
-yarn admin
-```
-
-Open the generator:
-
-```bash
-yarn generator
 ```
 
 Start a draft from a published taxonomy version, then publish it and make it current:
@@ -361,15 +313,12 @@ Package READMEs describe their own package.
 Every service has a `README.md`; `services/ggg` also has Mermaid `.mmd` diagrams in
 `services/ggg/docs/`. `lib/filter-eval` has a `README.md`.
 
-`lib/filter-compile`, `lib/filter-style`, `lib/filter-validate`, `lib/item-parser`, `lib/cache` and `lib/env` have none. Write one with the `/document`
+`lib/filter-compile`, `lib/filter-validate`, `lib/item-parser`, `lib/cache` and `lib/env` have none. Write one with the `/document`
 command.
 
-`apps/item-inspect`, `apps/taxonomy` and `apps/collector` have a `README.md`. The taxonomy's
-is where the condition language lives: the shape of a condition, how the four levels compose,
-and what the validator refuses. `apps/catalog` and `apps/admin-panel` have one too; the catalog's
-pipeline shape is in the step files' doc comments.
-
-`apps/collector` has a `README.md` describing what does not exist yet.
+`apps/taxonomy` has a `README.md`. It is where the condition language lives: the shape of a
+condition, how the four levels compose, and what the validator refuses. `apps/catalog` has one
+too; its pipeline shape is in the step files' doc comments.
 
 [docs/item-filter-syntax.md](docs/item-filter-syntax.md) is how filters work in PoE: the
 `.filter` grammar as GGG documents it — `Show`/`Hide`/`Minimal` blocks, `Continue`,

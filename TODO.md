@@ -17,9 +17,8 @@ Deferred decisions. Nothing here is scheduled.
   `apps/catalog`**, not a separate artifact. Undecided whether the catalog reads `.s3`
   itself or something folds pages into a price row first.
 - **The collector has no queue and no record of outstanding work.** Both were containers in
-  the POC — Redis and Postgres — and neither is configured any more. `apps/collector` cannot
-  be written until something replaces them. See
-  [apps/collector/README.md](apps/collector/README.md) for what carries over.
+  the POC — Redis and Postgres — and neither is configured any more. The collector cannot
+  be written until something replaces them.
 - **No canonical item id.** Five sources name the same item five ways, and every join
   downstream crosses them. `apps/catalog` is the join, so this blocks it outright — and
   everything downstream of it.

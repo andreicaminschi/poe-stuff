@@ -48,7 +48,7 @@ describe("publishCatalog", () => {
     const keys = await publishCatalog(lake, "r_1", "Some League");
 
     expect(keys).toEqual(["catalog/latest/some-league.catalog.json", "catalog/latest/some-league.catalog.categories.json"]);
-  }); // the generator reads exactly these keys
+  });
 
   it("copies both gold files unchanged to the published keys", async () => {
     await goldRun("Some League");

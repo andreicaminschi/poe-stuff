@@ -150,8 +150,7 @@ that takes an item wins, so a narrow subcategory like `maps/eight-mod` needs a l
 Validation refuses `order` on a top-level category.
 
 **A subcategory says how to build sample items.** A top-level category holds no samples, and
-validation refuses them there, so the instructions for a path live in one place. The filter validator (`yarn catalog:validate`,
-and Validate filter in the admin panel) builds sample items for every drawable row. It runs
+validation refuses them there, so the instructions for a path live in one place. The filter validator (`yarn catalog:validate`) builds sample items for every drawable row. It runs
 them through the compiled filter and reports the samples that no block takes. `samples` decides which properties those samples vary. It is a list of sets,
 each keyed by a filter condition name:
 
@@ -406,7 +405,7 @@ Beside `category` and `subcategory`, an entry may state three things the sources
 | `filterable`       | A `.filter` cannot name this row. The client rejects `Alpine Shaman` while `Bearded Shaman` drops, and nothing but the client knows.                                                                |
 | `tradable`         | The trade site lists this name. RePoE marks the blighted map trade proxy untradable while the site lists 145 names against it.                                                                      |
 | `tradedOnExchange` | The same, for the Currency Exchange.                                                                                                                                                                |
-| `displayName`      | An internal name the admin panel shows and edits. `init` seeds it as the RePoE name. Nothing that resolves conditions, fills `from` or prices a row reads it — those read `name`.                   |
+| `displayName`      | An internal name for the maintainer. `init` seeds it as the RePoE name. Nothing that resolves conditions, fills `from` or prices a row reads it — those read `name`.                   |
 | `excluded`         | Nobody wants this row drawn. It is real and nameable, stays in its category's `.json`, and never reaches a `.filterable.json`. An authored row may carry it too.                                    |
 | `quest`            | A quest item. It is drawn, and it needs no `listing`: `publish` keeps it without one, and the catalog copies the flag onto its row. An authored row may carry it too.                               |
 | `unpriceable`      | No market prices this row, but it can drop. It is drawn, and it needs no `listing`: `publish` keeps it without one, and the catalog copies the flag onto its row. An authored row may carry it too. |
@@ -483,11 +482,11 @@ None. Everything this app touches is a file under the lake.
   every patch's hand work, and nothing backs it up.
 - **A new version does not reach a collected run.** Bronze is the record of what the sources
   said at that hour. Rebuild it with `yarn catalog --force=taxonomy`, or collect a new hour.
-- **`validate` and `resolve` print JSON, and it is a contract.** The admin panel parses it.
+- **`validate` and `resolve` print JSON, and it is a contract.** Tools parse it.
   Every other command answers with its exit code.
-- **The key layout is a shared format, not shared code.** This app, `@poe/taxonomy` and
-  `apps/admin-panel` each build the same key strings from their own files. Changing one
-  without the others breaks at runtime with nothing failing at compile time.
+- **The key layout is a shared format, not shared code.** This app and `@poe/taxonomy`
+  each build the same key strings from their own files. Changing one
+  without the other breaks at runtime with nothing failing at compile time.
 
 ## How to run
 

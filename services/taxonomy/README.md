@@ -115,7 +115,7 @@ the prefix are constructor arguments.
   been promoted raises `TaxonomyNotFoundError` for `taxonomy/latest/taxonomy.json`.
 - **The key layout is a shared format, not shared code.** This package builds
   `taxonomy/<version>.json` and `taxonomy/latest/taxonomy.json` from its own `config.ts`, and
-  `apps/taxonomy` and `apps/admin-panel` build the same strings from their own. Changing one without the other
+  `apps/taxonomy` builds the same strings from its own. Changing one without the other
   breaks the read at runtime, with nothing failing at compile time.
 
 ## How to run

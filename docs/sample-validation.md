@@ -230,31 +230,16 @@ Blind and overlap are **not** exclusive. One sample can report both.
 flowchart LR
     classDef app fill:#1e3a5f,stroke:#4a90d9,color:#fff
     classDef lib fill:#2d5a27,stroke:#6fbf5f,color:#fff
-    classDef ui fill:#5a3d7a,stroke:#b388eb,color:#fff
-
     CLI["apps/catalog<br/>validate-cli.ts"]:::app
-    API["admin-panel api<br/>validateFilter.api.ts"]:::app
-    SAVE["admin-panel api<br/>saveReport.api.ts"]:::app
-    UIP["renderer<br/>unfiltered-panel.tsx"]:::ui
-    BAR["renderer<br/>version-bar.tsx"]:::ui
     CF["checkFilter"]:::lib
-    CSV["reportCsv / sampleQuery"]:::lib
     EV["apps/taxonomy<br/>build-eval-cases"]:::app
     SO["buildSamples"]:::lib
 
-    API -- "runs yarn catalog:validate" --> CLI
     CLI --> CF
-    CLI -. "progress lines on stderr" .-> API
-    API -. "progress channel" .-> BAR
-    API --> UIP
-    SAVE --> CSV
-    UIP --> CSV
     EV --> SO
 ```
 
-The panel runs the CLI in a throwaway lake. While it runs, the CLI writes `progress n/4 label` lines to stderr. The panel streams them to the version bar as a progress bar and a step label.
-
-When the run ends, the panel reads the JSON file back. Its Filter check dialog shows the unfiltered groups first, then one section per fall-through bucket. The CSV export holds the unfiltered half only.
+While it runs, the CLI writes `progress n/4 label` lines to stderr.
 
 ## Structure review
 

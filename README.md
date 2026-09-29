@@ -27,10 +27,10 @@ Three rules decide what goes into the taxonomy, and so what the filter can show:
 
 | Part        | State                                                                                     |
 | ----------- | ----------------------------------------------------------------------------------------- |
-| Taxonomy    | Built. The maintainer edits and publishes it in the admin panel.                          |
+| Taxonomy    | Built. The maintainer edits the draft files and publishes with the CLI.                   |
 | Catalog     | Built. A person starts each build, for one league and one hour. Nothing schedules it yet. |
-| Admin panel | Built. The maintainer's desktop tool for the taxonomy and the catalog.                    |
-| Generator   | Built. The player's Electron app tiers, styles, simulates and writes the `.filter`.       |
+| Admin panel | Not started. The previous one was deleted.                                                |
+| Generator   | Not started. The previous one was deleted.                                                |
 | Collector   | Not started. It needs a job queue and a record of outstanding work first.                 |
 | AWS         | Not started. Everything runs on one local machine.                                        |
 
@@ -152,7 +152,7 @@ row with no `listing`, unless the row is excluded, is a quest item, is unpriceab
 A version is named like `3.29.4`: the game patch, then a counter that never repeats.
 
 1. `create` copies a published version into a new draft.
-2. The maintainer edits the draft in the admin panel. Only the newest draft can be edited
+2. The maintainer edits the draft. Only the newest draft can be edited
    or published.
 3. `publish` validates the draft and writes it. A published version never changes. A fix is
    the next version.
@@ -165,13 +165,12 @@ each of authored rows and variants. It is published as `<v>.json`, the merged ro
 **`.s3/taxonomy/` is the only copy.** It is not in git, and nothing backs it up.
 
 Code: `apps/taxonomy` writes versions. `services/taxonomy` reads a published version.
-`apps/admin-panel` edits drafts.
 
 ## Catalog
 
 The catalog attaches prices to the taxonomy's rows. One build covers one league and one
 hour. The plan is a new build every hour. Today a person starts each build, with
-`yarn catalog` or from the admin panel.
+`yarn catalog`.
 
 **The taxonomy decides which rows exist.** The catalog adds no row and removes none. Its
 rows are the published taxonomy's drawable rows: every row that is not excluded, not
@@ -218,7 +217,7 @@ The catalog also still attaches every unique PoeWatch lists to the row of its ba
 under `uniques`, as it did before the unique rows existed. `uniques` is a list of groups, one
 per path: `unique` for plain uniques and `unique/foulborn` for foulborn ones. Each listing is
 one priced form, such as `Lightpoacher (2 Sockets)`, and a corrupted entry is one corruption
-outcome of the listing before it. **The generator reads both**: an authored unique row takes its price list from its base row's `uniques`.
+outcome of the listing before it. Which of the two a generator reads is undecided.
 
 ### The row
 
@@ -270,12 +269,7 @@ Code: `apps/catalog`.
 
 ## Generator
 
-The generator is the player's Electron app, in `apps/generator`. It puts every item in a tier,
-styles each tier from a per-category palette, and writes the `.filter`. The model is
-`lib/filter-style`, so the window recomputes it on every edit.
-[apps/generator/README.md](apps/generator/README.md) has the detail.
-
-An earlier proof of concept lived in the same folder and was deleted. It compared tier
+The generator is not built. Two earlier versions were deleted. The first compared tier
 floors in chaos only, so a category whose tiers count stack sizes did not fit. Its decisions
 about the game are kept in the Filter section of [TODO.md](TODO.md). Read that section
 before the generator tiers anything.
@@ -327,8 +321,8 @@ for (const form of forms) {
 
 `categories` is the record from `catalog.categories.json`. `resolveForms` returns one form
 for a plain row, or one per variant. A form lists its `problems`, and a form with a problem
-or with no conditions gets no block. `yarn catalog:compile` writes that unstyled filter. The
-admin panel uses it to find the lines the game client rejects.
+or with no conditions gets no block. `yarn catalog:compile` writes that unstyled filter, to
+find the lines the game client rejects.
 
 ### Checking the output
 
@@ -379,13 +373,13 @@ Before it can be written:
 - Nothing decides whether the catalog reads the collected pages itself, or a separate step
   turns them into prices first.
 
-Code: `apps/collector` is a README only. The `@poe/workers` proof of concept it replaces was
-deleted; its `docs/pipeline.md`, the collection design in full, is in git history.
+No code exists. The `@poe/workers` proof of concept was deleted; its `docs/pipeline.md`, the
+collection design in full, is in git history.
 
 ## Where it runs
 
 Today everything runs on one local machine. `./.s3` stands in for object storage, and
-`@poe/lake` reads and writes it. The admin panel and the CLIs run from the checkout.
+`@poe/lake` reads and writes it. The CLIs run from the checkout.
 
 Later the backend moves to AWS:
 
@@ -401,9 +395,6 @@ Three things must change for AWS:
 - `@poe/taxonomy` reads a local folder and nothing else.
 - Each app builds the same lake keys from its own code, and nothing checks that they agree.
 
-The admin panel is ready by design. Its window never learns where a file is stored, so only
-its `api/` adapters change.
-
 The code is split by where it runs. `services/` wraps one outside API each. `lib/` is pure,
 and the generator can import it. `apps/` have a `main()`, read their own environment, and are
 never imported. [CLAUDE.md](CLAUDE.md) has the full rule.
@@ -414,12 +405,7 @@ never imported. [CLAUDE.md](CLAUDE.md) has the full rule.
 | -------------------- | ----------------------------------------------------------------------------------- |
 | `apps/taxonomy`      | Seeds, validates, publishes and promotes taxonomy versions.                         |
 | `apps/catalog`       | Builds and publishes the catalog. Also `catalog:compile`, the unstyled test filter. |
-| `apps/admin-panel`   | The maintainer's Electron app over the taxonomy and the catalog.                    |
-| `apps/item-inspect`  | Takes an item's copied text and shows how the parser read it.                       |
-| `apps/collector`     | Planned. A README only.                                                             |
-| `apps/generator`     | The player's Electron app. Tiers, styles and writes the `.filter`.                  |
 | `lib/filter-compile` | Resolves a row's conditions and writes them as `.filter` lines.                     |
-| `lib/filter-style`   | The generator's model: items, placement, tier styles and the styled `.filter`.      |
 | `lib/filter-eval`    | Parses a `.filter` and says which block takes an item.                              |
 | `lib/item-parser`    | Reads one item's copied text into the shape `@poe/filter-eval` asks about.          |
 | `lib/cache`          | Cache keys, and a JSON file cache every service uses.                               |

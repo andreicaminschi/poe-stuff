@@ -6,7 +6,7 @@ argument-hint: <tier/name> [section to focus on]
 Document `$1`. Extra focus, if given: $2
 
 `$1` is a path from the repo root, tier included — `lib/item-parser`, `services/ggg`,
-`apps/item-inspect`. The tier is part of the argument because the same name can only exist
+`apps/catalog`. The tier is part of the argument because the same name can only exist
 in one of them, and guessing which is how the wrong file gets rewritten.
 
 Target file is `$1/README.md`.

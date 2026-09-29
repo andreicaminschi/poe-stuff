@@ -10,8 +10,6 @@
     "services/*"
   ],
   "scripts": {
-    "admin": "yarn workspace @poe/admin-panel dev",
-    "generator": "yarn workspace @poe/generator dev",
     "catalog": "node --env-file=apps/catalog/.env apps/catalog/catalog-cli.ts",
     "catalog:publish": "node apps/catalog/publish-catalog-cli.ts",
     "catalog:compile": "node apps/catalog/compile-cli.ts",

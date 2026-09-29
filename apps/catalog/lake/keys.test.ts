@@ -28,7 +28,7 @@ describe("keys", () => {
     const keys = [bronzeKey("r_1", "a.json"), silverKey("r_1", "b.json"), goldKey("r_1", "c.json")];
 
     expect(keys).toEqual(["catalog/run=r_1/bronze/a.json", "catalog/run=r_1/silver/b.json", "catalog/run=r_1/gold/c.json"]);
-  }); // the admin panel reads these paths by convention
+  });
 
   it("gives the silver and gold folders as prefixes a listing can start from", () => {
     const prefixes = [silverPrefix("r_1"), goldPrefix("r_1")];
@@ -40,7 +40,7 @@ describe("keys", () => {
     const key = latestKey("Mercenaries of Trarthus", "catalog.json");
 
     expect(key).toBe("catalog/latest/mercenaries-of-trarthus.catalog.json");
-  }); // the generator reads this exact key
+  });
 
   it("puts the manifest at the run's root, beside the stage folders", () => {
     expect(manifestKey("r_1")).toBe("catalog/run=r_1/manifest.json");
