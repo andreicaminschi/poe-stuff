@@ -10,6 +10,7 @@
     "services/*"
   ],
   "scripts": {
+    "admin-panel": "yarn workspace @poe/admin-panel dev",
     "admin-panel:migrate": "node apps/admin-panel/migrate-cli.ts",
     "catalog": "node --env-file=apps/catalog/.env apps/catalog/catalog-cli.ts",
     "catalog:publish": "node apps/catalog/publish-catalog-cli.ts",
@@ -22,7 +23,7 @@
     "taxonomy:promote": "node apps/taxonomy/taxonomy-cli.ts promote",
     "taxonomy:seed": "node apps/taxonomy/seed-taxonomy-cli.ts",
     "taxonomy:build-eval-cases": "node apps/taxonomy/build-eval-cases-cli.ts",
-    "typecheck": "tsc",
+    "typecheck": "tsc && yarn workspace @poe/admin-panel typecheck",
     "typecheck:watch": "tsc --watch",
     "lint": "eslint .",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",

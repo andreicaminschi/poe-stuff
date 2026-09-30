@@ -20,5 +20,6 @@
     "resolveJsonModule": true,
     "isolatedModules": true
   },
-  "include": ["apps/**/*.ts", "lib/**/*.ts", "services/**/*.ts"]
+  "include": ["apps/**/*.ts", "lib/**/*.ts", "services/**/*.ts"],
+  "exclude": ["apps/admin-panel/**"]
 }
