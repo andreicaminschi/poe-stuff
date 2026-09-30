@@ -12,6 +12,15 @@ export type Category = {
   readonly seeders: readonly Seeder[];
 };
 
+export type WalEntry = {
+  readonly id: string;
+  readonly at: string;
+  readonly category: string;
+  readonly before?: Seeder;
+  readonly after?: Seeder;
+  readonly undoes?: string;
+};
+
 export type CategoriesFile = {
   readonly version: string;
   readonly categories: readonly Category[];

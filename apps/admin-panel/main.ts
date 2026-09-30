@@ -4,13 +4,13 @@ import { app, BrowserWindow, ipcMain } from "electron";
 import { loadVersion } from "./load-version.ts";
 import { LOAD_VERSION, SAVE_VERSION } from "./panel-api.ts";
 import { saveVersion } from "./save-version.ts";
-import type { Category } from "./types.ts";
+import type { Category, WalEntry } from "./types.ts";
 
 const lake = createLakeService({ root: join(app.getAppPath(), "../../.s3") });
 
 ipcMain.handle(LOAD_VERSION, () => loadVersion(lake));
-ipcMain.handle(SAVE_VERSION, (_event, version: string, categories: readonly Category[]) =>
-  saveVersion(lake, version, categories));
+ipcMain.handle(SAVE_VERSION, (_event, version: string, categories: readonly Category[], entries: readonly WalEntry[]) =>
+  saveVersion(lake, version, categories, entries));
 
 function open(): void {
   const window = new BrowserWindow({

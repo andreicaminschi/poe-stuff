@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from "react";
+import { findUndoable } from "./apply-entry.ts";
 import { CategoryList } from "./category-list.tsx";
 import { ItemList } from "./item-list.tsx";
 import { matchItem } from "./match-item.ts";
@@ -15,14 +16,28 @@ export function App() {
   const pickedSeeders = usePanel((state) => state.pickedSeeders);
   const query = usePanel((state) => state.query);
   const view = usePanel((state) => state.view);
-  const edits = usePanel((state) => state.edits);
+  const pending = usePanel((state) => state.pending);
   const saving = usePanel((state) => state.saving);
   const editing = usePanel((state) => state.editing);
-  const { load, setView, save } = usePanel.getState();
+  const { load, setView, save, undo } = usePanel.getState();
+  const edits = pending.length;
+  const canUndo = loaded !== undefined && findUndoable([...loaded.log, ...pending]) !== undefined;
 
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (!(event.ctrlKey || event.metaKey) || event.shiftKey || event.key.toLowerCase() !== "z") return;
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return;
+      if (usePanel.getState().editing !== undefined) return;
+      event.preventDefault();
+      undo();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [undo]);
 
   const items = useMemo(
     () => (loaded?.items ?? []).filter((item) => matchItem(item, { categories: pickedCategories, seeders: pickedSeeders, query })),
@@ -54,6 +69,7 @@ export function App() {
                     : "edits"}`}
                 </span>
               )}
+          <button type="button" className="btn" disabled={!canUndo || saving} title="Ctrl+Z" onClick={undo}>Undo</button>
           <button type="button" className="btn" disabled={edits === 0 || saving} onClick={() => void save()}>
             {saving
               ? "Saving…"

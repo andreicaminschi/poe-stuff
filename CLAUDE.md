@@ -118,7 +118,9 @@ never learns where the input came from. The moment a lib names a service in its
 Two are written, and `apps/admin-panel` is being rebuilt: an Electron window over the
 categories and seeders `yarn admin-panel:migrate` writes to `.s3/admin-panel/versions/`.
 `yarn admin-panel` opens the newest version. A seeder is edited in a modal; Save overwrites
-that version when it is a draft, and writes a new draft from it when it is published. It has its own `tsconfig.json`, which
+that version when it is a draft, and writes a new draft from it when it is published. Every
+seeder edit is a log entry; Save appends them to the version's `wal.json` before its
+`categories.json`. Undo appends the inverse entry, never removes one. It has its own `tsconfig.json`, which
 `yarn typecheck` runs after the root one.
 
 | App                                                | Replaces                 | Owns                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |

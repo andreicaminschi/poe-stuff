@@ -1,6 +1,6 @@
 import type { Lake } from "@poe/lake/types";
 import type { LoadedVersion } from "./panel-api.ts";
-import type { CategoriesFile, Manifest } from "./types.ts";
+import type { CategoriesFile, Manifest, WalEntry } from "./types.ts";
 
 const MANIFEST_KEY = "admin-panel/versions/manifest.json";
 
@@ -25,5 +25,14 @@ export async function loadVersion(lake: Lake): Promise<LoadedVersion> {
   const file = await lake.readJson<CategoriesFile>(`admin-panel/versions/${version}/categories.json`);
   const state = manifest.versions[version]?.state ?? "draft";
 
-  return { version, state, categories: file.categories };
+  return { version, state, categories: file.categories, log: await readLog(lake, version) };
+}
+
+/** Reads a version's write-ahead log, empty when it has none. Low, Sonar 1. */
+export async function readLog(lake: Lake, version: string): Promise<readonly WalEntry[]> {
+  const key = `admin-panel/versions/${version}/wal.json`;
+
+  return (await lake.exists(key))
+    ? lake.readJson<readonly WalEntry[]>(key)
+    : [];
 }
