@@ -913,6 +913,14 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@poe/admin-panel@workspace:apps/admin-panel":
+  version: 0.0.0-use.local
+  resolution: "@poe/admin-panel@workspace:apps/admin-panel"
+  dependencies:
+    "@poe/lake": "workspace:^"
+  languageName: unknown
+  linkType: soft
+
 "@poe/catalog@workspace:apps/catalog":
   version: 0.0.0-use.local
   resolution: "@poe/catalog@workspace:apps/catalog"

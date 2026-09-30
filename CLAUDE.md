@@ -196,8 +196,8 @@ keep `.ts`.
   one implementation — an abstraction with one user is lines that do nothing.
 - **One function per file, unless it is a thin wrapper.** In the renderer that means one
   component per file, and every utility function in a file of its own.
-- **Components get semantic names**: the name says what the thing does — `ItemEditor`, not
-  `Detail`. A reader should know what a component is for without opening it.
+- **Names are declarative, not semantic**: a name states plainly what the thing is or
+  holds, not the role it plays. `knownItems`, not `candidates` or `members`.
 - **No chained ternaries.** One `? :` is fine. A second one in the same expression becomes a
   function with an early return per case.
 - **One branch per case, read top to bottom.** Each input shape gets one early return, and a

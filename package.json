@@ -10,6 +10,7 @@
     "services/*"
   ],
   "scripts": {
+    "admin-panel:migrate": "node apps/admin-panel/migrate-cli.ts",
     "catalog": "node --env-file=apps/catalog/.env apps/catalog/catalog-cli.ts",
     "catalog:publish": "node apps/catalog/publish-catalog-cli.ts",
     "catalog:compile": "node apps/catalog/compile-cli.ts",
