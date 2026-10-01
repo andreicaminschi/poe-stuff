@@ -2,6 +2,7 @@ import { CONDITIONS } from "@poe/filter-eval/filter-ast";
 import { useEffect, useState } from "react";
 import type { ConditionValue, Seeder } from "../types.ts";
 import { ChipList } from "./chip-list.tsx";
+import { findFreeName } from "./find-free-name.ts";
 import { generateItems } from "./generate-items.ts";
 import { readSeederCategory, readSeederName } from "./seeder-key.ts";
 import { usePanel } from "./store.ts";
@@ -15,16 +16,13 @@ const CONDITION_NAMES = Object.keys(CONDITIONS).sort();
 const toRows = (seeder: Seeder): readonly Row[] =>
   Object.entries(seeder.conditions).map(([key, values]) => ({ key, values }));
 
-/** Lists what stops a seeder from being applied, or nothing when it can be. Medium, Sonar 4. */
-function listProblems(name: string, rows: readonly Row[], takenNames: readonly string[]): readonly string[] {
+/** Lists what stops a seeder from being applied, or nothing when it can be. Medium, Sonar 3. */
+function listProblems(name: string, rows: readonly Row[]): readonly string[] {
   const keys = rows.map((row) => row.key);
 
   return [
     ...(name.trim() === ""
       ? ["The seeder needs a name."]
-      : []),
-    ...(takenNames.includes(name.trim())
-      ? [`Another seeder in this category is called "${name.trim()}".`]
       : []),
     ...keys.filter((key) => readKind(key) === undefined).map((key) => `"${key}" is not an in-game condition.`),
     ...keys.filter((key, at) => keys.indexOf(key) !== at).map((key) => `"${key}" appears twice.`),
@@ -46,14 +44,16 @@ export function SeederModal() {
   const [rows, setRows] = useState<readonly Row[]>([]);
   const [tags, setTags] = useState<readonly string[]>([]);
   const [knownItems, setKnownItems] = useState<readonly string[]>([]);
+  const [targetName, setTargetName] = useState(categoryName);
 
   useEffect(() => {
     if (original === undefined) return;
+    setTargetName(categoryName);
     setName(original.name);
     setRows(toRows(original));
     setTags(original.tags);
     setKnownItems(original.knownItems ?? []);
-  }, [original]);
+  }, [original, categoryName]);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -65,19 +65,24 @@ export function SeederModal() {
 
   if (editing === undefined || category === undefined || original === undefined) return null;
 
+  const target = loaded?.categories.find((at) => at.name === targetName) ?? category;
+  const takenNames = target.seeders
+    .map((seeder) => seeder.name)
+    .filter((at) => target.name !== category.name || at !== original.name);
+  const savedName = findFreeName(name.trim(), takenNames);
+
   const { knownItems: _dropped, ...rest } = original;
   const draft: Seeder = {
     ...rest,
-    name: name.trim(),
+    name: savedName,
     conditions: Object.fromEntries(rows.map((row) => [row.key, row.values])),
     ...(knownItems.length === 0
       ? {}
       : { knownItems }),
     tags,
   };
-  const count = generateItems({ name: category.name, seeders: [draft] }).length;
-  const takenNames = category.seeders.map((seeder) => seeder.name).filter((at) => at !== original.name);
-  const problems = listProblems(name, rows, takenNames);
+  const count = generateItems({ name: target.name, seeders: [draft] }).length;
+  const problems = listProblems(name, rows);
   const setRow = (at: number, next: Row) => setRows(rows.map((row, index) => (index === at
     ? next
     : row)));
@@ -87,7 +92,13 @@ export function SeederModal() {
       <div className="modal" role="dialog" aria-modal="true">
         <div className="modal-head">
           <input className="sname" value={name} aria-label="Seeder name" onChange={(event) => setName(event.target.value)} />
-          <span className="faint">{`in ${category.name}`}</span>
+          <span className="faint">in</span>
+          <select className="target" value={target.name} aria-label="Category" onChange={(event) => setTargetName(event.target.value)}>
+            {(loaded?.categories ?? []).map((at) => <option key={at.name} value={at.name}>{at.name}</option>)}
+          </select>
+          {name.trim() !== "" && savedName !== name.trim()
+            ? <span className="faint">{`saved as ${savedName}`}</span>
+            : null}
           <span className="pill mono">{`generates ${count} items`}</span>
           <span className="sp" />
           <button type="button" className="btn x" aria-label="Close" onClick={closeEditor}>×</button>
@@ -137,7 +148,7 @@ export function SeederModal() {
           <button type="button" className="btn danger" onClick={() => deleteSeeder(editing)}>Delete seeder</button>
           <span className="sp" />
           <button type="button" className="btn" onClick={closeEditor}>Cancel</button>
-          <button type="button" className="btn primary" disabled={problems.length > 0} onClick={() => applySeeder(editing, draft)}>Apply</button>
+          <button type="button" className="btn primary" disabled={problems.length > 0} onClick={() => applySeeder(editing, draft, target.name)}>Apply</button>
         </div>
       </div>
     </div>

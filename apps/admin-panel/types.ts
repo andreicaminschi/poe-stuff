@@ -16,6 +16,7 @@ export type WalEntry = {
   readonly id: string;
   readonly at: string;
   readonly category: string;
+  readonly toCategory?: string;
   readonly before?: Seeder;
   readonly after?: Seeder;
   readonly undoes?: string;

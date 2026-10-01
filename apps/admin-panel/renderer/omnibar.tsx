@@ -22,7 +22,7 @@ export function Omnibar() {
   const suggestions = useMemo(
     () => (loaded === undefined
       ? []
-      : buildSuggestions(loaded.categories, loaded.items, { categories: pickedCategories, seeders: pickedSeeders, query })),
+      : buildSuggestions(loaded.categories, loaded.items, loaded.itemCounts, { categories: pickedCategories, seeders: pickedSeeders, query })),
     [loaded, pickedCategories, pickedSeeders, query],
   );
   const shown = Math.min(highlight, suggestions.length - 1);

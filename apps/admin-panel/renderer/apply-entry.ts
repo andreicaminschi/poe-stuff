@@ -1,26 +1,35 @@
-import type { Category, WalEntry } from "../types.ts";
+import type { Category, Seeder, WalEntry } from "../types.ts";
+
+/** Returns the seeders with `before` swapped for `after`: in place, removed, or appended. Low, Sonar 3. */
+function swapSeeder(seeders: readonly Seeder[], before: Seeder | undefined, after: Seeder | undefined): readonly Seeder[] {
+  if (before === undefined) return after === undefined
+    ? seeders
+    : [...seeders, after];
+
+  return seeders.flatMap((seeder) => {
+    if (seeder.name !== before.name) return [seeder];
+    return after === undefined
+      ? []
+      : [after];
+  });
+}
 
 /**
- * Returns the categories with one log entry applied: the `before` seeder is replaced by `after`
- * in place, removed when there is no `after`, and `after` is appended when there is no
- * `before`. Low, Sonar 3.
+ * Returns the categories with one log entry applied. `before` leaves `category` and `after`
+ * enters `toCategory`, which defaults to `category`. Within one category the swap is in place;
+ * across two, `after` is appended to the target. Low, Sonar 4.
  */
 export function applyEntry(categories: readonly Category[], entry: WalEntry): readonly Category[] {
+  const target = entry.toCategory ?? entry.category;
+
   return categories.map((category) => {
-    if (category.name !== entry.category) return category;
-    if (entry.before === undefined) return entry.after === undefined
-      ? category
-      : { ...category, seeders: [...category.seeders, entry.after] };
+    const isSource = category.name === entry.category;
+    const isTarget = category.name === target;
 
-    const beforeName = entry.before.name;
-    const seeders = category.seeders.flatMap((seeder) => {
-      if (seeder.name !== beforeName) return [seeder];
-      return entry.after === undefined
-        ? []
-        : [entry.after];
-    });
-
-    return { ...category, seeders };
+    if (isSource && isTarget) return { ...category, seeders: swapSeeder(category.seeders, entry.before, entry.after) };
+    if (isSource) return { ...category, seeders: swapSeeder(category.seeders, entry.before, undefined) };
+    if (isTarget) return { ...category, seeders: swapSeeder(category.seeders, undefined, entry.after) };
+    return category;
   });
 }
 
@@ -36,16 +45,23 @@ export function findUndoable(log: readonly WalEntry[]): WalEntry | undefined {
   return log.findLast((entry) => entry.undoes === undefined && !undone.has(entry.id));
 }
 
-/** Builds the entry that reverts another: `before` and `after` swapped. Low, Sonar 0. */
-export const invertEntry = (entry: WalEntry, id: string, at: string): WalEntry => ({
-  id,
-  at,
-  category: entry.category,
-  ...(entry.after === undefined
-    ? {}
-    : { before: entry.after }),
-  ...(entry.before === undefined
-    ? {}
-    : { after: entry.before }),
-  undoes: entry.id,
-});
+/** Builds the entry that reverts another: seeders and categories swapped. Low, Sonar 1. */
+export function invertEntry(entry: WalEntry, id: string, at: string): WalEntry {
+  const target = entry.toCategory ?? entry.category;
+
+  return {
+    id,
+    at,
+    category: target,
+    ...(target === entry.category
+      ? {}
+      : { toCategory: entry.category }),
+    ...(entry.after === undefined
+      ? {}
+      : { before: entry.after }),
+    ...(entry.before === undefined
+      ? {}
+      : { after: entry.before }),
+    undoes: entry.id,
+  };
+}

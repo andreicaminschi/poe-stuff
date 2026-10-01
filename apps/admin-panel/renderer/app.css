@@ -80,6 +80,9 @@ h1 { margin: 0; }
 
 .item, .sline { display: flex; align-items: baseline; gap: 12px; padding: 7px 16px; border-left: 2px solid transparent; white-space: nowrap; }
 .sline { cursor: pointer; }
+.vlist { height: 100%; overflow: auto; }
+.vlist .item { height: 36px; box-sizing: border-box; align-items: center; }
+.col > .body:has(> .vlist) { overflow: hidden; }
 .item:hover, .sline:hover { background: rgba(255, 255, 255, .02); border-left-color: var(--accent-dim); }
 .line { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; color: var(--dim); }
 .line strong { color: var(--text); font-weight: 600; }
@@ -99,6 +102,8 @@ input:autofill, input:-webkit-autofill, input:-webkit-autofill:hover, input:-web
   transition: background-color 99999s;
 }
 .omni input { border: 0; background: transparent; padding: 0 2px; font-size: 14px; }
+select { background: var(--ground); color: var(--text); border: 1px solid var(--line); border-radius: 3px; padding: 3px 7px; font: 13px var(--ui); }
+select:focus { border-color: var(--accent); outline: none; }
 input.num { width: 72px; font-family: var(--mono); }
 input[type=checkbox] { accent-color: var(--accent); }
 .btn.ghost { background: none; border-style: dashed; color: var(--accent); }

@@ -110,7 +110,7 @@ export function App() {
           <div className="body">
             {view === "items"
               ? <ItemList items={items} />
-              : <SeederList categories={categoriesInScope} items={loaded?.items ?? []} />}
+              : <SeederList categories={categoriesInScope} itemCounts={loaded?.itemCounts ?? new Map()} />}
           </div>
         </section>
       </div>

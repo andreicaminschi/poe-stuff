@@ -1,5 +1,6 @@
 import { CONDITIONS } from "@poe/filter-eval/filter-ast";
 import type { Category, ConditionValue, Seeder } from "../types.ts";
+import { sortSeeders } from "./sort-seeders.ts";
 
 export type SeededItem = {
   readonly category: string;
@@ -62,7 +63,7 @@ function readBaseType(combo: readonly Pick[], seeder: Seeder): string {
  * //    { baseType: "Ruby Ring", tags: ["basetype:ruby ring", "ring", "rings"], … }]
  */
 export function generateItems(category: Category): readonly SeededItem[] {
-  return category.seeders.flatMap((seeder) => {
+  return sortSeeders(category.seeders).flatMap((seeder) => {
     if (listUnknownKeys(seeder).length > 0) return [];
 
     const names = seeder.knownItems === undefined || seeder.knownItems.length === 0

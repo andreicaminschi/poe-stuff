@@ -2,12 +2,16 @@ import { create } from "zustand";
 import type { LoadedVersion } from "../panel-api.ts";
 import type { Category, Seeder, WalEntry } from "../types.ts";
 import { applyEntry, findUndoable, invertEntry } from "./apply-entry.ts";
+import { countItemsBySeeder } from "./count-items.ts";
 import { generateItems, type SeededItem } from "./generate-items.ts";
 import { formatSeederKey, readSeederCategory, readSeederName } from "./seeder-key.ts";
 
 export type View = "items" | "seeders";
 
-type Loaded = LoadedVersion & { readonly items: readonly SeededItem[] };
+type Loaded = LoadedVersion & {
+  readonly items: readonly SeededItem[];
+  readonly itemCounts: ReadonlyMap<string, number>;
+};
 
 type PanelState = {
   readonly loaded: Loaded | undefined;
@@ -29,17 +33,17 @@ type PanelState = {
   readonly saving: boolean;
   readonly openEditor: (key: string) => void;
   readonly closeEditor: () => void;
-  readonly applySeeder: (key: string, seeder: Seeder) => void;
+  readonly applySeeder: (key: string, seeder: Seeder, toCategory: string) => void;
   readonly deleteSeeder: (key: string) => void;
   readonly undo: () => void;
   readonly save: () => Promise<void>;
 };
 
-/** Finds the seeder a key names, in the open version. Low, Sonar 0. */
+/** Finds the seeder a key names, in the open version. */
 const findSeeder = (categories: readonly Category[], key: string): Seeder | undefined =>
   categories.find((category) => category.name === readSeederCategory(key))?.seeders.find((seeder) => seeder.name === readSeederName(key));
 
-/** Builds a new log entry stamped with a fresh id and the current time. Low, Sonar 0. */
+/** Builds a new log entry stamped with a fresh id and the current time. */
 const stampEntry = (category: string, before: Seeder | undefined, after: Seeder | undefined): WalEntry => ({
   id: crypto.randomUUID(),
   at: new Date().toISOString(),
@@ -57,10 +61,14 @@ const readMessage = (error: unknown): string => (error instanceof Error
   ? error.message
   : String(error));
 
-/** Pairs a version with the items its categories generate. Low, Sonar 0. */
-const withItems = (version: LoadedVersion): Loaded => ({ ...version, items: version.categories.flatMap(generateItems) });
+/** Pairs a version with the items its categories generate. */
+function withItems(version: LoadedVersion): Loaded {
+  const items = version.categories.flatMap(generateItems);
 
-/** Pairs new categories with the open version and their items. Low, Sonar 0. */
+  return { ...version, items, itemCounts: countItemsBySeeder(items) };
+}
+
+/** Pairs new categories with the open version and their items. */
 const withCategories = (loaded: Loaded, categories: readonly Category[]): Loaded =>
   withItems({ version: loaded.version, state: loaded.state, categories, log: loaded.log });
 
@@ -119,12 +127,16 @@ export const usePanel = create<PanelState>()((set, get) => ({
   openEditor: (key) => set({ editing: key }),
   closeEditor: () => set({ editing: undefined }),
 
-  applySeeder: (key, seeder) => {
+  applySeeder: (key, seeder, toCategory) => {
     const { loaded, pending, pickedSeeders } = get();
     if (loaded === undefined) return;
 
-    const entry = stampEntry(readSeederCategory(key), findSeeder(loaded.categories, key), seeder);
-    const renamed = formatSeederKey(readSeederCategory(key), seeder.name);
+    const category = readSeederCategory(key);
+    const stamped = stampEntry(category, findSeeder(loaded.categories, key), seeder);
+    const entry = toCategory === category
+      ? stamped
+      : { ...stamped, toCategory };
+    const renamed = formatSeederKey(toCategory, seeder.name);
 
     set({
       loaded: withCategories(loaded, applyEntry(loaded.categories, entry)),

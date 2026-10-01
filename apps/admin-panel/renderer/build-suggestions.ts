@@ -2,6 +2,7 @@ import type { Category } from "../types.ts";
 import type { SeededItem } from "./generate-items.ts";
 import { matchItem, type Scope } from "./match-item.ts";
 import { formatSeederKey } from "./seeder-key.ts";
+import { sortSeeders } from "./sort-seeders.ts";
 
 export type Suggestion =
   | { readonly kind: "search"; readonly label: string; readonly count: number }
@@ -16,6 +17,7 @@ export type Suggestion =
 export function buildSuggestions(
   categories: readonly Category[],
   items: readonly SeededItem[],
+  itemCounts: ReadonlyMap<string, number>,
   scope: Scope,
 ): readonly Suggestion[] {
   const query = scope.query.trim().toLowerCase();
@@ -34,7 +36,7 @@ export function buildSuggestions(
     ? categories
     : categories.filter((category) => scope.categories.includes(category.name));
 
-  const seederHits: Suggestion[] = inScope.flatMap((category) => category.seeders
+  const seederHits: Suggestion[] = inScope.flatMap((category) => sortSeeders(category.seeders)
     .map((seeder) => ({ seeder, key: formatSeederKey(category.name, seeder.name) }))
     .filter(({ seeder, key }) => !scope.seeders.includes(key) && hits(seeder.name))
     .map(({ seeder, key }) => ({
@@ -42,7 +44,7 @@ export function buildSuggestions(
       label: seeder.name,
       key,
       category: category.name,
-      count: countWhere((item) => item.category === category.name && item.seeder === seeder.name),
+      count: itemCounts.get(key) ?? 0,
     })));
 
   return [...search, ...categoryHits, ...seederHits];
