@@ -25,14 +25,20 @@ type PanelState = {
   readonly pickSeeder: (key: string) => void;
   readonly dropSeeder: (key: string) => void;
   readonly dropLastToken: () => void;
-  readonly showOnlySeeder: (key: string) => void;
   readonly setQuery: (query: string) => void;
   readonly setView: (view: View) => void;
-  readonly editing: string | undefined;
+  readonly selected: string | undefined;
+  readonly dirty: boolean;
+  readonly leaveAction: (() => void) | undefined;
   readonly pending: readonly WalEntry[];
   readonly saving: boolean;
-  readonly openEditor: (key: string) => void;
-  readonly closeEditor: () => void;
+  readonly setDirty: (dirty: boolean) => void;
+  readonly guard: (action: () => void) => void;
+  readonly confirmLeave: () => void;
+  readonly cancelLeave: () => void;
+  readonly selectSeeder: (key: string) => void;
+  readonly selectFirst: (key: string | undefined) => void;
+  readonly goToItems: (action: () => void) => void;
   readonly applySeeder: (key: string, seeder: Seeder, toCategory: string) => void;
   readonly deleteSeeder: (key: string) => void;
   readonly undo: () => void;
@@ -100,10 +106,10 @@ export const usePanel = create<PanelState>()((set, get) => ({
       ? pickedCategories.filter((at) => at !== name)
       : [...pickedCategories, name];
 
-    set({ pickedCategories: next, pickedSeeders: keepInScope(pickedSeeders, next), view: "items" });
+    set({ pickedCategories: next, pickedSeeders: keepInScope(pickedSeeders, next) });
   },
 
-  pickSeeder: (key) => set({ pickedSeeders: [...get().pickedSeeders, key], view: "items" }),
+  pickSeeder: (key) => set({ pickedSeeders: [...get().pickedSeeders, key] }),
   dropSeeder: (key) => set({ pickedSeeders: get().pickedSeeders.filter((at) => at !== key) }),
 
   dropLastToken: () => {
@@ -117,15 +123,37 @@ export const usePanel = create<PanelState>()((set, get) => ({
     set({ pickedCategories: next, pickedSeeders: keepInScope(pickedSeeders, next) });
   },
 
-  showOnlySeeder: (key) => set({ pickedSeeders: [key], view: "items" }),
-  setQuery: (query) => set({ query, view: "items" }),
-  setView: (view) => set({ view }),
+  setQuery: (query) => set({ query }),
+  setView: (view) => get().guard(() => set({ view })),
 
-  editing: undefined,
+  selected: undefined,
+  dirty: false,
+  leaveAction: undefined,
   pending: [],
   saving: false,
-  openEditor: (key) => set({ editing: key }),
-  closeEditor: () => set({ editing: undefined }),
+  setDirty: (dirty) => set({ dirty }),
+
+  guard: (action) => {
+    if (get().dirty) {
+      set({ leaveAction: action });
+      return;
+    }
+    action();
+  },
+
+  confirmLeave: () => {
+    const { leaveAction } = get();
+    set({ dirty: false, leaveAction: undefined });
+    leaveAction?.();
+  },
+
+  cancelLeave: () => set({ leaveAction: undefined }),
+  selectSeeder: (key) => get().guard(() => set({ selected: key, view: "seeders" })),
+  selectFirst: (key) => set({ selected: key, dirty: false }),
+  goToItems: (action) => get().guard(() => {
+    action();
+    set({ view: "items" });
+  }),
 
   applySeeder: (key, seeder, toCategory) => {
     const { loaded, pending, pickedSeeders } = get();
@@ -144,7 +172,8 @@ export const usePanel = create<PanelState>()((set, get) => ({
         ? renamed
         : at)),
       pending: [...pending, entry],
-      editing: undefined,
+      selected: renamed,
+      dirty: false,
     });
   },
 
@@ -158,7 +187,8 @@ export const usePanel = create<PanelState>()((set, get) => ({
       loaded: withCategories(loaded, applyEntry(loaded.categories, entry)),
       pickedSeeders: pickedSeeders.filter((at) => at !== key),
       pending: [...pending, entry],
-      editing: undefined,
+      selected: undefined,
+      dirty: false,
     });
   },
 

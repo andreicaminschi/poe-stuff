@@ -1,11 +1,14 @@
 import { useEffect, useMemo } from "react";
 import { findUndoable } from "./apply-entry.ts";
 import { CategoryList } from "./category-list.tsx";
+import { ConfirmDialog } from "./confirm-dialog.tsx";
 import { ItemList } from "./item-list.tsx";
 import { matchItem } from "./match-item.ts";
 import { Omnibar } from "./omnibar.tsx";
+import { formatSeederKey, readSeederCategory, readSeederName } from "./seeder-key.ts";
+import { SeederEditor } from "./seeder-editor.tsx";
 import { SeederList } from "./seeder-list.tsx";
-import { SeederModal } from "./seeder-modal.tsx";
+import { sortSeeders } from "./sort-seeders.ts";
 import { usePanel } from "./store.ts";
 import "./app.css";
 
@@ -18,8 +21,8 @@ export function App() {
   const view = usePanel((state) => state.view);
   const pending = usePanel((state) => state.pending);
   const saving = usePanel((state) => state.saving);
-  const editing = usePanel((state) => state.editing);
-  const { load, setView, save, undo } = usePanel.getState();
+  const selected = usePanel((state) => state.selected);
+  const { load, setView, save, undo, guard, selectFirst } = usePanel.getState();
   const edits = pending.length;
   const canUndo = loaded !== undefined && findUndoable([...loaded.log, ...pending]) !== undefined;
 
@@ -31,13 +34,12 @@ export function App() {
     const onKey = (event: KeyboardEvent) => {
       if (!(event.ctrlKey || event.metaKey) || event.shiftKey || event.key.toLowerCase() !== "z") return;
       if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return;
-      if (usePanel.getState().editing !== undefined) return;
       event.preventDefault();
-      undo();
+      guard(undo);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [undo]);
+  }, [undo, guard]);
 
   const items = useMemo(
     () => (loaded?.items ?? []).filter((item) => matchItem(item, { categories: pickedCategories, seeders: pickedSeeders, query })),
@@ -50,6 +52,16 @@ export function App() {
     ? "all categories"
     : pickedCategories.join(", ");
   const seederCount = categoriesInScope.reduce((sum, category) => sum + category.seeders.length, 0);
+
+  const selectedCategory = categoriesInScope.find((category) => category.name === readSeederCategory(selected ?? ""));
+  const selectedSeeder = selectedCategory?.seeders.find((seeder) => seeder.name === readSeederName(selected ?? ""));
+  const firstInScope = categoriesInScope
+    .flatMap((category) => sortSeeders(category.seeders).map((seeder) => formatSeederKey(category.name, seeder.name)))
+    .at(0);
+
+  useEffect(() => {
+    if (view === "seeders" && selectedSeeder === undefined) selectFirst(firstInScope);
+  }, [view, selectedSeeder, firstInScope, selectFirst]);
 
   return (
     <>
@@ -69,8 +81,8 @@ export function App() {
                     : "edits"}`}
                 </span>
               )}
-          <button type="button" className="btn" disabled={!canUndo || saving} title="Ctrl+Z" onClick={undo}>Undo</button>
-          <button type="button" className="btn" disabled={edits === 0 || saving} onClick={() => void save()}>
+          <button type="button" className="btn" disabled={!canUndo || saving} title="Ctrl+Z" onClick={() => guard(undo)}>Undo</button>
+          <button type="button" className="btn" disabled={edits === 0 || saving} onClick={() => guard(() => void save())}>
             {saving
               ? "Saving…"
               : "Save"}
@@ -80,7 +92,10 @@ export function App() {
       {error === undefined
         ? null
         : <div className="banner">{error}</div>}
-      <div className="cols">
+      <div className={view === "items"
+        ? "cols items-view"
+        : "cols seeders-view"}
+      >
         <CategoryList />
         <section className="col items">
           <div className="head">
@@ -110,11 +125,22 @@ export function App() {
           <div className="body">
             {view === "items"
               ? <ItemList items={items} />
-              : <SeederList categories={categoriesInScope} itemCounts={loaded?.itemCounts ?? new Map()} />}
+              : <SeederList categories={categoriesInScope} itemCounts={loaded?.itemCounts ?? new Map()} selected={selected} />}
           </div>
         </section>
+        {view === "seeders" && loaded !== undefined && selected !== undefined && selectedCategory !== undefined && selectedSeeder !== undefined
+          ? (
+              <SeederEditor
+                key={selected}
+                seederKey={selected}
+                category={selectedCategory}
+                original={selectedSeeder}
+                categories={loaded.categories}
+              />
+            )
+          : null}
       </div>
-      <SeederModal key={editing} />
+      <ConfirmDialog />
     </>
   );
 }

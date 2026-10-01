@@ -14,7 +14,11 @@ export function Omnibar() {
   const pickedCategories = usePanel((state) => state.pickedCategories);
   const pickedSeeders = usePanel((state) => state.pickedSeeders);
   const query = usePanel((state) => state.query);
-  const { toggleCategory, pickSeeder, dropSeeder, dropLastToken, setQuery } = usePanel.getState();
+  const store = usePanel.getState();
+  const toggleCategory = (name: string) => store.goToItems(() => store.toggleCategory(name));
+  const dropSeeder = (key: string) => store.goToItems(() => store.dropSeeder(key));
+  const dropLastToken = () => store.goToItems(store.dropLastToken);
+  const setQuery = (text: string) => store.goToItems(() => store.setQuery(text));
   const [open, setOpen] = useState(false);
   const [highlight, setHighlight] = useState(0);
   const input = useRef<HTMLInputElement>(null);
@@ -28,9 +32,11 @@ export function Omnibar() {
   const shown = Math.min(highlight, suggestions.length - 1);
 
   const choose = (suggestion: Suggestion) => {
-    if (suggestion.kind === "category") toggleCategory(suggestion.label);
-    if (suggestion.kind === "seeder") pickSeeder(suggestion.key);
-    if (suggestion.kind !== "search") setQuery("");
+    store.goToItems(() => {
+      if (suggestion.kind === "category") store.toggleCategory(suggestion.label);
+      if (suggestion.kind === "seeder") store.pickSeeder(suggestion.key);
+      if (suggestion.kind !== "search") store.setQuery("");
+    });
     setHighlight(0);
   };
 

@@ -7,7 +7,7 @@ export function EditSeederButton({ seederKey }: { readonly seederKey: string }) 
       className="btn tiny edit"
       onClick={(event) => {
         event.stopPropagation();
-        usePanel.getState().openEditor(seederKey);
+        usePanel.getState().selectSeeder(seederKey);
       }}
     >
       Edit seeder

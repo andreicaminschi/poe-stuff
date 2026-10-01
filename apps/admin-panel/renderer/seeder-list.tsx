@@ -1,7 +1,4 @@
 import type { Category } from "../types.ts";
-import { EditSeederButton } from "./edit-seeder-button.tsx";
-import { formatCondition } from "./format-condition.ts";
-import { listUnknownKeys } from "./generate-items.ts";
 import { formatSeederKey } from "./seeder-key.ts";
 import { sortSeeders } from "./sort-seeders.ts";
 import { usePanel } from "./store.ts";
@@ -9,50 +6,31 @@ import { usePanel } from "./store.ts";
 export function SeederList({
   categories,
   itemCounts,
+  selected,
 }: {
   readonly categories: readonly Category[];
   readonly itemCounts: ReadonlyMap<string, number>;
+  readonly selected: string | undefined;
 }) {
-  const { showOnlySeeder } = usePanel.getState();
-  const seeders = categories.flatMap((category) => sortSeeders(category.seeders).map((seeder) => ({ category, seeder })));
+  const { selectSeeder } = usePanel.getState();
+  const keys = categories.flatMap((category) => sortSeeders(category.seeders).map((seeder) => ({
+    key: formatSeederKey(category.name, seeder.name),
+    name: seeder.name,
+  })));
 
-  if (seeders.length === 0) return <p className="empty">No seeders.</p>;
+  if (keys.length === 0) return <p className="empty">No seeders.</p>;
 
-  return seeders.map(({ category, seeder }) => {
-    const key = formatSeederKey(category.name, seeder.name);
-    const unknown = listUnknownKeys(seeder);
-    const count = itemCounts.get(key) ?? 0;
-    const parts = [
-      ...Object.entries(seeder.conditions)
-        .filter(([conditionKey]) => !unknown.includes(conditionKey))
-        .map(([conditionKey, values]) => formatCondition(conditionKey, values)),
-      ...(seeder.knownItems === undefined || seeder.knownItems.length === 0
-        ? []
-        : [`Known items: ${seeder.knownItems.join(" | ")}`]),
-      ...seeder.tags,
-    ];
-
-    return (
-      <div className="sline" key={key} onClick={() => showOnlySeeder(key)}>
-        <span className="line" title={[seeder.name, ...parts].join(", ")}>
-          <strong>{seeder.name}</strong>
-          {parts.length === 0
-            ? ""
-            : `, ${parts.join(", ")}`}
-          {unknown.map((name) => <span className="bad" key={name}>{`, ${name}: unknown condition`}</span>)}
-        </span>
-        <EditSeederButton seederKey={key} />
-        <span className="sp" />
-        <span className="from">
-          {category.name}
-          {" "}
-          ·
-          {" "}
-          {count}
-          {" "}
-          items
-        </span>
-      </div>
-    );
-  });
+  return keys.map(({ key, name }) => (
+    <div
+      className={key === selected
+        ? "sline on"
+        : "sline"}
+      key={key}
+      onClick={() => selectSeeder(key)}
+    >
+      <span className="line"><strong>{name}</strong></span>
+      <span className="sp" />
+      <span className="from">{`${itemCounts.get(key) ?? 0} items`}</span>
+    </div>
+  ));
 }

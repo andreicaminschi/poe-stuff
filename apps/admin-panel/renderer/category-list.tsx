@@ -4,7 +4,7 @@ import { usePanel } from "./store.ts";
 export function CategoryList() {
   const loaded = usePanel((state) => state.loaded);
   const picked = usePanel((state) => state.pickedCategories);
-  const { toggleCategory } = usePanel.getState();
+  const { toggleCategory, guard } = usePanel.getState();
 
   const itemCounts = useMemo(() => {
     const counts = new Map<string, number>();
@@ -24,7 +24,7 @@ export function CategoryList() {
             className={picked.includes(category.name)
               ? "cat on"
               : "cat"}
-            onClick={() => toggleCategory(category.name)}
+            onClick={() => guard(() => toggleCategory(category.name))}
           >
             <span>{category.name}</span>
             <span className="sp" />
