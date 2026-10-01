@@ -20,6 +20,9 @@ function swapSeeder(seeders: readonly Seeder[], before: Seeder | undefined, afte
  * across two, `after` is appended to the target. Low, Sonar 4.
  */
 export function applyEntry(categories: readonly Category[], entry: WalEntry): readonly Category[] {
+  if (entry.op === "createCategory") return [...categories, { name: entry.category, seeders: [] }];
+  if (entry.op === "deleteCategory") return categories.filter((category) => category.name !== entry.category);
+
   const target = entry.toCategory ?? entry.category;
 
   return categories.map((category) => {
@@ -47,6 +50,9 @@ export function findUndoable(log: readonly WalEntry[]): WalEntry | undefined {
 
 /** Builds the entry that reverts another: seeders and categories swapped. Low, Sonar 1. */
 export function invertEntry(entry: WalEntry, id: string, at: string): WalEntry {
+  if (entry.op === "createCategory") return { id, at, category: entry.category, op: "deleteCategory", undoes: entry.id };
+  if (entry.op === "deleteCategory") return { id, at, category: entry.category, op: "createCategory", undoes: entry.id };
+
   const target = entry.toCategory ?? entry.category;
 
   return {

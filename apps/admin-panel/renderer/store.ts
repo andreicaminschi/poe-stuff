@@ -41,6 +41,11 @@ type PanelState = {
   readonly goToItems: (action: () => void) => void;
   readonly applySeeder: (key: string, seeder: Seeder, toCategory: string) => void;
   readonly deleteSeeder: (key: string) => void;
+  readonly dialog: "category" | "seeder" | undefined;
+  readonly openDialog: (dialog: "category" | "seeder") => void;
+  readonly closeDialog: () => void;
+  readonly createCategory: (name: string) => void;
+  readonly createSeeder: (category: string, name: string) => void;
   readonly undo: () => void;
   readonly save: () => Promise<void>;
 };
@@ -189,6 +194,49 @@ export const usePanel = create<PanelState>()((set, get) => ({
       pending: [...pending, entry],
       selected: undefined,
       dirty: false,
+    });
+  },
+
+  dialog: undefined,
+  openDialog: (dialog) => get().guard(() => set({ dialog })),
+  closeDialog: () => set({ dialog: undefined }),
+
+  createCategory: (name) => {
+    const { loaded, pending } = get();
+    if (loaded === undefined) return;
+
+    const entry: WalEntry = { id: crypto.randomUUID(), at: new Date().toISOString(), category: name, op: "createCategory" };
+
+    set({
+      loaded: withCategories(loaded, applyEntry(loaded.categories, entry)),
+      pending: [...pending, entry],
+      pickedCategories: [name],
+      pickedSeeders: [],
+      selected: undefined,
+      dirty: false,
+      view: "seeders",
+      dialog: undefined,
+    });
+  },
+
+  createSeeder: (category, name) => {
+    const { loaded, pending } = get();
+    if (loaded === undefined) return;
+
+    const { pickedCategories } = get();
+    const entry = stampEntry(category, undefined, { name, conditions: {}, tags: [] });
+    const inScope = pickedCategories.length === 0 || pickedCategories.includes(category);
+
+    set({
+      loaded: withCategories(loaded, applyEntry(loaded.categories, entry)),
+      pending: [...pending, entry],
+      pickedCategories: inScope
+        ? pickedCategories
+        : [...pickedCategories, category],
+      selected: formatSeederKey(category, name),
+      dirty: false,
+      view: "seeders",
+      dialog: undefined,
     });
   },
 

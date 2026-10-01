@@ -4,7 +4,10 @@ import { CategoryList } from "./category-list.tsx";
 import { ConfirmDialog } from "./confirm-dialog.tsx";
 import { ItemList } from "./item-list.tsx";
 import { matchItem } from "./match-item.ts";
+import { NewCategoryDialog } from "./new-category-dialog.tsx";
+import { NewSeederDialog } from "./new-seeder-dialog.tsx";
 import { Omnibar } from "./omnibar.tsx";
+import { sortCategories } from "./sort-categories.ts";
 import { formatSeederKey, readSeederCategory, readSeederName } from "./seeder-key.ts";
 import { SeederEditor } from "./seeder-editor.tsx";
 import { SeederList } from "./seeder-list.tsx";
@@ -22,7 +25,8 @@ export function App() {
   const pending = usePanel((state) => state.pending);
   const saving = usePanel((state) => state.saving);
   const selected = usePanel((state) => state.selected);
-  const { load, setView, save, undo, guard, selectFirst } = usePanel.getState();
+  const dialog = usePanel((state) => state.dialog);
+  const { load, setView, save, undo, guard, selectFirst, openDialog } = usePanel.getState();
   const edits = pending.length;
   const canUndo = loaded !== undefined && findUndoable([...loaded.log, ...pending]) !== undefined;
 
@@ -110,6 +114,9 @@ export function App() {
               </span>
             </span>
             <span className="sp" />
+            {view === "seeders"
+              ? <button type="button" className="btn tiny ghost" onClick={() => openDialog("seeder")}>+ New seeder</button>
+              : null}
             <button
               type="button"
               className="btn tiny"
@@ -135,12 +142,28 @@ export function App() {
                 seederKey={selected}
                 category={selectedCategory}
                 original={selectedSeeder}
-                categories={loaded.categories}
+                categories={sortCategories(loaded.categories)}
               />
+            )
+          : null}
+        {view === "seeders" && selectedSeeder === undefined
+          ? (
+              <section className="col editor">
+                <div className="body editor-empty">
+                  <p className="empty">No seeder to edit here. Create one to start editing.</p>
+                  <button type="button" className="btn tiny ghost" onClick={() => openDialog("seeder")}>+ New seeder</button>
+                </div>
+              </section>
             )
           : null}
       </div>
       <ConfirmDialog />
+      {dialog === "category"
+        ? <NewCategoryDialog takenNames={(loaded?.categories ?? []).map((category) => category.name)} />
+        : null}
+      {dialog === "seeder" && loaded !== undefined
+        ? <NewSeederDialog categories={sortCategories(loaded.categories)} initialCategory={pickedCategories[0] ?? sortCategories(loaded.categories)[0]?.name ?? ""} />
+        : null}
     </>
   );
 }
