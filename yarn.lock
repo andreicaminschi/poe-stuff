@@ -907,6 +907,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@faker-js/faker@npm:^10.6.0":
+  version: 10.6.0
+  resolution: "@faker-js/faker@npm:10.6.0"
+  checksum: 10c0/ee285d597249a019f3a11b6705d1908616ea9e880207ca4f89e6205dbf7e98abd1129f025f5da19484f5e88f556b0629a4363745ff0bbaf1984ebf54cffde6e3
+  languageName: node
+  linkType: hard
+
 "@humanfs/core@npm:^0.19.2":
   version: 0.19.2
   resolution: "@humanfs/core@npm:0.19.2"
@@ -1353,6 +1360,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@poe/admin-panel@workspace:apps/admin-panel"
   dependencies:
+    "@faker-js/faker": "npm:^10.6.0"
     "@poe/filter-eval": "workspace:^"
     "@poe/lake": "workspace:^"
     "@types/node": "npm:^26.2.0"

@@ -4,10 +4,12 @@ import type { PanelState } from "../types.ts";
 
 export type CreateSeederCommand = { readonly type: "createSeeder"; readonly category: string; readonly names: readonly string[] };
 
-/** Creates one empty seeder under a name no seeder in any category holds. Low, Sonar 0. */
+/** Creates one empty seeder under a name no seeder in any category holds. An empty name gets a default one. Low, Sonar 1. */
 function createOne(state: PanelState, category: string, name: string, stamp: Stamp): PanelState {
   const target = requireCategory(state.categories, category);
-  const free = findFreeName(name, listSeederNames(state.categories));
+  const free = findFreeName(name === ""
+    ? "New seeder"
+    : name, listSeederNames(state.categories));
 
   return withEntry(state, buildEntry(stamp, target.name, undefined, { name: free, conditions: {}, tags: [] }));
 }
