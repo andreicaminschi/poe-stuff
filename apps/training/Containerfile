@@ -11,6 +11,9 @@ ADD https://github.com/ggml-org/llama.cpp/archive/refs/heads/master.tar.gz /tmp/
 RUN mkdir -p /opt/llama.cpp && tar -xzf /tmp/llama.cpp.tar.gz -C /opt/llama.cpp --strip-components=1 && rm /tmp/llama.cpp.tar.gz \
     && pip install --no-cache-dir /opt/llama.cpp/gguf-py
 
-ENV HF_HOME=/cache/huggingface PYTHONUNBUFFERED=1
+ENV HF_HOME=/cache/huggingface PYTHONUNBUFFERED=1 TRITON_LIBCUDA_PATH=/opt/libcuda
 WORKDIR /app
 COPY *.py /app/
+COPY entry.sh /app/entry.sh
+RUN chmod +x /app/entry.sh
+ENTRYPOINT ["/app/entry.sh"]
