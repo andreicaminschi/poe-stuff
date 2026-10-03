@@ -4,6 +4,7 @@ import { addConditions } from "./generate-training/add-conditions.ts";
 import { addKnownItems } from "./generate-training/add-known-items.ts";
 import { addTags } from "./generate-training/add-tags.ts";
 import { buildState } from "./generate-training/build-state.ts";
+import { buildTwoStep } from "./generate-training/build-two-step.ts";
 import { createCategory } from "./generate-training/create-category.ts";
 import { createSeeder } from "./generate-training/create-seeder.ts";
 import { deleteCategory } from "./generate-training/delete-category.ts";
@@ -25,7 +26,14 @@ const buildGoals = (set: PatternSet): Readonly<Record<string, Readonly<Record<st
 });
 
 const NO_OP_GOALS = new Set(["addTags", "addKnownItems", "addConditions"]);
-const NO_OP_SHARE = 0.1;
+const NO_OP_SHARE = 0.3;
+const TWO_STEP_PER_COUNT = 4;
+
+/** Every goal's single-target builder, the pieces two-step requests are joined from. Low, Sonar 0. */
+const listSingles = (goals: ReturnType<typeof buildGoals>): Readonly<Record<string, BuildExample>> =>
+  Object.fromEntries(Object.entries(goals).flatMap(([goal, forms]) => (forms["single"] === undefined
+    ? []
+    : [[goal, forms["single"]]])));
 
 /** Every command a generated row can name, in a fixed order. */
 export const TRAINED_COMMANDS: readonly StateCommand["type"][] = [
@@ -48,7 +56,8 @@ export const TRAINED_COMMANDS: readonly StateCommand["type"][] = [
  */
 export function generateTraining(seed: number, count: number, set: PatternSet = "seen"): ExampleRows {
   const faker = new Faker({ locale: [en], seed });
-  const played = Object.entries(buildGoals(set)).flatMap(([goal, forms]) => Object.values(forms).flatMap((build) => Array.from({ length: count }, () => {
+  const goals = buildGoals(set);
+  const single = Object.entries(goals).flatMap(([goal, forms]) => Object.values(forms).flatMap((build) => Array.from({ length: count }, () => {
     const start = buildState(faker);
     const example = build(faker, start);
 
@@ -56,6 +65,11 @@ export function generateTraining(seed: number, count: number, set: PatternSet = 
       ? playNoOp(example, start)
       : playExample(example, start);
   })));
+  const twoStep = Array.from({ length: count * TWO_STEP_PER_COUNT }, () => {
+    const start = buildState(faker);
+    return playExample(buildTwoStep(faker, set, listSingles(goals), start), start);
+  });
+  const played = [...single, ...twoStep];
 
   return {
     stop: played.flatMap((rows) => rows.stop),
