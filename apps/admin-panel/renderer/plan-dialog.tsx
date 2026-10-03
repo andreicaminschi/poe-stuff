@@ -79,7 +79,10 @@ export function PlanDialog({ plan }: { readonly plan: AgentPlan }) {
               ? "none"
               : plan.names.join(", ")} · agent stopped: ${plan.outcome}`}
           </p>
-          {texts.length === 0
+          {plan.outcome === "unclear"
+            ? <p className="plan-error">The agent is not sure what you mean. Rephrase the instruction, or add the steps yourself.</p>
+            : null}
+          {texts.length === 0 && plan.outcome !== "unclear"
             ? <p className="empty">The agent found nothing to do. Add a step, or dismiss.</p>
             : null}
           {texts.map((text, at) => {

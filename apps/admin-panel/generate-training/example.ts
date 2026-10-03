@@ -2,7 +2,7 @@ import type { Faker } from "@faker-js/faker";
 import type { StateCommand } from "../commands.ts";
 import type { PanelState } from "../types.ts";
 
-export type Form = "single" | "bulk" | "listed";
+export type Form = "single" | "bulk" | "listed" | "offTopic" | "unknownName" | "vague";
 
 /** `seen` trains and evaluates. `unseen` only evaluates, so its wordings never reach training. */
 export type PatternSet = "seen" | "unseen";
@@ -14,6 +14,8 @@ export type Example = {
   readonly query: string;
   readonly names: readonly string[];
   readonly commands: readonly StateCommand[];
+  /** True when the right answer is to ask the user to rephrase. `commands` is empty then. */
+  readonly unclear?: boolean;
 };
 
 export type BuildExample = (faker: Faker, state: PanelState) => Example;

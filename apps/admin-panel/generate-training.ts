@@ -1,5 +1,5 @@
 import { en, Faker } from "@faker-js/faker";
-import type { StateCommand } from "./commands.ts";
+import { REPHRASE, type DecisionOption } from "./decision-options.ts";
 import { addConditions } from "./generate-training/add-conditions.ts";
 import { addKnownItems } from "./generate-training/add-known-items.ts";
 import { addTags } from "./generate-training/add-tags.ts";
@@ -12,6 +12,7 @@ import { deleteSeeder } from "./generate-training/delete-seeder.ts";
 import type { BuildExample, PatternSet } from "./generate-training/example.ts";
 import { moveSeeder } from "./generate-training/move-seeder.ts";
 import { playExample, playNoOp, type ExampleRows } from "./generate-training/play-example.ts";
+import { unclear } from "./generate-training/unclear.ts";
 
 /** Every goal's builders, worded from one pattern set. Low, Sonar 0. */
 const buildGoals = (set: PatternSet): Readonly<Record<string, Readonly<Record<string, BuildExample>>>> => ({
@@ -23,6 +24,7 @@ const buildGoals = (set: PatternSet): Readonly<Record<string, Readonly<Record<st
   deleteCategory: deleteCategory(set),
   deleteSeeder: deleteSeeder(set),
   moveSeeder: moveSeeder(set),
+  unclear: unclear(set),
 });
 
 const NO_OP_GOALS = new Set(["addTags", "addKnownItems", "addConditions"]);
@@ -35,8 +37,8 @@ const listSingles = (goals: ReturnType<typeof buildGoals>): Readonly<Record<stri
     ? []
     : [[goal, forms["single"]]])));
 
-/** Every command a generated row can name, in a fixed order. */
-export const TRAINED_COMMANDS: readonly StateCommand["type"][] = [
+/** Everything a choose row can name, in a fixed order: every command, then the way out. */
+export const TRAINED_COMMANDS: readonly DecisionOption[] = [
   "createCategory",
   "deleteCategory",
   "createSeeder",
@@ -48,6 +50,7 @@ export const TRAINED_COMMANDS: readonly StateCommand["type"][] = [
   "moveSeeders",
   "mergeCategory",
   "updateItems",
+  REPHRASE,
 ];
 
 /**

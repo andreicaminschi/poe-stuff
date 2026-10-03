@@ -2,6 +2,7 @@ import { executeCommand, type StateCommand } from "../commands.ts";
 import { formatContext } from "../format-context.ts";
 import type { PanelState } from "../types.ts";
 import { CONDITION_FORMATS, expandCommand } from "../condition-values.ts";
+import { REPHRASE, type DecisionOption } from "../decision-options.ts";
 import type { Example } from "./example.ts";
 
 const STAMP = { id: "generated", at: "1970-01-01T00:00:00.000Z", actor: "generator" };
@@ -9,7 +10,7 @@ const STAMP = { id: "generated", at: "1970-01-01T00:00:00.000Z", actor: "generat
 type RowBase = { readonly goal: string; readonly form: string; readonly query: string; readonly context: string; readonly history: readonly string[] };
 
 export type StopRow = RowBase & { readonly done: boolean };
-export type ChooseRow = RowBase & { readonly command: StateCommand["type"] };
+export type ChooseRow = RowBase & { readonly command: DecisionOption };
 export type FillRow = RowBase & { readonly command: StateCommand["type"]; readonly args: Readonly<Record<string, unknown>> };
 
 /** One whole request, for scoring the loop end to end: where it starts and where it must end. */
@@ -19,6 +20,8 @@ export type RequestRow = {
   readonly query: string;
   readonly names: readonly string[];
   readonly turns: number;
+  /** True when the loop must stop and ask the user to rephrase, changing nothing. */
+  readonly unclear?: boolean;
   readonly start: Pick<PanelState, "categories" | "itemData">;
   readonly expected: Pick<PanelState, "categories" | "itemData">;
 };
@@ -44,6 +47,7 @@ function splitCommand(command: StateCommand): { readonly type: StateCommand["typ
  * it. The last turn only says the goal is met. Low, Sonar 1.
  */
 export function playExample(example: Example, start: PanelState): ExampleRows {
+  if (example.unclear === true) return playUnclear(example, start);
   const states = example.commands.reduce<readonly PanelState[]>((visited, command) => [...visited, executeCommand(visited.at(-1) ?? start, expandCommand(command), STAMP)], [start]);
   const ran = example.commands.map((command) => JSON.stringify(command));
   const bases = states.map((state, at) => ({
@@ -69,6 +73,18 @@ export function playExample(example: Example, start: PanelState): ExampleRows {
       start: keepPanel(start),
       expected: keepPanel(states.at(-1) ?? start),
     }],
+  };
+}
+
+/** Plays a request with no right command: not done, and the next step is to ask the user to rephrase. Low, Sonar 0. */
+function playUnclear(example: Example, start: PanelState): ExampleRows {
+  const base = { goal: example.goal, form: example.form, query: example.query, context: formatContext(start, CONDITION_FORMATS, example.names), history: [] };
+
+  return {
+    stop: [{ ...base, done: false }],
+    choose: [{ ...base, command: REPHRASE }],
+    fill: [],
+    request: [{ goal: example.goal, form: example.form, query: example.query, names: example.names, turns: 0, unclear: true, start: keepPanel(start), expected: keepPanel(start) }],
   };
 }
 

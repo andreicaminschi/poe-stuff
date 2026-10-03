@@ -10,8 +10,12 @@ const STAMP = { id: "benchmark", at: "1970-01-01T00:00:00.000Z", actor: "benchma
 
 export type RequestResult = { readonly goal: string; readonly form: string; readonly pass: boolean; readonly verdict: string; readonly run: AgentRun; readonly ms: number };
 
-/** Names why a request passed or failed. Low, Sonar 3. */
+/** Names why a request passed or failed. Low, Sonar 4. */
 function judge(request: RequestRow, run: AgentRun, same: boolean): string {
+  if (request.unclear === true) return run.outcome === "unclear"
+    ? "pass"
+    : "acted on an unclear request";
+  if (run.outcome === "unclear") return "asked to rephrase a clear request";
   if (run.outcome !== "done") return run.outcome;
   if (same) return "pass";
   if (run.turns.length === 0 && request.turns > 0) return "stopped before acting";
@@ -26,8 +30,9 @@ export async function benchmarkRequest(models: AgentModels, request: RequestRow)
   const run = await runAgent(models, start, request.query, request.names, STAMP);
   const ms = performance.now() - started;
   const same = run.outcome === "done" && isSamePanel(run.state, request.expected);
+  const verdict = judge(request, run, same);
 
-  return { goal: request.goal, form: request.form, pass: same, verdict: judge(request, run, same), run, ms };
+  return { goal: request.goal, form: request.form, pass: verdict === "pass", verdict, run, ms };
 }
 
 /** Picks `limit` requests spread evenly over the list. Low, Sonar 1. */
@@ -76,7 +81,9 @@ export const summarize = (results: readonly RequestResult[], commands: readonly 
   verdicts: countBy(results, (result) => result.verdict),
   passByGoal: passByGoal(results),
   latencyMs: {
-    stopDecision: percentiles(results.flatMap((result) => [...result.run.turns.map((turn) => turn.stopMs), ...(result.run.lastStopMs > 0 ? [result.run.lastStopMs] : [])])),
+    stopDecision: percentiles(results.flatMap((result) => [...result.run.turns.map((turn) => turn.stopMs), ...(result.run.lastStopMs > 0
+      ? [result.run.lastStopMs]
+      : [])])),
     chooseDecision: percentiles(results.flatMap((result) => result.run.turns.map((turn) => turn.chooseMs))),
     fill: percentiles(results.flatMap((result) => result.run.turns.map((turn) => turn.fillMs))),
     request: percentiles(results.map((result) => result.ms)),
