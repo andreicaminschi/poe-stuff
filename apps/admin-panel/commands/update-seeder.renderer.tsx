@@ -3,7 +3,7 @@ import type { SeederPatch } from "../types.ts";
 import type { UpdateSeederCommand } from "./update-seeder.ts";
 
 /** Lists one side of a patch, one line per field. */
-function PatchLines({ label, patch }: { readonly label: string; readonly patch: SeederPatch | undefined }) {
+export function PatchLines({ label, patch }: { readonly label: string; readonly patch: SeederPatch | undefined }) {
   if (patch === undefined) return null;
 
   return (

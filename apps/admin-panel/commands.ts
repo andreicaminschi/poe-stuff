@@ -2,11 +2,15 @@ import { executeCreateCategory, type CreateCategoryCommand } from "./commands/cr
 import { executeCreateSeeder, type CreateSeederCommand } from "./commands/create-seeder.ts";
 import { executeDeleteCategory, type DeleteCategoryCommand } from "./commands/delete-category.ts";
 import { executeDeleteSeeder, type DeleteSeederCommand } from "./commands/delete-seeder.ts";
+import { executeDeleteSeeders, type DeleteSeedersCommand } from "./commands/delete-seeders.ts";
+import { executeMergeCategory, type MergeCategoryCommand } from "./commands/merge-category.ts";
 import { executeMoveSeeder, type MoveSeederCommand } from "./commands/move-seeder.ts";
+import { executeMoveSeeders, type MoveSeedersCommand } from "./commands/move-seeders.ts";
 import { executeReplaceSeeder, type ReplaceSeederCommand } from "./commands/replace-seeder.ts";
 import type { SaveCommand } from "./commands/save.ts";
 import { executeUndo, type UndoCommand } from "./commands/undo.ts";
 import { executeUpdateSeeder, type UpdateSeederCommand } from "./commands/update-seeder.ts";
+import { executeUpdateSeeders, type UpdateSeedersCommand } from "./commands/update-seeders.ts";
 import type { Stamp } from "./panel-state.ts";
 import type { PanelState } from "./types.ts";
 
@@ -19,6 +23,10 @@ export type Command =
   | ReplaceSeederCommand
   | MoveSeederCommand
   | DeleteSeederCommand
+  | UpdateSeedersCommand
+  | DeleteSeedersCommand
+  | MoveSeedersCommand
+  | MergeCategoryCommand
   | UndoCommand;
 
 /** Runs without disk. */
@@ -36,6 +44,10 @@ const executors: Executors = {
   replaceSeeder: executeReplaceSeeder,
   moveSeeder: executeMoveSeeder,
   deleteSeeder: executeDeleteSeeder,
+  updateSeeders: executeUpdateSeeders,
+  deleteSeeders: executeDeleteSeeders,
+  moveSeeders: executeMoveSeeders,
+  mergeCategory: executeMergeCategory,
   undo: executeUndo,
 };
 

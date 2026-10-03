@@ -214,13 +214,13 @@ export const usePanel = create<Store>()((set, get) => ({
   closeDialog: () => set({ dialog: undefined }),
 
   createCategory: async (name) => {
-    if ((await get().dispatch({ type: "createCategory", name })) === undefined) return;
+    if ((await get().dispatch({ type: "createCategory", names: [name] })) === undefined) return;
 
     set({ pickedCategories: [name], pickedSeeders: [], selected: undefined, dirty: false, view: "seeders", dialog: undefined });
   },
 
   createSeeder: async (category, name) => {
-    const entry = await get().dispatch({ type: "createSeeder", category, name });
+    const entry = await get().dispatch({ type: "createSeeder", category, names: [name] });
 
     if (entry === undefined) return;
 
