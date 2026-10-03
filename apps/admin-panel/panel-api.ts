@@ -1,4 +1,5 @@
-import type { Category, ManifestEntry, WalEntry } from "./types.ts";
+import type { Command } from "./commands.ts";
+import type { Category, ManifestEntry, PanelState, WalEntry } from "./types.ts";
 
 export type LoadedVersion = {
   readonly version: string;
@@ -8,13 +9,9 @@ export type LoadedVersion = {
 };
 
 export type PanelApi = {
-  readonly loadVersion: () => Promise<LoadedVersion>;
-  readonly saveVersion: (
-    version: string,
-    categories: readonly Category[],
-    entries: readonly WalEntry[],
-  ) => Promise<LoadedVersion>;
+  readonly load: () => Promise<PanelState>;
+  readonly dispatch: (command: Command, proof: string) => Promise<PanelState>;
 };
 
-export const LOAD_VERSION = "loadVersion";
-export const SAVE_VERSION = "saveVersion";
+export const LOAD = "load";
+export const DISPATCH = "dispatch";

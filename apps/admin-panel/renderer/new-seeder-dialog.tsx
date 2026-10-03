@@ -1,9 +1,10 @@
 import { useState } from "react";
 import type { Category } from "../types.ts";
-import { findFreeName } from "./find-free-name.ts";
+import { findFreeName } from "../find-free-name.ts";
+import { listSeederNames } from "../panel-state.ts";
 import { usePanel } from "./store.ts";
 
-/** Asks for a new seeder's name and category. A taken name becomes `Name (2)`. */
+/** Asks for a new seeder's name and category. A name taken in any category becomes `Name (2)`. */
 export function NewSeederDialog({
   categories,
   initialCategory,
@@ -16,7 +17,7 @@ export function NewSeederDialog({
   const [categoryName, setCategoryName] = useState(initialCategory);
   const category = categories.find((at) => at.name === categoryName);
   const trimmed = name.trim();
-  const savedName = findFreeName(trimmed, (category?.seeders ?? []).map((seeder) => seeder.name));
+  const savedName = findFreeName(trimmed, listSeederNames(categories));
   const ready = trimmed !== "" && category !== undefined;
 
   return (

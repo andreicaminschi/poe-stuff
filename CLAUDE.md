@@ -128,6 +128,43 @@ seeder edit is a log entry; Save appends them to the version's `wal.json` before
 | [`apps/catalog`](apps/catalog/README.md)           | `@poe/filterv2`, deleted | **Written.** The bronze/silver/gold pipeline over the taxonomy. **Its rows are the published taxonomy's drawable rows** — nothing `excluded`, nothing `quest`, nothing `filterable: false`, nothing an authored row replaces — and it invents or judges none. It collects PoeWatch and GGG's trade item list for one league-hour, writes a file per category, then gathers every row into `catalog.json` and `catalog.categories.json`. It carries the conditions the taxonomy authored and resolves none of them. It prices every row and variant off PoeWatch — the exchange first, listings second — and still hangs every unique off the base it rolls on under `uniques` — one group per path (`unique`, `unique/foulborn`), one listing per priced form inside it. The taxonomy now also authors one row per unique base (`unique/regular`, `unique/foulborn`, `unique/fragments`), which the catalog prices like any row, so a unique is priced in both places; which one a generator reads is undecided. `--force=taxonomy,poewatch` refetches only the named sources. `catalog:publish` copies one run's gold into `catalog/latest/`, and a run's manifest records the taxonomy version it used. Also `find-duplicates-cli.ts`, which reports the display names more than one metadata id carries. |
 | [`apps/taxonomy`](apps/taxonomy/README.md)         | —                        | **Written.** The hand-maintained tables: six JSON files per version under `.s3/taxonomy/versions/<v>/`, never in git. A version is `3.29.4` — created from a published parent, never overwritten, and only the newest can be published, while it is still a draft. `validate` and `resolve` answer in JSON. Nothing imports it — the catalog reads what it published through `@poe/taxonomy`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 
+### Every app is driven by commands
+
+This is the rule for every app written from now on, so an agent can drive an app the same way a
+person does. `apps/catalog` and `apps/taxonomy` predate it and are exempt.
+
+- **Commands are the tools an agent can call.** Each one changes shared state, such as the
+  data or the disk. Commands are plain, serializable objects with one `type` each, and the UI
+  never edits shared state itself.
+- **Commands name things in plain fields.** A command takes `category` and `seeder`, never a
+  joined key. An update sends only what changes: `add` and `remove` lists merged into what is
+  stored. A replace sends the whole thing.
+- **UI state is never a command.** Picks, search, view, selection and dialogs stay local to
+  the UI. No agent ever opens or closes anything on screen.
+- **One pure executor.** `executeCommand(state, command, stamp)` returns the new state. Disk
+  commands, such as save, are the only ones the dispatcher runs itself. Reading state, such
+  as load, is a plain call and not a command.
+- **One dispatcher, in the process that owns the state.** The UI and agents send commands to
+  the same place.
+- **Every command is signed.** Its proof is a compact JWS whose header carries the sender's
+  ES256 public key, and whose payload holds `jti`, `iat`, `cmd` and `chash`. `chash` is the
+  SHA-256 of the command as canonical JSON. The dispatcher refuses a bad signature, a `chash`
+  mismatch, an `iat` more than 60 seconds off, a replayed `jti`, or a key it does not trust.
+- **Agents act on the user's behalf.** Every agent command needs the user's approval in a
+  modal. The approval is a one-time token the user key signs, bound to that command's `chash`
+  and that agent's key. An agent may undo only its own edits.
+- **Every log entry records who acted.** `actor` is the sender's key thumbprint. An agent's
+  entry also records `onBehalfOf` and `approval`.
+
+The admin panel is the reference implementation. Each command is two files in `commands/`:
+
+- `<name>.ts` holds the command's type and its `execute`.
+- `<name>.renderer.tsx` holds the React view the approval modal shows.
+
+`commands.ts` holds the union and the executor map. `renderer/command-views.ts` holds the view
+map. Both maps are typed over every command type, so a command missing either half fails
+typecheck.
+
 ## Deleted
 
 `packages/` is gone. It held two proofs of concept — `@poe/workers`, the collector, and

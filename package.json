@@ -12,6 +12,7 @@
   "scripts": {
     "admin-panel": "yarn workspace @poe/admin-panel dev",
     "admin-panel:migrate": "node apps/admin-panel/migrate-cli.ts",
+    "admin-panel:unique-names": "node apps/admin-panel/unique-names-cli.ts",
     "catalog": "node --env-file=apps/catalog/.env apps/catalog/catalog-cli.ts",
     "catalog:publish": "node apps/catalog/publish-catalog-cli.ts",
     "catalog:compile": "node apps/catalog/compile-cli.ts",

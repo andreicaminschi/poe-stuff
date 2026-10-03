@@ -1,5 +1,5 @@
 import type { Category } from "../types.ts";
-import { formatSeederKey } from "./seeder-key.ts";
+import { formatSeederKey } from "../seeder-key.ts";
 import { sortSeeders } from "./sort-seeders.ts";
 import { usePanel } from "./store.ts";
 

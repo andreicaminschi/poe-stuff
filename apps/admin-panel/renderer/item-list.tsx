@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { EditSeederButton } from "./edit-seeder-button.tsx";
 import type { SeededItem } from "./generate-items.ts";
-import { formatSeederKey } from "./seeder-key.ts";
+import { formatSeederKey } from "../seeder-key.ts";
 
 const ROW_HEIGHT = 36;
 const OVERSCAN = 10;

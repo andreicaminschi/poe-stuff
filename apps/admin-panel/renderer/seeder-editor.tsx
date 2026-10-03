@@ -2,7 +2,8 @@ import { CONDITIONS } from "@poe/filter-eval/filter-ast";
 import { useEffect, useState } from "react";
 import type { Category, ConditionValue, Seeder } from "../types.ts";
 import { ChipList } from "./chip-list.tsx";
-import { findFreeName } from "./find-free-name.ts";
+import { findFreeName } from "../find-free-name.ts";
+import { listSeederNames } from "../panel-state.ts";
 import { generateItems } from "./generate-items.ts";
 import { usePanel } from "./store.ts";
 import { readKind, ValueEditor } from "./value-editor.tsx";
@@ -57,9 +58,7 @@ export function SeederEditor({
   };
 
   const target = categories.find((at) => at.name === targetName) ?? category;
-  const takenNames = target.seeders
-    .map((seeder) => seeder.name)
-    .filter((at) => target.name !== category.name || at !== original.name);
+  const takenNames = listSeederNames(categories).filter((at) => at !== original.name);
   const savedName = findFreeName(name.trim(), takenNames);
 
   const { knownItems: _dropped, ...rest } = original;
@@ -146,7 +145,7 @@ export function SeederEditor({
           type="button"
           className="btn primary"
           disabled={!dirty || problems.length > 0}
-          onClick={() => applySeeder(seederKey, draft, target.name)}
+          onClick={() => void applySeeder(seederKey, draft, target.name)}
         >
           Apply
         </button>

@@ -1,7 +1,7 @@
 import type { Category } from "../types.ts";
 import type { SeededItem } from "./generate-items.ts";
 import { matchItem, type Scope } from "./match-item.ts";
-import { formatSeederKey } from "./seeder-key.ts";
+import { formatSeederKey } from "../seeder-key.ts";
 import { sortSeeders } from "./sort-seeders.ts";
 
 export type Suggestion =

@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from "react";
-import { findUndoable } from "./apply-entry.ts";
+import { findUndoable } from "../apply-entry.ts";
 import { CategoryList } from "./category-list.tsx";
 import { ConfirmDialog } from "./confirm-dialog.tsx";
 import { ItemList } from "./item-list.tsx";
@@ -8,7 +8,7 @@ import { NewCategoryDialog } from "./new-category-dialog.tsx";
 import { NewSeederDialog } from "./new-seeder-dialog.tsx";
 import { Omnibar } from "./omnibar.tsx";
 import { sortCategories } from "./sort-categories.ts";
-import { formatSeederKey, readSeederCategory, readSeederName } from "./seeder-key.ts";
+import { formatSeederKey, readSeederCategory, readSeederName } from "../seeder-key.ts";
 import { SeederEditor } from "./seeder-editor.tsx";
 import { SeederList } from "./seeder-list.tsx";
 import { sortSeeders } from "./sort-seeders.ts";

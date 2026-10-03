@@ -1,5 +1,5 @@
 import type { SeededItem } from "./generate-items.ts";
-import { formatSeederKey } from "./seeder-key.ts";
+import { formatSeederKey } from "../seeder-key.ts";
 
 /** Counts the items each seeder generates, keyed by seeder key, in one pass. */
 export function countItemsBySeeder(items: readonly SeededItem[]): ReadonlyMap<string, number> {

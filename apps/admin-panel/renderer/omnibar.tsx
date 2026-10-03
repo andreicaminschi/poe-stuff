@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { buildSuggestions, type Suggestion } from "./build-suggestions.ts";
-import { readSeederName } from "./seeder-key.ts";
+import { readSeederName } from "../seeder-key.ts";
 import { usePanel } from "./store.ts";
 
 const GROUP_TITLES: Readonly<Record<Suggestion["kind"], string>> = {
