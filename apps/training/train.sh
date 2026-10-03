@@ -20,12 +20,16 @@ done
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
 
-echo "=== generate $NAME, $COUNT per goal and form $(date -Is)"
+STARTED=$(date +%s)
+echo "Training $NAME: $COUNT examples per goal and form. Usually 25-35 min at count 50, longer for larger counts."
+echo
+echo "── generating data ──"
 node apps/admin-panel/generate-training-cli.ts --version="$NAME" --count="$COUNT"
 node apps/admin-panel/generate-training-cli.ts --version="$NAME" --count="$COUNT" --unseen-only
 
-echo "=== train $NAME $(date -Is)"
 rm -rf ".s3/training/$NAME/output"
 bash apps/training/run-all.sh "$NAME"
 
-echo "=== $NAME trained $(date -Is). Evaluate with: yarn agent:eval --name $NAME"
+TOOK=$(( $(date +%s) - STARTED ))
+echo
+echo "$NAME trained in $((TOOK / 60))m $((TOOK % 60))s. Evaluate with: yarn agent:eval --name $NAME"

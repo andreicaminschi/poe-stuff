@@ -42,13 +42,19 @@ def export_fill(version, runtime):
     merged = "/tmp/fill-merged"
     PeftModel.from_pretrained(base, adapter).merge_and_unload().save_pretrained(merged)
     AutoTokenizer.from_pretrained(adapter).save_pretrained(merged)
-    subprocess.run([sys.executable, CONVERT, merged, "--outtype", "q8_0", "--outfile", os.path.join(runtime, "fill-q8_0.gguf")], check=True)
+    converted = subprocess.run([sys.executable, CONVERT, merged, "--outtype", "q8_0", "--outfile", os.path.join(runtime, "fill-q8_0.gguf")], capture_output=True, text=True)
+    if converted.returncode != 0:
+        print(converted.stdout[-4000:], converted.stderr[-4000:], file=sys.stderr)
+        raise SystemExit(converted.returncode)
 
 
 def main(version):
     runtime = output_dir(version, "runtime")
+    print("export: decision model → ONNX (fp32 and int8)", flush=True)
     export_decide(version, runtime)
+    print("export: filler → merged, then GGUF Q8", flush=True)
     export_fill(version, runtime)
+    print("export: done", flush=True)
 
 
 if __name__ == "__main__":

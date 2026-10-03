@@ -8,6 +8,7 @@ from peft import LoraConfig, TaskType, get_peft_model
 from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingArguments
 from transformers.trainer_utils import get_last_checkpoint
 
+from progress import attach_progress
 from rows import fill_messages, format_args, output_dir, read_rows
 
 BASE = os.environ.get("FILL_BASE", "Qwen/Qwen2.5-0.5B-Instruct")
@@ -49,10 +50,11 @@ def main(version):
         args=TrainingArguments(
             output_dir=checkpoints, num_train_epochs=2, per_device_train_batch_size=8, gradient_accumulation_steps=2,
             learning_rate=2e-4, warmup_ratio=0.05, bf16=True,
-            save_strategy="epoch", save_total_limit=1, logging_steps=50, report_to=[],
+            save_strategy="epoch", save_total_limit=1, logging_steps=50, report_to=[], disable_tqdm=True,
         ),
         train_dataset=train, data_collator=collate(tokenizer.pad_token_id),
     )
+    attach_progress(trainer, "filler")
     trainer.train(resume_from_checkpoint=get_last_checkpoint(checkpoints))
     model.save_pretrained(save)
     tokenizer.save_pretrained(save)
