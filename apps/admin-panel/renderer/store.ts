@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { canonicalJson } from "../canonical-json.ts";
 import type { Command, StateCommand } from "../commands.ts";
-import type { AgentPlan, FeedbackNotes, FeedbackVerdict } from "../panel-api.ts";
+import type { AgentPlan, FeedbackNotes, FeedbackVerdict, TrainedModel } from "../panel-api.ts";
 import { findSeeder } from "../panel-state.ts";
 import { formatSeederKey, readSeederCategory, readSeederName } from "../seeder-key.ts";
 import type { Category, ItemData, PanelState, Seeder, WalEntry } from "../types.ts";
@@ -37,6 +37,10 @@ type Store = {
   readonly leaveAction: (() => void) | undefined;
   readonly plan: AgentPlan | undefined;
   readonly planning: boolean;
+  readonly models: readonly TrainedModel[];
+  readonly model: string;
+  readonly loadModels: () => Promise<void>;
+  readonly setModel: (model: string) => void;
   readonly dispatch: (command: Command) => Promise<WalEntry | undefined>;
   readonly load: () => Promise<void>;
   readonly toggleCategory: (name: string) => void;
@@ -117,6 +121,20 @@ export const usePanel = create<Store>()((set, get) => ({
   leaveAction: undefined,
   plan: undefined,
   planning: false,
+  models: [],
+  model: "",
+
+  loadModels: async () => {
+    try {
+      const models = await window.panel.models();
+      const { model } = get();
+      set({ models, model: models.some((at) => at.name === model) ? model : models[0]?.name ?? "" });
+    } catch (error) {
+      set({ error: readMessage(error) });
+    }
+  },
+
+  setModel: (model) => set({ model }),
 
   dispatch: (command) => {
     const result = queue.then(async () => {
@@ -168,7 +186,7 @@ export const usePanel = create<Store>()((set, get) => ({
   askAgent: async (query) => {
     set({ planning: true, error: undefined });
     try {
-      set({ plan: await window.panel.plan(query) });
+      set({ plan: await window.panel.plan(query, get().model) });
     } catch (error) {
       set({ error: readMessage(error) });
     }

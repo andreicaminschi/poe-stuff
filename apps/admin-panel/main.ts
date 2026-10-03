@@ -3,12 +3,13 @@ import { join } from "node:path";
 import { performance } from "node:perf_hooks";
 import { createLakeService } from "@poe/lake/service";
 import { app, BrowserWindow, ipcMain } from "electron";
-import { executeCommand, type Command, type StateCommand } from "./commands.ts";
-import { findLatestRuntime } from "./find-latest-runtime.ts";
+import { executeCommand, type Command } from "./commands.ts";
+import type { DecisionOption } from "./decision-options.ts";
+import { listRuntimes, runtimeOf } from "./list-runtimes.ts";
 import { findNames, listKnownNames } from "./find-names.ts";
 import { CONDITION_FORMATS } from "./condition-values.ts";
 import { loadVersion } from "./load-version.ts";
-import { DISPATCH, FEEDBACK, LOAD, PLAN, type AgentPlan, type FeedbackRecord, type LoadedVersion } from "./panel-api.ts";
+import { DISPATCH, FEEDBACK, LOAD, MODELS, PLAN, type AgentPlan, type FeedbackRecord, type LoadedVersion } from "./panel-api.ts";
 import { runAgent, type AgentModels } from "./run-agent.ts";
 import { loadDecide } from "./run-agent/load-decide.ts";
 import { loadFill } from "./run-agent/load-fill.ts";
@@ -20,7 +21,8 @@ const ACTOR = "user";
 
 let panel: PanelState | undefined;
 let queue: Promise<unknown> = Promise.resolve();
-let agent: Promise<{ readonly models: AgentModels; readonly model: string }> | undefined;
+const TRAINING_ROOT = join(app.getAppPath(), "../../.s3/training");
+let agent: { readonly name: string; readonly loaded: Promise<{ readonly models: AgentModels; readonly model: string }> } | undefined;
 
 /** Opens a version with nothing pending. Low, Sonar 0. */
 const openVersion = (loaded: LoadedVersion): PanelState => ({ ...loaded, itemData: [], pending: [] });
@@ -60,22 +62,30 @@ function enqueue<T>(step: () => Promise<T>): Promise<T> {
   return result;
 }
 
-/** Loads the newest trained models once, on CPU, on first use. Low, Sonar 1. */
-async function loadAgent(): Promise<{ readonly models: AgentModels; readonly model: string }> {
-  const trainingRoot = join(app.getAppPath(), "../../.s3/training");
-  const { version, runtime } = await findLatestRuntime(trainingRoot);
-  const commands = await lake.readJson<readonly StateCommand["type"][]>(`training/${version}/training-data/commands.json`);
+/** Loads one trained version's models, on CPU. Low, Sonar 0. */
+async function loadAgent(name: string): Promise<{ readonly models: AgentModels; readonly model: string }> {
+  const runtime = runtimeOf(TRAINING_ROOT, name);
+  const commands = await lake.readJson<readonly DecisionOption[]>(`training/${name}/training-data/commands.json`);
 
   return {
     models: { scoreYes: await loadDecide(runtime, false, "fp32"), fillParams: await loadFill(runtime, false), commands },
-    model: version,
+    model: name,
   };
 }
 
+/** Keeps one model loaded: the one asked for, or the newest when none is named. Low, Sonar 2. */
+async function useAgent(name: string): Promise<{ readonly models: AgentModels; readonly model: string }> {
+  const wanted = name === ""
+    ? (await listRuntimes(TRAINING_ROOT))[0]?.name
+    : name;
+  if (wanted === undefined) throw new Error("No trained models under .s3/training. Run yarn agent:train first.");
+  if (agent?.name !== wanted) agent = { name: wanted, loaded: loadAgent(wanted) };
+  return agent.loaded;
+}
+
 /** Asks the agent for a plan on a copy of the open state. The open state never changes. Low, Sonar 1. */
-async function plan(query: string): Promise<AgentPlan> {
-  agent ??= loadAgent();
-  const { models, model } = await agent;
+async function plan(query: string, model: string): Promise<AgentPlan> {
+  const { models, model: used } = await useAgent(model);
   const open = requirePanel();
   const names = findNames([...listKnownNames(open), ...CONDITION_FORMATS.map((condition) => condition.key)], query);
   const started = performance.now();
@@ -93,7 +103,7 @@ async function plan(query: string): Promise<AgentPlan> {
       ? undefined
       : { type: failed.command, answer: failed.answer },
     outcome: run.outcome,
-    model,
+    model: used,
     ms: Math.round(performance.now() - started),
   };
 }
@@ -104,7 +114,8 @@ const saveFeedback = (record: FeedbackRecord): Promise<void> =>
 
 ipcMain.handle(LOAD, () => enqueue(load));
 ipcMain.handle(DISPATCH, (_event, command: Command) => enqueue(() => dispatch(command)));
-ipcMain.handle(PLAN, (_event, query: string) => enqueue(() => plan(query)));
+ipcMain.handle(MODELS, () => listRuntimes(TRAINING_ROOT));
+ipcMain.handle(PLAN, (_event, query: string, model: string) => enqueue(() => plan(query, model)));
 ipcMain.handle(FEEDBACK, (_event, record: FeedbackRecord) => saveFeedback(record));
 
 function open(): void {

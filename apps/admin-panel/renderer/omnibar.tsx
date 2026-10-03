@@ -1,4 +1,4 @@
-import { useMemo, useState, type KeyboardEvent } from "react";
+import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
 import { listKnownNames } from "../find-names.ts";
 import { CONDITION_FORMATS } from "../condition-values.ts";
 import { usePanel } from "./store.ts";
@@ -8,7 +8,13 @@ import { suggestNames, type NameSuggestion } from "./suggest-names.ts";
 export function Omnibar() {
   const loaded = usePanel((state) => state.loaded);
   const planning = usePanel((state) => state.planning);
-  const { askAgent, guard } = usePanel.getState();
+  const models = usePanel((state) => state.models);
+  const model = usePanel((state) => state.model);
+  const { askAgent, guard, loadModels, setModel } = usePanel.getState();
+
+  useEffect(() => {
+    void loadModels();
+  }, [loadModels]);
   const [text, setText] = useState("");
   const [highlight, setHighlight] = useState(0);
   const [open, setOpen] = useState(false);
@@ -55,6 +61,21 @@ export function Omnibar() {
   return (
     <div className="omni-wrap">
       <div className="omni">
+        <select
+          className="model-pick"
+          value={model}
+          disabled={planning}
+          title="Which trained model plans"
+          onFocus={() => void loadModels()}
+          onChange={(event) => setModel(event.target.value)}
+        >
+          {models.length === 0
+            ? <option value="">no trained models</option>
+            : null}
+          {models.map((trained) => (
+            <option key={trained.name} value={trained.name}>{`${trained.name} · ${trained.trainedAt.slice(0, 16).replace("T", " ")}`}</option>
+          ))}
+        </select>
         <input
           value={text}
           disabled={planning}

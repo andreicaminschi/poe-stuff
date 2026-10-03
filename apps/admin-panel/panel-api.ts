@@ -20,6 +20,9 @@ export type AgentPlan = {
   readonly ms: number;
 };
 
+/** One trained version the agent can run. */
+export type TrainedModel = { readonly name: string; readonly trainedAt: string };
+
 export type FeedbackVerdict = "approved" | "edited" | "rejected";
 
 /** What the reviewer wrote: one note on the whole plan, one per proposed step. */
@@ -38,11 +41,13 @@ export type FeedbackRecord = {
 export type PanelApi = {
   readonly load: () => Promise<PanelState>;
   readonly dispatch: (command: Command) => Promise<PanelState>;
-  readonly plan: (query: string) => Promise<AgentPlan>;
+  readonly models: () => Promise<readonly TrainedModel[]>;
+  readonly plan: (query: string, model: string) => Promise<AgentPlan>;
   readonly feedback: (record: FeedbackRecord) => Promise<void>;
 };
 
 export const LOAD = "load";
+export const MODELS = "models";
 export const DISPATCH = "dispatch";
 export const PLAN = "plan";
 export const FEEDBACK = "feedback";
