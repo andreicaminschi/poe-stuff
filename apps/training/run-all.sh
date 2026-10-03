@@ -14,7 +14,7 @@ elapsed() { local s=$(( $(date +%s) - $1 )); printf "%dm %02ds" $((s / 60)) $((s
 stage() { echo; echo "── $1 ── ($(elapsed "$STARTED") since start)"; }
 
 step() {
-  podman run --rm --device nvidia.com/gpu=all --shm-size=2g -e FILL_QLORA="${FILL_QLORA:-0}" \
+  podman run --rm --device nvidia.com/gpu=all --shm-size=2g -e FILL_QLORA="${FILL_QLORA:-0}" -e FILL_LORA_DROPOUT="${FILL_LORA_DROPOUT:-0.05}" \
     -v "$ROOT/.s3/training:/data" -v hf-cache:/cache \
     "$IMAGE" python "$@" 2> >(grep -v -E "Warning|warn\(|FutureWarning|^\s*$" >&2)
 }

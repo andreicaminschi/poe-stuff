@@ -19,6 +19,9 @@ accuracy risk. Compare its `agent:eval` args score with a bf16 run at the same c
 yarn agent:train --name qlora-50 --count 50 --qlora
 ```
 
+`--dropout` sets the filler's LoRA dropout (default `0.05`). At `0`, Unsloth uses its fused
+kernels, which are faster.
+
 Score it. Add `--e2e` for the full end-to-end benchmark:
 
 ```bash

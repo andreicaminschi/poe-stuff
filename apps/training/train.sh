@@ -2,6 +2,7 @@
 # Generates one named version's data, then trains and exports both models from scratch.
 # Usage: bash apps/training/train.sh --name <name> [--count <n>] [--qlora]   (count defaults to 50)
 #   --qlora trains the filler on 4-bit base weights: much less GPU memory, small accuracy risk
+#   --dropout sets the filler's LoRA dropout (default 0.05); 0 turns on Unsloth's fast kernels
 set -euo pipefail
 
 COUNT=50
@@ -13,7 +14,9 @@ while [ $# -gt 0 ]; do
     --name=*) NAME="${1#*=}" ;;
     --name) NAME="$2"; shift ;;
     --qlora) export FILL_QLORA=1 ;;
-    *) echo "Unknown option $1. Use --name <name> [--count <n>] [--qlora]." >&2; exit 2 ;;
+    --dropout=*) export FILL_LORA_DROPOUT="${1#*=}" ;;
+    --dropout) export FILL_LORA_DROPOUT="$2"; shift ;;
+    *) echo "Unknown option $1. Use --name <name> [--count <n>] [--qlora] [--dropout <d>]." >&2; exit 2 ;;
   esac
   shift
 done
