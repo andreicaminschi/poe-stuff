@@ -1,7 +1,7 @@
 import { performance } from "node:perf_hooks";
 import { executeCommand, type StateCommand } from "./commands.ts";
 import { formatContext } from "./format-context.ts";
-import { CONDITION_FORMATS } from "./generate-training/conditions.ts";
+import { CONDITION_FORMATS, expandCommand } from "./condition-values.ts";
 import type { Stamp } from "./panel-state.ts";
 import type { FillParams } from "./run-agent/load-fill.ts";
 import type { ScoreYes } from "./run-agent/load-decide.ts";
@@ -52,7 +52,7 @@ function readParams(answer: string): Readonly<Record<string, unknown>> | undefin
 /** Runs a command, or returns undefined when the executor refuses it. Low, Sonar 1. */
 function tryExecute(state: PanelState, command: StateCommand, stamp: Stamp): PanelState | undefined {
   try {
-    return executeCommand(state, command, stamp);
+    return executeCommand(state, expandCommand(command), stamp);
   } catch {
     return undefined;
   }

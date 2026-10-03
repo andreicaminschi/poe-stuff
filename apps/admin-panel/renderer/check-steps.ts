@@ -1,4 +1,5 @@
 import { executeCommand, type StateCommand } from "../commands.ts";
+import { expandCommand } from "../condition-values.ts";
 import type { PanelState } from "../types.ts";
 
 const STAMP = { id: "preview", at: "1970-01-01T00:00:00.000Z", actor: "preview" };
@@ -35,8 +36,9 @@ export function checkSteps(start: PanelState, texts: readonly string[]): Checked
       continue;
     }
     try {
-      state = executeCommand(state, step, STAMP);
-      steps.push(step);
+      const expanded = expandCommand(step);
+      state = executeCommand(state, expanded, STAMP);
+      steps.push(expanded);
       errors.push(undefined);
     } catch (error) {
       errors.push(error instanceof Error

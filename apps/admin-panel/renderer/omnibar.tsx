@@ -1,6 +1,6 @@
 import { useMemo, useState, type KeyboardEvent } from "react";
 import { listKnownNames } from "../find-names.ts";
-import { CONDITION_FORMATS } from "../generate-training/conditions.ts";
+import { CONDITION_FORMATS } from "../condition-values.ts";
 import { usePanel } from "./store.ts";
 import { suggestNames, type NameSuggestion } from "./suggest-names.ts";
 

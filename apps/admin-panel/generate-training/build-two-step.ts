@@ -1,5 +1,6 @@
 import type { Faker } from "@faker-js/faker";
 import { executeCommand } from "../commands.ts";
+import { expandCommand } from "../condition-values.ts";
 import type { PanelState } from "../types.ts";
 import { render, type BuildExample, type Example, type PatternSet } from "./example.ts";
 
@@ -38,7 +39,7 @@ export function buildTwoStep(faker: Faker, set: PatternSet, singles: Readonly<Re
   for (let tries = 0; tries < MAX_TRIES; tries += 1) {
     const [firstGoal = "", secondGoal = ""] = faker.helpers.arrayElements(Object.keys(singles), 2);
     const first = singles[firstGoal]!(faker, start);
-    const middle = first.commands.reduce((state, command) => executeCommand(state, command, STAMP), start);
+    const middle = first.commands.reduce((state, command) => executeCommand(state, expandCommand(command), STAMP), start);
     const second = tryBuild(singles[secondGoal]!, faker, middle);
     if (second !== undefined) return joinExamples(faker, set, first, second);
   }

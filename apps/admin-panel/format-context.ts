@@ -3,7 +3,7 @@ import type { Category, ConditionValue, ItemData } from "./types.ts";
 const MAX_LISTED = 8;
 
 /** A condition the loop knows, with how its values are written. */
-export type ConditionFormat = { readonly key: string; readonly values: string };
+export type ConditionFormat = { readonly key: string; readonly description: string };
 
 export type ContextState = {
   readonly categories: readonly Category[];
@@ -63,7 +63,7 @@ function describeName(state: ContextState, conditions: readonly ConditionFormat[
     : listNames(holders)}${describeDetails(item?.tags ?? [], item?.knownItems ?? [], {})}`;
 
   const condition = conditions.find((at) => at.key.toLowerCase() === name.toLowerCase());
-  if (condition !== undefined) return `${name}: condition, values ${condition.values}`;
+  if (condition !== undefined) return `${name}: ${condition.description}`;
 
   return `${name}: not found`;
 }

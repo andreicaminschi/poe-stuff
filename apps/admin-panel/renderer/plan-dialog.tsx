@@ -1,8 +1,11 @@
 import { useMemo, useState, type ReactElement } from "react";
 import type { Command, StateCommand } from "../commands.ts";
 import type { AgentPlan } from "../panel-api.ts";
+import { expandCommand } from "../condition-values.ts";
+import type { ConditionValue } from "../types.ts";
 import { checkSteps } from "./check-steps.ts";
 import { commandViews } from "./command-views.ts";
+import { ConditionToggles } from "./condition-toggles.tsx";
 import { usePanel } from "./store.ts";
 
 /** Writes a command as the JSON its editor holds. Low, Sonar 0. */
@@ -18,6 +21,16 @@ function writeFailedStep(plan: AgentPlan): readonly string[] {
   }
 }
 
+/** The values code fills in for a step's added conditions, so unticked ones stay listed. Low, Sonar 1. */
+function readFullValues(text: string): Readonly<Record<string, readonly ConditionValue[]>> {
+  try {
+    const step = expandCommand(JSON.parse(text) as StateCommand) as { readonly add?: { readonly conditions?: Readonly<Record<string, readonly ConditionValue[]>> } };
+    return step.add?.conditions ?? {};
+  } catch {
+    return {};
+  }
+}
+
 /** Renders a command with its approval view. Low, Sonar 0. */
 function StepView({ step }: { readonly step: Command }): ReactElement {
   const View = commandViews[step.type] as (props: { readonly command: Command }) => ReactElement;
@@ -29,6 +42,7 @@ export function PlanDialog({ plan }: { readonly plan: AgentPlan }) {
   const loaded = usePanel((state) => state.loaded);
   const { approvePlan, rejectPlan, dismissPlan } = usePanel.getState();
   const proposed = useMemo(() => [...plan.steps.map(writeStep), ...writeFailedStep(plan)], [plan]);
+  const fullValues = useMemo(() => proposed.map(readFullValues), [proposed]);
   const [texts, setTexts] = useState<readonly string[]>(proposed);
   const [stepNotes, setStepNotes] = useState<readonly string[]>(() => proposed.map(() => ""));
   const [planNote, setPlanNote] = useState("");
@@ -92,6 +106,9 @@ export function PlanDialog({ plan }: { readonly plan: AgentPlan }) {
                 {step === undefined
                   ? null
                   : <div className="plan-view"><StepView step={step} /></div>}
+                {step === undefined
+                  ? null
+                  : <ConditionToggles step={step} text={text} expanded={fullValues[at] ?? {}} onChange={(next) => edit(at, next)} />}
                 <textarea className="mono" spellCheck={false} rows={Math.min(14, text.split("\n").length + 1)} value={text} onChange={(event) => edit(at, event.target.value)} />
                 {error === undefined
                   ? null

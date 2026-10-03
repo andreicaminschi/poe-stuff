@@ -1,7 +1,7 @@
 import { executeCommand, type StateCommand } from "../commands.ts";
 import { formatContext } from "../format-context.ts";
 import type { PanelState } from "../types.ts";
-import { CONDITION_FORMATS } from "./conditions.ts";
+import { CONDITION_FORMATS, expandCommand } from "../condition-values.ts";
 import type { Example } from "./example.ts";
 
 const STAMP = { id: "generated", at: "1970-01-01T00:00:00.000Z", actor: "generator" };
@@ -44,7 +44,7 @@ function splitCommand(command: StateCommand): { readonly type: StateCommand["typ
  * it. The last turn only says the goal is met. Low, Sonar 1.
  */
 export function playExample(example: Example, start: PanelState): ExampleRows {
-  const states = example.commands.reduce<readonly PanelState[]>((visited, command) => [...visited, executeCommand(visited.at(-1) ?? start, command, STAMP)], [start]);
+  const states = example.commands.reduce<readonly PanelState[]>((visited, command) => [...visited, executeCommand(visited.at(-1) ?? start, expandCommand(command), STAMP)], [start]);
   const ran = example.commands.map((command) => JSON.stringify(command));
   const bases = states.map((state, at) => ({
     goal: example.goal,
@@ -74,4 +74,4 @@ export function playExample(example: Example, start: PanelState): ExampleRows {
 
 /** Plays an example whose goal is already met: its commands run first, so the loop stops on turn 0. Low, Sonar 0. */
 export const playNoOp = (example: Example, start: PanelState): ExampleRows =>
-  playExample({ ...example, commands: [] }, example.commands.reduce((state, command) => executeCommand(state, command, STAMP), start));
+  playExample({ ...example, commands: [] }, example.commands.reduce((state, command) => executeCommand(state, expandCommand(command), STAMP), start));

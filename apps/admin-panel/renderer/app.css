@@ -168,6 +168,10 @@ input[type=checkbox] { accent-color: var(--accent); }
 .plan-view { font-size: 13px; color: var(--dim); }
 .plan-step textarea { width: 100%; resize: vertical; background: var(--bg); border: 1px solid var(--line); border-radius: 3px; color: var(--text); padding: 6px 8px; font: 12px var(--mono); }
 .plan-error { font: 12px var(--mono); color: var(--danger); }
+.plan-toggles { display: flex; flex-direction: column; gap: 4px; }
+.plan-toggle-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font-size: 13px; }
+.plan-toggle-row .k { color: var(--faint); min-width: 110px; }
+.plan-toggle-row label { display: inline-flex; gap: 4px; align-items: center; }
 .plan-note { width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 3px; color: var(--text); padding: 4px 8px; font: 13px var(--ui); resize: vertical; }
 
 .banner { flex: none; padding: 8px 20px; background: rgba(226, 115, 93, .08); border-bottom: 1px solid #5a3a33; color: var(--danger); font: 12px var(--mono); white-space: pre-wrap; }

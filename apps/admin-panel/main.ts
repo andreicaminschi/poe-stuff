@@ -6,7 +6,7 @@ import { app, BrowserWindow, ipcMain } from "electron";
 import { executeCommand, type Command, type StateCommand } from "./commands.ts";
 import { findLatestRuntime } from "./find-latest-runtime.ts";
 import { findNames, listKnownNames } from "./find-names.ts";
-import { CONDITION_FORMATS } from "./generate-training/conditions.ts";
+import { CONDITION_FORMATS } from "./condition-values.ts";
 import { loadVersion } from "./load-version.ts";
 import { DISPATCH, FEEDBACK, LOAD, PLAN, type AgentPlan, type FeedbackRecord, type LoadedVersion } from "./panel-api.ts";
 import { runAgent, type AgentModels } from "./run-agent.ts";

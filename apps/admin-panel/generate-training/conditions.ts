@@ -1,55 +1,38 @@
 import type { Faker } from "@faker-js/faker";
-import type { ConditionFormat } from "../format-context.ts";
-import type { ConditionValue } from "../types.ts";
+import { CONDITION_KINDS, CONDITION_NAMES, FROM_CODE, PSEUDO_VALUES, SHORTHANDS } from "../condition-values.ts";
 
-/** A condition the generator can write, with a sampled value and how the query says it. */
-export type SampledCondition = { readonly key: string; readonly values: readonly ConditionValue[]; readonly text: string };
+/** A condition request: the words the query uses, the real condition, and the sentinel the agent must write. */
+export type SampledCondition = { readonly key: string; readonly word: string; readonly text: string; readonly sentinel: string };
 
-const RARITIES = ["Normal", "Magic", "Rare", "Unique"];
-const FLAGS = ["FracturedItem", "Corrupted", "Mirrored", "SynthesisedItem", "Identified"];
-const RANGES = [
-  { key: "ItemLevel", min: 1, max: 86 },
-  { key: "Quality", min: 0, max: 30 },
-  { key: "Sockets", min: 0, max: 6 },
-  { key: "LinkedSockets", min: 0, max: 6 },
-  { key: "AreaLevel", min: 1, max: 85 },
-];
+const WITH_DEFAULT = new Set(["boolean", "ordered", "enums"]);
+const SHORTHAND_SHARE = 0.4;
+const PSEUDO_SHARE = 0.5;
 
-export const CONDITION_FORMATS: readonly ConditionFormat[] = [
-  ...FLAGS.map((key) => ({ key, values: "true, false or both" })),
-  ...RANGES.map(({ key, min, max }) => ({ key, values: `a range from ${String(min)} to ${String(max)}` })),
-  { key: "Rarity", values: `one or more of ${RARITIES.join(", ")}` },
-];
+const hasDefault = (condition: string): boolean => WITH_DEFAULT.has(CONDITION_KINDS[condition] ?? "");
 
-/** Samples a flag: true, false or both. Low, Sonar 1. */
-function sampleFlag(faker: Faker, key: string): SampledCondition {
-  const values = faker.helpers.arrayElement<readonly boolean[]>([[true], [false], [true, false]]);
+/** Conditions a request can name: those with an all-values default, or with pseudo-values. */
+const SAMPLEABLE = CONDITION_NAMES.filter((name) => hasDefault(name) || PSEUDO_VALUES[name] !== undefined);
 
-  return { key, values, text: values.map(String).join("/") };
+/** The word a person types for a condition: its name, or one of its shorthands. Low, Sonar 1. */
+function pickWord(faker: Faker, condition: string): string {
+  const shorthands = Object.entries(SHORTHANDS).filter(([, name]) => name === condition).map(([word]) => word);
+  return shorthands.length > 0 && faker.datatype.boolean(SHORTHAND_SHARE)
+    ? faker.helpers.arrayElement(shorthands)
+    : condition;
 }
 
-/** Samples a range inside the condition's bounds. Low, Sonar 0. */
-function sampleRange(faker: Faker, key: string, min: number, max: number): SampledCondition {
-  const low = faker.number.int({ min, max });
-  const high = faker.number.int({ min: low, max });
-
-  return { key, values: [[low, high]], text: `${String(low)}-${String(high)}` };
-}
-
-/** Samples one or two rarities. Low, Sonar 0. */
-function sampleRarity(faker: Faker): SampledCondition {
-  const values = faker.helpers.arrayElements(RARITIES, { min: 1, max: 2 });
-
-  return { key: "Rarity", values, text: values.join("/") };
-}
-
-/** Samples a condition and a value for it. Low, Sonar 2. */
+/**
+ * Samples a condition request. The query names the condition, maybe by shorthand, and maybe a
+ * pseudo-value; the label is always the sentinel, never a value. Low, Sonar 2.
+ */
 export function sampleCondition(faker: Faker): SampledCondition {
-  const kind = faker.helpers.arrayElement(["flag", "range", "rarity"]);
+  const condition = faker.helpers.arrayElement(SAMPLEABLE);
+  const word = pickWord(faker, condition);
+  const pseudo = Object.keys(PSEUDO_VALUES[condition] ?? {});
+  const usePseudo = pseudo.length > 0 && (!hasDefault(condition) || faker.datatype.boolean(PSEUDO_SHARE));
 
-  if (kind === "flag") return sampleFlag(faker, faker.helpers.arrayElement(FLAGS));
-  if (kind === "rarity") return sampleRarity(faker);
+  if (!usePseudo) return { key: condition, word, text: word, sentinel: FROM_CODE };
 
-  const range = faker.helpers.arrayElement(RANGES);
-  return sampleRange(faker, range.key, range.min, range.max);
+  const parameter = faker.helpers.arrayElement(pseudo);
+  return { key: condition, word, text: `${parameter} ${word}`, sentinel: `${FROM_CODE}${parameter}` };
 }
