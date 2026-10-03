@@ -1,11 +1,12 @@
-"""Filler model: Qwen2.5-0.5B-Instruct + LoRA, one command's params as JSON."""
+"""Filler model: Qwen2.5-0.5B-Instruct + LoRA through Unsloth, one command's params as JSON."""
 
 import os
 import sys
 
+from unsloth import FastLanguageModel  # must load before transformers
+
 import torch
-from peft import LoraConfig, TaskType, get_peft_model
-from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingArguments
+from transformers import AutoTokenizer, Trainer, TrainingArguments
 from transformers.trainer_utils import get_last_checkpoint
 
 from progress import attach_progress
@@ -13,6 +14,7 @@ from rows import fill_messages, format_args, output_dir, read_rows
 
 BASE = os.environ.get("FILL_BASE", "Qwen/Qwen2.5-0.5B-Instruct")
 IGNORE = -100
+MAX_SEQ_LENGTH = 2048
 
 
 def encode(tokenizer, row):
@@ -38,11 +40,12 @@ def main(version):
     tokenizer = AutoTokenizer.from_pretrained(BASE)
     train = [encode(tokenizer, row) for row in read_rows(version, "train", "fill")]
 
-    model = AutoModelForCausalLM.from_pretrained(BASE, torch_dtype=torch.bfloat16)
-    model = get_peft_model(model, LoraConfig(
-        task_type=TaskType.CAUSAL_LM, r=16, lora_alpha=32, lora_dropout=0.05,
+    model, _ = FastLanguageModel.from_pretrained(BASE, max_seq_length=MAX_SEQ_LENGTH, dtype=torch.bfloat16, load_in_4bit=False)
+    model = FastLanguageModel.get_peft_model(
+        model, r=16, lora_alpha=32, lora_dropout=0.05, bias="none",
         target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
-    ))
+        use_gradient_checkpointing="unsloth",
+    )
 
     checkpoints = output_dir(version, "fill-checkpoints")
     trainer = Trainer(
