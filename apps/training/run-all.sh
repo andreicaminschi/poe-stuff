@@ -14,7 +14,7 @@ elapsed() { local s=$(( $(date +%s) - $1 )); printf "%dm %02ds" $((s / 60)) $((s
 stage() { echo; echo "── $1 ── ($(elapsed "$STARTED") since start)"; }
 
 step() {
-  podman run --rm --device nvidia.com/gpu=all --shm-size=2g -e PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True \
+  podman run --rm --device nvidia.com/gpu=all --shm-size=2g \
     -v "$ROOT/.s3/training:/data" -v hf-cache:/cache \
     "$IMAGE" python "$@" 2> >(grep -v -E "Warning|warn\(|FutureWarning|^\s*$" >&2)
 }

@@ -9,7 +9,6 @@ from transformers import AutoModelForSequenceClassification, AutoTokenizer, Data
 from transformers.trainer_utils import get_last_checkpoint
 
 from progress import attach_progress
-from vram import cap_vram
 from rows import decide_pairs, output_dir, read_commands, read_rows
 
 BASE = os.environ.get("DECIDE_BASE", "answerdotai/ModernBERT-base")
@@ -29,7 +28,6 @@ class Pairs(torch.utils.data.Dataset):
 
 
 def main(version):
-    cap_vram()
     save = output_dir(version, "decide")
     commands = read_commands(version)
     tokenizer = AutoTokenizer.from_pretrained(BASE)
@@ -45,7 +43,7 @@ def main(version):
     trainer = Trainer(
         model=model,
         args=TrainingArguments(
-            output_dir=checkpoints, num_train_epochs=2, per_device_train_batch_size=8, gradient_accumulation_steps=4,
+            output_dir=checkpoints, num_train_epochs=2, per_device_train_batch_size=32,
             learning_rate=3e-4, warmup_ratio=0.1, weight_decay=0.01, bf16=True,
             save_strategy="epoch", save_total_limit=1, logging_steps=50, report_to=[], disable_tqdm=True,
         ),
