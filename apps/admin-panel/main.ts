@@ -30,7 +30,7 @@ function readUserJkt(proof: string): string {
 }
 
 /** Opens a version with nothing pending. Low, Sonar 0. */
-const openVersion = (loaded: LoadedVersion): PanelState => ({ ...loaded, pending: [] });
+const openVersion = (loaded: LoadedVersion): PanelState => ({ ...loaded, itemData: [], pending: [] });
 
 /** Requires a version to be open. Low, Sonar 1. */
 function requirePanel(): PanelState {

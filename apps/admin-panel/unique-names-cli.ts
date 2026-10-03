@@ -16,7 +16,7 @@ async function main(): Promise<void> {
     state,
     { type: "replaceSeeder", category: rename.category, seeder: rename.from, with: { ...requireSeeder(state.categories, rename.category, rename.from), name: rename.to } },
     { id: randomUUID(), at: new Date().toISOString(), actor: "migration" },
-  ), { ...loaded, pending: [] });
+  ), { ...loaded, itemData: [], pending: [] });
   const saved = await saveVersion(lake, loaded.version, renamed.categories, renamed.pending);
 
   console.log(`Renamed ${String(renames.length)} seeders from ${loaded.version} into ${saved.version}.`);

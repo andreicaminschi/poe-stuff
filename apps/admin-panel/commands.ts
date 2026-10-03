@@ -10,6 +10,7 @@ import { executeReplaceSeeder, type ReplaceSeederCommand } from "./commands/repl
 import type { SaveCommand } from "./commands/save.ts";
 import { executeUndo, type UndoCommand } from "./commands/undo.ts";
 import { executeUpdateSeeder, type UpdateSeederCommand } from "./commands/update-seeder.ts";
+import { executeUpdateItems, type UpdateItemsCommand } from "./commands/update-items.ts";
 import { executeUpdateSeeders, type UpdateSeedersCommand } from "./commands/update-seeders.ts";
 import type { Stamp } from "./panel-state.ts";
 import type { PanelState } from "./types.ts";
@@ -27,6 +28,7 @@ export type Command =
   | DeleteSeedersCommand
   | MoveSeedersCommand
   | MergeCategoryCommand
+  | UpdateItemsCommand
   | UndoCommand;
 
 /** Runs without disk. */
@@ -48,6 +50,7 @@ const executors: Executors = {
   deleteSeeders: executeDeleteSeeders,
   moveSeeders: executeMoveSeeders,
   mergeCategory: executeMergeCategory,
+  updateItems: executeUpdateItems,
   undo: executeUndo,
 };
 

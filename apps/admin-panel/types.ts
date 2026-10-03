@@ -32,10 +32,23 @@ export type WalEntry = {
   readonly approval?: string;
 };
 
+/** Per-item edits. Everything else comes from the item's seeder. */
+export type ItemData = {
+  readonly name: string;
+  readonly knownItems?: readonly string[];
+  readonly tags: readonly string[];
+};
+
+export type ItemPatch = {
+  readonly knownItems?: readonly string[];
+  readonly tags?: readonly string[];
+};
+
 export type PanelState = {
   readonly version: string;
   readonly state: ManifestEntry["state"];
   readonly categories: readonly Category[];
+  readonly itemData: readonly ItemData[];
   readonly log: readonly WalEntry[];
   readonly pending: readonly WalEntry[];
 };

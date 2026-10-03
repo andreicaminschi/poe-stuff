@@ -12,6 +12,7 @@ import { ReplaceSeederView } from "../commands/replace-seeder.renderer.tsx";
 import { SaveView } from "../commands/save.renderer.tsx";
 import { UndoView } from "../commands/undo.renderer.tsx";
 import { UpdateSeederView } from "../commands/update-seeder.renderer.tsx";
+import { UpdateItemsView } from "../commands/update-items.renderer.tsx";
 import { UpdateSeedersView } from "../commands/update-seeders.renderer.tsx";
 
 type CommandViews = {
@@ -31,5 +32,6 @@ export const commandViews: CommandViews = {
   deleteSeeders: DeleteSeedersView,
   moveSeeders: MoveSeedersView,
   mergeCategory: MergeCategoryView,
+  updateItems: UpdateItemsView,
   undo: UndoView,
 };

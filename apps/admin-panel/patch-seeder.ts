@@ -3,7 +3,7 @@ import type { ConditionValue, Seeder, SeederPatch } from "./types.ts";
 type Conditions = Seeder["conditions"];
 
 /** Keeps the values `remove` does not name, then appends the `add` values not yet there. Low, Sonar 1. */
-function patchValues<T>(values: readonly T[], add: readonly T[] = [], remove: readonly T[] = []): readonly T[] {
+export function patchValues<T>(values: readonly T[], add: readonly T[] = [], remove: readonly T[] = []): readonly T[] {
   const removed = new Set(remove.map((value) => JSON.stringify(value)));
   const kept = values.filter((value) => !removed.has(JSON.stringify(value)));
   const present = new Set(kept.map((value) => JSON.stringify(value)));
