@@ -1,0 +1,7 @@
+FROM docker.io/pytorch/pytorch:2.7.1-cuda12.8-cudnn9-runtime
+
+RUN pip install --no-cache-dir "transformers>=4.48,<5" "peft>=0.13" "accelerate>=1.0"
+
+ENV HF_HOME=/cache/huggingface PYTHONUNBUFFERED=1
+WORKDIR /app
+COPY *.py /app/
