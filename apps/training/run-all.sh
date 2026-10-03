@@ -29,9 +29,12 @@ for version in ${VERSIONS[@]}; do
   [ -f "$out/decide/adapter_config.json" ] || step train_decide.py "$version"
   [ -f "$out/fill/adapter_config.json" ] || step train_fill.py "$version"
   [ -f "$out/runtime/fill-q8_0.gguf" ] || step export.py "$version"
-  for split in eval unseen; do
-    benchmark "$version" "$split" gpu 100000
-    benchmark "$version" "$split" cpu "$CPU_LIMIT"
-  done
+  [ -f "$out/eval-unseen-gpu-decide-fp32.json" ] || (cd "$ROOT" && node apps/admin-panel/eval-adapters-cli.ts --version="$version")
+  if [ "${E2E:-0}" = 1 ]; then
+    for split in eval unseen; do
+      benchmark "$version" "$split" gpu 100000
+      benchmark "$version" "$split" cpu "$CPU_LIMIT"
+    done
+  fi
   echo "=== $version done $(date -Is)"
 done

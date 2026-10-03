@@ -22,16 +22,28 @@ redo its step.
 | `train_decide.py` | container | `training-data/train/stop`, `choose` | `output/decide/`, the LoRA adapter |
 | `train_fill.py` | container | `training-data/train/fill` | `output/fill/`, the LoRA adapter |
 | `export.py` | container | both adapters | `output/runtime/`: `decide-fp32.onnx`, `decide-int8.onnx`, `fill-q8_0.gguf` |
-| `yarn admin-panel:benchmark-agent` | host, Node | `output/runtime/`, `training-data/<split>/request` | `output/benchmark-<split>-<device>-decide-<precision>.json` |
+| `yarn admin-panel:eval-adapters` | host, Node | `output/runtime/`, `training-data/<split>/stop`, `choose`, `fill` | `output/eval-<split>-<device>-decide-<precision>.json` |
+| `yarn admin-panel:benchmark-agent` | host, Node, only with `E2E=1` | `output/runtime/`, `training-data/<split>/request` | `output/benchmark-<split>-<device>-decide-<precision>.json` |
 
 The rows come from `yarn admin-panel:generate-training`. See the admin panel's generator.
 
 ## Methodology
 
 **Training never checks itself.** The train scripts read only the `train` split and run no
-validation. Every accuracy and speed number comes from the benchmark, on eval splits only.
+validation. Every accuracy and speed number comes from the exported models in Node, on eval
+splits only.
 
-**The benchmark runs the panel's own loop.** `apps/admin-panel/run-agent.ts` asks "done?",
+**Two tests: a quick one every run, a full one on demand.**
+
+| Test | Checks | Size | Runs |
+|---|---|---|---|
+| Quick eval | each model against its own labels: "done?", the next command, the args | 3 rows per goal and form (`--per-pair`), about 2 minutes | every `run-all.sh` |
+| End-to-end benchmark | the whole loop, request by request | every request | `E2E=1 bash apps/training/run-all.sh` |
+
+The quick eval feeds every row the right context and history, so a miss belongs to one model.
+The end-to-end benchmark does not.
+
+**The end-to-end benchmark runs the panel's own loop.** `apps/admin-panel/run-agent.ts` asks "done?",
 picks the next command, fills its params, and runs it through the real `executeCommand`,
 until it stops. The benchmark gives it each request's start state and query, and nothing
 else: no correct context, no correct history. A wrong turn feeds the next one, as it would

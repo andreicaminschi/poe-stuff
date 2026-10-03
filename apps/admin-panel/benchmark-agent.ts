@@ -37,7 +37,7 @@ export const spreadSample = <T>(entries: readonly T[], limit: number): readonly 
     : entries.filter((_entry, at) => at % Math.ceil(entries.length / limit) === 0);
 
 /** Reads the p50, p95 and max of a list of times. Low, Sonar 1. */
-function percentiles(values: readonly number[]): Readonly<Record<string, number>> {
+export function percentiles(values: readonly number[]): Readonly<Record<string, number>> {
   const sorted = [...values].sort((left, right) => left - right);
   const at = (share: number): number => Math.round(sorted[Math.min(sorted.length - 1, Math.floor(share * sorted.length))] ?? 0);
 
