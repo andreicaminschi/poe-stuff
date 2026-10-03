@@ -9,6 +9,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingA
 from transformers.trainer_utils import get_last_checkpoint
 
 from progress import attach_progress
+from vram import cap_vram
 from rows import fill_messages, format_args, output_dir, read_rows
 
 BASE = os.environ.get("FILL_BASE", "Qwen/Qwen2.5-0.5B-Instruct")
@@ -34,11 +35,13 @@ def collate(pad_id):
 
 
 def main(version):
+    cap_vram()
     save = output_dir(version, "fill")
     tokenizer = AutoTokenizer.from_pretrained(BASE)
     train = [encode(tokenizer, row) for row in read_rows(version, "train", "fill")]
 
     model = AutoModelForCausalLM.from_pretrained(BASE, torch_dtype=torch.bfloat16)
+    model.enable_input_require_grads()
     model = get_peft_model(model, LoraConfig(
         task_type=TaskType.CAUSAL_LM, r=16, lora_alpha=32, lora_dropout=0.05,
         target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
@@ -48,7 +51,8 @@ def main(version):
     trainer = Trainer(
         model=model,
         args=TrainingArguments(
-            output_dir=checkpoints, num_train_epochs=2, per_device_train_batch_size=8, gradient_accumulation_steps=2,
+            output_dir=checkpoints, num_train_epochs=2, per_device_train_batch_size=2, gradient_accumulation_steps=8,
+            gradient_checkpointing=True, gradient_checkpointing_kwargs={"use_reentrant": False},
             learning_rate=2e-4, warmup_ratio=0.05, bf16=True,
             save_strategy="epoch", save_total_limit=1, logging_steps=50, report_to=[], disable_tqdm=True,
         ),
