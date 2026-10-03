@@ -27,6 +27,7 @@ export type AgentRun = {
   readonly turns: readonly AgentTurn[];
   readonly lastStopMs: number;
   readonly outcome: AgentOutcome;
+  readonly commands: readonly StateCommand[];
 };
 
 /** Times one async call. Low, Sonar 0. */
@@ -66,11 +67,12 @@ export async function runAgent(models: AgentModels, start: PanelState, query: st
   let state = start;
   const turns: AgentTurn[] = [];
   const history: string[] = [];
+  const commands: StateCommand[] = [];
 
   while (turns.length < MAX_TURNS) {
     const turn = { query, context: formatContext(state, CONDITION_FORMATS, names), history };
     const stop = await timed(() => models.scoreYes([writeDecideText(turn, STOP_QUESTION)]));
-    if ((stop.value[0] ?? 0) >= 0.5) return { state, turns, lastStopMs: stop.ms, outcome: "done" };
+    if ((stop.value[0] ?? 0) >= 0.5) return { state, turns, lastStopMs: stop.ms, outcome: "done", commands };
 
     const choose = await timed(() => models.scoreYes(models.commands.map((command) => writeDecideText(turn, writeCommandQuestion(command)))));
     const best = choose.value.indexOf(Math.max(...choose.value));
@@ -79,16 +81,17 @@ export async function runAgent(models: AgentModels, start: PanelState, query: st
     turns.push({ stopMs: stop.ms, chooseMs: choose.ms, fillMs: fill.ms, command: type, answer: fill.value });
 
     const params = readParams(fill.value);
-    if (params === undefined) return { state, turns, lastStopMs: 0, outcome: "invalid json" };
+    if (params === undefined) return { state, turns, lastStopMs: 0, outcome: "invalid json", commands };
 
     const { type: _answeredType, ...args } = params;
     const command = { type, ...args } as StateCommand;
     const next = tryExecute(state, command, stamp);
-    if (next === undefined) return { state, turns, lastStopMs: 0, outcome: "command failed" };
+    if (next === undefined) return { state, turns, lastStopMs: 0, outcome: "command failed", commands };
 
     state = next;
     history.push(JSON.stringify(command));
+    commands.push(command);
   }
 
-  return { state, turns, lastStopMs: 0, outcome: "turn limit" };
+  return { state, turns, lastStopMs: 0, outcome: "turn limit", commands };
 }

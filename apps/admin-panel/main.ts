@@ -1,33 +1,26 @@
 import { randomUUID } from "node:crypto";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { performance } from "node:perf_hooks";
 import { createLakeService } from "@poe/lake/service";
 import { app, BrowserWindow, ipcMain } from "electron";
-import { executeCommand, type Command } from "./commands.ts";
+import { executeCommand, type Command, type StateCommand } from "./commands.ts";
+import { findLatestRuntime } from "./find-latest-runtime.ts";
+import { findNames, listKnownNames } from "./find-names.ts";
+import { CONDITION_FORMATS } from "./generate-training/conditions.ts";
 import { loadVersion } from "./load-version.ts";
-import { DISPATCH, LOAD, type LoadedVersion } from "./panel-api.ts";
-import { PROOF_WINDOW_SECONDS } from "./proof-format.ts";
-import { readProofJwk, thumbprintJwk, verifyProof } from "./proof.ts";
+import { DISPATCH, FEEDBACK, LOAD, PLAN, type AgentPlan, type FeedbackRecord, type LoadedVersion } from "./panel-api.ts";
+import { runAgent, type AgentModels } from "./run-agent.ts";
+import { loadDecide } from "./run-agent/load-decide.ts";
+import { loadFill } from "./run-agent/load-fill.ts";
 import { saveVersion } from "./save-version.ts";
 import type { PanelState } from "./types.ts";
 
 const lake = createLakeService({ root: join(app.getAppPath(), "../../.s3") });
+const ACTOR = "user";
 
 let panel: PanelState | undefined;
-let seenJtis: ReadonlyMap<string, number> = new Map();
 let queue: Promise<unknown> = Promise.resolve();
-
-/** Reads the trusted user thumbprint. The first key seen is trusted from then on. Low, Sonar 1. */
-function readUserJkt(proof: string): string {
-  const file = join(app.getPath("userData"), "user-key.json");
-
-  if (existsSync(file)) return (JSON.parse(readFileSync(file, "utf8")) as { readonly jkt: string }).jkt;
-
-  const jkt = thumbprintJwk(readProofJwk(proof));
-
-  writeFileSync(file, JSON.stringify({ jkt }));
-  return jkt;
-}
+let agent: Promise<{ readonly models: AgentModels; readonly model: string }> | undefined;
 
 /** Opens a version with nothing pending. Low, Sonar 0. */
 const openVersion = (loaded: LoadedVersion): PanelState => ({ ...loaded, itemData: [], pending: [] });
@@ -39,12 +32,12 @@ function requirePanel(): PanelState {
 }
 
 /** Runs one command against the open version, writing disk for save. Low, Sonar 1. */
-async function runCommand(command: Command, actor: string): Promise<PanelState> {
+async function runCommand(command: Command): Promise<PanelState> {
   const open = requirePanel();
 
   if (command.type === "save") return openVersion(await saveVersion(lake, open.version, open.categories, open.pending));
 
-  return executeCommand(open, command, { id: randomUUID(), at: new Date().toISOString(), actor });
+  return executeCommand(open, command, { id: randomUUID(), at: new Date().toISOString(), actor: ACTOR });
 }
 
 /** Reads the newest version and opens it, dropping unsaved edits. Low, Sonar 0. */
@@ -53,27 +46,66 @@ async function load(): Promise<PanelState> {
   return panel;
 }
 
-/** Verifies a command's proof, runs it and keeps the result. Spends the proof's `jti`. Low, Sonar 1. */
-async function dispatch(command: Command, proof: string): Promise<PanelState> {
-  const now = Math.floor(Date.now() / 1000);
-  const verified = verifyProof(proof, command, readUserJkt(proof), seenJtis, now);
-  const live = [...seenJtis].filter(([, iat]) => now - iat <= PROOF_WINDOW_SECONDS);
-
-  seenJtis = new Map([...live, [verified.jti, verified.iat]]);
-  panel = await runCommand(command, verified.actor);
+/** Runs a command and keeps the result. Low, Sonar 0. */
+async function dispatch(command: Command): Promise<PanelState> {
+  panel = await runCommand(command);
   return panel;
 }
 
 /** Runs one step after every earlier one. Low, Sonar 0. */
-function enqueue(step: () => Promise<PanelState>): Promise<PanelState> {
+function enqueue<T>(step: () => Promise<T>): Promise<T> {
   const result = queue.then(step);
 
   queue = result.catch(() => undefined);
   return result;
 }
 
+/** Loads the newest trained models once, on CPU, on first use. Low, Sonar 1. */
+async function loadAgent(): Promise<{ readonly models: AgentModels; readonly model: string }> {
+  const trainingRoot = join(app.getAppPath(), "../../.s3/training");
+  const { version, runtime } = await findLatestRuntime(trainingRoot);
+  const commands = await lake.readJson<readonly StateCommand["type"][]>(`training/${version}/training-data/commands.json`);
+
+  return {
+    models: { scoreYes: await loadDecide(runtime, false, "fp32"), fillParams: await loadFill(runtime, false), commands },
+    model: version,
+  };
+}
+
+/** Asks the agent for a plan on a copy of the open state. The open state never changes. Low, Sonar 1. */
+async function plan(query: string): Promise<AgentPlan> {
+  agent ??= loadAgent();
+  const { models, model } = await agent;
+  const open = requirePanel();
+  const names = findNames([...listKnownNames(open), ...CONDITION_FORMATS.map((condition) => condition.key)], query);
+  const started = performance.now();
+  const run = await runAgent(models, open, query, names, { id: "plan", at: new Date().toISOString(), actor: "agent" });
+  const failed = run.outcome === "invalid json" || run.outcome === "command failed"
+    ? run.turns.at(-1)
+    : undefined;
+
+  return {
+    query,
+    names,
+    start: { categories: open.categories, itemData: open.itemData },
+    steps: run.commands,
+    failedStep: failed === undefined
+      ? undefined
+      : { type: failed.command, answer: failed.answer },
+    outcome: run.outcome,
+    model,
+    ms: Math.round(performance.now() - started),
+  };
+}
+
+/** Keeps one interaction as one file. Low, Sonar 0. */
+const saveFeedback = (record: FeedbackRecord): Promise<void> =>
+  lake.writeJson(`admin-panel/agent-feedback/${record.at.replaceAll(":", "-")}-${record.id}.json`, record);
+
 ipcMain.handle(LOAD, () => enqueue(load));
-ipcMain.handle(DISPATCH, (_event, command: Command, proof: string) => enqueue(() => dispatch(command, proof)));
+ipcMain.handle(DISPATCH, (_event, command: Command) => enqueue(() => dispatch(command)));
+ipcMain.handle(PLAN, (_event, query: string) => enqueue(() => plan(query)));
+ipcMain.handle(FEEDBACK, (_event, record: FeedbackRecord) => saveFeedback(record));
 
 function open(): void {
   const window = new BrowserWindow({

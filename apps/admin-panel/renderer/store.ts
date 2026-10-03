@@ -1,13 +1,12 @@
 import { create } from "zustand";
 import { canonicalJson } from "../canonical-json.ts";
-import type { Command } from "../commands.ts";
+import type { Command, StateCommand } from "../commands.ts";
+import type { AgentPlan } from "../panel-api.ts";
 import { findSeeder } from "../panel-state.ts";
 import { formatSeederKey, readSeederCategory, readSeederName } from "../seeder-key.ts";
-import type { Category, PanelState, Seeder, WalEntry } from "../types.ts";
+import type { Category, ItemData, PanelState, Seeder, WalEntry } from "../types.ts";
 import { countItemsBySeeder } from "./count-items.ts";
 import { generateItems, type SeededItem } from "./generate-items.ts";
-import { loadUserKey } from "./load-user-key.ts";
-import { signProof } from "./sign-proof.ts";
 
 export type View = "items" | "seeders";
 
@@ -17,6 +16,7 @@ type Loaded = {
   readonly version: string;
   readonly state: PanelState["state"];
   readonly categories: readonly Category[];
+  readonly itemData: readonly ItemData[];
   readonly log: readonly WalEntry[];
   readonly items: readonly SeededItem[];
   readonly itemCounts: ReadonlyMap<string, number>;
@@ -35,12 +35,16 @@ type Store = {
   readonly saving: boolean;
   readonly dirty: boolean;
   readonly leaveAction: (() => void) | undefined;
+  readonly plan: AgentPlan | undefined;
+  readonly planning: boolean;
   readonly dispatch: (command: Command) => Promise<WalEntry | undefined>;
   readonly load: () => Promise<void>;
   readonly toggleCategory: (name: string) => void;
-  readonly pickSeeder: (key: string) => void;
+  readonly toggleSeeder: (key: string) => void;
   readonly dropSeeder: (key: string) => void;
-  readonly dropLastToken: () => void;
+  readonly askAgent: (query: string) => Promise<void>;
+  readonly approvePlan: (steps: readonly StateCommand[]) => Promise<void>;
+  readonly dismissPlan: () => void;
   readonly setQuery: (query: string) => void;
   readonly setView: (view: View) => void;
   readonly setDirty: (dirty: boolean) => void;
@@ -90,8 +94,12 @@ function mirror(panel: PanelState): Pick<Store, "loaded" | "pending"> {
   return { pending, loaded: { ...version, items, itemCounts: countItemsBySeeder(items) } };
 }
 
-const userKey = loadUserKey();
 let queue: Promise<unknown> = Promise.resolve();
+
+/** Keeps one agent interaction as training data. A failed write never blocks the panel. Low, Sonar 0. */
+function sendFeedback(plan: AgentPlan, final: readonly StateCommand[], verdict: "approved" | "edited" | "dismissed"): void {
+  void window.panel.feedback({ id: crypto.randomUUID(), at: new Date().toISOString(), plan, final, verdict }).catch(() => undefined);
+}
 
 export const usePanel = create<Store>()((set, get) => ({
   loaded: undefined,
@@ -106,12 +114,13 @@ export const usePanel = create<Store>()((set, get) => ({
   saving: false,
   dirty: false,
   leaveAction: undefined,
+  plan: undefined,
+  planning: false,
 
   dispatch: (command) => {
     const result = queue.then(async () => {
       try {
-        const proof = await signProof(await userKey, command);
-        const panel = await window.panel.dispatch(command, proof);
+        const panel = await window.panel.dispatch(command);
 
         set({ ...mirror(panel), error: undefined });
         return command.type === "save"
@@ -144,18 +153,46 @@ export const usePanel = create<Store>()((set, get) => ({
     set({ pickedCategories: next, pickedSeeders: keepInScope(pickedSeeders, next) });
   },
 
-  pickSeeder: (key) => set({ pickedSeeders: [...get().pickedSeeders, key] }),
+  toggleSeeder: (key) => {
+    const { pickedSeeders } = get();
+    set({
+      pickedSeeders: pickedSeeders.includes(key)
+        ? pickedSeeders.filter((at) => at !== key)
+        : [...pickedSeeders, key],
+    });
+  },
+
   dropSeeder: (key) => set({ pickedSeeders: get().pickedSeeders.filter((at) => at !== key) }),
 
-  dropLastToken: () => {
-    const { pickedCategories, pickedSeeders } = get();
-
-    if (pickedSeeders.length > 0) {
-      set({ pickedSeeders: pickedSeeders.slice(0, -1) });
-      return;
+  askAgent: async (query) => {
+    set({ planning: true, error: undefined });
+    try {
+      set({ plan: await window.panel.plan(query) });
+    } catch (error) {
+      set({ error: readMessage(error) });
     }
-    const next = pickedCategories.slice(0, -1);
-    set({ pickedCategories: next, pickedSeeders: keepInScope(pickedSeeders, next) });
+    set({ planning: false });
+  },
+
+  approvePlan: async (steps) => {
+    const { plan, dispatch } = get();
+    if (plan === undefined) return;
+
+    set({ error: undefined });
+    for (const step of steps) {
+      await dispatch(step);
+      if (get().error !== undefined) break;
+    }
+    sendFeedback(plan, steps, canonicalJson(steps) === canonicalJson(plan.steps) && plan.failedStep === undefined
+      ? "approved"
+      : "edited");
+    if (get().error === undefined) set({ plan: undefined });
+  },
+
+  dismissPlan: () => {
+    const { plan } = get();
+    if (plan !== undefined) sendFeedback(plan, [], "dismissed");
+    set({ plan: undefined });
   },
 
   setQuery: (query) => set({ query }),

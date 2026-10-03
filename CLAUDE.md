@@ -123,6 +123,13 @@ seeder edit is a log entry; Save appends them to the version's `wal.json` before
 `categories.json`. Undo appends the inverse entry, never removes one. It has its own `tsconfig.json`, which
 `yarn typecheck` runs after the root one.
 
+The omni bar takes agent instructions, not searches: Tab completes a known name, Enter asks
+the agent for a plan. The agent loads the newest exported models under `.s3/training/` on
+first use, on CPU. Applied filters show as chips below the bar; item search lives in the items
+view, and a seeder filter is toggled from its row. `yarn admin-panel:feedback-to-rows` turns
+the kept interactions into training rows under `.s3/training/feedback/training-data/`. The
+models are trained by `apps/training`; see [apps/training/README.md](apps/training/README.md).
+
 | App                                                | Replaces                 | Owns                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | -------------------------------------------------- | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [`apps/catalog`](apps/catalog/README.md)           | `@poe/filterv2`, deleted | **Written.** The bronze/silver/gold pipeline over the taxonomy. **Its rows are the published taxonomy's drawable rows** — nothing `excluded`, nothing `quest`, nothing `filterable: false`, nothing an authored row replaces — and it invents or judges none. It collects PoeWatch and GGG's trade item list for one league-hour, writes a file per category, then gathers every row into `catalog.json` and `catalog.categories.json`. It carries the conditions the taxonomy authored and resolves none of them. It prices every row and variant off PoeWatch — the exchange first, listings second — and still hangs every unique off the base it rolls on under `uniques` — one group per path (`unique`, `unique/foulborn`), one listing per priced form inside it. The taxonomy now also authors one row per unique base (`unique/regular`, `unique/foulborn`, `unique/fragments`), which the catalog prices like any row, so a unique is priced in both places; which one a generator reads is undecided. `--force=taxonomy,poewatch` refetches only the named sources. `catalog:publish` copies one run's gold into `catalog/latest/`, and a run's manifest records the taxonomy version it used. Also `find-duplicates-cli.ts`, which reports the display names more than one metadata id carries. |
@@ -146,15 +153,11 @@ person does. `apps/catalog` and `apps/taxonomy` predate it and are exempt.
   as load, is a plain call and not a command.
 - **One dispatcher, in the process that owns the state.** The UI and agents send commands to
   the same place.
-- **Every command is signed.** Its proof is a compact JWS whose header carries the sender's
-  ES256 public key, and whose payload holds `jti`, `iat`, `cmd` and `chash`. `chash` is the
-  SHA-256 of the command as canonical JSON. The dispatcher refuses a bad signature, a `chash`
-  mismatch, an `iat` more than 60 seconds off, a replayed `jti`, or a key it does not trust.
-- **Agents act on the user's behalf.** Every agent command needs the user's approval in a
-  modal. The approval is a one-time token the user key signs, bound to that command's `chash`
-  and that agent's key. An agent may undo only its own edits.
-- **Every log entry records who acted.** `actor` is the sender's key thumbprint. An agent's
-  entry also records `onBehalfOf` and `approval`.
+- **Agents only propose.** The agent runs on a copy of the state and returns a plan. Nothing
+  reaches the real state until the user approves the plan in a modal; the approved steps are
+  dispatched like any other command. Commands are not signed in this phase.
+- **Every agent interaction is kept.** Approve, edit or dismiss, each plan is written to
+  `.s3/admin-panel/agent-feedback/` with the final steps, for training.
 
 The admin panel is the reference implementation. Each command is two files in `commands/`:
 

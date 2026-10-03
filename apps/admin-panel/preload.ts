@@ -1,9 +1,11 @@
 import { contextBridge, ipcRenderer } from "electron";
-import { DISPATCH, LOAD, type PanelApi } from "./panel-api.ts";
+import { DISPATCH, FEEDBACK, LOAD, PLAN, type PanelApi } from "./panel-api.ts";
 
 const panel: PanelApi = {
   load: () => ipcRenderer.invoke(LOAD),
-  dispatch: (command, proof) => ipcRenderer.invoke(DISPATCH, command, proof),
+  dispatch: (command) => ipcRenderer.invoke(DISPATCH, command),
+  plan: (query) => ipcRenderer.invoke(PLAN, query),
+  feedback: (record) => ipcRenderer.invoke(FEEDBACK, record),
 };
 
 contextBridge.exposeInMainWorld("panel", panel);

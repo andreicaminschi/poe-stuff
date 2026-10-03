@@ -12,7 +12,8 @@ export function SeederList({
   readonly itemCounts: ReadonlyMap<string, number>;
   readonly selected: string | undefined;
 }) {
-  const { selectSeeder } = usePanel.getState();
+  const pickedSeeders = usePanel((state) => state.pickedSeeders);
+  const { selectSeeder, toggleSeeder } = usePanel.getState();
   const keys = categories.flatMap((category) => sortSeeders(category.seeders).map((seeder) => ({
     key: formatSeederKey(category.name, seeder.name),
     name: seeder.name,
@@ -31,6 +32,19 @@ export function SeederList({
       <span className="line"><strong>{name}</strong></span>
       <span className="sp" />
       <span className="from">{`${itemCounts.get(key) ?? 0} items`}</span>
+      <button
+        type="button"
+        className={pickedSeeders.includes(key)
+          ? "btn tiny"
+          : "btn tiny ghost"}
+        title="Filter items by this seeder"
+        onClick={(event) => {
+          event.stopPropagation();
+          toggleSeeder(key);
+        }}
+      >
+        Filter
+      </button>
     </div>
   ));
 }

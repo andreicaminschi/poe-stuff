@@ -156,4 +156,17 @@ input[type=checkbox] { accent-color: var(--accent); }
 .seeder-foot { display: flex; gap: 8px; padding-top: 10px; }
 .none { font-size: 12px; color: var(--faint); padding-top: 4px; }
 
+.chips-bar { flex: none; display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 20px; border-bottom: 1px solid var(--line); background: var(--ground); }
+.col > .head .search { width: 220px; background: var(--bg); border: 1px solid var(--line); border-radius: 3px; color: var(--text); padding: 2px 8px; font: 13px var(--ui); outline: none; }
+.col > .head .search:focus { border-color: var(--accent); }
+.modal.plan { width: 720px; }
+.plan-body { display: flex; flex-direction: column; gap: 10px; }
+.plan-query { font-size: 14px; color: var(--text); }
+.plan-meta { font-size: 12px; color: var(--faint); }
+.plan-step { border: 1px solid var(--line); border-radius: 4px; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; }
+.plan-step-head { display: flex; align-items: center; gap: 8px; }
+.plan-view { font-size: 13px; color: var(--dim); }
+.plan-step textarea { width: 100%; resize: vertical; background: var(--bg); border: 1px solid var(--line); border-radius: 3px; color: var(--text); padding: 6px 8px; font: 12px var(--mono); }
+.plan-error { font: 12px var(--mono); color: var(--danger); }
+
 .banner { flex: none; padding: 8px 20px; background: rgba(226, 115, 93, .08); border-bottom: 1px solid #5a3a33; color: var(--danger); font: 12px var(--mono); white-space: pre-wrap; }

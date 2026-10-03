@@ -2,6 +2,8 @@ import { useEffect, useMemo } from "react";
 import { findUndoable } from "../apply-entry.ts";
 import { CategoryList } from "./category-list.tsx";
 import { ConfirmDialog } from "./confirm-dialog.tsx";
+import { FilterChips } from "./filter-chips.tsx";
+import { PlanDialog } from "./plan-dialog.tsx";
 import { ItemList } from "./item-list.tsx";
 import { matchItem } from "./match-item.ts";
 import { NewCategoryDialog } from "./new-category-dialog.tsx";
@@ -26,7 +28,8 @@ export function App() {
   const saving = usePanel((state) => state.saving);
   const selected = usePanel((state) => state.selected);
   const dialog = usePanel((state) => state.dialog);
-  const { load, setView, save, undo, guard, selectFirst, openDialog } = usePanel.getState();
+  const plan = usePanel((state) => state.plan);
+  const { load, setView, save, undo, guard, selectFirst, openDialog, setQuery } = usePanel.getState();
   const edits = pending.length;
   const canUndo = loaded !== undefined && findUndoable([...loaded.log, ...pending]) !== undefined;
 
@@ -93,6 +96,7 @@ export function App() {
           </button>
         </div>
       </div>
+      <FilterChips />
       {error === undefined
         ? null
         : <div className="banner">{error}</div>}
@@ -114,6 +118,9 @@ export function App() {
               </span>
             </span>
             <span className="sp" />
+            {view === "items"
+              ? <input className="search" value={query} placeholder="Search items…" onChange={(event) => setQuery(event.target.value)} />
+              : null}
             {view === "seeders"
               ? <button type="button" className="btn tiny ghost" onClick={() => openDialog("seeder")}>+ New seeder</button>
               : null}
@@ -158,6 +165,9 @@ export function App() {
           : null}
       </div>
       <ConfirmDialog />
+      {plan === undefined || loaded === undefined
+        ? null
+        : <PlanDialog key={`${plan.query} ${String(plan.ms)}`} plan={plan} />}
       {dialog === "category"
         ? <NewCategoryDialog takenNames={(loaded?.categories ?? []).map((category) => category.name)} />
         : null}

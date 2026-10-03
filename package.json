@@ -16,6 +16,7 @@
     "admin-panel:generate-training": "node apps/admin-panel/generate-training-cli.ts",
     "admin-panel:benchmark-agent": "node apps/admin-panel/benchmark-agent-cli.ts",
     "admin-panel:eval-adapters": "node apps/admin-panel/eval-adapters-cli.ts",
+    "admin-panel:feedback-to-rows": "node apps/admin-panel/feedback-to-rows-cli.ts",
     "catalog": "node --env-file=apps/catalog/.env apps/catalog/catalog-cli.ts",
     "catalog:publish": "node apps/catalog/publish-catalog-cli.ts",
     "catalog:compile": "node apps/catalog/compile-cli.ts",
