@@ -6,7 +6,7 @@ import type { FeedbackRecord } from "./panel-api.ts";
 function playRecord(record: FeedbackRecord): ExampleRows | undefined {
   const start = { version: "feedback", state: "draft" as const, categories: record.plan.start.categories, itemData: record.plan.start.itemData, log: [], pending: [] };
   try {
-    return playExample({ goal: "feedback", form: record.verdict, query: record.plan.query, names: record.plan.names, commands: record.final }, start);
+    return playExample({ goal: `feedback-${record.verdict}`, form: "single", query: record.plan.query, names: record.plan.names, commands: record.final }, start);
   } catch {
     return undefined;
   }
