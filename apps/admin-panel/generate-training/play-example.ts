@@ -12,7 +12,25 @@ export type StopRow = RowBase & { readonly done: boolean };
 export type ChooseRow = RowBase & { readonly command: StateCommand["type"] };
 export type FillRow = RowBase & { readonly command: StateCommand["type"]; readonly args: Readonly<Record<string, unknown>> };
 
-export type ExampleRows = { readonly stop: readonly StopRow[]; readonly choose: readonly ChooseRow[]; readonly fill: readonly FillRow[] };
+/** One whole request, for scoring the loop end to end: where it starts and where it must end. */
+export type RequestRow = {
+  readonly goal: string;
+  readonly form: string;
+  readonly query: string;
+  readonly names: readonly string[];
+  readonly turns: number;
+  readonly start: Pick<PanelState, "categories" | "itemData">;
+  readonly expected: Pick<PanelState, "categories" | "itemData">;
+};
+
+export type ExampleRows = {
+  readonly stop: readonly StopRow[];
+  readonly choose: readonly ChooseRow[];
+  readonly fill: readonly FillRow[];
+  readonly request: readonly RequestRow[];
+};
+
+const keepPanel = (state: PanelState): Pick<PanelState, "categories" | "itemData"> => ({ categories: state.categories, itemData: state.itemData });
 
 /** Splits a command into its type and its params. Low, Sonar 0. */
 function splitCommand(command: StateCommand): { readonly type: StateCommand["type"]; readonly args: Readonly<Record<string, unknown>> } {
@@ -42,6 +60,15 @@ export function playExample(example: Example, start: PanelState): ExampleRows {
     stop: [...turns.map(({ base }) => ({ ...base, done: false })), { ...last, done: true }],
     choose: turns.map(({ base, type }) => ({ ...base, command: type })),
     fill: turns.map(({ base, type, args }) => ({ ...base, command: type, args })),
+    request: [{
+      goal: example.goal,
+      form: example.form,
+      query: example.query,
+      names: example.names,
+      turns: example.commands.length,
+      start: keepPanel(start),
+      expected: keepPanel(states.at(-1) ?? start),
+    }],
   };
 }
 

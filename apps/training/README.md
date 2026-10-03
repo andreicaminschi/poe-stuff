@@ -1,0 +1,74 @@
+# training
+
+Trains the admin panel's agent models from generated rows, then measures them the way the
+panel runs them. Python runs in a Podman container on the GPU. The benchmark runs in Node on
+the host, with the same libraries Electron loads.
+
+```bash
+bash apps/training/run-all.sh
+```
+
+```bash
+bash apps/training/run-all.sh count-50
+```
+
+`run-all.sh` skips every finished step, so a rerun resumes after a crash. Delete a file to
+redo its step.
+
+## Pipeline per version
+
+| Step | Runs | Reads | Writes |
+|---|---|---|---|
+| `train_decide.py` | container | `training-data/train/stop`, `choose` | `output/decide/`, the LoRA adapter |
+| `train_fill.py` | container | `training-data/train/fill` | `output/fill/`, the LoRA adapter |
+| `export.py` | container | both adapters | `output/runtime/`: `decide-fp32.onnx`, `decide-int8.onnx`, `fill-q8_0.gguf` |
+| `yarn admin-panel:benchmark-agent` | host, Node | `output/runtime/`, `training-data/<split>/request` | `output/benchmark-<split>-<device>-decide-<precision>.json` |
+
+The rows come from `yarn admin-panel:generate-training`. See the admin panel's generator.
+
+## Methodology
+
+**Training never checks itself.** The train scripts read only the `train` split and run no
+validation. Every accuracy and speed number comes from the benchmark, on eval splits only.
+
+**The benchmark runs the panel's own loop.** `apps/admin-panel/run-agent.ts` asks "done?",
+picks the next command, fills its params, and runs it through the real `executeCommand`,
+until it stops. The benchmark gives it each request's start state and query, and nothing
+else: no correct context, no correct history. A wrong turn feeds the next one, as it would
+in the panel.
+
+**A request passes when the final state equals the expected one.** Order inside lists is
+ignored, so equivalent params pass. Each failure gets one verdict:
+
+| Verdict | Meaning |
+|---|---|
+| `stopped before acting` | said done on turn 0 when work was needed |
+| `wrong turn count` | stopped after too many or too few commands |
+| `wrong final state` | stopped on time, but the panel differs |
+| `invalid json` | the filler's answer did not parse |
+| `command failed` | the executor refused the command, e.g. a name that does not exist |
+| `turn limit` | never said done |
+
+**Eval splits, hardest last.**
+
+| Split | Wording | Names |
+|---|---|---|
+| `eval` | the training patterns | new Faker names, another seed |
+| `unseen` | patterns training never saw | new Faker names, another seed |
+
+A hand-written split of real queries is planned. It is the only real-world measure.
+
+**Speed and memory are measured in the deployment runtime.** The decision model runs in
+`onnxruntime-node`: DirectML on GPU, CPU otherwise. The filler runs in `node-llama-cpp` with
+its output locked to JSON. Each report gives p50, p95 and max latency per stop decision, per
+choose decision (every command scored in one batch), per fill and per whole request, plus model
+load time, peak process RAM and GPU memory used. The CPU run scores an even sample of
+`CPU_LIMIT` requests per split.
+
+## Gotchas
+
+- `decide-int8.onnx` loses accuracy and is slower on DirectML. The benchmark defaults to fp32.
+- The prompts live twice: `rows.py` for training and `apps/admin-panel/run-agent/prompts.ts`
+  for the panel. A difference between them costs accuracy without any error.
+- ModernBERT calls `torch.compile`, and the image has no C compiler. Load it with
+  `reference_compile=False`.

@@ -61,5 +61,6 @@ export function generateTraining(seed: number, count: number, set: PatternSet = 
     stop: played.flatMap((rows) => rows.stop),
     choose: played.flatMap((rows) => rows.choose),
     fill: played.flatMap((rows) => rows.fill),
+    request: played.flatMap((rows) => rows.request),
   };
 }

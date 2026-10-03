@@ -12,8 +12,11 @@
   },
   "dependencies": {
     "@faker-js/faker": "^10.6.0",
+    "@huggingface/transformers": "^4.3.0",
     "@poe/filter-eval": "workspace:^",
     "@poe/lake": "workspace:^",
+    "node-llama-cpp": "^3.22.1",
+    "onnxruntime-node": "^1.30.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "zustand": "5.0.15"

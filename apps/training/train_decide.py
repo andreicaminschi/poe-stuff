@@ -3,7 +3,6 @@
 import os
 import sys
 
-import numpy as np
 import torch
 from peft import LoraConfig, TaskType, get_peft_model
 from transformers import AutoModelForSequenceClassification, AutoTokenizer, DataCollatorWithPadding, Trainer, TrainingArguments
@@ -32,7 +31,6 @@ def main(version):
     commands = read_commands(version)
     tokenizer = AutoTokenizer.from_pretrained(BASE)
     train = Pairs(tokenizer, decide_pairs(read_rows(version, "train", "stop"), read_rows(version, "train", "choose"), commands))
-    held = Pairs(tokenizer, decide_pairs(read_rows(version, "eval", "stop")[:2000], read_rows(version, "eval", "choose")[:300], commands))
 
     model = AutoModelForSequenceClassification.from_pretrained(BASE, num_labels=2, reference_compile=False)  # image has no C compiler
     model = get_peft_model(model, LoraConfig(
@@ -40,22 +38,17 @@ def main(version):
         target_modules=["Wqkv", "Wo", "Wi"], modules_to_save=["head", "classifier"],
     ))
 
-    def accuracy(prediction):
-        logits, labels = prediction
-        return {"accuracy": float((np.argmax(logits, axis=-1) == labels).mean())}
-
     checkpoints = output_dir(version, "decide-checkpoints")
     trainer = Trainer(
         model=model,
         args=TrainingArguments(
-            output_dir=checkpoints, num_train_epochs=2, per_device_train_batch_size=32, per_device_eval_batch_size=64,
+            output_dir=checkpoints, num_train_epochs=2, per_device_train_batch_size=32,
             learning_rate=3e-4, warmup_ratio=0.1, weight_decay=0.01, bf16=True,
-            eval_strategy="epoch", save_strategy="epoch", save_total_limit=1, logging_steps=50, report_to=[],
+            save_strategy="epoch", save_total_limit=1, logging_steps=50, report_to=[],
         ),
-        train_dataset=train, eval_dataset=held, data_collator=DataCollatorWithPadding(tokenizer), compute_metrics=accuracy,
+        train_dataset=train, data_collator=DataCollatorWithPadding(tokenizer),
     )
     trainer.train(resume_from_checkpoint=get_last_checkpoint(checkpoints))
-    print(trainer.evaluate())
     model.save_pretrained(save)
     tokenizer.save_pretrained(save)
 

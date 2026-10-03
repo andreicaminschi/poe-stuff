@@ -36,7 +36,6 @@ def main(version):
     save = output_dir(version, "fill")
     tokenizer = AutoTokenizer.from_pretrained(BASE)
     train = [encode(tokenizer, row) for row in read_rows(version, "train", "fill")]
-    held = [encode(tokenizer, row) for row in read_rows(version, "eval", "fill")[:300]]
 
     model = AutoModelForCausalLM.from_pretrained(BASE, torch_dtype=torch.bfloat16)
     model = get_peft_model(model, LoraConfig(
@@ -49,13 +48,12 @@ def main(version):
         model=model,
         args=TrainingArguments(
             output_dir=checkpoints, num_train_epochs=2, per_device_train_batch_size=8, gradient_accumulation_steps=2,
-            per_device_eval_batch_size=8, learning_rate=2e-4, warmup_ratio=0.05, bf16=True,
-            eval_strategy="epoch", save_strategy="epoch", save_total_limit=1, logging_steps=50, report_to=[],
+            learning_rate=2e-4, warmup_ratio=0.05, bf16=True,
+            save_strategy="epoch", save_total_limit=1, logging_steps=50, report_to=[],
         ),
-        train_dataset=train, eval_dataset=held, data_collator=collate(tokenizer.pad_token_id),
+        train_dataset=train, data_collator=collate(tokenizer.pad_token_id),
     )
     trainer.train(resume_from_checkpoint=get_last_checkpoint(checkpoints))
-    print(trainer.evaluate())
     model.save_pretrained(save)
     tokenizer.save_pretrained(save)
 
