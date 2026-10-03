@@ -8,20 +8,21 @@ import { createCategory } from "./generate-training/create-category.ts";
 import { createSeeder } from "./generate-training/create-seeder.ts";
 import { deleteCategory } from "./generate-training/delete-category.ts";
 import { deleteSeeder } from "./generate-training/delete-seeder.ts";
-import type { BuildExample } from "./generate-training/example.ts";
+import type { BuildExample, PatternSet } from "./generate-training/example.ts";
 import { moveSeeder } from "./generate-training/move-seeder.ts";
 import { playExample, playNoOp, type ExampleRows } from "./generate-training/play-example.ts";
 
-const GOALS: Readonly<Record<string, Readonly<Record<string, BuildExample>>>> = {
-  addTags,
-  addKnownItems,
-  addConditions,
-  createCategory,
-  createSeeder,
-  deleteCategory,
-  deleteSeeder,
-  moveSeeder,
-};
+/** Every goal's builders, worded from one pattern set. Low, Sonar 0. */
+const buildGoals = (set: PatternSet): Readonly<Record<string, Readonly<Record<string, BuildExample>>>> => ({
+  addTags: addTags(set),
+  addKnownItems: addKnownItems(set),
+  addConditions: addConditions(set),
+  createCategory: createCategory(set),
+  createSeeder: createSeeder(set),
+  deleteCategory: deleteCategory(set),
+  deleteSeeder: deleteSeeder(set),
+  moveSeeder: moveSeeder(set),
+});
 
 const NO_OP_GOALS = new Set(["addTags", "addKnownItems", "addConditions"]);
 const NO_OP_SHARE = 0.1;
@@ -45,9 +46,9 @@ export const TRAINED_COMMANDS: readonly StateCommand["type"][] = [
  * Generates `count` examples per goal and form from one seed, each on a fresh random panel,
  * and returns their rows. The same seed returns the same rows. Low, Sonar 1.
  */
-export function generateTraining(seed: number, count: number): ExampleRows {
+export function generateTraining(seed: number, count: number, set: PatternSet = "seen"): ExampleRows {
   const faker = new Faker({ locale: [en], seed });
-  const played = Object.entries(GOALS).flatMap(([goal, forms]) => Object.values(forms).flatMap((build) => Array.from({ length: count }, () => {
+  const played = Object.entries(buildGoals(set)).flatMap(([goal, forms]) => Object.values(forms).flatMap((build) => Array.from({ length: count }, () => {
     const start = buildState(faker);
     const example = build(faker, start);
 

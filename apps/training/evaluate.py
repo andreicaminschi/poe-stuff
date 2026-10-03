@@ -51,11 +51,11 @@ def by_goal(rows, hits):
     return {key: ratio(right, total) for key, (right, total) in sorted(groups.items())}
 
 
-def main(version):
+def main(version, split="eval"):
     commands = read_commands(version)
-    stop_rows = read_rows(version, "eval", "stop")
-    choose_rows = read_rows(version, "eval", "choose")
-    every_fill = read_rows(version, "eval", "fill")
+    stop_rows = read_rows(version, split, "stop")
+    choose_rows = read_rows(version, split, "choose")
+    every_fill = read_rows(version, split, "fill")
     fill_rows = every_fill[::max(1, len(every_fill) // FILL_LIMIT)][:FILL_LIMIT]  # spread over every goal
 
     decide_dir = output_dir(version, "decide")
@@ -93,6 +93,7 @@ def main(version):
 
     stats = {
         "version": version,
+        "split": split,
         "device": DEVICE,
         "stop_accuracy": ratio(sum(stop_hits), len(stop_hits)),
         "choose_accuracy": ratio(sum(choose_hits), len(choose_hits)),
@@ -104,10 +105,10 @@ def main(version):
         "ms_per_fill": round(fill_ms, 1),
         "eval_rows": {"stop": len(stop_rows), "choose": len(choose_rows), "fill": len(fill_rows)},
     }
-    with open(os.path.join(output_dir(version), "stats.json"), "w", encoding="utf-8") as file:
+    with open(os.path.join(output_dir(version), "stats.json" if split == "eval" else f"stats-{split}.json"), "w", encoding="utf-8") as file:
         json.dump(stats, file, indent=2)
     print(json.dumps(stats, indent=2))
 
 
 if __name__ == "__main__":
-    main(sys.argv[1])
+    main(*sys.argv[1:])

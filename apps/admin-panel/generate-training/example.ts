@@ -4,6 +4,9 @@ import type { PanelState } from "../types.ts";
 
 export type Form = "single" | "bulk" | "listed";
 
+/** `seen` trains and evaluates. `unseen` only evaluates, so its wordings never reach training. */
+export type PatternSet = "seen" | "unseen";
+
 /** One generated request: the query, the names its context describes, and the commands that solve it. */
 export type Example = {
   readonly goal: string;
