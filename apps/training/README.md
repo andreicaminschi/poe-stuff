@@ -12,6 +12,13 @@ methodology can be trained at several sample sizes side by side:
 yarn agent:train --name count-50 --count 50
 ```
 
+`--qlora` trains the filler on 4-bit base weights through Unsloth: much less GPU memory, a small
+accuracy risk. Compare its `agent:eval` args score with a bf16 run at the same count.
+
+```bash
+yarn agent:train --name qlora-50 --count 50 --qlora
+```
+
 Score it. Add `--e2e` for the full end-to-end benchmark:
 
 ```bash

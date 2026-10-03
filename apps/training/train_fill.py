@@ -15,6 +15,7 @@ from rows import fill_messages, format_args, output_dir, read_rows
 BASE = os.environ.get("FILL_BASE", "Qwen/Qwen2.5-0.5B-Instruct")
 IGNORE = -100
 MAX_SEQ_LENGTH = 2048
+QLORA = os.environ.get("FILL_QLORA", "0") == "1"
 
 
 def encode(tokenizer, row):
@@ -40,7 +41,8 @@ def main(version):
     tokenizer = AutoTokenizer.from_pretrained(BASE)
     train = [encode(tokenizer, row) for row in read_rows(version, "train", "fill")]
 
-    model, _ = FastLanguageModel.from_pretrained(BASE, max_seq_length=MAX_SEQ_LENGTH, dtype=torch.bfloat16, load_in_4bit=False)
+    print(f"filler: {'QLoRA, 4-bit base weights' if QLORA else 'LoRA, bf16 base weights'}", flush=True)
+    model, _ = FastLanguageModel.from_pretrained(BASE, max_seq_length=MAX_SEQ_LENGTH, dtype=torch.bfloat16, load_in_4bit=QLORA)
     model = FastLanguageModel.get_peft_model(
         model, r=16, lora_alpha=32, lora_dropout=0.05, bias="none",
         target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Generates one named version's data, then trains and exports both models from scratch.
-# Usage: bash apps/training/train.sh --name <name> [--count <n>]   (count defaults to 50)
+# Usage: bash apps/training/train.sh --name <name> [--count <n>] [--qlora]   (count defaults to 50)
+#   --qlora trains the filler on 4-bit base weights: much less GPU memory, small accuracy risk
 set -euo pipefail
 
 COUNT=50
@@ -11,7 +12,8 @@ while [ $# -gt 0 ]; do
     --count) COUNT="$2"; shift ;;
     --name=*) NAME="${1#*=}" ;;
     --name) NAME="$2"; shift ;;
-    *) echo "Unknown option $1. Use --name <name> [--count <n>]." >&2; exit 2 ;;
+    --qlora) export FILL_QLORA=1 ;;
+    *) echo "Unknown option $1. Use --name <name> [--count <n>] [--qlora]." >&2; exit 2 ;;
   esac
   shift
 done
