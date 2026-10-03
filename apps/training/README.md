@@ -4,16 +4,25 @@ Trains the admin panel's agent models from generated rows, then measures them th
 panel runs them. Python runs in a Podman container on the GPU. The benchmark runs in Node on
 the host, with the same libraries Electron loads.
 
+Generate a version's data, then train and export both models from scratch. The count is per
+goal and form, and names the version (`count-50`):
+
 ```bash
-bash apps/training/run-all.sh
+yarn agent:train 50
+```
+
+Score it. Add `--e2e` for the full end-to-end benchmark:
+
+```bash
+yarn agent:eval count-50
 ```
 
 ```bash
-bash apps/training/run-all.sh count-50
+yarn agent:eval count-50 --e2e
 ```
 
-`run-all.sh` skips every finished step, so a rerun resumes after a crash. Delete a file to
-redo its step.
+`agent:train` deletes the version's `output/` first. After a crash, `bash apps/training/run-all.sh
+count-50` resumes: it skips every finished step.
 
 ## Pipeline per version
 
@@ -23,7 +32,7 @@ redo its step.
 | `train_fill.py` | container | `training-data/train/fill` | `output/fill/`, the LoRA adapter |
 | `export.py` | container | both adapters | `output/runtime/`: `decide-fp32.onnx`, `decide-int8.onnx`, `fill-q8_0.gguf` |
 | `yarn admin-panel:eval-adapters` | host, Node | `output/runtime/`, `training-data/<split>/stop`, `choose`, `fill` | `output/eval-<split>-<device>-decide-<precision>.json` |
-| `yarn admin-panel:benchmark-agent` | host, Node, only with `E2E=1` | `output/runtime/`, `training-data/<split>/request` | `output/benchmark-<split>-<device>-decide-<precision>.json` |
+| `yarn admin-panel:benchmark-agent` | host, Node, only with `agent:eval --e2e` | `output/runtime/`, `training-data/<split>/request` | `output/benchmark-<split>-<device>-decide-<precision>.json` |
 
 The rows come from `yarn admin-panel:generate-training`. See the admin panel's generator.
 
@@ -37,8 +46,8 @@ splits only.
 
 | Test | Checks | Size | Runs |
 |---|---|---|---|
-| Quick eval | each model against its own labels: "done?", the next command, the args | 3 rows per goal and form (`--per-pair`), about 2 minutes | every `run-all.sh` |
-| End-to-end benchmark | the whole loop, request by request | every request | `E2E=1 bash apps/training/run-all.sh` |
+| Quick eval | each model against its own labels: "done?", the next command, the args | 3 rows per goal and form (`--per-pair`), about 2 minutes | `yarn agent:eval` |
+| End-to-end benchmark | the whole loop, request by request | every request | `yarn agent:eval <version> --e2e` |
 
 The quick eval feeds every row the right context and history, so a miss belongs to one model.
 The end-to-end benchmark does not.
