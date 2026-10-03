@@ -15,10 +15,10 @@ function playRecord(record: FeedbackRecord): ExampleRows | undefined {
 /**
  * Turns approved and edited interactions into stop, choose, fill and request rows, the same
  * shape the generator writes. The final steps are the label, so an edit teaches the
- * correction. Dismissed plans carry no right answer and are skipped. Low, Sonar 1.
+ * correction. Rejected plans carry no right answer and are skipped. Low, Sonar 1.
  */
 export function feedbackToRows(records: readonly FeedbackRecord[]): ExampleRows & { readonly skipped: number } {
-  const kept = records.filter((record) => record.verdict !== "dismissed").map(playRecord);
+  const kept = records.filter((record) => record.verdict !== "rejected").map(playRecord);
   const played = kept.filter((rows): rows is ExampleRows => rows !== undefined);
 
   return {

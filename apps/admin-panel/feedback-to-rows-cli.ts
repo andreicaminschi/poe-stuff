@@ -12,7 +12,7 @@ const main = async (): Promise<void> => {
   const { skipped, ...rows } = feedbackToRows(records);
 
   for (const [kind, list] of Object.entries(rows)) await lake.writeJson(`${OUTPUT}/${kind}.json`, list);
-  console.log(`${String(records.length)} interactions: ${String(rows.request.length)} kept, ${String(skipped)} skipped (dismissed or no longer runnable). Rows in .s3/${OUTPUT}/`);
+  console.log(`${String(records.length)} interactions: ${String(rows.request.length)} kept, ${String(skipped)} skipped (rejected or no longer runnable). Rows in .s3/${OUTPUT}/`);
 };
 
 await main();

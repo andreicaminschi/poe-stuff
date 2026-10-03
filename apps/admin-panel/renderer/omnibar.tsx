@@ -37,14 +37,19 @@ export function Omnibar() {
   };
 
   const onKey = (event: KeyboardEvent<HTMLInputElement>) => {
-    const listed = open && suggestions.length > 0;
+    const listed = open && suggestions[shown] !== undefined;
+    const completes = event.key === "Enter" || event.key === "Tab" || event.key === "ArrowRight";
+
+    if (listed && completes) {
+      event.preventDefault();
+      complete(suggestions[shown]!);
+      return;
+    }
     if (event.key === "ArrowDown" && listed) setHighlight((shown + 1) % suggestions.length);
     if (event.key === "ArrowUp" && listed) setHighlight((shown - 1 + suggestions.length) % suggestions.length);
-    if (event.key === "Tab" && listed && suggestions[shown] !== undefined) complete(suggestions[shown]);
+    if ((event.key === "ArrowDown" || event.key === "ArrowUp") && listed) event.preventDefault();
     if (event.key === "Escape") setOpen(false);
     if (event.key === "Enter") submit();
-    if (event.key === "Tab" && listed) event.preventDefault();
-    if ((event.key === "ArrowDown" || event.key === "ArrowUp") && listed) event.preventDefault();
   };
 
   return (
@@ -55,7 +60,7 @@ export function Omnibar() {
           disabled={planning}
           placeholder={planning
             ? "Planning…"
-            : "Tell the agent what to change. Tab completes a name, Enter plans."}
+            : "Tell the agent what to change. Enter, Tab or → picks a name; Enter with no list plans."}
           onChange={(event) => {
             setText(event.target.value);
             setHighlight(0);

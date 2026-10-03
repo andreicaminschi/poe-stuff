@@ -6,7 +6,7 @@ import type { ConditionValue } from "../types.ts";
 export type SampledCondition = { readonly key: string; readonly values: readonly ConditionValue[]; readonly text: string };
 
 const RARITIES = ["Normal", "Magic", "Rare", "Unique"];
-const FLAGS = ["Fractured", "Corrupted", "Mirrored", "Synthesised", "Identified"];
+const FLAGS = ["FracturedItem", "Corrupted", "Mirrored", "SynthesisedItem", "Identified"];
 const RANGES = [
   { key: "ItemLevel", min: 1, max: 86 },
   { key: "Quality", min: 0, max: 30 },

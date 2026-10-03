@@ -156,8 +156,9 @@ person does. `apps/catalog` and `apps/taxonomy` predate it and are exempt.
 - **Agents only propose.** The agent runs on a copy of the state and returns a plan. Nothing
   reaches the real state until the user approves the plan in a modal; the approved steps are
   dispatched like any other command. Commands are not signed in this phase.
-- **Every agent interaction is kept.** Approve, edit or dismiss, each plan is written to
-  `.s3/admin-panel/agent-feedback/` with the final steps, for training.
+- **Every reviewed agent plan is kept.** Accept (as proposed or edited) or Reject writes the
+  plan, the final steps and the reviewer's notes to `.s3/admin-panel/agent-feedback/`, for
+  training. Dismiss closes the plan and keeps nothing.
 
 The admin panel is the reference implementation. Each command is two files in `commands/`:
 

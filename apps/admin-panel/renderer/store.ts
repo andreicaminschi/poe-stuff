@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { canonicalJson } from "../canonical-json.ts";
 import type { Command, StateCommand } from "../commands.ts";
-import type { AgentPlan } from "../panel-api.ts";
+import type { AgentPlan, FeedbackNotes, FeedbackVerdict } from "../panel-api.ts";
 import { findSeeder } from "../panel-state.ts";
 import { formatSeederKey, readSeederCategory, readSeederName } from "../seeder-key.ts";
 import type { Category, ItemData, PanelState, Seeder, WalEntry } from "../types.ts";
@@ -43,7 +43,8 @@ type Store = {
   readonly toggleSeeder: (key: string) => void;
   readonly dropSeeder: (key: string) => void;
   readonly askAgent: (query: string) => Promise<void>;
-  readonly approvePlan: (steps: readonly StateCommand[]) => Promise<void>;
+  readonly approvePlan: (steps: readonly StateCommand[], notes: FeedbackNotes) => Promise<void>;
+  readonly rejectPlan: (notes: FeedbackNotes) => void;
   readonly dismissPlan: () => void;
   readonly setQuery: (query: string) => void;
   readonly setView: (view: View) => void;
@@ -97,8 +98,8 @@ function mirror(panel: PanelState): Pick<Store, "loaded" | "pending"> {
 let queue: Promise<unknown> = Promise.resolve();
 
 /** Keeps one agent interaction as training data. A failed write never blocks the panel. Low, Sonar 0. */
-function sendFeedback(plan: AgentPlan, final: readonly StateCommand[], verdict: "approved" | "edited" | "dismissed"): void {
-  void window.panel.feedback({ id: crypto.randomUUID(), at: new Date().toISOString(), plan, final, verdict }).catch(() => undefined);
+function sendFeedback(plan: AgentPlan, final: readonly StateCommand[], verdict: FeedbackVerdict, notes: FeedbackNotes): void {
+  void window.panel.feedback({ id: crypto.randomUUID(), at: new Date().toISOString(), plan, final, verdict, notes }).catch(() => undefined);
 }
 
 export const usePanel = create<Store>()((set, get) => ({
@@ -174,7 +175,7 @@ export const usePanel = create<Store>()((set, get) => ({
     set({ planning: false });
   },
 
-  approvePlan: async (steps) => {
+  approvePlan: async (steps, notes) => {
     const { plan, dispatch } = get();
     if (plan === undefined) return;
 
@@ -185,15 +186,17 @@ export const usePanel = create<Store>()((set, get) => ({
     }
     sendFeedback(plan, steps, canonicalJson(steps) === canonicalJson(plan.steps) && plan.failedStep === undefined
       ? "approved"
-      : "edited");
+      : "edited", notes);
     if (get().error === undefined) set({ plan: undefined });
   },
 
-  dismissPlan: () => {
+  rejectPlan: (notes) => {
     const { plan } = get();
-    if (plan !== undefined) sendFeedback(plan, [], "dismissed");
+    if (plan !== undefined) sendFeedback(plan, [], "rejected", notes);
     set({ plan: undefined });
   },
+
+  dismissPlan: () => set({ plan: undefined }),
 
   setQuery: (query) => set({ query }),
   setView: (view) => get().guard(() => set({ view })),

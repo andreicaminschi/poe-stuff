@@ -20,15 +20,19 @@ export type AgentPlan = {
   readonly ms: number;
 };
 
-export type FeedbackVerdict = "approved" | "edited" | "dismissed";
+export type FeedbackVerdict = "approved" | "edited" | "rejected";
 
-/** One interaction with the agent, kept as training data. */
+/** What the reviewer wrote: one note on the whole plan, one per proposed step. */
+export type FeedbackNotes = { readonly plan: string; readonly steps: readonly string[] };
+
+/** One reviewed interaction with the agent, kept as training data. */
 export type FeedbackRecord = {
   readonly id: string;
   readonly at: string;
   readonly plan: AgentPlan;
   readonly final: readonly StateCommand[];
   readonly verdict: FeedbackVerdict;
+  readonly notes: FeedbackNotes;
 };
 
 export type PanelApi = {
