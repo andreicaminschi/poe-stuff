@@ -3,6 +3,7 @@ import { canonicalJson } from "./canonical-json.ts";
 import type { StateCommand } from "./commands.ts";
 import { percentiles } from "./benchmark-agent.ts";
 import type { ChooseRow, FillRow, StopRow } from "./generate-training/play-example.ts";
+import { startProgress } from "./progress-line.ts";
 import type { AgentModels } from "./run-agent.ts";
 import { STOP_QUESTION, writeCommandQuestion, writeDecideText, writeFillPrompt } from "./run-agent/prompts.ts";
 
@@ -56,18 +57,28 @@ function report(scored: readonly Scored[]) {
  * and history: the decision model on "done?" and on the next command, the filler on its args.
  * Low, Sonar 0.
  */
-export async function evalAdapters(models: AgentModels, stop: readonly StopRow[], choose: readonly ChooseRow[], fill: readonly FillRow[]) {
+export async function evalAdapters(label: string, models: AgentModels, stop: readonly StopRow[], choose: readonly ChooseRow[], fill: readonly FillRow[]) {
   const stopScored: Scored[] = [];
-  for (const row of stop) stopScored.push(await score(row, () => models.scoreYes([writeDecideText(row, STOP_QUESTION)]), ([yes = 0]) => (yes >= 0.5) === row.done));
+  const stopDone = startProgress(`${label} "done?" rows`, stop.length);
+  for (const row of stop) {
+    stopScored.push(await score(row, () => models.scoreYes([writeDecideText(row, STOP_QUESTION)]), ([yes = 0]) => (yes >= 0.5) === row.done));
+    stopDone();
+  }
 
   const chooseScored: Scored[] = [];
+  const chooseDone = startProgress(`${label} next-command rows`, choose.length);
   for (const row of choose) {
     chooseScored.push(await score(row, () => models.scoreYes(models.commands.map((command) => writeDecideText(row, writeCommandQuestion(command)))), (scores) =>
       models.commands[scores.indexOf(Math.max(...scores))] === row.command));
+    chooseDone();
   }
 
   const fillScored: Scored[] = [];
-  for (const row of fill) fillScored.push(await score(row, () => models.fillParams(writeFillPrompt(row, row.command)), (answer) => isSameArgs(answer, row.args)));
+  const fillDone = startProgress(`${label} args rows`, fill.length);
+  for (const row of fill) {
+    fillScored.push(await score(row, () => models.fillParams(writeFillPrompt(row, row.command)), (answer) => isSameArgs(answer, row.args)));
+    fillDone();
+  }
 
   return { stop: report(stopScored), choose: report(chooseScored), fill: report(fillScored) };
 }

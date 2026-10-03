@@ -6,6 +6,7 @@ import type { StateCommand } from "./commands.ts";
 import { benchmarkRequest, readGpuMemory, spreadSample, summarize, type RequestResult } from "./benchmark-agent.ts";
 import type { RequestRow } from "./generate-training/play-example.ts";
 import { loadDecide } from "./run-agent/load-decide.ts";
+import { startProgress } from "./progress-line.ts";
 import { loadFill } from "./run-agent/load-fill.ts";
 
 const { values } = parseArgs({
@@ -28,6 +29,7 @@ const main = async (): Promise<void> => {
 
   const gpuBefore = await readGpuMemory();
   const loadStarted = performance.now();
+  console.log(`Loading ${values.version} models on ${values.device}…`);
   const models = { scoreYes: await loadDecide(runtime, gpu, values.decide === "fp32"
     ? "fp32"
     : "int8"), fillParams: await loadFill(runtime, gpu), commands };
@@ -38,9 +40,11 @@ const main = async (): Promise<void> => {
   for (const split of values.splits.split(",")) {
     const requests = spreadSample(await lake.readJson<readonly RequestRow[]>(`${root}/training-data/${split}/request.json`), Number(values.limit));
     const results: RequestResult[] = [];
+    const requestDone = startProgress(`${values.version} ${split} ${values.device} requests`, requests.length);
     for (const request of requests) {
       results.push(await benchmarkRequest(models, request));
       peakRss = Math.max(peakRss, process.memoryUsage().rss);
+      requestDone();
     }
 
     const report = {

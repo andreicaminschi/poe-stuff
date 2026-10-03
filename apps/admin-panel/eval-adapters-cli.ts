@@ -25,12 +25,14 @@ const main = async (): Promise<void> => {
   const gpu = values.device === "gpu";
   const perPair = Number(values["per-pair"]);
   const commands = await lake.readJson<CommandList>(`${root}/training-data/commands.json`);
+  console.log(`Loading ${values.version} models on ${values.device}…`);
   const models = { scoreYes: await loadDecide(runtime, gpu, values.decide === "int8" ? "int8" : "fp32"), fillParams: await loadFill(runtime, gpu), commands };
 
   for (const split of values.splits.split(",")) {
     const started = performance.now();
     const read = <T>(kind: string) => lake.readJson<readonly T[]>(`${root}/training-data/${split}/${kind}.json`);
     const scores = await evalAdapters(
+      `${values.version} ${split}`,
       models,
       samplePerPair(await read<StopRow>("stop"), perPair),
       samplePerPair(await read<ChooseRow>("choose"), perPair),
