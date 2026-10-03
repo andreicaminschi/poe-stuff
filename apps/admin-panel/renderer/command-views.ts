@@ -1,0 +1,27 @@
+import type { ReactElement } from "react";
+import type { Command } from "../commands.ts";
+import { CreateCategoryView } from "../commands/create-category.renderer.tsx";
+import { CreateSeederView } from "../commands/create-seeder.renderer.tsx";
+import { DeleteCategoryView } from "../commands/delete-category.renderer.tsx";
+import { DeleteSeederView } from "../commands/delete-seeder.renderer.tsx";
+import { MoveSeederView } from "../commands/move-seeder.renderer.tsx";
+import { ReplaceSeederView } from "../commands/replace-seeder.renderer.tsx";
+import { SaveView } from "../commands/save.renderer.tsx";
+import { UndoView } from "../commands/undo.renderer.tsx";
+import { UpdateSeederView } from "../commands/update-seeder.renderer.tsx";
+
+type CommandViews = {
+  readonly [K in Command["type"]]: (props: { readonly command: Extract<Command, { readonly type: K }> }) => ReactElement;
+};
+
+export const commandViews: CommandViews = {
+  save: SaveView,
+  createCategory: CreateCategoryView,
+  deleteCategory: DeleteCategoryView,
+  createSeeder: CreateSeederView,
+  updateSeeder: UpdateSeederView,
+  replaceSeeder: ReplaceSeederView,
+  moveSeeder: MoveSeederView,
+  deleteSeeder: DeleteSeederView,
+  undo: UndoView,
+};

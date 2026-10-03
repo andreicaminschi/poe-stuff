@@ -7,6 +7,12 @@ export type Seeder = {
   readonly tags: readonly string[];
 };
 
+export type SeederPatch = {
+  readonly knownItems?: readonly string[];
+  readonly tags?: readonly string[];
+  readonly conditions?: Readonly<Record<string, readonly ConditionValue[]>>;
+};
+
 export type Category = {
   readonly name: string;
   readonly seeders: readonly Seeder[];
@@ -21,6 +27,17 @@ export type WalEntry = {
   readonly before?: Seeder;
   readonly after?: Seeder;
   readonly undoes?: string;
+  readonly actor?: string;
+  readonly onBehalfOf?: string;
+  readonly approval?: string;
+};
+
+export type PanelState = {
+  readonly version: string;
+  readonly state: ManifestEntry["state"];
+  readonly categories: readonly Category[];
+  readonly log: readonly WalEntry[];
+  readonly pending: readonly WalEntry[];
 };
 
 export type CategoriesFile = {
