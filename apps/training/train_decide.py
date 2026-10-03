@@ -34,7 +34,7 @@ def main(version):
     train = Pairs(tokenizer, decide_pairs(read_rows(version, "train", "stop"), read_rows(version, "train", "choose"), commands))
     held = Pairs(tokenizer, decide_pairs(read_rows(version, "eval", "stop")[:2000], read_rows(version, "eval", "choose")[:300], commands))
 
-    model = AutoModelForSequenceClassification.from_pretrained(BASE, num_labels=2)
+    model = AutoModelForSequenceClassification.from_pretrained(BASE, num_labels=2, reference_compile=False)  # image has no C compiler
     model = get_peft_model(model, LoraConfig(
         task_type=TaskType.SEQ_CLS, r=16, lora_alpha=32, lora_dropout=0.1,
         target_modules=["Wqkv", "Wo", "Wi"], modules_to_save=["head", "classifier"],

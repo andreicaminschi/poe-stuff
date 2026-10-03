@@ -55,11 +55,12 @@ def main(version):
     commands = read_commands(version)
     stop_rows = read_rows(version, "eval", "stop")
     choose_rows = read_rows(version, "eval", "choose")
-    fill_rows = read_rows(version, "eval", "fill")[:FILL_LIMIT]
+    every_fill = read_rows(version, "eval", "fill")
+    fill_rows = every_fill[::max(1, len(every_fill) // FILL_LIMIT)][:FILL_LIMIT]  # spread over every goal
 
     decide_dir = output_dir(version, "decide")
     decide_tokenizer = AutoTokenizer.from_pretrained(decide_dir)
-    decide = PeftModel.from_pretrained(AutoModelForSequenceClassification.from_pretrained(DECIDE_BASE, num_labels=2), decide_dir).to(DEVICE).eval()
+    decide = PeftModel.from_pretrained(AutoModelForSequenceClassification.from_pretrained(DECIDE_BASE, num_labels=2, reference_compile=False), decide_dir).to(DEVICE).eval()
 
     started = time.perf_counter()
     stop_scores = yes_probabilities(decide, decide_tokenizer, [decide_text(row, STOP_QUESTION) for row in stop_rows])
