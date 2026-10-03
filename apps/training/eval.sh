@@ -1,17 +1,29 @@
 #!/usr/bin/env bash
 # Scores one trained version on its eval splits, with the panel's own runtime.
-# Usage: bash apps/training/eval.sh [version] [--e2e]   (default count-50)
+# Usage: bash apps/training/eval.sh --name <name> [--e2e]
 #   quick eval always: each model against its own labels, about 2 minutes
-#   --e2e adds the end-to-end benchmark: every request, GPU, plus a CPU sample
+#   --e2e adds the end-to-end benchmark: every request on GPU, plus a CPU sample
 set -euo pipefail
 
-VERSION="${1:-count-50}"
+NAME=""
+E2E=0
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --name=*) NAME="${1#*=}" ;;
+    --name) NAME="$2"; shift ;;
+    --e2e) E2E=1 ;;
+    *) echo "Unknown option $1. Use --name <name> [--e2e]." >&2; exit 2 ;;
+  esac
+  shift
+done
+[ -n "$NAME" ] || { echo "Pass --name, e.g. --name count-50." >&2; exit 2; }
+
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
 
-node apps/admin-panel/eval-adapters-cli.ts --version="$VERSION" --device=cpu
+node apps/admin-panel/eval-adapters-cli.ts --version="$NAME" --device=cpu
 
-if [ "${2:-}" = "--e2e" ]; then
-  node apps/admin-panel/benchmark-agent-cli.ts --version="$VERSION" --device=gpu
-  node apps/admin-panel/benchmark-agent-cli.ts --version="$VERSION" --device=cpu --limit=200
+if [ "$E2E" = 1 ]; then
+  node apps/admin-panel/benchmark-agent-cli.ts --version="$NAME" --device=gpu
+  node apps/admin-panel/benchmark-agent-cli.ts --version="$NAME" --device=cpu --limit=200
 fi

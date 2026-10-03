@@ -1,19 +1,31 @@
 #!/usr/bin/env bash
-# Generates one version's data, then trains and exports both models from scratch.
-# Usage: bash apps/training/train.sh [count]   (default 50, version count-<count>)
+# Generates one named version's data, then trains and exports both models from scratch.
+# Usage: bash apps/training/train.sh --name <name> [--count <n>]   (count defaults to 50)
 set -euo pipefail
 
-COUNT="${1:-50}"
-VERSION="count-$COUNT"
+COUNT=50
+NAME=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --count=*) COUNT="${1#*=}" ;;
+    --count) COUNT="$2"; shift ;;
+    --name=*) NAME="${1#*=}" ;;
+    --name) NAME="$2"; shift ;;
+    *) echo "Unknown option $1. Use --name <name> [--count <n>]." >&2; exit 2 ;;
+  esac
+  shift
+done
+[ -n "$NAME" ] || { echo "Pass --name, e.g. --name count-50." >&2; exit 2; }
+
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
 
-echo "=== generate $VERSION $(date -Is)"
-node apps/admin-panel/generate-training-cli.ts --count="$COUNT"
-node apps/admin-panel/generate-training-cli.ts --count="$COUNT" --unseen-only
+echo "=== generate $NAME, $COUNT per goal and form $(date -Is)"
+node apps/admin-panel/generate-training-cli.ts --version="$NAME" --count="$COUNT"
+node apps/admin-panel/generate-training-cli.ts --version="$NAME" --count="$COUNT" --unseen-only
 
-echo "=== train $VERSION $(date -Is)"
-rm -rf ".s3/training/$VERSION/output"
-bash apps/training/run-all.sh "$VERSION"
+echo "=== train $NAME $(date -Is)"
+rm -rf ".s3/training/$NAME/output"
+bash apps/training/run-all.sh "$NAME"
 
-echo "=== $VERSION trained $(date -Is). Evaluate with: bash apps/training/eval.sh $VERSION"
+echo "=== $NAME trained $(date -Is). Evaluate with: yarn agent:eval --name $NAME"

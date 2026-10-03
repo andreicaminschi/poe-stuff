@@ -4,25 +4,26 @@ Trains the admin panel's agent models from generated rows, then measures them th
 panel runs them. Python runs in a Podman container on the GPU. The benchmark runs in Node on
 the host, with the same libraries Electron loads.
 
-Generate a version's data, then train and export both models from scratch. The count is per
-goal and form, and names the version (`count-50`):
+Generate a named version's data, then train and export both models from scratch. `--count` is
+examples per goal and form (default 50). `--name` is the folder under `.s3/training/`, so one
+methodology can be trained at several sample sizes side by side:
 
 ```bash
-yarn agent:train 50
+yarn agent:train --name count-50 --count 50
 ```
 
 Score it. Add `--e2e` for the full end-to-end benchmark:
 
 ```bash
-yarn agent:eval count-50
+yarn agent:eval --name count-50
 ```
 
 ```bash
-yarn agent:eval count-50 --e2e
+yarn agent:eval --name count-50 --e2e
 ```
 
-`agent:train` deletes the version's `output/` first. After a crash, `bash apps/training/run-all.sh
-count-50` resumes: it skips every finished step.
+`agent:train` regenerates the data and deletes the version's `output/` first. After a crash,
+`bash apps/training/run-all.sh <name>` resumes: it skips every finished step.
 
 ## Pipeline per version
 
@@ -47,7 +48,7 @@ splits only.
 | Test | Checks | Size | Runs |
 |---|---|---|---|
 | Quick eval | each model against its own labels: "done?", the next command, the args | 3 rows per goal and form (`--per-pair`), about 2 minutes | `yarn agent:eval` |
-| End-to-end benchmark | the whole loop, request by request | every request | `yarn agent:eval <version> --e2e` |
+| End-to-end benchmark | the whole loop, request by request | every request | `yarn agent:eval --name <name> --e2e` |
 
 The quick eval feeds every row the right context and history, so a miss belongs to one model.
 The end-to-end benchmark does not.
