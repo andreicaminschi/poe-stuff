@@ -125,7 +125,7 @@ seeder edit is a log entry; Save appends them to the version's `wal.json` before
 
 The omni bar takes agent instructions, not searches: Tab completes a known name, Enter asks
 the agent for a plan. A picker in the bar lists every trained version under `.s3/training/`,
-newest first; the picked one loads on its first plan, on CPU, replacing the one loaded before. Applied filters show as chips below the bar; item search lives in the items
+newest first; the picked one loads on its first plan, on the GPU, replacing the one loaded before. Applied filters show as chips below the bar; item search lives in the items
 view, and a seeder filter is toggled from its row. `yarn admin-panel:feedback-to-rows` turns
 the kept interactions into training rows under `.s3/training/feedback/training-data/`. The
 models are trained by `apps/training`; see [apps/training/README.md](apps/training/README.md).

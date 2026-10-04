@@ -62,13 +62,13 @@ function enqueue<T>(step: () => Promise<T>): Promise<T> {
   return result;
 }
 
-/** Loads one trained version's models, on CPU. Low, Sonar 0. */
+/** Loads one trained version's models on the GPU: DirectML for decisions, CUDA for fills. Low, Sonar 0. */
 async function loadAgent(name: string): Promise<{ readonly models: AgentModels; readonly model: string }> {
   const runtime = runtimeOf(TRAINING_ROOT, name);
   const commands = await lake.readJson<readonly DecisionOption[]>(`training/${name}/training-data/commands.json`);
 
   return {
-    models: { scoreYes: await loadDecide(runtime, false, "fp32"), fillParams: await loadFill(runtime, false), commands },
+    models: { scoreYes: await loadDecide(runtime, true, "fp32"), fillParams: await loadFill(runtime, true), commands },
     model: name,
   };
 }
