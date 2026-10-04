@@ -22,10 +22,15 @@ yarn agent:train --name qlora-50 --count 50 --qlora
 `--dropout` sets the filler's LoRA dropout (default `0.05`). At `0`, Unsloth uses its fused
 kernels, which are faster.
 
-Score it. Add `--e2e` for the full end-to-end benchmark:
+Score it. `--device gpu` runs the quick eval on the GPU (default `cpu`). Add `--e2e` for the full
+end-to-end benchmark:
 
 ```bash
 yarn agent:eval --name count-50
+```
+
+```bash
+yarn agent:eval --name count-50 --device gpu
 ```
 
 ```bash
