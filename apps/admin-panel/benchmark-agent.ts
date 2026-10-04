@@ -12,7 +12,7 @@ export type RequestResult = { readonly goal: string; readonly form: string; read
 
 /** Names why a request passed or failed. Low, Sonar 4. */
 function judge(request: RequestRow, run: AgentRun, same: boolean): string {
-  if (request.unclear === true) return run.outcome === "unclear"
+  if (request.unclear === true) return run.outcome === "unclear" || run.outcome === "refused"
     ? "pass"
     : "acted on an unclear request";
   if (run.outcome === "unclear") return "asked to rephrase a clear request";
@@ -75,7 +75,7 @@ export async function readGpuMemory(): Promise<number | undefined> {
 }
 
 /** Sums every result into the report one benchmark run writes. Low, Sonar 0. */
-export const summarize = (results: readonly RequestResult[], commands: readonly StateCommand["type"][]) => ({
+export const summarize = (results: readonly RequestResult[]) => ({
   requests: results.length,
   passRate: Number((results.filter((result) => result.pass).length / Math.max(results.length, 1)).toFixed(4)),
   verdicts: countBy(results, (result) => result.verdict),
@@ -88,5 +88,4 @@ export const summarize = (results: readonly RequestResult[], commands: readonly 
     fill: percentiles(results.flatMap((result) => result.run.turns.map((turn) => turn.fillMs))),
     request: percentiles(results.map((result) => result.ms)),
   },
-  commandsScoredPerChoose: commands.length,
 });

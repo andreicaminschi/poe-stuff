@@ -1,4 +1,5 @@
-import { executeCommand, type StateCommand } from "../commands.ts";
+import { COMMAND_PARTS, type Action, type Target } from "../command-parts.ts";
+import { executeCommand, type StateCommand, type ToolType } from "../commands.ts";
 import { formatContext } from "../format-context.ts";
 import type { PanelState } from "../types.ts";
 import { CONDITION_FORMATS, expandCommand } from "../condition-values.ts";
@@ -9,8 +10,12 @@ const STAMP = { id: "generated", at: "1970-01-01T00:00:00.000Z", actor: "generat
 
 type RowBase = { readonly goal: string; readonly form: string; readonly query: string; readonly context: string; readonly history: readonly string[] };
 
-export type StopRow = RowBase & { readonly done: boolean };
-export type ChooseRow = RowBase & { readonly command: DecisionOption };
+/** Why the loop stops or goes on. Only the two `done-` reasons stop it. */
+export type StopReason = "done-applied" | "done-already-true" | "not-done-nothing-run";
+
+export type StopRow = RowBase & { readonly reason: StopReason };
+/** The command, and its parts: the labels the choose adapter trains on. Rephrase has no target. */
+export type ChooseRow = RowBase & { readonly command: DecisionOption; readonly action: Action; readonly target?: Target };
 export type FillRow = RowBase & { readonly command: StateCommand["type"]; readonly args: Readonly<Record<string, unknown>> };
 
 /** One whole request, for scoring the loop end to end: where it starts and where it must end. */
@@ -61,8 +66,10 @@ export function playExample(example: Example, start: PanelState): ExampleRows {
   const last = bases.at(-1) ?? bases[0]!;
 
   return {
-    stop: [...turns.map(({ base }) => ({ ...base, done: false })), { ...last, done: true }],
-    choose: turns.map(({ base, type }) => ({ ...base, command: type })),
+    stop: [...turns.map(({ base }) => ({ ...base, reason: "not-done-nothing-run" as const })), { ...last, reason: turns.length === 0
+      ? "done-already-true" as const
+      : "done-applied" as const }],
+    choose: turns.map(({ base, type }) => ({ ...base, command: type, ...COMMAND_PARTS[type as ToolType] })),
     fill: turns.map(({ base, type, args }) => ({ ...base, command: type, args })),
     request: [{
       goal: example.goal,
@@ -81,8 +88,8 @@ function playUnclear(example: Example, start: PanelState): ExampleRows {
   const base = { goal: example.goal, form: example.form, query: example.query, context: formatContext(start, CONDITION_FORMATS, example.names), history: [] };
 
   return {
-    stop: [{ ...base, done: false }],
-    choose: [{ ...base, command: REPHRASE }],
+    stop: [{ ...base, reason: "not-done-nothing-run" }],
+    choose: [{ ...base, command: REPHRASE, action: "rephrase" }],
     fill: [],
     request: [{ goal: example.goal, form: example.form, query: example.query, names: example.names, turns: 0, unclear: true, start: keepPanel(start), expected: keepPanel(start) }],
   };

@@ -1,18 +1,20 @@
 import { performance } from "node:perf_hooks";
-import { executeCommand, type StateCommand } from "./commands.ts";
+import { executeCommand, type StateCommand, type ToolType } from "./commands.ts";
 import { formatContext } from "./format-context.ts";
 import { CONDITION_FORMATS, expandCommand } from "./condition-values.ts";
-import { REPHRASE, type DecisionOption } from "./decision-options.ts";
+import { REPHRASE } from "./decision-options.ts";
+import { listTools } from "./list-tools.ts";
 import type { Stamp } from "./panel-state.ts";
+import { readHead, topLabel, type RunAdapter } from "./run-agent/load-encoder.ts";
 import type { FillParams } from "./run-agent/load-fill.ts";
-import type { ScoreYes } from "./run-agent/load-decide.ts";
-import { STOP_QUESTION, writeCommandQuestion, writeDecideText, writeFillPrompt } from "./run-agent/prompts.ts";
+import { pickCommand } from "./run-agent/pick-command.ts";
+import { describeTurn, writeFillUser } from "./run-agent/prompts.ts";
 import type { PanelState } from "./types.ts";
 
 const MAX_TURNS = 5;
-const MIN_CHOOSE_SCORE = 0.5;
+const TOOLS = listTools();
 
-export type AgentModels = { readonly scoreYes: ScoreYes; readonly fillParams: FillParams; readonly commands: readonly DecisionOption[] };
+export type AgentModels = { readonly runAdapter: RunAdapter; readonly fillParams: FillParams };
 
 export type AgentTurn = {
   readonly stopMs: number;
@@ -22,7 +24,7 @@ export type AgentTurn = {
   readonly answer: string;
 };
 
-export type AgentOutcome = "done" | "unclear" | "turn limit" | "invalid json" | "command failed";
+export type AgentOutcome = "done" | "unclear" | "refused" | "turn limit" | "invalid json" | "command failed";
 
 export type AgentRun = {
   readonly state: PanelState;
@@ -61,9 +63,9 @@ function tryExecute(state: PanelState, command: StateCommand, stamp: Stamp): Pan
 }
 
 /**
- * The agentic loop: ask "done?", pick the next command, fill its params, run it on the
- * state, repeat. Stops when the model says done, when it picks "rephrase" or no command
- * scores at least `MIN_CHOOSE_SCORE`, at the turn limit, or on a command it cannot run.
+ * The agentic loop: the stop adapter says whether to stop, the choose adapter picks the
+ * tool, the filler fills its schema, and the command runs on the state. Stops on a `done-`
+ * reason, on rephrase, on a refusal, at the turn limit, or on a command it cannot run.
  * Medium, Sonar 5.
  */
 export async function runAgent(models: AgentModels, start: PanelState, query: string, names: readonly string[], stamp: Stamp): Promise<AgentRun> {
@@ -74,23 +76,23 @@ export async function runAgent(models: AgentModels, start: PanelState, query: st
 
   while (turns.length < MAX_TURNS) {
     const turn = { query, context: formatContext(state, CONDITION_FORMATS, names), history };
-    const stop = await timed(() => models.scoreYes([writeDecideText(turn, STOP_QUESTION)]));
-    if ((stop.value[0] ?? 0) >= 0.5) return { state, turns, lastStopMs: stop.ms, outcome: "done", commands };
+    const text = describeTurn(turn);
+    const stop = await timed(() => models.runAdapter("stop", [text]));
+    if (topLabel(readHead(stop.value, "stop")).startsWith("done-")) return { state, turns, lastStopMs: stop.ms, outcome: "done", commands };
 
-    const choose = await timed(() => models.scoreYes(models.commands.map((command) => writeDecideText(turn, writeCommandQuestion(command)))));
-    const top = Math.max(...choose.value);
-    const picked = models.commands[choose.value.indexOf(top)] ?? REPHRASE;
-    if (picked === REPHRASE || top < MIN_CHOOSE_SCORE) return { state, turns, lastStopMs: stop.ms, outcome: "unclear", commands };
+    const choose = await timed(() => models.runAdapter("choose", [text]));
+    const picked = pickCommand(readHead(choose.value, "action"), readHead(choose.value, "target"));
+    if (picked === REPHRASE) return { state, turns, lastStopMs: stop.ms, outcome: "unclear", commands };
 
-    const type = picked;
-    const fill = await timed(() => models.fillParams(writeFillPrompt(turn, type)));
+    const type: ToolType = picked;
+    const fill = await timed(() => models.fillParams(type, writeFillUser(turn, type, TOOLS[type].fields)));
     turns.push({ stopMs: stop.ms, chooseMs: choose.ms, fillMs: fill.ms, command: type, answer: fill.value });
 
     const params = readParams(fill.value);
     if (params === undefined) return { state, turns, lastStopMs: 0, outcome: "invalid json", commands };
+    if ("refuse" in params) return { state, turns, lastStopMs: 0, outcome: "refused", commands };
 
-    const { type: _answeredType, ...args } = params;
-    const command = { type, ...args } as StateCommand;
+    const command = { type, ...params } as StateCommand;
     const next = tryExecute(state, command, stamp);
     if (next === undefined) return { state, turns, lastStopMs: 0, outcome: "command failed", commands };
 

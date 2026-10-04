@@ -12,15 +12,15 @@ methodology can be trained at several sample sizes side by side:
 yarn agent:train --name count-50 --count 50
 ```
 
-`--qlora` trains the filler on 4-bit base weights through Unsloth: much less GPU memory, a small
-accuracy risk. Compare its `agent:eval` args score with a bf16 run at the same count.
+`--decide-model` and `--fill-model` pick the Hugging Face bases. `--encoder-precision fp32|fp16`
+and `--fill-quant q8_0|q4_k_m` set the exported size; both default to full size.
 
 ```bash
-yarn agent:train --name qlora-50 --count 50 --qlora
+yarn agent:train --name ettin-lfm2 --count 100 --decide-model jhu-clsp/ettin-encoder-150m --fill-model LiquidAI/LFM2-350M
 ```
 
-`--dropout` sets the filler's LoRA dropout (default `0.05`). At `0`, Unsloth uses its fused
-kernels, which are faster.
+`--dropout` sets the filler's LoRA dropout (default `0`, Unsloth's fused kernels). The filler
+trains plain LoRA on the bf16 base.
 
 Score it. The quick eval runs on the GPU, as the panel does; `--device cpu` runs it on the CPU. Add `--e2e` for the full
 end-to-end benchmark:
@@ -44,13 +44,32 @@ yarn agent:eval --name count-50 --e2e
 
 | Step | Runs | Reads | Writes |
 |---|---|---|---|
-| `train_decide.py` | container | `training-data/train/stop`, `choose` | `output/decide/`, the LoRA adapter |
-| `train_fill.py` | container | `training-data/train/fill` | `output/fill/`, the LoRA adapter |
-| `export.py` | container | both adapters | `output/runtime/`: `decide-fp32.onnx`, `decide-int8.onnx`, `fill-q8_0.gguf` |
-| `yarn admin-panel:eval-adapters` | host, Node | `output/runtime/`, `training-data/<split>/stop`, `choose`, `fill` | `output/eval-<split>-<device>-decide-<precision>.json` |
-| `yarn admin-panel:benchmark-agent` | host, Node, only with `agent:eval --e2e` | `output/runtime/`, `training-data/<split>/request` | `output/benchmark-<split>-<device>-decide-<precision>.json` |
+| `train_encoder.py <v> stop\|choose\|entry\|intent` | container | `training-data/train/<adapter>` | `output/<adapter>/adapter.safetensors`: LoRA A/B and the heads |
+| `train_fill.py` | container | `training-data/train/fill`, `tools.json` | `output/fill/`, the LoRA adapter |
+| `export.py` | container | every adapter | `output/runtime/`: `encoder-base.onnx`, one `<adapter>.safetensors` each, `fill.gguf`, `fill-prompt.json` |
+| `yarn admin-panel:eval-adapters` | host, Node | `output/runtime/`, `training-data/<split>/*` | `output/eval-<split>-<device>.json`, every miss included |
+| `yarn admin-panel:benchmark-agent` | host, Node, only with `agent:eval --e2e` | `output/runtime/`, `training-data/<split>/request` | `output/benchmark-<split>-<device>.json` |
 
 The rows come from `yarn admin-panel:generate-training`. See the admin panel's generator.
+
+## Models
+
+One encoder, loaded once, runs four LoRA adapters. Each adapter has its own data, LoRA and
+direct-label heads, over the mean-pooled encoder output.
+
+| Adapter | Heads |
+|---|---|
+| stop | applied / already true / still needed |
+| choose | action: create / delete / update / move / rephrase. target: category / seeder / seeders / items |
+| entry | single / multi / bulk |
+| intent | single / multi |
+
+Choose returns rephrase when it is the top action, else the real command whose action ×
+target probability is highest (`command-parts.ts`).
+
+The filler fills one tool. Each command exports a `params` list typed against its command;
+`list-tools.ts` turns it into the prompt's field list and a JSON schema grammar that also allows
+`{"refuse": …}`. A refusal ends the run as `refused`.
 
 ## Methodology
 
@@ -62,7 +81,7 @@ splits only.
 
 | Test | Checks | Size | Runs |
 |---|---|---|---|
-| Quick eval | each model against its own labels: "done?", the next command, the args | 3 rows per goal and form (`--per-pair`), about 2 minutes | `yarn agent:eval` |
+| Quick eval | each model against its own labels: "done?", the next command, the args | 3 rows per goal and form (`--per-pair`) | `yarn agent:eval` |
 | End-to-end benchmark | the whole loop, request by request | every request | `yarn agent:eval --name <name> --e2e` |
 
 The quick eval feeds every row the right context and history, so a miss belongs to one model.
@@ -84,6 +103,7 @@ ignored, so equivalent params pass. Each failure gets one verdict:
 | `wrong final state` | stopped on time, but the panel differs |
 | `invalid json` | the filler's answer did not parse |
 | `command failed` | the executor refused the command, e.g. a name that does not exist |
+| `refused` | the filler refused a clear request |
 | `turn limit` | never said done |
 
 **Eval splits, hardest last.**
@@ -95,17 +115,18 @@ ignored, so equivalent params pass. Each failure gets one verdict:
 
 A hand-written split of real queries is planned. It is the only real-world measure.
 
-**Speed and memory are measured in the deployment runtime.** The decision model runs in
-`onnxruntime-node`: DirectML on GPU, CPU otherwise. The filler runs in `node-llama-cpp` with
-its output locked to JSON. Each report gives p50, p95 and max latency per stop decision, per
-choose decision (every command scored in one batch), per fill and per whole request, plus model
-load time, peak process RAM and GPU memory used. The CPU run scores an even sample of
-`CPU_LIMIT` requests per split.
+**Speed and memory are measured in the deployment runtime.** The encoder runs in
+`onnxruntime-node`: DirectML on GPU, CPU otherwise, one pass per adapter call. The filler runs in
+`node-llama-cpp` with its output locked to the tool's schema. Each report gives p50, p95 and max
+latency per stop pass, per choose pass, per fill and per whole request, plus model load time,
+peak process RAM and GPU memory used. The CPU run scores an even sample of `CPU_LIMIT` requests
+per split.
 
 ## Gotchas
 
-- `decide-int8.onnx` loses accuracy and is slower on DirectML. The benchmark defaults to fp32.
+- `onnxruntime-node` has no LoRA adapter API, so the encoder takes every adapter's A and B as
+  plain inputs, named `A:<layer>` and `B:<layer>`.
 - The prompts live twice: `rows.py` for training and `apps/admin-panel/run-agent/prompts.ts`
   for the panel. A difference between them costs accuracy without any error.
-- ModernBERT calls `torch.compile`, and the image has no C compiler. Load it with
-  `reference_compile=False`.
+- The label order lives in each adapter's `adapter.json`; Node reads it from there.
+- ModernBERT is loaded with `reference_compile=False`, from when the image had no C compiler.

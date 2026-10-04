@@ -7,15 +7,35 @@ const GOAL = "moveSeeder";
 
 const PATTERNS = {
   seen: {
-    single: ["move {target} to {to}", "{target} goes in {to}", "put {target} under {to}", "move {target} into {to}"],
-    bulkMove: ["move everything from {category} to {to}", "move all seeders in {category} to {to}"],
-    bulkMerge: ["merge {category} into {to}"],
+    single: [
+      "move {target} to {to}", "{target} goes in {to}", "put {target} under {to}", "move {target} into {to}", "move {target} over to {to}", "put {target} in {to}",
+      "{target} goes under {to}", "move {target} under {to}", "put {target} into {to}", "transfer {target} to {to}", "{target} should go in {to}", "send {target} to {to}",
+    ],
+    bulkMove: [
+      "move everything from {category} to {to}", "move all seeders in {category} to {to}", "move every seeder in {category} into {to}", "put all seeders of {category} in {to}",
+      "transfer everything in {category} to {to}", "send all seeders from {category} to {to}", "move each seeder in {category} over to {to}", "everything in {category} goes in {to}",
+      "put every seeder from {category} under {to}", "move the seeders of {category} to {to}",
+    ],
+    bulkMerge: [
+      "merge {category} into {to}", "merge {category} with {to}", "merge the {category} category into {to}", "join {category} into {to}", "{category} merges into {to}",
+      "join {category} with {to}", "put the whole {category} category into {to}", "move the whole {category} category into {to}", "{category} should merge into {to}", "make {category} part of {to}",
+    ],
     listed: ["move {targets} to {to}", "{targets} go in {to}", "put {targets} under {to}"],
   },
   unseen: {
-    single: ["relocate {target} to {to}", "{target} belongs in {to}", "shift {target} over to {to}"],
-    bulkMove: ["relocate everything in {category} to {to}", "shift all of {category} over to {to}"],
-    bulkMerge: ["fold {category} into {to}", "combine {category} with {to}"],
+    single: [
+      "relocate {target} to {to}", "{target} belongs in {to}", "shift {target} over to {to}", "migrate {target} to {to}", "reassign {target} to {to}",
+      "{target} lives in {to} now", "carry {target} across to {to}", "rehome {target} in {to}", "{target} needs to sit in {to}", "push {target} into {to}",
+    ],
+    bulkMove: [
+      "relocate everything in {category} to {to}", "shift all of {category} over to {to}", "migrate every seeder under {category} to {to}", "reassign all seeders under {category} to {to}",
+      "carry everything under {category} across to {to}", "rehome all seeders of {category} in {to}", "push every seeder under {category} into {to}", "everything under {category} belongs in {to}",
+      "the seeders under {category} live in {to} now", "relocate each seeder of {category} to {to}",
+    ],
+    bulkMerge: [
+      "fold {category} into {to}", "combine {category} with {to}", "absorb {category} into {to}", "{category} gets absorbed by {to}", "unify {category} with {to}",
+      "fuse {category} into {to}", "consolidate {category} into {to}", "roll {category} up into {to}", "blend {category} into {to}", "integrate {category} into {to}",
+    ],
     listed: ["relocate {targets} to {to}", "{targets} belong in {to}", "shift {targets} over to {to}"],
   },
 };

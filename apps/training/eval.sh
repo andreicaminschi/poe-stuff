@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Scores one trained version on its eval splits, with the panel's own runtime.
 # Usage: bash apps/training/eval.sh --name <name> [--device cpu|gpu] [--e2e]
-#   quick eval always: each model against its own labels, about 2 minutes
+#   quick eval always: each model against its own labels
 #   --device picks where the quick eval runs (default gpu, as the panel runs)
 #   --e2e adds the end-to-end benchmark: every request on GPU, plus a CPU sample
 set -euo pipefail

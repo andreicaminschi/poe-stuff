@@ -1,13 +1,19 @@
 import { performance } from "node:perf_hooks";
 import { canonicalJson } from "./canonical-json.ts";
-import type { StateCommand } from "./commands.ts";
+import type { StateCommand, ToolType } from "./commands.ts";
 import { percentiles } from "./benchmark-agent.ts";
+import type { EntryRow, IntentRow } from "./generate-training/classify-request.ts";
 import type { ChooseRow, FillRow, StopRow } from "./generate-training/play-example.ts";
+import { listTools } from "./list-tools.ts";
 import { startProgress } from "./progress-line.ts";
 import type { AgentModels } from "./run-agent.ts";
-import { STOP_QUESTION, writeCommandQuestion, writeDecideText, writeFillPrompt } from "./run-agent/prompts.ts";
+import { readHead, topLabel } from "./run-agent/load-encoder.ts";
+import { pickCommand } from "./run-agent/pick-command.ts";
+import { describeRequest, describeTurn, writeFillUser } from "./run-agent/prompts.ts";
 
-type Scored = { readonly goal: string; readonly form: string; readonly hit: boolean; readonly ms: number };
+type Labelled = { readonly goal: string; readonly form: string; readonly query: string };
+
+type Scored = { readonly goal: string; readonly form: string; readonly hit: boolean; readonly ms: number; readonly miss?: { readonly query: string; readonly expected: unknown; readonly actual: unknown } };
 
 /** Keeps the first `perPair` rows of each goal and form. Low, Sonar 1. */
 export function samplePerPair<T extends { readonly goal: string; readonly form: string }>(rows: readonly T[], perPair: number): readonly T[] {
@@ -21,11 +27,16 @@ export function samplePerPair<T extends { readonly goal: string; readonly form: 
   });
 }
 
-/** Times one call and scores it. Low, Sonar 0. */
-async function score<T>(row: { readonly goal: string; readonly form: string }, call: () => Promise<T>, check: (value: T) => boolean): Promise<Scored> {
+/** Times one call, compares its answer with the expected one, and keeps the answer on a miss. Low, Sonar 1. */
+async function score<T>(row: Labelled, expected: T, call: () => Promise<T>, same: (actual: T) => boolean = (actual) => actual === expected): Promise<Scored> {
   const started = performance.now();
-  const value = await call();
-  return { goal: row.goal, form: row.form, hit: check(value), ms: performance.now() - started };
+  const actual = await call();
+  const ms = performance.now() - started;
+  const hit = same(actual);
+
+  return hit
+    ? { goal: row.goal, form: row.form, hit, ms }
+    : { goal: row.goal, form: row.form, hit, ms, miss: { query: row.query, expected, actual } };
 }
 
 /** Parses an answer and compares it with the expected args, key order aside. Low, Sonar 1. */
@@ -37,7 +48,7 @@ function isSameArgs(answer: string, args: Readonly<Record<string, unknown>>): bo
   }
 }
 
-/** Accuracy overall and per goal and form, plus latency. Low, Sonar 0. */
+/** Accuracy overall and per goal and form, latency, and every miss. Low, Sonar 0. */
 function report(scored: readonly Scored[]) {
   const keys = [...new Set(scored.map((at) => `${at.goal}/${at.form}`))].sort();
 
@@ -49,38 +60,80 @@ function report(scored: readonly Scored[]) {
       return [key, `${String(group.filter((at) => at.hit).length)}/${String(group.length)}`];
     })),
     latencyMs: percentiles(scored.map((at) => at.ms)),
+    misses: scored.flatMap((at) => (at.miss === undefined
+      ? []
+      : [{ goal: at.goal, form: at.form, ...at.miss }])),
   };
 }
 
+/** Scores rows one at a time, with a progress line. Low, Sonar 0. */
+async function scoreAll<T>(label: string, rows: readonly T[], scoreOne: (row: T) => Promise<Scored>): Promise<readonly Scored[]> {
+  const scored: Scored[] = [];
+  const done = startProgress(label, rows.length);
+  for (const row of rows) {
+    scored.push(await scoreOne(row));
+    done();
+  }
+  return scored;
+}
+
+export type EvalRows = {
+  readonly stop: readonly StopRow[];
+  readonly choose: readonly ChooseRow[];
+  readonly fill: readonly FillRow[];
+  readonly entry: readonly EntryRow[];
+  readonly intent: readonly IntentRow[];
+};
+
 /**
- * Checks each model against its own labels, one row at a time, each fed the right context
- * and history: the decision model on "done?" and on the next command, the filler on its args.
- * Low, Sonar 0.
+ * Checks each adapter and the filler against their own labels, one row at a time, each fed
+ * the right context and history. Choose is scored as the picked command, and per half.
+ * Low, Sonar 1.
  */
-export async function evalAdapters(label: string, models: AgentModels, stop: readonly StopRow[], choose: readonly ChooseRow[], fill: readonly FillRow[]) {
-  const stopScored: Scored[] = [];
-  const stopDone = startProgress(`${label} "done?" rows`, stop.length);
-  for (const row of stop) {
-    stopScored.push(await score(row, () => models.scoreYes([writeDecideText(row, STOP_QUESTION)]), ([yes = 0]) => (yes >= 0.5) === row.done));
-    stopDone();
-  }
+export async function evalAdapters(label: string, models: AgentModels, rows: EvalRows) {
+  const tools = listTools();
+  const top = async (adapter: "stop" | "entry" | "intent", text: string) => topLabel(readHead(await models.runAdapter(adapter, [text]), adapter));
 
-  const chooseScored: Scored[] = [];
-  const chooseDone = startProgress(`${label} next-command rows`, choose.length);
-  for (const row of choose) {
-    chooseScored.push(await score(row, () => models.scoreYes(models.commands.map((command) => writeDecideText(row, writeCommandQuestion(command)))), (scores) =>
-      models.commands[scores.indexOf(Math.max(...scores))] === row.command));
-    chooseDone();
-  }
+  const stop = await scoreAll(`${label} stop rows`, rows.stop, (row) => score(row, row.reason, () => top("stop", describeTurn(row))));
+  const entry = await scoreAll(`${label} entry rows`, rows.entry, (row) => score(row, row.entry, () => top("entry", describeRequest(row))));
+  const intent = await scoreAll(`${label} intent rows`, rows.intent, (row) => score(row, row.intent, () => top("intent", describeRequest(row))));
 
-  const fillScored: Scored[] = [];
-  const fillDone = startProgress(`${label} args rows`, fill.length);
-  for (const row of fill) {
-    fillScored.push(await score(row, () => models.fillParams(writeFillPrompt(row, row.command)), (answer) => isSameArgs(answer, row.args)));
-    fillDone();
-  }
+  const choose = await scoreAll(`${label} choose rows`, rows.choose, async (row) => {
+    const started = performance.now();
+    const scores = await models.runAdapter("choose", [describeTurn(row)]);
+    const ms = performance.now() - started;
+    const actual = {
+      command: pickCommand(readHead(scores, "action"), readHead(scores, "target")),
+      action: topLabel(readHead(scores, "action")),
+      target: topLabel(readHead(scores, "target")),
+    };
+    const expected = { command: row.command, action: row.action, target: row.target };
+    return actual.command === row.command
+      ? { goal: row.goal, form: row.form, hit: true, ms }
+      : { goal: row.goal, form: row.form, hit: false, ms, miss: { query: row.query, expected, actual } };
+  });
 
-  return { stop: report(stopScored), choose: report(chooseScored), fill: report(fillScored) };
+  const fill = await scoreAll(`${label} fill rows`, rows.fill, (row) => {
+    const type = row.command as ToolType;
+    return score(row, canonicalJson(row.args), async () => models.fillParams(type, writeFillUser(row, type, tools[type].fields)), (answer) => isSameArgs(answer, row.args));
+  });
+
+  type Parts = { readonly action: string; readonly target?: string };
+  const chooseMisses = choose.flatMap((at) => (at.miss === undefined
+    ? []
+    : [{ expected: at.miss.expected as Parts, actual: at.miss.actual as Parts }]));
+
+  return {
+    stop: report(stop),
+    choose: {
+      ...report(choose),
+      actionMisses: chooseMisses.filter(({ expected, actual }) => expected.action !== actual.action).length,
+      targetMisses: chooseMisses.filter(({ expected, actual }) => expected.target !== undefined && expected.target !== actual.target).length,
+    },
+    entry: report(entry),
+    intent: report(intent),
+    fill: report(fill),
+  };
 }
 
 export type CommandList = readonly StateCommand["type"][];

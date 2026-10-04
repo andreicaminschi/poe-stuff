@@ -7,13 +7,27 @@ const GOAL = "addKnownItems";
 
 const PATTERNS = {
   seen: {
-    single: ["add {unique} to {target}", "{unique} goes in {target}", "put {unique} under {target}", "link {unique} to {target}"],
-    bulk: ["add {unique} to every seeder in {category}", "put {unique} in all of {category}", "{unique} goes in each seeder of {category}"],
+    single: [
+      "add {unique} to {target}", "{unique} goes in {target}", "put {unique} under {target}", "link {unique} to {target}", "add {unique} as a known item to {target}", "{target} gets {unique}",
+      "put {unique} in {target}", "add known item {unique} to {target}", "link {unique} with {target}", "{unique} goes under {target}", "add the unique {unique} to {target}",
+    ],
+    bulk: [
+      "add {unique} to every seeder in {category}", "put {unique} in all of {category}", "{unique} goes in each seeder of {category}", "link {unique} to all seeders in {category}",
+      "add known item {unique} to everything in {category}", "every seeder in {category} gets {unique}", "put {unique} under every seeder in {category}", "add the unique {unique} to all of {category}",
+      "link {unique} with each seeder in {category}", "{unique} goes in all seeders of {category}",
+    ],
     listed: ["add {uniques} to {target}", "{uniques} go in {target}", "put {uniques} under {target}"],
   },
   unseen: {
-    single: ["{target} should include {unique}", "attach {unique} to {target}", "{unique} belongs to {target}"],
-    bulk: ["attach {unique} to all seeders in {category}", "every seeder under {category} should include {unique}", "{unique} belongs in all of {category}"],
+    single: [
+      "{target} should include {unique}", "attach {unique} to {target}", "{unique} belongs to {target}", "hook {unique} up to {target}", "{target} should contain {unique}",
+      "register {unique} under {target}", "associate {unique} with {target}", "{unique} is part of {target}", "include {unique} in {target}", "file {unique} under {target}",
+    ],
+    bulk: [
+      "attach {unique} to all seeders under {category}", "every seeder under {category} should include {unique}", "{unique} belongs in all of {category}", "hook {unique} up to everything under {category}",
+      "register {unique} under every seeder of {category}", "associate {unique} with all of {category}", "include {unique} in each one under {category}", "everything under {category} should contain {unique}",
+      "file {unique} under all of {category}", "{unique} is part of every seeder under {category}",
+    ],
     listed: ["attach {uniques} to {target}", "{target} should include {uniques}", "{uniques} belong to {target}"],
   },
 };

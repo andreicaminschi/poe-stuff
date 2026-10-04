@@ -7,13 +7,27 @@ const GOAL = "addTags";
 
 const PATTERNS = {
   seen: {
-    single: ["add tag {tag} to {target}", "tag {target} {tag}", "{target} is {tag}", "mark {target} as {tag}"],
-    bulk: ["add tag {tag} to {category}", "tag everything in {category} {tag}", "all seeders in {category} are {tag}"],
+    single: [
+      "add tag {tag} to {target}", "tag {target} {tag}", "{target} is {tag}", "mark {target} as {tag}", "tag {target} as {tag}", "add the {tag} tag to {target}",
+      "put a {tag} tag on {target}", "{target} gets tag {tag}", "set tag {tag} on {target}", "mark {target} {tag}", "{target} should get the {tag} tag", "add {tag} as a tag on {target}",
+    ],
+    bulk: [
+      "add tag {tag} to {category}", "tag everything in {category} {tag}", "all seeders in {category} are {tag}", "mark all of {category} as {tag}", "tag every seeder in {category} as {tag}",
+      "add the {tag} tag to all seeders in {category}", "put a {tag} tag on everything in {category}", "every seeder in {category} is {tag}", "set tag {tag} on all of {category}",
+      "tag the whole {category} category {tag}", "mark each seeder in {category} {tag}", "{category} seeders get the {tag} tag",
+    ],
     listed: ["add tag {tag} to {targets}", "tag {targets} {tag}", "{targets} are {tag}"],
   },
   unseen: {
-    single: ["give {target} the {tag} tag", "{target} should be tagged {tag}", "label {target} {tag}"],
-    bulk: ["everything under {category} gets tag {tag}", "label all of {category} as {tag}", "{category} seeders should be {tag}"],
+    single: [
+      "give {target} the {tag} tag", "{target} should be tagged {tag}", "label {target} {tag}", "flag {target} as {tag}", "stamp {target} with {tag}",
+      "{target} counts as {tag}", "classify {target} as {tag}", "I want {target} labelled {tag}", "label {target} with {tag}", "{target} deserves the {tag} tag",
+    ],
+    bulk: [
+      "label all of {category} as {tag}", "give everything under {category} the {tag} tag", "flag every seeder under {category} as {tag}", "stamp all of {category} with {tag}",
+      "classify everything under {category} as {tag}", "the whole of {category} counts as {tag}", "label each one under {category} {tag}", "I want everything under {category} labelled {tag}",
+      "give all {category} seeders the {tag} tag", "flag the entire {category} category {tag}",
+    ],
     listed: ["give {targets} the {tag} tag", "label {targets} {tag}", "{targets} should be tagged {tag}"],
   },
 };

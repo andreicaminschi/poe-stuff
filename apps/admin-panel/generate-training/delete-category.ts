@@ -6,11 +6,17 @@ const GOAL = "deleteCategory";
 
 const PATTERNS = {
   seen: {
-    single: ["delete category {category}", "remove {category}", "get rid of the {category} category", "{category} is not needed"],
+    single: [
+      "delete category {category}", "remove {category}", "get rid of the {category} category", "{category} is not needed", "delete the {category} category", "remove category {category}",
+      "delete {category}", "remove the {category} category", "get rid of {category}", "{category} is no longer needed", "delete the empty category {category}",
+    ],
     listed: ["delete categories {targets}", "remove {targets}", "get rid of {targets}"],
   },
   unseen: {
-    single: ["drop the {category} category", "{category} can go", "erase {category}"],
+    single: [
+      "drop the {category} category", "{category} can go", "erase {category}", "trash {category}", "discard the {category} category",
+      "wipe out category {category}", "scrap {category}", "{category} is obsolete", "eliminate the {category} category", "ditch {category}",
+    ],
     listed: ["{targets} can go", "erase {targets}", "drop the categories {targets}"],
   },
 };

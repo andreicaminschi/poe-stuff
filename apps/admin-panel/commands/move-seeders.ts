@@ -1,9 +1,12 @@
+import { required, SEEDER_TARGETS, TEXT, type Params } from "../command-schema.ts";
 import type { Stamp } from "../panel-state.ts";
 import { resolveSeederTargets, type SeederTargets } from "../seeder-targets.ts";
 import type { PanelState } from "../types.ts";
 import { ensureCategory, moveOne } from "./move-seeder.ts";
 
 export type MoveSeedersCommand = { readonly type: "moveSeeders"; readonly targets: SeederTargets; readonly toCategory: string };
+
+export const moveSeedersParams: Params<MoveSeedersCommand> = { targets: required(SEEDER_TARGETS), toCategory: required(TEXT) };
 
 /** Moves every targeted seeder to a category, created when missing. Low, Sonar 0. */
 export function executeMoveSeeders(state: PanelState, command: MoveSeedersCommand, stamp: Stamp): PanelState {

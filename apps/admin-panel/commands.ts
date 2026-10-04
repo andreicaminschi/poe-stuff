@@ -1,17 +1,18 @@
-import { executeCreateCategory, type CreateCategoryCommand } from "./commands/create-category.ts";
-import { executeCreateSeeder, type CreateSeederCommand } from "./commands/create-seeder.ts";
-import { executeDeleteCategory, type DeleteCategoryCommand } from "./commands/delete-category.ts";
-import { executeDeleteSeeder, type DeleteSeederCommand } from "./commands/delete-seeder.ts";
-import { executeDeleteSeeders, type DeleteSeedersCommand } from "./commands/delete-seeders.ts";
-import { executeMergeCategory, type MergeCategoryCommand } from "./commands/merge-category.ts";
-import { executeMoveSeeder, type MoveSeederCommand } from "./commands/move-seeder.ts";
-import { executeMoveSeeders, type MoveSeedersCommand } from "./commands/move-seeders.ts";
+import type { Params } from "./command-schema.ts";
+import { createCategoryParams, executeCreateCategory, type CreateCategoryCommand } from "./commands/create-category.ts";
+import { createSeederParams, executeCreateSeeder, type CreateSeederCommand } from "./commands/create-seeder.ts";
+import { deleteCategoryParams, executeDeleteCategory, type DeleteCategoryCommand } from "./commands/delete-category.ts";
+import { deleteSeederParams, executeDeleteSeeder, type DeleteSeederCommand } from "./commands/delete-seeder.ts";
+import { deleteSeedersParams, executeDeleteSeeders, type DeleteSeedersCommand } from "./commands/delete-seeders.ts";
+import { executeMergeCategory, mergeCategoryParams, type MergeCategoryCommand } from "./commands/merge-category.ts";
+import { executeMoveSeeder, moveSeederParams, type MoveSeederCommand } from "./commands/move-seeder.ts";
+import { executeMoveSeeders, moveSeedersParams, type MoveSeedersCommand } from "./commands/move-seeders.ts";
 import { executeReplaceSeeder, type ReplaceSeederCommand } from "./commands/replace-seeder.ts";
 import type { SaveCommand } from "./commands/save.ts";
 import { executeUndo, type UndoCommand } from "./commands/undo.ts";
-import { executeUpdateSeeder, type UpdateSeederCommand } from "./commands/update-seeder.ts";
-import { executeUpdateItems, type UpdateItemsCommand } from "./commands/update-items.ts";
-import { executeUpdateSeeders, type UpdateSeedersCommand } from "./commands/update-seeders.ts";
+import { executeUpdateSeeder, updateSeederParams, type UpdateSeederCommand } from "./commands/update-seeder.ts";
+import { executeUpdateItems, updateItemsParams, type UpdateItemsCommand } from "./commands/update-items.ts";
+import { executeUpdateSeeders, updateSeedersParams, type UpdateSeedersCommand } from "./commands/update-seeders.ts";
 import type { Stamp } from "./panel-state.ts";
 import type { PanelState } from "./types.ts";
 
@@ -52,6 +53,25 @@ const executors: Executors = {
   mergeCategory: executeMergeCategory,
   updateItems: executeUpdateItems,
   undo: executeUndo,
+};
+
+/** The commands the agent can call. */
+export type ToolType = Exclude<StateCommand["type"], "replaceSeeder" | "undo">;
+
+type ToolParams = { readonly [K in ToolType]: Params<Extract<StateCommand, { readonly type: K }>> };
+
+export const TOOL_PARAMS: ToolParams = {
+  createCategory: createCategoryParams,
+  deleteCategory: deleteCategoryParams,
+  createSeeder: createSeederParams,
+  updateSeeder: updateSeederParams,
+  moveSeeder: moveSeederParams,
+  deleteSeeder: deleteSeederParams,
+  updateSeeders: updateSeedersParams,
+  deleteSeeders: deleteSeedersParams,
+  moveSeeders: moveSeedersParams,
+  mergeCategory: mergeCategoryParams,
+  updateItems: updateItemsParams,
 };
 
 /** Returns the state after one command, its edit queued as a log entry. Throws when it names something missing. Low, Sonar 0. */

@@ -4,14 +4,13 @@ import { performance } from "node:perf_hooks";
 import { createLakeService } from "@poe/lake/service";
 import { app, BrowserWindow, ipcMain } from "electron";
 import { executeCommand, type Command } from "./commands.ts";
-import type { DecisionOption } from "./decision-options.ts";
 import { listRuntimes, runtimeOf } from "./list-runtimes.ts";
 import { findNames, listKnownNames } from "./find-names.ts";
 import { CONDITION_FORMATS } from "./condition-values.ts";
 import { loadVersion } from "./load-version.ts";
 import { DISPATCH, FEEDBACK, LOAD, MODELS, PLAN, type AgentPlan, type FeedbackRecord, type LoadedVersion } from "./panel-api.ts";
 import { runAgent, type AgentModels } from "./run-agent.ts";
-import { loadDecide } from "./run-agent/load-decide.ts";
+import { loadEncoder } from "./run-agent/load-encoder.ts";
 import { loadFill } from "./run-agent/load-fill.ts";
 import { saveVersion } from "./save-version.ts";
 import type { PanelState } from "./types.ts";
@@ -62,13 +61,12 @@ function enqueue<T>(step: () => Promise<T>): Promise<T> {
   return result;
 }
 
-/** Loads one trained version's models on the GPU: DirectML for decisions, CUDA for fills. Low, Sonar 0. */
+/** Loads one trained version's models on the GPU: DirectML for the encoder, CUDA for fills. Low, Sonar 0. */
 async function loadAgent(name: string): Promise<{ readonly models: AgentModels; readonly model: string }> {
   const runtime = runtimeOf(TRAINING_ROOT, name);
-  const commands = await lake.readJson<readonly DecisionOption[]>(`training/${name}/training-data/commands.json`);
 
   return {
-    models: { scoreYes: await loadDecide(runtime, true, "fp32"), fillParams: await loadFill(runtime, true), commands },
+    models: { runAdapter: await loadEncoder(runtime, true), fillParams: await loadFill(runtime, true) },
     model: name,
   };
 }

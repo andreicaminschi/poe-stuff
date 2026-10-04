@@ -7,13 +7,25 @@ const GOAL = "createCategory";
 
 const PATTERNS = {
   seen: {
-    named: ["create category {name}", "new category {name}", "add a category called {name}"],
-    unnamed: ["make a new category", "create a category", "add a new category"],
+    named: [
+      "create category {name}", "new category {name}", "add a category called {name}", "create a category named {name}", "add category {name}",
+      "create a new category called {name}", "add a new category named {name}", "new category called {name}", "create the {name} category", "add the category {name}",
+    ],
+    unnamed: [
+      "create a category", "add a new category", "create a new category", "new category", "add a category",
+      "create an empty category", "add an empty category", "create another category", "new empty category", "add another category",
+    ],
     listed: ["create categories {targets}", "new categories {targets}", "add categories called {targets}"],
   },
   unseen: {
-    named: ["I need a category named {name}", "set up a {name} category", "make category {name}"],
-    unnamed: ["I need another category", "set up an empty category", "one more category please"],
+    named: [
+      "I need a category named {name}", "set up a {name} category", "make category {name}", "start a category called {name}", "open a new {name} category",
+      "I want a {name} category", "build a category named {name}", "we need a {name} category", "establish category {name}", "make me a {name} category",
+    ],
+    unnamed: [
+      "I need another category", "set up an empty category", "one more category please", "make a fresh category", "start a blank category",
+      "I want an extra category", "build an empty category", "open a new category", "we need one more category", "establish a blank category",
+    ],
     listed: ["set up categories {targets}", "I need categories named {targets}", "make categories {targets}"],
   },
 };

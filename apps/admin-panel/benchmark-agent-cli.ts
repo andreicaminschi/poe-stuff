@@ -2,10 +2,9 @@ import { resolve } from "node:path";
 import { performance } from "node:perf_hooks";
 import { parseArgs } from "node:util";
 import { createLakeService } from "@poe/lake/service";
-import type { StateCommand } from "./commands.ts";
 import { benchmarkRequest, readGpuMemory, spreadSample, summarize, type RequestResult } from "./benchmark-agent.ts";
 import type { RequestRow } from "./generate-training/play-example.ts";
-import { loadDecide } from "./run-agent/load-decide.ts";
+import { loadEncoder } from "./run-agent/load-encoder.ts";
 import { startProgress } from "./progress-line.ts";
 import { loadFill } from "./run-agent/load-fill.ts";
 
@@ -15,7 +14,7 @@ const { values } = parseArgs({
     splits: { type: "string", default: "eval,unseen" },
     device: { type: "string", default: "gpu" },
     limit: { type: "string", default: "100000" },
-    decide: { type: "string", default: "fp32" },
+    "fill-from": { type: "string" },
   },
 });
 
@@ -25,14 +24,15 @@ const main = async (): Promise<void> => {
   const root = `training/${values.version}`;
   const runtime = resolve(".s3", "training", values.version, "output", "runtime");
   const gpu = values.device === "gpu";
-  const commands = await lake.readJson<readonly StateCommand["type"][]>(`${root}/training-data/commands.json`);
+  const fillFrom = values["fill-from"] ?? values.version;
+  const suffix = fillFrom === values.version
+    ? ""
+    : `-fill-${fillFrom}`;
 
   const gpuBefore = await readGpuMemory();
   const loadStarted = performance.now();
   console.log(`Loading ${values.version} models on ${values.device}…`);
-  const models = { scoreYes: await loadDecide(runtime, gpu, values.decide === "fp32"
-    ? "fp32"
-    : "int8"), fillParams: await loadFill(runtime, gpu), commands };
+  const models = { runAdapter: await loadEncoder(runtime, gpu), fillParams: await loadFill(resolve(".s3", "training", fillFrom, "output", "runtime"), gpu) };
   const loadMs = Math.round(performance.now() - loadStarted);
   const gpuLoaded = await readGpuMemory();
   let peakRss = process.memoryUsage().rss;
@@ -49,18 +49,19 @@ const main = async (): Promise<void> => {
 
     const report = {
       version: values.version,
+      fillFrom,
       split,
       device: values.device,
-      runtime: { decide: `onnxruntime-node, ${values.decide}`, fill: "node-llama-cpp, Q8_0 GGUF, JSON grammar" },
+      runtime: { encoder: "onnxruntime-node, one base + LoRA inputs", fill: "node-llama-cpp, tool schema grammars" },
       loadMs,
       peakProcessRamMb: Math.round(peakRss / 1024 / 1024),
       gpuMemoryMb: gpuBefore === undefined || gpuLoaded === undefined
         ? undefined
         : gpuLoaded - gpuBefore,
-      ...summarize(results, commands),
+      ...summarize(results),
       failures: results.filter((result) => !result.pass).slice(0, 20).map((result) => ({ goal: result.goal, form: result.form, verdict: result.verdict, turns: result.run.turns.map((turn) => ({ command: turn.command, answer: turn.answer })) })),
     };
-    await lake.writeJson(`${root}/output/benchmark-${split}-${values.device}-decide-${values.decide}.json`, report);
+    await lake.writeJson(`${root}/output/benchmark-${split}-${values.device}${suffix}.json`, report);
     console.log(`${values.version} ${split} ${values.device}: pass ${String(report.passRate)} over ${String(report.requests)} requests, fill p50 ${String(report.latencyMs.fill["p50"])} ms, request p50 ${String(report.latencyMs.request["p50"])} ms, RAM ${String(report.peakProcessRamMb)} MB`);
   }
 };

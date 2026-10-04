@@ -1,3 +1,4 @@
+import { required, TEXT, type Params } from "../command-schema.ts";
 import { buildEntry, requireSeeder, withEntry, type Stamp } from "../panel-state.ts";
 import type { PanelState } from "../types.ts";
 
@@ -7,6 +8,8 @@ export type MoveSeederCommand = {
   readonly seeder: string;
   readonly toCategory: string;
 };
+
+export const moveSeederParams: Params<MoveSeederCommand> = { category: required(TEXT), seeder: required(TEXT), toCategory: required(TEXT) };
 
 /** Creates `name` unless it exists. Low, Sonar 1. */
 export const ensureCategory = (state: PanelState, name: string, stamp: Stamp): PanelState =>

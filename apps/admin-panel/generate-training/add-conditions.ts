@@ -8,13 +8,27 @@ const GOAL = "addConditions";
 
 const PATTERNS = {
   seen: {
-    single: ["add {condition} to {seeder}", "{seeder} needs {condition}", "add condition {condition} to {seeder}", "only {condition} for {seeder}"],
-    bulk: ["add {condition} to {category}", "in {category}, for all seeders add {condition}", "every seeder in {category} gets {condition}"],
+    single: [
+      "add {condition} to {seeder}", "{seeder} needs {condition}", "add condition {condition} to {seeder}", "only {condition} for {seeder}", "set {condition} on {seeder}", "{seeder} only shows {condition}",
+      "put a {condition} condition on {seeder}", "limit {seeder} to {condition}", "add a {condition} rule to {seeder}", "{seeder} must be {condition}", "make {seeder} {condition} only", "filter {seeder} by {condition}",
+    ],
+    bulk: [
+      "add {condition} to {category}", "in {category}, for all seeders add {condition}", "every seeder in {category} gets {condition}", "set {condition} on all of {category}",
+      "limit everything in {category} to {condition}", "add a {condition} rule to all seeders in {category}", "only {condition} for every seeder in {category}",
+      "put a {condition} condition on each seeder in {category}", "filter all of {category} by {condition}", "all seeders in {category} must be {condition}",
+    ],
     listed: ["add {condition} to {targets}", "add condition {condition} to {targets}", "{targets} need {condition}"],
   },
   unseen: {
-    single: ["{seeder} should require {condition}", "restrict {seeder} to {condition}", "give {seeder} a {condition} condition"],
-    bulk: ["restrict all of {category} to {condition}", "every seeder under {category} should require {condition}", "give everything in {category} a {condition} condition"],
+    single: [
+      "{seeder} should require {condition}", "restrict {seeder} to {condition}", "give {seeder} a {condition} condition", "require {condition} on {seeder}", "constrain {seeder} to {condition}",
+      "{seeder} has to be {condition}", "narrow {seeder} down to {condition}", "{seeder} applies to {condition} only", "lock {seeder} to {condition}", "{seeder} is just for {condition}",
+    ],
+    bulk: [
+      "restrict all of {category} to {condition}", "every seeder under {category} should require {condition}", "give everything under {category} a {condition} condition",
+      "require {condition} across {category}", "constrain everything under {category} to {condition}", "narrow all of {category} down to {condition}", "lock every seeder under {category} to {condition}",
+      "the whole {category} category has to be {condition}", "{category} seeders apply to {condition} only", "everything under {category} is just for {condition}",
+    ],
     listed: ["restrict {targets} to {condition}", "{targets} should require {condition}", "give {targets} a {condition} condition"],
   },
 };
