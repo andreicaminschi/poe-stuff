@@ -1,6 +1,7 @@
 import { COMMAND_PARTS, type Action, type Target } from "../command-parts.ts";
-import { executeCommand, type StateCommand, type ToolType } from "../commands.ts";
-import { formatContext } from "../format-context.ts";
+import { toToolArgs } from "../command-schema.ts";
+import { executeCommand, TOOL_PARAMS, type StateCommand, type ToolType } from "../commands.ts";
+import { formatContext, formatContextJson } from "../format-context.ts";
 import type { PanelState } from "../types.ts";
 import { CONDITION_FORMATS, expandCommand } from "../condition-values.ts";
 import { REPHRASE, type DecisionOption } from "../decision-options.ts";
@@ -64,7 +65,8 @@ export function playExample(example: Example, start: PanelState): ExampleRows {
   const states = example.commands.reduce<readonly PanelState[]>((visited, command) => [...visited, executeCommand(visited.at(-1) ?? start, expandCommand(command), STAMP)], [start]);
   const meta = { goal: example.goal, form: example.form };
   const inputs = states.map((state) => ({ query: example.query, context: formatContext(state, CONDITION_FORMATS, example.names) }));
-  const turns = example.commands.map((command, at) => ({ ...splitCommand(command), input: inputs[at] ?? inputs[0]! }));
+  const fillContexts = states.map((state) => formatContextJson(state, CONDITION_FORMATS, example.names));
+  const turns = example.commands.map((command, at) => ({ ...splitCommand(command), input: inputs[at] ?? inputs[0]!, fillContext: fillContexts[at] ?? "[]" }));
   const last = inputs.at(-1) ?? inputs[0]!;
 
   return {
@@ -73,7 +75,7 @@ export function playExample(example: Example, start: PanelState): ExampleRows {
       { input: last, output: { reason: "nothing-needed" as const }, meta },
     ],
     choose: turns.map(({ input, type }) => ({ input, output: COMMAND_PARTS[type as ToolType], meta: { ...meta, command: type } })),
-    fill: turns.map(({ input, type, args }) => ({ input: { ...input, command: type }, output: args, meta })),
+    fill: turns.map(({ input, fillContext, type, args }) => ({ input: { query: input.query, context: fillContext, command: type }, output: toToolArgs(TOOL_PARAMS[type as ToolType], args), meta })),
     request: [{
       goal: example.goal,
       form: example.form,

@@ -1,4 +1,4 @@
-import { ITEM_PATCH, optional, required, TEXT_LIST, type Params } from "../command-schema.ts";
+import { ITEM_PATCH, optional, single, type Params } from "../command-schema.ts";
 import type { Stamp } from "../panel-state.ts";
 import { patchValues } from "../patch-seeder.ts";
 import type { ItemData, ItemPatch, PanelState } from "../types.ts";
@@ -10,7 +10,7 @@ export type UpdateItemsCommand = {
   readonly remove?: ItemPatch;
 };
 
-export const updateItemsParams: Params<UpdateItemsCommand> = { items: required(TEXT_LIST), add: optional(ITEM_PATCH), remove: optional(ITEM_PATCH) };
+export const updateItemsParams: Params<UpdateItemsCommand> = { items: single("item"), add: optional(ITEM_PATCH), remove: optional(ITEM_PATCH) };
 
 /** Patches one item's known items and tags. An empty known-item list is dropped. Low, Sonar 1. */
 function patchItem(item: ItemData, add: ItemPatch = {}, remove: ItemPatch = {}): ItemData {

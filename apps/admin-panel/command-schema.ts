@@ -6,8 +6,11 @@ export type JsonSchema =
   | { readonly type: "array"; readonly items?: JsonSchema; readonly prefixItems?: readonly JsonSchema[]; readonly minItems?: number; readonly maxItems?: number }
   | { readonly type: "object"; readonly properties?: Readonly<Record<string, JsonSchema>>; readonly required?: readonly string[]; readonly additionalProperties?: boolean | JsonSchema };
 
-/** One command field: its schema, and whether the command type requires it. */
-export type Field<Required extends boolean> = { readonly schema: JsonSchema; readonly required: Required };
+/**
+ * One command field: its schema as the agent writes it, and whether the command type requires
+ * it. `toolKey` marks a list the agent fills with one value, under that singular key.
+ */
+export type Field<Required extends boolean> = { readonly schema: JsonSchema; readonly required: Required; readonly toolKey?: string };
 
 /** A field per command key, required exactly when the command type requires it. */
 export type Params<C> = { readonly [K in Exclude<keyof C, "type">]-?: Field<undefined extends C[K] ? false : true> };
@@ -38,6 +41,38 @@ export function objectOf(fields: Readonly<Record<string, Field<boolean>>>): Json
 export const optional = (schema: JsonSchema): Field<false> => ({ schema, required: false });
 
 export const required = (schema: JsonSchema): Field<true> => ({ schema, required: true });
+
+/** A command list the agent fills with one text, under `toolKey`. Low, Sonar 0. */
+export const single = (toolKey: string): Field<true> => ({ schema: TEXT, required: true, toolKey });
+
+type Fields = Readonly<Record<string, Field<boolean>>>;
+
+/** The fields under the keys the agent writes. Low, Sonar 0. */
+export const toolFields = (params: Fields): Fields =>
+  Object.fromEntries(Object.entries(params).map(([key, field]) => [field.toolKey ?? key, field]));
+
+/** A command's args as the agent writes them: each single list as its one value. Low, Sonar 1. */
+export const toToolArgs = (params: Fields, args: Readonly<Record<string, unknown>>): Readonly<Record<string, unknown>> =>
+  Object.fromEntries(Object.entries(args).map(([key, value]) => {
+    const toolKey = params[key]?.toolKey;
+    return toolKey === undefined
+      ? [key, value]
+      : [toolKey, (value as readonly unknown[])[0]];
+  }));
+
+/** The agent's args as the command takes them: each single value back in its list. Low, Sonar 1. */
+export function toCommandArgs(params: Fields, args: Readonly<Record<string, unknown>>): Readonly<Record<string, unknown>> {
+  const keys = new Map(Object.entries(params).flatMap(([key, field]) => (field.toolKey === undefined
+    ? []
+    : [[field.toolKey, key] as const])));
+
+  return Object.fromEntries(Object.entries(args).map(([key, value]) => {
+    const commandKey = keys.get(key);
+    return commandKey === undefined
+      ? [key, value]
+      : [commandKey, [value]];
+  }));
+}
 
 export const SEEDER_PATCH: JsonSchema = objectOf({ conditions: optional(CONDITIONS), knownItems: optional(TEXT_LIST), tags: optional(TEXT_LIST) });
 
@@ -80,8 +115,8 @@ export function expandOptional(schema: JsonSchema): JsonSchema {
 }
 
 /** A command's params, or a refusal with a fixed reason, as the grammar needs it. Low, Sonar 0. */
-export const toolSchema = (fields: Readonly<Record<string, Field<boolean>>>): JsonSchema =>
-  expandOptional({ oneOf: [objectOf(fields), objectOf({ refuse: required({ enum: REFUSALS }) })] });
+export const toolSchema = (params: Fields): JsonSchema =>
+  expandOptional({ oneOf: [objectOf(toolFields(params)), objectOf({ refuse: required({ enum: REFUSALS }) })] });
 
 /** Writes a schema as the short field list the filler's prompt shows. Low, Sonar 3. */
 export function describeSchema(schema: JsonSchema): string {

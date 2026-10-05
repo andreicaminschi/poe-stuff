@@ -64,6 +64,10 @@ direct-label heads, over the mean-pooled encoder output.
 | entry | single / multi / bulk |
 | intent | single / multi |
 
+The context describes each name the request holds. The encoder adapters read it as `key: value`
+lines, one block per name. The filler reads the same entries as a JSON array
+(`format-context.ts`).
+
 Choose returns rephrase when it is the top action, else the real command whose action ×
 target probability is highest (`command-parts.ts`).
 

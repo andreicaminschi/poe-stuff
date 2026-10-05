@@ -1,6 +1,7 @@
 import { performance } from "node:perf_hooks";
-import { executeCommand, type StateCommand, type ToolType } from "./commands.ts";
-import { formatContext } from "./format-context.ts";
+import { toCommandArgs } from "./command-schema.ts";
+import { executeCommand, TOOL_PARAMS, type StateCommand, type ToolType } from "./commands.ts";
+import { formatContext, formatContextJson } from "./format-context.ts";
 import { CONDITION_FORMATS, expandCommand } from "./condition-values.ts";
 import { REPHRASE } from "./decision-options.ts";
 import { listTools } from "./list-tools.ts";
@@ -87,14 +88,15 @@ export async function runAgent(models: AgentModels, start: PanelState, query: st
     if (picked === REPHRASE) return { state, turns, lastStopMs: stop.ms, outcome: "unclear", commands };
 
     const type: ToolType = picked;
-    const fill = await timed(() => models.fillParams(type, writeFillUser(turn, type, TOOLS[type].fields)));
+    const fillRequest = { query, context: formatContextJson(state, CONDITION_FORMATS, names) };
+    const fill = await timed(() => models.fillParams(type, writeFillUser(fillRequest, type, TOOLS[type].fields)));
     turns.push({ stopMs: stop.ms, chooseMs: choose.ms, fillMs: fill.ms, command: type, answer: fill.value });
 
     const params = readParams(fill.value);
     if (params === undefined) return { state, turns, lastStopMs: 0, outcome: "invalid json", commands };
     if ("refuse" in params) return { state, turns, lastStopMs: 0, outcome: "refused", commands };
 
-    const command = { type, ...params } as StateCommand;
+    const command = { type, ...toCommandArgs(TOOL_PARAMS[type], params) } as StateCommand;
     const next = tryExecute(state, command, stamp);
     if (next === undefined) return { state, turns, lastStopMs: 0, outcome: "command failed", commands };
 

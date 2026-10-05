@@ -1,11 +1,11 @@
-import { required, TEXT_LIST, type Params } from "../command-schema.ts";
+import { single, type Params } from "../command-schema.ts";
 import { findFreeName } from "../find-free-name.ts";
 import { withEntry, type Stamp } from "../panel-state.ts";
 import type { PanelState } from "../types.ts";
 
 export type CreateCategoryCommand = { readonly type: "createCategory"; readonly names: readonly string[] };
 
-export const createCategoryParams: Params<CreateCategoryCommand> = { names: required(TEXT_LIST) };
+export const createCategoryParams: Params<CreateCategoryCommand> = { names: single("name") };
 
 /** Creates one empty category. An empty name gets a free default one. Low, Sonar 2. */
 function createOne(state: PanelState, requested: string, stamp: Stamp): PanelState {

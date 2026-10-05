@@ -1,5 +1,5 @@
 import { CONDITION_FORMATS } from "../condition-values.ts";
-import { formatContext } from "../format-context.ts";
+import { formatContextJson } from "../format-context.ts";
 import type { PanelState } from "../types.ts";
 import type { Example } from "./example.ts";
 import type { FillRow } from "./play-example.ts";
@@ -16,7 +16,7 @@ export function refuseRow(example: Example, start: PanelState): FillRow | undefi
   const names = example.names.filter((name) => CONDITION_KEYS.has(name));
 
   return {
-    input: { query: example.query, context: formatContext(start, CONDITION_FORMATS, names), command: command.type },
+    input: { query: example.query, context: formatContextJson(start, CONDITION_FORMATS, names), command: command.type },
     output: { refuse: "missing-target" },
     meta: { goal: example.goal, form: "refuse" },
   };

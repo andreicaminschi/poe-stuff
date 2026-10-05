@@ -1,11 +1,11 @@
-import { required, TEXT, TEXT_LIST, type Params } from "../command-schema.ts";
+import { required, single, TEXT, type Params } from "../command-schema.ts";
 import { findFreeName } from "../find-free-name.ts";
 import { buildEntry, listSeederNames, requireCategory, withEntry, type Stamp } from "../panel-state.ts";
 import type { PanelState } from "../types.ts";
 
 export type CreateSeederCommand = { readonly type: "createSeeder"; readonly category: string; readonly names: readonly string[] };
 
-export const createSeederParams: Params<CreateSeederCommand> = { category: required(TEXT), names: required(TEXT_LIST) };
+export const createSeederParams: Params<CreateSeederCommand> = { category: required(TEXT), names: single("name") };
 
 /** Creates one empty seeder under a name no seeder in any category holds. An empty name gets a default one. Low, Sonar 1. */
 function createOne(state: PanelState, category: string, name: string, stamp: Stamp): PanelState {
