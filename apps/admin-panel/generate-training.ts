@@ -73,7 +73,7 @@ export function generateTraining(seed: number, count: number, set: PatternSet = 
     const example = build(faker, start);
     if (example.form === "listed") return classifyOnly(example, start);
     if (example.unclear === true) return { ...playExample(example, start), entry: [], intent: [] };
-    const noOp = NO_OP_GOALS.has(goal) && example.form !== "bulk" && faker.datatype.boolean(NO_OP_SHARE);
+    const noOp = NO_OP_GOALS.has(goal) && faker.datatype.boolean(NO_OP_SHARE);
     const played = noOp
       ? playNoOp(example, start)
       : playExample(example, start);
