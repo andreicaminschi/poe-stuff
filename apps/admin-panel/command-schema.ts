@@ -15,7 +15,7 @@ export type Field<Required extends boolean> = { readonly schema: JsonSchema; rea
 /** A field per command key, required exactly when the command type requires it. */
 export type Params<C> = { readonly [K in Exclude<keyof C, "type">]-?: Field<undefined extends C[K] ? false : true> };
 
-export const REFUSALS = ["missing-target", "missing-value"] as const;
+export const REFUSALS = ["missing-target"] as const;
 
 export type Refusal = (typeof REFUSALS)[number];
 
