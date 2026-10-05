@@ -30,23 +30,24 @@ def output_dir(version, *parts):
     return path
 
 
-def describe_request(row):
-    return f"request: {row['query']}\ncontext:\n{row['context']}"
+def describe_request(request):
+    return f"request: {request['query']}\ncontext:\n{request['context']}"
 
 
 def adapter_examples(version, adapter):
     """One (text, {head: label index}) per row. A head the row has no label for gets IGNORE."""
+    rows = read_rows(version, "train", adapter)
     if adapter == "stop":
-        return [(describe_request(row), {"stop": STOP_LABELS.index(row["reason"])}) for row in read_rows(version, "train", "stop")]
+        return [(describe_request(row["input"]), {"stop": STOP_LABELS.index(row["output"]["reason"])}) for row in rows]
     if adapter == "choose":
         parts = read_json(version, "command-parts.json")
-        return [(describe_request(row), {
-            "action": parts["actions"].index(row["action"]),
-            "target": parts["targets"].index(row["target"]) if "target" in row else IGNORE,
-        }) for row in read_rows(version, "train", "choose")]
+        return [(describe_request(row["input"]), {
+            "action": parts["actions"].index(row["output"]["action"]),
+            "target": parts["targets"].index(row["output"]["target"]) if "target" in row["output"] else IGNORE,
+        }) for row in rows]
     if adapter == "entry":
-        return [(describe_request(row), {"entry": ENTRY_LABELS.index(row["entry"])}) for row in read_rows(version, "train", "entry")]
-    return [(describe_request(row), {"intent": INTENT_LABELS.index(row["intent"])}) for row in read_rows(version, "train", "intent")]
+        return [(describe_request(row["input"]), {"entry": ENTRY_LABELS.index(row["output"]["entry"])}) for row in rows]
+    return [(describe_request(row["input"]), {"intent": INTENT_LABELS.index(row["output"]["intent"])}) for row in rows]
 
 
 def adapter_heads(version, adapter):
@@ -69,10 +70,10 @@ def fill_prompt(tokenizer, messages):
 FILL_SYSTEM = "You fill the params of one admin-panel command. Answer with one JSON object and nothing else. Copy names exactly as the request writes them. Answer {\"refuse\": \"missing-target\"} when the context has no name the request needs."
 
 
-def fill_messages(row, fields):
+def fill_messages(request, fields):
     return [
         {"role": "system", "content": FILL_SYSTEM},
-        {"role": "user", "content": f"{describe_request(row)}\ncommand: {row['command']}\nparams: {fields}"},
+        {"role": "user", "content": f"{describe_request(request)}\ncommand: {request['command']}\nparams: {fields}"},
     ]
 
 

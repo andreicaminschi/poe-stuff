@@ -22,9 +22,9 @@ LFM2_TARGETS = ["q_proj", "k_proj", "v_proj", "out_proj", "in_proj", "w1", "w2",
 
 def encode(tokenizer, tools, row):
     """Prompt then answer. Only the answer counts toward the loss."""
-    prompt = fill_prompt(tokenizer, fill_messages(row, tools[row["command"]]["fields"]))
+    prompt = fill_prompt(tokenizer, fill_messages(row["input"], tools[row["input"]["command"]]["fields"]))
     prompt_ids = tokenizer(prompt, add_special_tokens=False)["input_ids"]
-    answer_ids = tokenizer(format_args(row["args"]) + tokenizer.eos_token, add_special_tokens=False)["input_ids"]
+    answer_ids = tokenizer(format_args(row["output"]) + tokenizer.eos_token, add_special_tokens=False)["input_ids"]
     return {"input_ids": prompt_ids + answer_ids, "labels": [IGNORE] * len(prompt_ids) + answer_ids}
 
 

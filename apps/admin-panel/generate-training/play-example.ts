@@ -8,15 +8,23 @@ import type { Example } from "./example.ts";
 
 const STAMP = { id: "generated", at: "1970-01-01T00:00:00.000Z", actor: "generator" };
 
-type RowBase = { readonly goal: string; readonly form: string; readonly query: string; readonly context: string };
+/** Which generator template made a row. Never model input. */
+export type RowMeta = { readonly goal: string; readonly form: string };
+
+/** What every model reads: the request and the context lines for its names. */
+export type RequestInput = { readonly query: string; readonly context: string };
+
+/** One training row: what the model reads, what it must answer, and bookkeeping. */
+export type Row<Input, Output, Meta = RowMeta> = { readonly input: Input; readonly output: Output; readonly meta: Meta };
 
 /** Whether the request still needs a command. Code reads `nothing-needed` as applied or already applied. */
 export type StopReason = "nothing-needed" | "work-needed";
 
-export type StopRow = RowBase & { readonly reason: StopReason };
-/** The command, and its parts: the labels the choose adapter trains on. Rephrase has no target. */
-export type ChooseRow = RowBase & { readonly command: DecisionOption; readonly action: Action; readonly target?: Target };
-export type FillRow = RowBase & { readonly command: StateCommand["type"]; readonly args: Readonly<Record<string, unknown>> };
+export type StopRow = Row<RequestInput, { readonly reason: StopReason }>;
+/** Rephrase has no target. The full command is kept for the eval only. */
+export type ChooseRow = Row<RequestInput, { readonly action: Action; readonly target?: Target }, RowMeta & { readonly command: DecisionOption }>;
+/** The output is the filler's whole answer: the tool's params, or a refusal. */
+export type FillRow = Row<RequestInput & { readonly command: StateCommand["type"] }, Readonly<Record<string, unknown>>>;
 
 /** One whole request, for scoring the loop end to end: where it starts and where it must end. */
 export type RequestRow = {
@@ -54,19 +62,18 @@ function splitCommand(command: StateCommand): { readonly type: StateCommand["typ
 export function playExample(example: Example, start: PanelState): ExampleRows {
   if (example.unclear === true) return playUnclear(example, start);
   const states = example.commands.reduce<readonly PanelState[]>((visited, command) => [...visited, executeCommand(visited.at(-1) ?? start, expandCommand(command), STAMP)], [start]);
-  const bases = states.map((state) => ({
-    goal: example.goal,
-    form: example.form,
-    query: example.query,
-    context: formatContext(state, CONDITION_FORMATS, example.names),
-  }));
-  const turns = example.commands.map((command, at) => ({ ...splitCommand(command), base: bases[at] ?? bases[0]! }));
-  const last = bases.at(-1) ?? bases[0]!;
+  const meta = { goal: example.goal, form: example.form };
+  const inputs = states.map((state) => ({ query: example.query, context: formatContext(state, CONDITION_FORMATS, example.names) }));
+  const turns = example.commands.map((command, at) => ({ ...splitCommand(command), input: inputs[at] ?? inputs[0]! }));
+  const last = inputs.at(-1) ?? inputs[0]!;
 
   return {
-    stop: [...turns.map(({ base }) => ({ ...base, reason: "work-needed" as const })), { ...last, reason: "nothing-needed" as const }],
-    choose: turns.map(({ base, type }) => ({ ...base, command: type, ...COMMAND_PARTS[type as ToolType] })),
-    fill: turns.map(({ base, type, args }) => ({ ...base, command: type, args })),
+    stop: [
+      ...turns.map(({ input }) => ({ input, output: { reason: "work-needed" as const }, meta })),
+      { input: last, output: { reason: "nothing-needed" as const }, meta },
+    ],
+    choose: turns.map(({ input, type }) => ({ input, output: COMMAND_PARTS[type as ToolType], meta: { ...meta, command: type } })),
+    fill: turns.map(({ input, type, args }) => ({ input: { ...input, command: type }, output: args, meta })),
     request: [{
       goal: example.goal,
       form: example.form,
@@ -81,11 +88,12 @@ export function playExample(example: Example, start: PanelState): ExampleRows {
 
 /** Plays a request with no right command: not done, and the next step is to ask the user to rephrase. Low, Sonar 0. */
 function playUnclear(example: Example, start: PanelState): ExampleRows {
-  const base = { goal: example.goal, form: example.form, query: example.query, context: formatContext(start, CONDITION_FORMATS, example.names) };
+  const meta = { goal: example.goal, form: example.form };
+  const input = { query: example.query, context: formatContext(start, CONDITION_FORMATS, example.names) };
 
   return {
-    stop: [{ ...base, reason: "work-needed" }],
-    choose: [{ ...base, command: REPHRASE, action: "rephrase" }],
+    stop: [{ input, output: { reason: "work-needed" }, meta }],
+    choose: [{ input, output: { action: "rephrase" }, meta: { ...meta, command: REPHRASE } }],
     fill: [],
     request: [{ goal: example.goal, form: example.form, query: example.query, names: example.names, turns: 0, unclear: true, start: keepPanel(start), expected: keepPanel(start) }],
   };

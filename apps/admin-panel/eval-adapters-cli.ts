@@ -4,7 +4,7 @@ import { parseArgs } from "node:util";
 import { createLakeService } from "@poe/lake/service";
 import { evalAdapters, samplePerPair } from "./eval-adapters.ts";
 import type { EntryRow, IntentRow } from "./generate-training/classify-request.ts";
-import type { ChooseRow, FillRow, StopRow } from "./generate-training/play-example.ts";
+import type { ChooseRow, FillRow, RowMeta, StopRow } from "./generate-training/play-example.ts";
 import { loadEncoder } from "./run-agent/load-encoder.ts";
 import { loadFill } from "./run-agent/load-fill.ts";
 
@@ -29,7 +29,7 @@ const main = async (): Promise<void> => {
 
   for (const split of values.splits.split(",")) {
     const started = performance.now();
-    const read = async <T extends { readonly goal: string; readonly form: string }>(kind: string) =>
+    const read = async <T extends { readonly meta: RowMeta }>(kind: string) =>
       samplePerPair(await lake.readJson<readonly T[]>(`${root}/training-data/${split}/${kind}.json`), perPair);
     const scores = await evalAdapters(`${values.version} ${split}`, models, {
       stop: await read<StopRow>("stop"),

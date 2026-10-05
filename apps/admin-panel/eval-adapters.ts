@@ -3,7 +3,7 @@ import { canonicalJson } from "./canonical-json.ts";
 import type { StateCommand, ToolType } from "./commands.ts";
 import { percentiles } from "./benchmark-agent.ts";
 import type { EntryRow, IntentRow } from "./generate-training/classify-request.ts";
-import type { ChooseRow, FillRow, StopRow } from "./generate-training/play-example.ts";
+import type { ChooseRow, FillRow, RequestInput, RowMeta, StopRow } from "./generate-training/play-example.ts";
 import { listTools } from "./list-tools.ts";
 import { startProgress } from "./progress-line.ts";
 import type { AgentModels } from "./run-agent.ts";
@@ -11,32 +11,33 @@ import { readHead, topLabel } from "./run-agent/load-encoder.ts";
 import { pickCommand } from "./run-agent/pick-command.ts";
 import { describeRequest, writeFillUser } from "./run-agent/prompts.ts";
 
-type Labelled = { readonly goal: string; readonly form: string; readonly query: string };
+type Labelled = { readonly input: RequestInput; readonly meta: RowMeta };
 
 type Scored = { readonly goal: string; readonly form: string; readonly hit: boolean; readonly ms: number; readonly miss?: { readonly query: string; readonly expected: unknown; readonly actual: unknown } };
 
 /** Keeps the first `perPair` rows of each goal and form. Low, Sonar 1. */
-export function samplePerPair<T extends { readonly goal: string; readonly form: string }>(rows: readonly T[], perPair: number): readonly T[] {
+export function samplePerPair<T extends { readonly meta: RowMeta }>(rows: readonly T[], perPair: number): readonly T[] {
   const seen = new Map<string, number>();
 
   return rows.filter((row) => {
-    const key = `${row.goal}/${row.form}`;
+    const key = `${row.meta.goal}/${row.meta.form}`;
     const count = seen.get(key) ?? 0;
     seen.set(key, count + 1);
     return count < perPair;
   });
 }
 
-/** Times one call, compares its answer with the expected one, and keeps the answer on a miss. Low, Sonar 1. */
+/** A hit, or a miss that keeps the query and both answers. Low, Sonar 1. */
+const judge = (row: Labelled, ms: number, hit: boolean, expected: unknown, actual: unknown): Scored =>
+  hit
+    ? { ...row.meta, hit, ms }
+    : { ...row.meta, hit, ms, miss: { query: row.input.query, expected, actual } };
+
+/** Times one call and compares its answer with the expected one. Low, Sonar 1. */
 async function score<T>(row: Labelled, expected: T, call: () => Promise<T>, same: (actual: T) => boolean = (actual) => actual === expected): Promise<Scored> {
   const started = performance.now();
   const actual = await call();
-  const ms = performance.now() - started;
-  const hit = same(actual);
-
-  return hit
-    ? { goal: row.goal, form: row.form, hit, ms }
-    : { goal: row.goal, form: row.form, hit, ms, miss: { query: row.query, expected, actual } };
+  return judge(row, performance.now() - started, same(actual), expected, actual);
 }
 
 /** Parses an answer and compares it with the expected args, key order aside. Low, Sonar 1. */
@@ -94,28 +95,25 @@ export async function evalAdapters(label: string, models: AgentModels, rows: Eva
   const tools = listTools();
   const top = async (adapter: "stop" | "entry" | "intent", text: string) => topLabel(readHead(await models.runAdapter(adapter, [text]), adapter));
 
-  const stop = await scoreAll(`${label} stop rows`, rows.stop, (row) => score(row, row.reason, () => top("stop", describeRequest(row))));
-  const entry = await scoreAll(`${label} entry rows`, rows.entry, (row) => score(row, row.entry, () => top("entry", describeRequest(row))));
-  const intent = await scoreAll(`${label} intent rows`, rows.intent, (row) => score(row, row.intent, () => top("intent", describeRequest(row))));
+  const stop = await scoreAll(`${label} stop rows`, rows.stop, (row) => score(row, row.output.reason, () => top("stop", describeRequest(row.input))));
+  const entry = await scoreAll(`${label} entry rows`, rows.entry, (row) => score(row, row.output.entry, () => top("entry", describeRequest(row.input))));
+  const intent = await scoreAll(`${label} intent rows`, rows.intent, (row) => score(row, row.output.intent, () => top("intent", describeRequest(row.input))));
 
   const choose = await scoreAll(`${label} choose rows`, rows.choose, async (row) => {
     const started = performance.now();
-    const scores = await models.runAdapter("choose", [describeRequest(row)]);
+    const scores = await models.runAdapter("choose", [describeRequest(row.input)]);
     const ms = performance.now() - started;
     const actual = {
       command: pickCommand(readHead(scores, "action"), readHead(scores, "target")),
       action: topLabel(readHead(scores, "action")),
       target: topLabel(readHead(scores, "target")),
     };
-    const expected = { command: row.command, action: row.action, target: row.target };
-    return actual.command === row.command
-      ? { goal: row.goal, form: row.form, hit: true, ms }
-      : { goal: row.goal, form: row.form, hit: false, ms, miss: { query: row.query, expected, actual } };
+    return judge(row, ms, actual.command === row.meta.command, { command: row.meta.command, ...row.output }, actual);
   });
 
   const fill = await scoreAll(`${label} fill rows`, rows.fill, (row) => {
-    const type = row.command as ToolType;
-    return score(row, canonicalJson(row.args), async () => models.fillParams(type, writeFillUser(row, type, tools[type].fields)), (answer) => isSameArgs(answer, row.args));
+    const type = row.input.command as ToolType;
+    return score(row, canonicalJson(row.output), async () => models.fillParams(type, writeFillUser(row.input, type, tools[type].fields)), (answer) => isSameArgs(answer, row.output));
   });
 
   type Parts = { readonly action: string; readonly target?: string };

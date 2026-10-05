@@ -16,11 +16,8 @@ export function refuseRow(example: Example, start: PanelState): FillRow | undefi
   const names = example.names.filter((name) => CONDITION_KEYS.has(name));
 
   return {
-    goal: example.goal,
-    form: "refuse",
-    query: example.query,
-    context: formatContext(start, CONDITION_FORMATS, names),
-    command: command.type,
-    args: { refuse: "missing-target" },
+    input: { query: example.query, context: formatContext(start, CONDITION_FORMATS, names), command: command.type },
+    output: { refuse: "missing-target" },
+    meta: { goal: example.goal, form: "refuse" },
   };
 }
