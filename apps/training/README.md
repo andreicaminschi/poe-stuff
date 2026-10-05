@@ -59,7 +59,7 @@ direct-label heads, over the mean-pooled encoder output.
 
 | Adapter | Heads |
 |---|---|
-| stop | applied / already true / still needed |
+| stop | nothing needed / work needed. Code reads "nothing needed" as already applied before any command, applied after one |
 | choose | action: create / delete / update / move / rephrase. target: category / seeder / seeders / items |
 | entry | single / multi / bulk |
 | intent | single / multi |
@@ -84,13 +84,13 @@ splits only.
 | Quick eval | each model against its own labels: "done?", the next command, the args | 3 rows per goal and form (`--per-pair`) | `yarn agent:eval` |
 | End-to-end benchmark | the whole loop, request by request | every request | `yarn agent:eval --name <name> --e2e` |
 
-The quick eval feeds every row the right context and history, so a miss belongs to one model.
+The quick eval feeds every row the right context, so a miss belongs to one model.
 The end-to-end benchmark does not.
 
 **The end-to-end benchmark runs the panel's own loop.** `apps/admin-panel/run-agent.ts` asks "done?",
 picks the next command, fills its params, and runs it through the real `executeCommand`,
 until it stops. The benchmark gives it each request's start state and query, and nothing
-else: no correct context, no correct history. A wrong turn feeds the next one, as it would
+else: no correct context. A wrong turn feeds the next one, as it would
 in the panel.
 
 **A request passes when the final state equals the expected one.** Order inside lists is

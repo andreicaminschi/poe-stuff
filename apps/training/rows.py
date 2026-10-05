@@ -5,7 +5,7 @@ import os
 
 DATA = os.environ.get("DATA_DIR", "/data")
 
-STOP_LABELS = ["done-applied", "done-already-true", "not-done-nothing-run"]
+STOP_LABELS = ["nothing-needed", "work-needed"]
 ENTRY_LABELS = ["single", "multi", "bulk"]
 INTENT_LABELS = ["single", "multi"]
 IGNORE = -100
@@ -34,19 +34,13 @@ def describe_request(row):
     return f"request: {row['query']}\ncontext:\n{row['context']}"
 
 
-def describe_turn(row):
-    """The request, what the panel holds now, and what already ran."""
-    history = "; ".join(row["history"]) or "nothing"
-    return f"{describe_request(row)}\nalready run: {history}"
-
-
 def adapter_examples(version, adapter):
     """One (text, {head: label index}) per row. A head the row has no label for gets IGNORE."""
     if adapter == "stop":
-        return [(describe_turn(row), {"stop": STOP_LABELS.index(row["reason"])}) for row in read_rows(version, "train", "stop")]
+        return [(describe_request(row), {"stop": STOP_LABELS.index(row["reason"])}) for row in read_rows(version, "train", "stop")]
     if adapter == "choose":
         parts = read_json(version, "command-parts.json")
-        return [(describe_turn(row), {
+        return [(describe_request(row), {
             "action": parts["actions"].index(row["action"]),
             "target": parts["targets"].index(row["target"]) if "target" in row else IGNORE,
         }) for row in read_rows(version, "train", "choose")]

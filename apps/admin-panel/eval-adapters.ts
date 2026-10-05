@@ -9,7 +9,7 @@ import { startProgress } from "./progress-line.ts";
 import type { AgentModels } from "./run-agent.ts";
 import { readHead, topLabel } from "./run-agent/load-encoder.ts";
 import { pickCommand } from "./run-agent/pick-command.ts";
-import { describeRequest, describeTurn, writeFillUser } from "./run-agent/prompts.ts";
+import { describeRequest, writeFillUser } from "./run-agent/prompts.ts";
 
 type Labelled = { readonly goal: string; readonly form: string; readonly query: string };
 
@@ -87,20 +87,20 @@ export type EvalRows = {
 
 /**
  * Checks each adapter and the filler against their own labels, one row at a time, each fed
- * the right context and history. Choose is scored as the picked command, and per half.
+ * the right context. Choose is scored as the picked command, and per half.
  * Low, Sonar 1.
  */
 export async function evalAdapters(label: string, models: AgentModels, rows: EvalRows) {
   const tools = listTools();
   const top = async (adapter: "stop" | "entry" | "intent", text: string) => topLabel(readHead(await models.runAdapter(adapter, [text]), adapter));
 
-  const stop = await scoreAll(`${label} stop rows`, rows.stop, (row) => score(row, row.reason, () => top("stop", describeTurn(row))));
+  const stop = await scoreAll(`${label} stop rows`, rows.stop, (row) => score(row, row.reason, () => top("stop", describeRequest(row))));
   const entry = await scoreAll(`${label} entry rows`, rows.entry, (row) => score(row, row.entry, () => top("entry", describeRequest(row))));
   const intent = await scoreAll(`${label} intent rows`, rows.intent, (row) => score(row, row.intent, () => top("intent", describeRequest(row))));
 
   const choose = await scoreAll(`${label} choose rows`, rows.choose, async (row) => {
     const started = performance.now();
-    const scores = await models.runAdapter("choose", [describeTurn(row)]);
+    const scores = await models.runAdapter("choose", [describeRequest(row)]);
     const ms = performance.now() - started;
     const actual = {
       command: pickCommand(readHead(scores, "action"), readHead(scores, "target")),

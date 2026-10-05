@@ -16,7 +16,7 @@ function judge(request: RequestRow, run: AgentRun, same: boolean): string {
     ? "pass"
     : "acted on an unclear request";
   if (run.outcome === "unclear") return "asked to rephrase a clear request";
-  if (run.outcome !== "done") return run.outcome;
+  if (run.outcome !== "done" && run.outcome !== "already applied") return run.outcome;
   if (same) return "pass";
   if (run.turns.length === 0 && request.turns > 0) return "stopped before acting";
   if (run.turns.length !== request.turns) return "wrong turn count";

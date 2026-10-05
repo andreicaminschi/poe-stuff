@@ -20,7 +20,6 @@ export function refuseRow(example: Example, start: PanelState): FillRow | undefi
     form: "refuse",
     query: example.query,
     context: formatContext(start, CONDITION_FORMATS, names),
-    history: [],
     command: command.type,
     args: { refuse: "missing-target" },
   };

@@ -8,7 +8,7 @@ import type { Stamp } from "./panel-state.ts";
 import { readHead, topLabel, type RunAdapter } from "./run-agent/load-encoder.ts";
 import type { FillParams } from "./run-agent/load-fill.ts";
 import { pickCommand } from "./run-agent/pick-command.ts";
-import { describeTurn, writeFillUser } from "./run-agent/prompts.ts";
+import { describeRequest, writeFillUser } from "./run-agent/prompts.ts";
 import type { PanelState } from "./types.ts";
 
 const MAX_TURNS = 5;
@@ -24,7 +24,7 @@ export type AgentTurn = {
   readonly answer: string;
 };
 
-export type AgentOutcome = "done" | "unclear" | "refused" | "turn limit" | "invalid json" | "command failed";
+export type AgentOutcome = "done" | "already applied" | "unclear" | "refused" | "turn limit" | "invalid json" | "command failed";
 
 export type AgentRun = {
   readonly state: PanelState;
@@ -64,21 +64,23 @@ function tryExecute(state: PanelState, command: StateCommand, stamp: Stamp): Pan
 
 /**
  * The agentic loop: the stop adapter says whether to stop, the choose adapter picks the
- * tool, the filler fills its schema, and the command runs on the state. Stops on a `done-`
- * reason, on rephrase, on a refusal, at the turn limit, or on a command it cannot run.
+ * tool, the filler fills its schema, and the command runs on the state. Stops when nothing
+ * more is needed, on rephrase, on a refusal, at the turn limit, or on a command it cannot
+ * run. Nothing needed before any command means already applied.
  * Medium, Sonar 5.
  */
 export async function runAgent(models: AgentModels, start: PanelState, query: string, names: readonly string[], stamp: Stamp): Promise<AgentRun> {
   let state = start;
   const turns: AgentTurn[] = [];
-  const history: string[] = [];
   const commands: StateCommand[] = [];
 
   while (turns.length < MAX_TURNS) {
-    const turn = { query, context: formatContext(state, CONDITION_FORMATS, names), history };
-    const text = describeTurn(turn);
+    const turn = { query, context: formatContext(state, CONDITION_FORMATS, names) };
+    const text = describeRequest(turn);
     const stop = await timed(() => models.runAdapter("stop", [text]));
-    if (topLabel(readHead(stop.value, "stop")).startsWith("done-")) return { state, turns, lastStopMs: stop.ms, outcome: "done", commands };
+    if (topLabel(readHead(stop.value, "stop")) === "nothing-needed") return { state, turns, lastStopMs: stop.ms, outcome: commands.length === 0
+      ? "already applied"
+      : "done", commands };
 
     const choose = await timed(() => models.runAdapter("choose", [text]));
     const picked = pickCommand(readHead(choose.value, "action"), readHead(choose.value, "target"));
@@ -97,7 +99,6 @@ export async function runAgent(models: AgentModels, start: PanelState, query: st
     if (next === undefined) return { state, turns, lastStopMs: 0, outcome: "command failed", commands };
 
     state = next;
-    history.push(JSON.stringify(command));
     commands.push(command);
   }
 

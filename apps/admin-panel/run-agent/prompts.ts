@@ -4,15 +4,7 @@ export const FILL_SYSTEM = "You fill the params of one admin-panel command. Answ
 
 export type Request = { readonly query: string; readonly context: string };
 
-export type Turn = Request & { readonly history: readonly string[] };
-
 export const describeRequest = (request: Request): string => `request: ${request.query}\ncontext:\n${request.context}`;
-
-/** The request, what the panel holds now, and what already ran. Low, Sonar 0. */
-export const describeTurn = (turn: Turn): string =>
-  `${describeRequest(turn)}\nalready run: ${turn.history.length === 0
-    ? "nothing"
-    : turn.history.join("; ")}`;
 
 /** The filler's user message: the request, the command, and its fields. Low, Sonar 0. */
 export const writeFillUser = (request: Request, command: string, fields: string): string =>
