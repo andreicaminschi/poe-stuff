@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends cmake && rm -rf
     && cmake -S /opt/llama.cpp -B /opt/llama.cpp/build -DGGML_CUDA=OFF -DLLAMA_CURL=OFF -DLLAMA_BUILD_TESTS=OFF \
     && cmake --build /opt/llama.cpp/build --target llama-quantize -j
 
-ENV HF_HOME=/cache/huggingface PYTHONUNBUFFERED=1 TRITON_LIBCUDA_PATH=/opt/libcuda
+ENV HF_HOME=/cache/huggingface PYTHONUNBUFFERED=1 TRITON_LIBCUDA_PATH=/opt/libcuda PYTHONPYCACHEPREFIX=/data/.pycache
 WORKDIR /app
 COPY *.py /app/
 COPY entry.sh /app/entry.sh

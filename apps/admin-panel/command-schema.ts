@@ -45,9 +45,43 @@ export const ITEM_PATCH: JsonSchema = objectOf({ knownItems: optional(TEXT_LIST)
 
 export const SEEDER_TARGETS: JsonSchema = { oneOf: [objectOf({ category: required(TEXT) }), objectOf({ seeders: required(TEXT_LIST) })] };
 
-/** A command's params, or a refusal with a fixed reason. Low, Sonar 0. */
+/** Every subset of `keys`, each in the order given. Low, Sonar 1. */
+const listSubsets = (keys: readonly string[]): readonly (readonly string[])[] =>
+  keys.reduce<readonly (readonly string[])[]>((subsets, key) => [...subsets, ...subsets.map((subset) => [...subset, key])], [[]]);
+
+/**
+ * The same schema with optional keys spelled out as one object per allowed key set: the
+ * grammar writes every listed property, so an optional one must be its own branch. An object
+ * with no required keys never comes out empty. Low, Sonar 3.
+ */
+export function expandOptional(schema: JsonSchema): JsonSchema {
+  if ("oneOf" in schema) return { oneOf: schema.oneOf.map(expandOptional) };
+  if (!("type" in schema)) return schema;
+  if (schema.type === "array") return schema.items === undefined
+    ? schema
+    : { ...schema, items: expandOptional(schema.items) };
+  if (schema.type !== "object" || schema.properties === undefined) return schema;
+  const properties = schema.properties;
+  const required = new Set(schema.required ?? []);
+  const keys = Object.keys(properties);
+  const sets = listSubsets(keys.filter((key) => !required.has(key)))
+    .map((optional) => keys.filter((key) => required.has(key) || optional.includes(key)))
+    .filter((set) => set.length > 0);
+  const variants = sets.map((set): JsonSchema => ({
+    type: "object",
+    properties: Object.fromEntries(set.map((key) => [key, expandOptional(properties[key]!)])),
+    required: set,
+    additionalProperties: false,
+  }));
+
+  return variants.length === 1
+    ? variants[0]!
+    : { oneOf: variants };
+}
+
+/** A command's params, or a refusal with a fixed reason, as the grammar needs it. Low, Sonar 0. */
 export const toolSchema = (fields: Readonly<Record<string, Field<boolean>>>): JsonSchema =>
-  ({ oneOf: [objectOf(fields), objectOf({ refuse: required({ enum: REFUSALS }) })] });
+  expandOptional({ oneOf: [objectOf(fields), objectOf({ refuse: required({ enum: REFUSALS }) })] });
 
 /** Writes a schema as the short field list the filler's prompt shows. Low, Sonar 3. */
 export function describeSchema(schema: JsonSchema): string {
