@@ -1,5 +1,5 @@
 import type { Faker } from "@faker-js/faker";
-import { CONDITION_KINDS, CONDITION_NAMES, FROM_CODE, PSEUDO_VALUES, SHORTHANDS } from "../condition-values.ts";
+import { CONDITION_KINDS, CONDITION_NAMES, FROM_CODE, PSEUDO_VALUES, SHORTHANDS } from "../../condition-values.ts";
 
 /** A condition request: the words the query uses, the real condition, and the sentinel the agent must write. */
 export type SampledCondition = { readonly key: string; readonly word: string; readonly text: string; readonly sentinel: string };

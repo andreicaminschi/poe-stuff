@@ -1,7 +1,7 @@
-import { CONDITION_FORMATS } from "../condition-values.ts";
-import { formatContext } from "../format-context.ts";
-import type { PanelState } from "../types.ts";
-import type { Example } from "./example.ts";
+import { CONDITION_FORMATS } from "../../condition-values.ts";
+import { formatContext } from "../../format-context.ts";
+import type { PanelState } from "../../types.ts";
+import type { Example } from "../example.ts";
 import type { RequestInput, Row } from "./play-example.ts";
 
 export type Entry = "single" | "multi" | "bulk";

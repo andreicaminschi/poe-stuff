@@ -1,11 +1,11 @@
-import { COMMAND_PARTS, type Action, type Target } from "../command-parts.ts";
-import { toToolArgs } from "../command-schema.ts";
-import { executeCommand, TOOL_PARAMS, type StateCommand, type ToolType } from "../commands.ts";
-import { formatContext, formatContextJson } from "../format-context.ts";
-import type { PanelState } from "../types.ts";
-import { CONDITION_FORMATS, expandCommand } from "../condition-values.ts";
-import { REPHRASE, type DecisionOption } from "../decision-options.ts";
-import type { Example } from "./example.ts";
+import { COMMAND_PARTS, type Action, type Target } from "../../command-parts.ts";
+import { toToolArgs } from "../../command-schema.ts";
+import { executeCommand, TOOL_PARAMS, type StateCommand, type ToolType } from "../../commands.ts";
+import { formatContext, formatContextJson } from "../../format-context.ts";
+import type { PanelState } from "../../types.ts";
+import { CONDITION_FORMATS, expandCommand } from "../../condition-values.ts";
+import { REPHRASE, type DecisionOption } from "../../decision-options.ts";
+import type { Example } from "../example.ts";
 
 const STAMP = { id: "generated", at: "1970-01-01T00:00:00.000Z", actor: "generator" };
 

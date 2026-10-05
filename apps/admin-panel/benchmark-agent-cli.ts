@@ -3,7 +3,7 @@ import { performance } from "node:perf_hooks";
 import { parseArgs } from "node:util";
 import { createLakeService } from "@poe/lake/service";
 import { benchmarkRequest, readGpuMemory, spreadSample, summarize, type RequestResult } from "./benchmark-agent.ts";
-import type { RequestRow } from "./generate-training/play-example.ts";
+import type { RequestRow } from "./generate-training/rows/play-example.ts";
 import { loadEncoder } from "./run-agent/load-encoder.ts";
 import { startProgress } from "./progress-line.ts";
 import { loadFill } from "./run-agent/load-fill.ts";

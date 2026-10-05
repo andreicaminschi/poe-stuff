@@ -1,7 +1,7 @@
 import type { Faker } from "@faker-js/faker";
-import type { PanelState } from "../types.ts";
-import { drawUniqueName, listTakenNames } from "./build-state.ts";
-import { joinNames, listFilledCategories, listItems, listSeeders, render, type Example, type Form, type PatternSet } from "./example.ts";
+import type { PanelState } from "../../types.ts";
+import { drawUniqueName, listTakenNames } from "../fake-panel/build-state.ts";
+import { joinNames, listFilledCategories, listItems, listSeeders, render, type Example, type Form, type PatternSet } from "../example.ts";
 
 const GOAL = "addKnownItems";
 

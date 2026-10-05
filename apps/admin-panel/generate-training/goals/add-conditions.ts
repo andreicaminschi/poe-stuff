@@ -1,8 +1,8 @@
 import type { Faker } from "@faker-js/faker";
-import type { StateCommand } from "../commands.ts";
-import type { PanelState } from "../types.ts";
-import { sampleCondition, type SampledCondition } from "./conditions.ts";
-import { joinNames, listFilledCategories, listSeeders, pickListed, render, type Example, type PatternSet } from "./example.ts";
+import type { StateCommand } from "../../commands.ts";
+import type { PanelState } from "../../types.ts";
+import { sampleCondition, type SampledCondition } from "../fake-panel/conditions.ts";
+import { joinNames, listFilledCategories, listSeeders, pickListed, render, type Example, type PatternSet } from "../example.ts";
 
 const GOAL = "addConditions";
 

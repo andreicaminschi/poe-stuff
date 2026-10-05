@@ -3,8 +3,8 @@ import { performance } from "node:perf_hooks";
 import { parseArgs } from "node:util";
 import { createLakeService } from "@poe/lake/service";
 import { evalAdapters, samplePerPair } from "./eval-adapters.ts";
-import type { EntryRow, IntentRow } from "./generate-training/classify-request.ts";
-import type { ChooseRow, FillRow, RowMeta, StopRow } from "./generate-training/play-example.ts";
+import type { EntryRow, IntentRow } from "./generate-training/rows/classify-request.ts";
+import type { ChooseRow, FillRow, RowMeta, StopRow } from "./generate-training/rows/play-example.ts";
 import { loadEncoder } from "./run-agent/load-encoder.ts";
 import { loadFill } from "./run-agent/load-fill.ts";
 

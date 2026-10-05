@@ -3,7 +3,7 @@ import { performance } from "node:perf_hooks";
 import { promisify } from "node:util";
 import type { StateCommand } from "./commands.ts";
 import { isSamePanel } from "./benchmark-agent/same-panel.ts";
-import type { RequestRow } from "./generate-training/play-example.ts";
+import type { RequestRow } from "./generate-training/rows/play-example.ts";
 import { runAgent, type AgentModels, type AgentRun } from "./run-agent.ts";
 
 const STAMP = { id: "benchmark", at: "1970-01-01T00:00:00.000Z", actor: "benchmark" };

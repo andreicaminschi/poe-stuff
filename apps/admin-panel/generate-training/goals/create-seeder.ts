@@ -1,7 +1,7 @@
 import type { Faker } from "@faker-js/faker";
-import type { PanelState } from "../types.ts";
-import { drawSeederName, listTakenNames } from "./build-state.ts";
-import { joinNames, render, type Example, type PatternSet } from "./example.ts";
+import type { PanelState } from "../../types.ts";
+import { drawSeederName, listTakenNames } from "../fake-panel/build-state.ts";
+import { joinNames, render, type Example, type PatternSet } from "../example.ts";
 
 const GOAL = "createSeeder";
 

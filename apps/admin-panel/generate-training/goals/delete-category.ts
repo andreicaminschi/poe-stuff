@@ -1,6 +1,6 @@
 import type { Faker } from "@faker-js/faker";
-import type { PanelState } from "../types.ts";
-import { joinNames, listEmptyCategories, pickListed, render, type Example, type PatternSet } from "./example.ts";
+import type { PanelState } from "../../types.ts";
+import { joinNames, listEmptyCategories, pickListed, render, type Example, type PatternSet } from "../example.ts";
 
 const GOAL = "deleteCategory";
 

@@ -1,8 +1,8 @@
 import type { Faker } from "@faker-js/faker";
-import { executeCommand } from "../commands.ts";
-import { expandCommand } from "../condition-values.ts";
-import type { PanelState } from "../types.ts";
-import { render, type BuildExample, type Example, type PatternSet } from "./example.ts";
+import { executeCommand } from "../../commands.ts";
+import { expandCommand } from "../../condition-values.ts";
+import type { PanelState } from "../../types.ts";
+import { render, type BuildExample, type Example, type PatternSet } from "../example.ts";
 
 const STAMP = { id: "generated", at: "1970-01-01T00:00:00.000Z", actor: "generator" };
 

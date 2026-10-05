@@ -1,7 +1,7 @@
-import { CONDITION_FORMATS } from "../condition-values.ts";
-import { formatContextJson } from "../format-context.ts";
-import type { PanelState } from "../types.ts";
-import type { Example } from "./example.ts";
+import { CONDITION_FORMATS } from "../../condition-values.ts";
+import { formatContextJson } from "../../format-context.ts";
+import type { PanelState } from "../../types.ts";
+import type { Example } from "../example.ts";
 import type { FillRow } from "./play-example.ts";
 
 const CONDITION_KEYS = new Set(CONDITION_FORMATS.map((condition) => condition.key));

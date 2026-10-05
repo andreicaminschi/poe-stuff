@@ -224,6 +224,11 @@ apps/catalog/build-catalog.ts            the feature
 apps/catalog/build-catalog/*.ts          what it calls
 ```
 
+**Apps may nest deeper.** An app is close to a project root of its own, so a feature folder
+inside an app can hold subfolders when it outgrows one level, as
+`apps/admin-panel/generate-training/` does with `goals/`, `rows/` and `fake-panel/`. Libraries
+and services stay at one level.
+
 **One function per file is a rule of thumb, not a law: split when a test against that
 function would be meaningful.** A parser, a fetch, a decision — each earns its own file. A
 semantic wrapper over one `map`, `filter` or `Set` round-trip does not, and stays inline

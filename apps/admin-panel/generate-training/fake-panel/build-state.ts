@@ -1,5 +1,5 @@
 import type { Faker } from "@faker-js/faker";
-import type { Category, PanelState, Seeder } from "../types.ts";
+import type { Category, PanelState, Seeder } from "../../types.ts";
 
 const capitalize = (word: string): string => `${word.charAt(0).toUpperCase()}${word.slice(1)}`;
 

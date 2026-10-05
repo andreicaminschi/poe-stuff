@@ -1,5 +1,5 @@
-import type { ExampleRows } from "./generate-training/play-example.ts";
-import { playExample } from "./generate-training/play-example.ts";
+import type { ExampleRows } from "./generate-training/rows/play-example.ts";
+import { playExample } from "./generate-training/rows/play-example.ts";
 import type { FeedbackRecord } from "./panel-api.ts";
 
 /** Plays one kept interaction as a training example, or undefined when its steps no longer run. Low, Sonar 1. */
