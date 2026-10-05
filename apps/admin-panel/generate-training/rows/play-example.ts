@@ -103,4 +103,4 @@ function playUnclear(example: Example, start: PanelState): ExampleRows {
 
 /** Plays an example whose goal is already met: its commands run first, so the loop stops on turn 0. Low, Sonar 0. */
 export const playNoOp = (example: Example, start: PanelState): ExampleRows =>
-  playExample({ ...example, commands: [] }, example.commands.reduce((state, command) => executeCommand(state, expandCommand(command), STAMP), start));
+  playExample({ ...example, form: "already-applied", commands: [] }, example.commands.reduce((state, command) => executeCommand(state, expandCommand(command), STAMP), start));

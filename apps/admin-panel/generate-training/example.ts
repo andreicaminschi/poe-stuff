@@ -2,7 +2,7 @@ import type { Faker } from "@faker-js/faker";
 import type { StateCommand } from "../commands.ts";
 import type { PanelState } from "../types.ts";
 
-export type Form = "single" | "bulk" | "listed" | "offTopic" | "unknownName" | "vague" | "noEntity" | "unnamed";
+export type Form = "single" | "bulk" | "listed" | "offTopic" | "unknownName" | "vague" | "noEntity" | "unnamed" | "already-applied";
 
 /** `seen` trains and evaluates. `unseen` only evaluates, so its wordings never reach training. */
 export type PatternSet = "seen" | "unseen";

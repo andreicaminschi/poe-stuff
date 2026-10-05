@@ -59,7 +59,7 @@ const main = async (): Promise<void> => {
         ? undefined
         : gpuLoaded - gpuBefore,
       ...summarize(results),
-      failures: results.filter((result) => !result.pass).slice(0, 20).map((result) => ({ goal: result.goal, form: result.form, verdict: result.verdict, turns: result.run.turns.map((turn) => ({ command: turn.command, answer: turn.answer })) })),
+      failures: results.filter((result) => !result.pass).map((result) => ({ goal: result.goal, form: result.form, query: result.query, verdict: result.verdict, outcome: result.run.outcome, turns: result.run.turns.map((turn) => ({ command: turn.command, answer: turn.answer })) })),
     };
     await lake.writeJson(`${root}/output/benchmark-${split}-${values.device}${suffix}.json`, report);
     console.log(`${values.version} ${split} ${values.device}: pass ${String(report.passRate)} over ${String(report.requests)} requests, fill p50 ${String(report.latencyMs.fill["p50"])} ms, request p50 ${String(report.latencyMs.request["p50"])} ms, RAM ${String(report.peakProcessRamMb)} MB`);

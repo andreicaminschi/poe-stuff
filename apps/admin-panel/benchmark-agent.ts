@@ -8,7 +8,7 @@ import { runAgent, type AgentModels, type AgentRun } from "./run-agent.ts";
 
 const STAMP = { id: "benchmark", at: "1970-01-01T00:00:00.000Z", actor: "benchmark" };
 
-export type RequestResult = { readonly goal: string; readonly form: string; readonly pass: boolean; readonly verdict: string; readonly run: AgentRun; readonly ms: number };
+export type RequestResult = { readonly goal: string; readonly form: string; readonly query: string; readonly pass: boolean; readonly verdict: string; readonly run: AgentRun; readonly ms: number };
 
 /** Names why a request passed or failed. Low, Sonar 4. */
 function judge(request: RequestRow, run: AgentRun, same: boolean): string {
@@ -32,7 +32,7 @@ export async function benchmarkRequest(models: AgentModels, request: RequestRow)
   const same = run.outcome === "done" && isSamePanel(run.state, request.expected);
   const verdict = judge(request, run, same);
 
-  return { goal: request.goal, form: request.form, pass: verdict === "pass", verdict, run, ms };
+  return { goal: request.goal, form: request.form, query: request.query, pass: verdict === "pass", verdict, run, ms };
 }
 
 /** Picks `limit` requests spread evenly over the list. Low, Sonar 1. */

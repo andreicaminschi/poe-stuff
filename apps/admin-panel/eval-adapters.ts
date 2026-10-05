@@ -13,7 +13,7 @@ import { describeRequest, writeFillUser } from "./run-agent/prompts.ts";
 
 type Labelled = { readonly input: RequestInput; readonly meta: RowMeta };
 
-type Scored = { readonly goal: string; readonly form: string; readonly hit: boolean; readonly ms: number; readonly miss?: { readonly query: string; readonly expected: unknown; readonly actual: unknown } };
+type Scored = { readonly goal: string; readonly form: string; readonly label?: string; readonly hit: boolean; readonly ms: number; readonly miss?: { readonly query: string; readonly expected: unknown; readonly actual: unknown } };
 
 /** Keeps the first `perPair` rows of each goal and form. Low, Sonar 1. */
 export function samplePerPair<T extends { readonly meta: RowMeta }>(rows: readonly T[], perPair: number): readonly T[] {
@@ -27,11 +27,24 @@ export function samplePerPair<T extends { readonly meta: RowMeta }>(rows: readon
   });
 }
 
-/** A hit, or a miss that keeps the query and both answers. Low, Sonar 1. */
-const judge = (row: Labelled, ms: number, hit: boolean, expected: unknown, actual: unknown): Scored =>
-  hit
-    ? { ...row.meta, hit, ms }
-    : { ...row.meta, hit, ms, miss: { query: row.input.query, expected, actual } };
+/** A hit, or a miss that keeps the query and both answers. A text label is kept for the per-label tally. Low, Sonar 1. */
+function judge(row: Labelled, ms: number, hit: boolean, expected: unknown, actual: unknown): Scored {
+  const label = typeof expected === "string"
+    ? { label: expected }
+    : {};
+  return hit
+    ? { ...row.meta, ...label, hit, ms }
+    : { ...row.meta, ...label, hit, ms, miss: { query: row.input.query, expected, actual } };
+}
+
+/** `hits/rows` per key. Low, Sonar 0. */
+function tally(scored: readonly Scored[], key: (at: Scored) => string | undefined): Readonly<Record<string, string>> {
+  const keys = [...new Set(scored.map(key).filter((value) => value !== undefined))].sort();
+  return Object.fromEntries(keys.map((value) => {
+    const group = scored.filter((at) => key(at) === value);
+    return [value, `${String(group.filter((at) => at.hit).length)}/${String(group.length)}`];
+  }));
+}
 
 /** Times one call and compares its answer with the expected one. Low, Sonar 1. */
 async function score<T>(row: Labelled, expected: T, call: () => Promise<T>, same: (actual: T) => boolean = (actual) => actual === expected): Promise<Scored> {
@@ -49,17 +62,13 @@ function isSameArgs(answer: string, args: Readonly<Record<string, unknown>>): bo
   }
 }
 
-/** Accuracy overall and per goal and form, latency, and every miss. Low, Sonar 0. */
+/** Accuracy overall, per goal and form, and per expected label, latency, and every miss. Low, Sonar 0. */
 function report(scored: readonly Scored[]) {
-  const keys = [...new Set(scored.map((at) => `${at.goal}/${at.form}`))].sort();
-
   return {
     rows: scored.length,
     accuracy: Number((scored.filter((at) => at.hit).length / Math.max(scored.length, 1)).toFixed(4)),
-    byGoal: Object.fromEntries(keys.map((key) => {
-      const group = scored.filter((at) => `${at.goal}/${at.form}` === key);
-      return [key, `${String(group.filter((at) => at.hit).length)}/${String(group.length)}`];
-    })),
+    byGoal: tally(scored, (at) => `${at.goal}/${at.form}`),
+    byLabel: tally(scored, (at) => at.label),
     latencyMs: percentiles(scored.map((at) => at.ms)),
     misses: scored.flatMap((at) => (at.miss === undefined
       ? []
@@ -108,12 +117,13 @@ export async function evalAdapters(label: string, models: AgentModels, rows: Eva
       action: topLabel(readHead(scores, "action")),
       target: topLabel(readHead(scores, "target")),
     };
-    return judge(row, ms, actual.command === row.meta.command, { command: row.meta.command, ...row.output }, actual);
+    return { ...judge(row, ms, actual.command === row.meta.command, { command: row.meta.command, ...row.output }, actual), label: row.meta.command };
   });
 
-  const fill = await scoreAll(`${label} fill rows`, rows.fill, (row) => {
+  const fill = await scoreAll(`${label} fill rows`, rows.fill, async (row) => {
     const type = row.input.command as ToolType;
-    return score(row, canonicalJson(row.output), async () => models.fillParams(type, writeFillUser(row.input, type, tools[type].fields)), (answer) => isSameArgs(answer, row.output));
+    const { label: _answer, ...scored } = await score(row, canonicalJson(row.output), async () => models.fillParams(type, writeFillUser(row.input, type, tools[type].fields)), (answer) => isSameArgs(answer, row.output));
+    return { ...scored, label: "refuse" in row.output ? "refuse" : "params" };
   });
 
   type Parts = { readonly action: string; readonly target?: string };
