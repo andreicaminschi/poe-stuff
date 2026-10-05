@@ -20,7 +20,7 @@ function readEntry(form: string): Entry {
   return "single";
 }
 
-const readInput = (example: Example, start: PanelState): RequestInput => ({ query: example.query, context: formatContext(start, CONDITION_FORMATS, example.names) });
+const readInput = (example: Example, start: PanelState): RequestInput => ({ query: example.query, context: formatContext(start, CONDITION_FORMATS, example.query, example.names) });
 
 /** Labels one request's entry, on the panel it starts from. Low, Sonar 0. */
 export const entryRow = (example: Example, start: PanelState): EntryRow =>

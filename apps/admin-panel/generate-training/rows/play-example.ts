@@ -64,8 +64,8 @@ export function playExample(example: Example, start: PanelState): ExampleRows {
   if (example.unclear === true) return playUnclear(example, start);
   const states = example.commands.reduce<readonly PanelState[]>((visited, command) => [...visited, executeCommand(visited.at(-1) ?? start, expandCommand(command), STAMP)], [start]);
   const meta = { goal: example.goal, form: example.form };
-  const inputs = states.map((state) => ({ query: example.query, context: formatContext(state, CONDITION_FORMATS, example.names) }));
-  const fillContexts = states.map((state) => formatContextJson(state, CONDITION_FORMATS, example.names));
+  const inputs = states.map((state) => ({ query: example.query, context: formatContext(state, CONDITION_FORMATS, example.query, example.names) }));
+  const fillContexts = states.map((state) => formatContextJson(state, CONDITION_FORMATS, example.query, example.names));
   const turns = example.commands.map((command, at) => ({ ...splitCommand(command), input: inputs[at] ?? inputs[0]!, fillContext: fillContexts[at] ?? "[]" }));
   const last = inputs.at(-1) ?? inputs[0]!;
 
@@ -91,7 +91,7 @@ export function playExample(example: Example, start: PanelState): ExampleRows {
 /** Plays a request with no right command: not done, and the next step is to ask the user to rephrase. Low, Sonar 0. */
 function playUnclear(example: Example, start: PanelState): ExampleRows {
   const meta = { goal: example.goal, form: example.form };
-  const input = { query: example.query, context: formatContext(start, CONDITION_FORMATS, example.names) };
+  const input = { query: example.query, context: formatContext(start, CONDITION_FORMATS, example.query, example.names) };
 
   return {
     stop: [{ input, output: { reason: "work-needed" }, meta }],

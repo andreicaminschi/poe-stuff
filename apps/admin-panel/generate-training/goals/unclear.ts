@@ -23,6 +23,11 @@ const PATTERNS = {
       "tag all {group} items with {tag}", "delete every {group} seeder", "move all {group} stuff to {other}", "mark the {group} ones {tag}",
       "remove anything {group}", "add {tag} to all {group} things", "tag {group} items {tag}", "delete the {group} items", "put every {group} item in {other}", "tag whatever is {group} as {tag}",
     ],
+    unnamed: [
+      "create a category", "add a new category", "create a new category", "new category", "add a category",
+      "create an empty category", "add another category", "new seeder in {category}", "{category} needs a new seeder", "add a seeder to {category}",
+      "create a seeder in {category}", "add a new seeder to {category}", "create an empty seeder in {category}", "add another seeder to {category}",
+    ],
   },
   unseen: {
     offTopic: [
@@ -38,6 +43,10 @@ const PATTERNS = {
       "label every {group} drop {tag}", "erase all the {group} gear", "relocate the {group} loot to {other}", "flag {group} things as {tag}",
       "trash whatever counts as {group}", "give the {group} pieces the {tag} tag", "ditch the {group} junk", "shift {group} gear over to {other}", "stamp all {group} drops with {tag}", "scrap anything {group}",
     ],
+    unnamed: [
+      "I need another category", "set up an empty category", "one more category please", "make a fresh category", "start a blank category",
+      "one more seeder for {category}", "set up an empty seeder in {category}", "I need another seeder in {category}", "make a fresh seeder in {category}", "start a blank seeder under {category}",
+    ],
   },
 };
 
@@ -48,10 +57,11 @@ function buildUnclear(faker: Faker, state: PanelState, form: Form, patterns: rea
   const taken = listTakenNames(state);
   const missing = drawSeederName(faker, taken);
   const other = drawSeederName(faker, new Set([...taken, missing]));
-  const query = render(faker.helpers.arrayElement(patterns), { word: faker.word.noun(), noun: faker.word.noun(), missing, other, tag: drawTag(faker), group: faker.helpers.arrayElement(GROUPS) });
+  const category = faker.helpers.arrayElement(state.categories).name;
+  const query = render(faker.helpers.arrayElement(patterns), { word: faker.word.noun(), noun: faker.word.noun(), missing, other, category, tag: drawTag(faker), group: faker.helpers.arrayElement(GROUPS) });
   const names = form === "unknownName"
     ? [missing, other].filter((name) => query.includes(name)).sort((left, right) => query.indexOf(left) - query.indexOf(right))
-    : [];
+    : [category].filter((name) => form === "unnamed" && query.includes(name));
 
   return { goal: GOAL, form, query, names, commands: [], unclear: true };
 }
@@ -61,4 +71,5 @@ export const unclear = (set: PatternSet) => ({
   unknownName: (faker: Faker, state: PanelState) => buildUnclear(faker, state, "unknownName", PATTERNS[set].unknownName),
   vague: (faker: Faker, state: PanelState) => buildUnclear(faker, state, "vague", PATTERNS[set].vague),
   noEntity: (faker: Faker, state: PanelState) => buildUnclear(faker, state, "noEntity", PATTERNS[set].noEntity),
+  unnamed: (faker: Faker, state: PanelState) => buildUnclear(faker, state, "unnamed", PATTERNS[set].unnamed),
 });

@@ -4,11 +4,12 @@
 #   --dropout sets the filler's LoRA dropout (default 0, Unsloth's fast kernels)
 #   --decide-model / --fill-model pick the Hugging Face base models
 #   --encoder-precision fp32|fp16 (default fp32), --fill-quant q8_0|q4_k_m (default q8_0)
+#   --head-lr sets the encoder heads' learning rate (default 1e-3; the LoRA stays at 3e-4)
 set -euo pipefail
 
 COUNT=50
 NAME=""
-USAGE="Use --name <name> [--count <n>] [--dropout <d>] [--decide-model <hf id>] [--fill-model <hf id>] [--encoder-precision fp32|fp16] [--fill-quant q8_0|q4_k_m]."
+USAGE="Use --name <name> [--count <n>] [--dropout <d>] [--decide-model <hf id>] [--fill-model <hf id>] [--encoder-precision fp32|fp16] [--fill-quant q8_0|q4_k_m] [--head-lr <rate>]."
 while [ $# -gt 0 ]; do
   case "$1" in
     --count=*) COUNT="${1#*=}" ;;
@@ -23,6 +24,8 @@ while [ $# -gt 0 ]; do
     --fill-model) export FILL_BASE="$2"; shift ;;
     --encoder-precision=*) export ENCODER_PRECISION="${1#*=}" ;;
     --encoder-precision) export ENCODER_PRECISION="$2"; shift ;;
+    --head-lr=*) export HEAD_LR="${1#*=}" ;;
+    --head-lr) export HEAD_LR="$2"; shift ;;
     --fill-quant=*) export FILL_QUANT="${1#*=}" ;;
     --fill-quant) export FILL_QUANT="$2"; shift ;;
     *) echo "Unknown option $1. $USAGE" >&2; exit 2 ;;

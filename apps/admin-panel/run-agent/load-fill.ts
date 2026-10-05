@@ -1,14 +1,15 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { getLlama, LlamaCompletion, LlamaText, SpecialTokensText } from "node-llama-cpp";
+import type { JsonSchema } from "../command-schema.ts";
 import type { ToolType } from "../commands.ts";
 import { listTools } from "../list-tools.ts";
 import { FILL_SYSTEM } from "./prompts.ts";
 
 const MAX_ANSWER_TOKENS = 256;
 
-/** Writes one tool's params as JSON, or a refusal, locked to that tool's schema. */
-export type FillParams = (type: ToolType, user: string) => Promise<string>;
+/** Writes one tool's params as JSON, or a refusal, locked to that tool's schema or to `schema` when given. */
+export type FillParams = (type: ToolType, user: string, schema?: JsonSchema) => Promise<string>;
 
 /** Loads the filler GGUF on CUDA or CPU, with one grammar per tool. Low, Sonar 1. */
 export async function loadFill(runtime: string, gpu: boolean): Promise<FillParams> {
@@ -29,8 +30,11 @@ export async function loadFill(runtime: string, gpu: boolean): Promise<FillParam
     ? written.slice(bos.length)
     : written;
 
-  return (type, user) => {
+  return async (type, user, schema) => {
     const prompt = template.replace("{system}", () => FILL_SYSTEM).replace("{user}", () => user);
-    return completion.generateCompletion(LlamaText([new SpecialTokensText(prompt)]), { grammar: grammars.get(type)!, maxTokens: MAX_ANSWER_TOKENS, temperature: 0 });
+    const grammar = schema === undefined
+      ? grammars.get(type)!
+      : await llama.createGrammarForJsonSchema(schema as never);
+    return completion.generateCompletion(LlamaText([new SpecialTokensText(prompt)]), { grammar, maxTokens: MAX_ANSWER_TOKENS, temperature: 0 });
   };
 }

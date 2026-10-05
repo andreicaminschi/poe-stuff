@@ -7,12 +7,11 @@ export type CreateSeederCommand = { readonly type: "createSeeder"; readonly cate
 
 export const createSeederParams: Params<CreateSeederCommand> = { category: required(TEXT), names: single("name") };
 
-/** Creates one empty seeder under a name no seeder in any category holds. An empty name gets a default one. Low, Sonar 1. */
+/** Creates one empty seeder under a name no seeder in any category holds. The name is mandatory. Low, Sonar 1. */
 function createOne(state: PanelState, category: string, name: string, stamp: Stamp): PanelState {
+  if (name.trim() === "") throw new Error("A seeder needs a name.");
   const target = requireCategory(state.categories, category);
-  const free = findFreeName(name === ""
-    ? "New seeder"
-    : name, listSeederNames(state.categories));
+  const free = findFreeName(name, listSeederNames(state.categories));
 
   return withEntry(state, buildEntry(stamp, target.name, undefined, { name: free, conditions: {}, tags: [] }));
 }

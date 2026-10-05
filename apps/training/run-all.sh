@@ -18,7 +18,7 @@ step() {
   podman run --rm --device nvidia.com/gpu=all --shm-size=2g \
     -e FILL_LORA_DROPOUT="${FILL_LORA_DROPOUT:-0}" \
     -e DECIDE_BASE="${DECIDE_BASE:-answerdotai/ModernBERT-base}" -e FILL_BASE="${FILL_BASE:-Qwen/Qwen2.5-0.5B-Instruct}" \
-    -e ENCODER_PRECISION="${ENCODER_PRECISION:-fp32}" -e FILL_QUANT="${FILL_QUANT:-q8_0}" \
+    -e ENCODER_PRECISION="${ENCODER_PRECISION:-fp32}" -e FILL_QUANT="${FILL_QUANT:-q8_0}" -e HEAD_LR="${HEAD_LR:-1e-3}" \
     -v "$ROOT/.s3/training:/data" -v hf-cache:/cache \
     "$IMAGE" python "$@" 2> >(grep -v -E "Warning|warn\(|FutureWarning|^\s*$" >&2)
 }

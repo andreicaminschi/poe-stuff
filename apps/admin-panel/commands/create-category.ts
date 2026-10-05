@@ -1,5 +1,4 @@
 import { single, type Params } from "../command-schema.ts";
-import { findFreeName } from "../find-free-name.ts";
 import { withEntry, type Stamp } from "../panel-state.ts";
 import type { PanelState } from "../types.ts";
 
@@ -7,14 +6,10 @@ export type CreateCategoryCommand = { readonly type: "createCategory"; readonly 
 
 export const createCategoryParams: Params<CreateCategoryCommand> = { names: single("name") };
 
-/** Creates one empty category. An empty name gets a free default one. Low, Sonar 2. */
-function createOne(state: PanelState, requested: string, stamp: Stamp): PanelState {
-  const taken = state.categories.map((category) => category.name);
-  const name = requested === ""
-    ? findFreeName("New category", taken)
-    : requested;
-
-  if (taken.includes(name)) throw new Error(`Category ${name} already exists.`);
+/** Creates one empty category. The name is mandatory. Low, Sonar 2. */
+function createOne(state: PanelState, name: string, stamp: Stamp): PanelState {
+  if (name.trim() === "") throw new Error("A category needs a name.");
+  if (state.categories.some((category) => category.name === name)) throw new Error(`Category ${name} already exists.`);
 
   return withEntry(state, { ...stamp, category: name, op: "createCategory" });
 }

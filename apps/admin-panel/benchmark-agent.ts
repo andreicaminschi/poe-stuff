@@ -80,6 +80,8 @@ export const summarize = (results: readonly RequestResult[]) => ({
   passRate: Number((results.filter((result) => result.pass).length / Math.max(results.length, 1)).toFixed(4)),
   verdicts: countBy(results, (result) => result.verdict),
   passByGoal: passByGoal(results),
+  attemptsPerRequest: percentiles(results.map((result) => result.run.turns.length)),
+  passedOnRetry: results.filter((result) => result.pass && result.run.turns.length > 1).length,
   latencyMs: {
     stopDecision: percentiles(results.flatMap((result) => [...result.run.turns.map((turn) => turn.stopMs), ...(result.run.lastStopMs > 0
       ? [result.run.lastStopMs]

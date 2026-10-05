@@ -4,15 +4,23 @@ import { REPHRASE } from "../decision-options.ts";
 import { topLabel } from "./load-encoder.ts";
 
 /**
- * Rephrase when it is the top action. Otherwise the real command whose action and target
- * probabilities multiply highest, so an impossible pair never wins. Low, Sonar 1.
+ * Rephrase when it is the top action. Otherwise every real command, best first, scored by its
+ * action probability times its target probability, so an impossible pair never appears.
+ * Low, Sonar 1.
  */
-export function pickCommand(actions: ReadonlyMap<string, number>, targets: ReadonlyMap<string, number>): ToolType | typeof REPHRASE {
+export function rankCommands(actions: ReadonlyMap<string, number>, targets: ReadonlyMap<string, number>): readonly ToolType[] | typeof REPHRASE {
   if (topLabel(actions) === "rephrase") return REPHRASE;
 
   return (Object.entries(COMMAND_PARTS) as [ToolType, { readonly action: string; readonly target: string }][])
-    .map(([type, parts]) => [type, (actions.get(parts.action) ?? 0) * (targets.get(parts.target) ?? 0)] as const)
-    .reduce((best, entry) => (entry[1] > best[1]
-      ? entry
-      : best))[0];
+    .map(([type, parts]) => ({ type, score: (actions.get(parts.action) ?? 0) * (targets.get(parts.target) ?? 0) }))
+    .sort((left, right) => right.score - left.score)
+    .map(({ type }) => type);
+}
+
+/** The single best command, or rephrase. Low, Sonar 0. */
+export function pickCommand(actions: ReadonlyMap<string, number>, targets: ReadonlyMap<string, number>): ToolType | typeof REPHRASE {
+  const ranked = rankCommands(actions, targets);
+  return ranked === REPHRASE
+    ? REPHRASE
+    : ranked[0]!;
 }

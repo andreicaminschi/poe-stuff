@@ -7,7 +7,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends build-essential
     && pip install --no-cache-dir unsloth "torch==2.7.1" \
     && pip uninstall -y torchao
 
-ADD https://github.com/ggml-org/llama.cpp/archive/refs/heads/master.tar.gz /tmp/llama.cpp.tar.gz
+# Pinned: the same llama.cpp node-llama-cpp bundles.
+ADD https://github.com/ggml-org/llama.cpp/archive/refs/tags/v0.5.0.tar.gz /tmp/llama.cpp.tar.gz
 RUN mkdir -p /opt/llama.cpp && tar -xzf /tmp/llama.cpp.tar.gz -C /opt/llama.cpp --strip-components=1 && rm /tmp/llama.cpp.tar.gz \
     && pip install --no-cache-dir /opt/llama.cpp/gguf-py
 

@@ -1,14 +1,15 @@
 import { performance } from "node:perf_hooks";
 import { toCommandArgs } from "./command-schema.ts";
-import { executeCommand, TOOL_PARAMS, type StateCommand, type ToolType } from "./commands.ts";
-import { formatContext, formatContextJson } from "./format-context.ts";
+import { executeCommand, TOOL_PARAMS, type StateCommand } from "./commands.ts";
+import { describeNames, formatContext, formatContextJson } from "./format-context.ts";
 import { CONDITION_FORMATS, expandCommand } from "./condition-values.ts";
 import { REPHRASE } from "./decision-options.ts";
 import { listTools } from "./list-tools.ts";
 import type { Stamp } from "./panel-state.ts";
 import { readHead, topLabel, type RunAdapter } from "./run-agent/load-encoder.ts";
 import type { FillParams } from "./run-agent/load-fill.ts";
-import { pickCommand } from "./run-agent/pick-command.ts";
+import { buildAttemptSchema } from "./run-agent/allowed-values.ts";
+import { rankCommands } from "./run-agent/pick-command.ts";
 import { describeRequest, writeFillUser } from "./run-agent/prompts.ts";
 import type { PanelState } from "./types.ts";
 
@@ -63,46 +64,62 @@ function tryExecute(state: PanelState, command: StateCommand, stamp: Stamp): Pan
   }
 }
 
+/** Asks the stop adapter whether `state` already meets the request. Low, Sonar 0. */
+async function askStop(models: AgentModels, state: PanelState, query: string, names: readonly string[]): Promise<{ readonly done: boolean; readonly ms: number }> {
+  const stop = await timed(() => models.runAdapter("stop", [describeRequest({ query, context: formatContext(state, CONDITION_FORMATS, query, names) })]));
+  return { done: topLabel(readHead(stop.value, "stop")) === "nothing-needed", ms: stop.ms };
+}
+
 /**
- * The agentic loop: the stop adapter says whether to stop, the choose adapter picks the
- * tool, the filler fills its schema, and the command runs on the state. Stops when nothing
- * more is needed, on rephrase, on a refusal, at the turn limit, or on a command it cannot
- * run. Nothing needed before any command means already applied.
- * Medium, Sonar 5.
+ * Generate-and-verify. Stop checks the original panel first: nothing needed means already
+ * applied. Choose ranks every real command once. Each attempt fills the current command with
+ * its key field limited to untried names, runs on a fresh copy of the original panel, and stop
+ * judges the result. A rejected attempt is retried with the next untried name, then the
+ * next-best command, up to `MAX_TURNS` attempts. The plan is the one accepted command.
+ * Medium, Sonar 6.
  */
 export async function runAgent(models: AgentModels, start: PanelState, query: string, names: readonly string[], stamp: Stamp): Promise<AgentRun> {
-  let state = start;
+  const first = await askStop(models, start, query, names);
+  if (first.done) return { state: start, turns: [], lastStopMs: first.ms, outcome: "already applied", commands: [] };
+
+  const choose = await timed(() => models.runAdapter("choose", [describeRequest({ query, context: formatContext(start, CONDITION_FORMATS, query, names) })]));
+  const ranked = rankCommands(readHead(choose.value, "action"), readHead(choose.value, "target"));
+  if (ranked === REPHRASE) return { state: start, turns: [], lastStopMs: first.ms, outcome: "unclear", commands: [] };
+
+  const entries = describeNames(start, CONDITION_FORMATS, query, names);
+  const fillRequest = { query, context: formatContextJson(start, CONDITION_FORMATS, query, names) };
   const turns: AgentTurn[] = [];
-  const commands: StateCommand[] = [];
+  let failure: AgentOutcome = "turn limit";
 
-  while (turns.length < MAX_TURNS) {
-    const turn = { query, context: formatContext(state, CONDITION_FORMATS, names) };
-    const text = describeRequest(turn);
-    const stop = await timed(() => models.runAdapter("stop", [text]));
-    if (topLabel(readHead(stop.value, "stop")) === "nothing-needed") return { state, turns, lastStopMs: stop.ms, outcome: commands.length === 0
-      ? "already applied"
-      : "done", commands };
+  for (const type of ranked) {
+    const tried: Readonly<Record<string, unknown>>[] = [];
+    while (turns.length < MAX_TURNS) {
+      const schema = buildAttemptSchema(type, entries, tried);
+      if (schema === undefined) break;
 
-    const choose = await timed(() => models.runAdapter("choose", [text]));
-    const picked = pickCommand(readHead(choose.value, "action"), readHead(choose.value, "target"));
-    if (picked === REPHRASE) return { state, turns, lastStopMs: stop.ms, outcome: "unclear", commands };
+      const fill = await timed(() => models.fillParams(type, writeFillUser(fillRequest, type, TOOLS[type].fields), schema));
+      const params = readParams(fill.value);
+      if (params === undefined || "refuse" in params) {
+        turns.push({ stopMs: 0, chooseMs: choose.ms, fillMs: fill.ms, command: type, answer: fill.value });
+        if (params !== undefined && turns.length === 1) return { state: start, turns, lastStopMs: 0, outcome: "refused", commands: [] };
+        failure = params === undefined ? "invalid json" : failure;
+        break;
+      }
 
-    const type: ToolType = picked;
-    const fillRequest = { query, context: formatContextJson(state, CONDITION_FORMATS, names) };
-    const fill = await timed(() => models.fillParams(type, writeFillUser(fillRequest, type, TOOLS[type].fields)));
-    turns.push({ stopMs: stop.ms, chooseMs: choose.ms, fillMs: fill.ms, command: type, answer: fill.value });
+      const args = toCommandArgs(TOOL_PARAMS[type], params);
+      const command = { type, ...args } as StateCommand;
+      const after = tryExecute(start, command, stamp);
+      const verdict = after === undefined
+        ? undefined
+        : await askStop(models, after, query, names);
+      turns.push({ stopMs: verdict?.ms ?? 0, chooseMs: choose.ms, fillMs: fill.ms, command: type, answer: fill.value });
+      if (after !== undefined && verdict?.done === true) return { state: after, turns, lastStopMs: verdict.ms, outcome: "done", commands: [command] };
 
-    const params = readParams(fill.value);
-    if (params === undefined) return { state, turns, lastStopMs: 0, outcome: "invalid json", commands };
-    if ("refuse" in params) return { state, turns, lastStopMs: 0, outcome: "refused", commands };
-
-    const command = { type, ...toCommandArgs(TOOL_PARAMS[type], params) } as StateCommand;
-    const next = tryExecute(state, command, stamp);
-    if (next === undefined) return { state, turns, lastStopMs: 0, outcome: "command failed", commands };
-
-    state = next;
-    commands.push(command);
+      failure = after === undefined ? "command failed" : "turn limit";
+      tried.push(args);
+    }
+    if (turns.length >= MAX_TURNS) break;
   }
 
-  return { state, turns, lastStopMs: 0, outcome: "turn limit", commands };
+  return { state: start, turns, lastStopMs: 0, outcome: failure, commands: [] };
 }

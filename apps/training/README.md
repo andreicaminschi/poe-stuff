@@ -37,6 +37,8 @@ yarn agent:eval --name count-50 --device cpu
 yarn agent:eval --name count-50 --e2e
 ```
 
+`--head-lr` sets the encoder heads' learning rate (default `1e-3`); the LoRA stays at `3e-4`.
+
 `agent:train` regenerates the data and deletes the version's `output/` first. After a crash,
 `bash apps/training/run-all.sh <name>` resumes: it skips every finished step.
 
@@ -66,7 +68,15 @@ direct-label heads, over the mean-pooled encoder output.
 
 The context describes each name the request holds. The encoder adapters read it as `key: value`
 lines, one block per name. The filler reads the same entries as a JSON array
-(`format-context.ts`).
+(`format-context.ts`). Long lists (a category's seeders, tags, known items, conditions) keep only
+the values the request mentions as whole words, plus a count: `tags: chase (of 40)`.
+
+The loop is generate-and-verify. Stop checks the original panel first. Choose ranks every
+real command; each attempt fills the current one with its key field (seeder, item or category)
+limited to untried names from the context, runs on a fresh copy of the original panel, and stop
+judges the result. A rejected attempt moves to the next untried name, then the next-best
+command. The plan is the one accepted command. Training adds stop rows after wrong attempts
+(`rows/wrong-attempt.ts`), labelled `work-needed`.
 
 Choose returns rephrase when it is the top action, else the real command whose action ×
 target probability is highest (`command-parts.ts`).

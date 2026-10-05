@@ -18,6 +18,8 @@ MAX_LENGTH = 384
 RANK = 16
 ALPHA = 32
 TARGETS = ["Wqkv", "Wo", "Wi"]
+LORA_LR = 3e-4
+HEAD_LR = float(os.environ.get("HEAD_LR", "1e-3"))
 LORA_PREFIX = "base_model.model."
 
 
@@ -85,15 +87,20 @@ def main(version, adapter):
     model = Adapter(encoder, heads)
 
     checkpoints = output_dir(version, f"{adapter}-checkpoints")
+    optimizer = torch.optim.AdamW([
+        {"params": [param for param in model.encoder.parameters() if param.requires_grad], "lr": LORA_LR},
+        {"params": list(model.heads.parameters()), "lr": HEAD_LR},
+    ], weight_decay=0.01)
     trainer = Trainer(
         model=model,
         args=TrainingArguments(
             output_dir=checkpoints, num_train_epochs=2, per_device_train_batch_size=32,
-            learning_rate=3e-4, warmup_ratio=0.1, weight_decay=0.01, bf16=True, group_by_length=True,
+            learning_rate=LORA_LR, warmup_ratio=0.1, weight_decay=0.01, bf16=True, group_by_length=True,
             save_strategy="epoch", save_total_limit=1, save_safetensors=False, logging_steps=50, report_to=[], disable_tqdm=True,
             remove_unused_columns=False, label_names=[f"label_{name}" for name in heads],
         ),
         train_dataset=train, data_collator=DataCollatorWithPadding(tokenizer),
+        optimizers=(optimizer, None),
     )
     attach_progress(trainer, f"{adapter} adapter")
     trainer.train(resume_from_checkpoint=get_last_checkpoint(checkpoints))

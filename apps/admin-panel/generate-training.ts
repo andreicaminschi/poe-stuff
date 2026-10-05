@@ -11,6 +11,7 @@ import { deleteCategory } from "./generate-training/goals/delete-category.ts";
 import { deleteSeeder } from "./generate-training/goals/delete-seeder.ts";
 import { entryRow, intentRow, type EntryRow, type IntentRow } from "./generate-training/rows/classify-request.ts";
 import { refuseRow } from "./generate-training/rows/refuse-row.ts";
+import { wrongAttemptRow } from "./generate-training/rows/wrong-attempt.ts";
 import type { BuildExample, Example, PatternSet } from "./generate-training/example.ts";
 import { moveSeeder } from "./generate-training/goals/move-seeder.ts";
 import { playExample, playNoOp, type ExampleRows } from "./generate-training/rows/play-example.ts";
@@ -36,6 +37,7 @@ const NO_OP_GOALS = new Set(["addTags", "addKnownItems", "addConditions"]);
 const NO_OP_SHARE = 0.3;
 const TWO_STEP_PER_COUNT = 4;
 const REFUSE_SHARE = 0.15;
+const WRONG_ATTEMPT_SHARE = 0.5;
 
 /** Every goal's single-target builder, the pieces two-step requests are joined from. Low, Sonar 0. */
 const listSingles = (goals: ReturnType<typeof buildGoals>): Readonly<Record<string, BuildExample>> =>
@@ -71,14 +73,18 @@ export function generateTraining(seed: number, count: number, set: PatternSet = 
     const example = build(faker, start);
     if (example.form === "listed") return classifyOnly(example, start);
     if (example.unclear === true) return { ...playExample(example, start), entry: [], intent: [] };
-    const played = NO_OP_GOALS.has(goal) && example.form !== "bulk" && faker.datatype.boolean(NO_OP_SHARE)
+    const noOp = NO_OP_GOALS.has(goal) && example.form !== "bulk" && faker.datatype.boolean(NO_OP_SHARE);
+    const played = noOp
       ? playNoOp(example, start)
       : playExample(example, start);
     const refused = faker.datatype.boolean(REFUSE_SHARE)
       ? [refuseRow(example, start)].filter((row) => row !== undefined)
       : [];
+    const wrong = !noOp && faker.datatype.boolean(WRONG_ATTEMPT_SHARE)
+      ? [wrongAttemptRow(faker, example, start)].filter((row) => row !== undefined)
+      : [];
 
-    return { ...played, fill: [...played.fill, ...refused], entry: [entryRow(example, start)], intent: [intentRow(example, start)] };
+    return { ...played, stop: [...played.stop, ...wrong], fill: [...played.fill, ...refused], entry: [entryRow(example, start)], intent: [intentRow(example, start)] };
   })));
   const twoStep = Array.from({ length: count * TWO_STEP_PER_COUNT }, () => {
     const start = buildState(faker);
