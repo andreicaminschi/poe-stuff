@@ -40,7 +40,16 @@ function drawCategory(state: PanelState, seed: number): DrawnTargets {
 
   return {
     targets: { categories: [category] },
-    phrase: pickWording([() => `every seeder in ${shown}`, () => `all of ${shown}`, () => `the ${shown} category`, () => `everything in ${shown}`], deriveSeed(seed, "wording")),
+    phrase: pickWording([
+      () => `every seeder in ${shown}`,
+      () => `all of ${shown}`,
+      () => `the ${shown} category`,
+      () => `everything in ${shown}`,
+      () => `the whole ${shown} category`,
+      () => `all seeders in ${shown}`,
+      () => `each seeder in ${shown}`,
+      () => `all of the ${shown} seeders`,
+    ], deriveSeed(seed, "wording")),
   };
 }
 
@@ -53,7 +62,16 @@ function drawCategoryExcept(state: PanelState, seed: number): DrawnTargets {
 
   return {
     targets: { categories: [category], except },
-    phrase: pickWording([() => `every seeder in ${shown} except ${left}`, () => `all of ${shown} but ${left}`, () => `${shown}, apart from ${left}`], deriveSeed(seed, "wording")),
+    phrase: pickWording([
+      () => `every seeder in ${shown} except ${left}`,
+      () => `all of ${shown} but ${left}`,
+      () => `${shown}, apart from ${left}`,
+      () => `every seeder in ${shown} but not ${left}`,
+      () => `${shown} except ${left}`,
+      () => `all ${shown} seeders other than ${left}`,
+      () => `everything in ${shown} besides ${left}`,
+      () => `${shown} without ${left}`,
+    ], deriveSeed(seed, "wording")),
   };
 }
 
@@ -64,7 +82,16 @@ function drawCategories(state: PanelState, seed: number): DrawnTargets {
 
   return {
     targets: { categories },
-    phrase: pickWording([() => `every seeder in ${shown}`, () => `all of ${shown}`, () => `the ${shown} categories`], deriveSeed(seed, "wording")),
+    phrase: pickWording([
+      () => `every seeder in ${shown}`,
+      () => `all of ${shown}`,
+      () => `the ${shown} categories`,
+      () => `both ${shown}`,
+      () => `all seeders in ${shown}`,
+      () => `everything in ${shown}`,
+      () => `each seeder in ${shown}`,
+      () => `the whole of ${shown}`,
+    ], deriveSeed(seed, "wording")),
   };
 }
 

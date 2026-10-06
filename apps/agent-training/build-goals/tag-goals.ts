@@ -12,6 +12,10 @@ const wordTagRequest = (phrase: string, tag: string, seed: number): string => pi
   () => `Mark ${phrase} as ${tag}`,
   () => `Put the tag "${tag}" on ${phrase}`,
   () => `Give ${phrase} the ${tag} tag`,
+  () => `${phrase} should be tagged ${tag}`,
+  () => `Can you tag ${phrase} as ${tag}?`,
+  () => `${phrase}: tag ${tag}`,
+  () => `I want ${phrase} tagged ${tag}`,
 ], seed);
 
 /** Words a request to remove a tag. */
@@ -20,6 +24,10 @@ const wordUntagRequest = (phrase: string, tag: string, seed: number): string => 
   () => `Untag ${tag} on ${phrase}`,
   () => `Drop tag ${tag} from ${phrase}`,
   () => `${phrase} shouldn't be tagged ${tag} anymore`,
+  () => `Take the ${tag} tag off ${phrase}`,
+  () => `Clear the ${tag} tag on ${phrase}`,
+  () => `${phrase}: remove tag ${tag}`,
+  () => `Stop tagging ${phrase} as ${tag}`,
 ], seed);
 
 /** Builds a goal that tags seeders in one target shape. */

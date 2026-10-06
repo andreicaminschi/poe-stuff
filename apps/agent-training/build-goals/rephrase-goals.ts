@@ -36,7 +36,16 @@ const buildUnknownNameGoal: GoalBuilder = (state, seed) => {
   const renamed = drawNewName(state, deriveSeed(seed, "renamed"));
 
   return {
-    request: pickWording([() => `Tag ${name} as ${tag}`, () => `Delete the ${name} seeder`, () => `Move ${name} to ${category}`, () => `Rename ${name} to ${renamed}`], deriveSeed(seed, "wording")),
+    request: pickWording([
+      () => `Tag ${name} as ${tag}`,
+      () => `Delete the ${name} seeder`,
+      () => `Move ${name} to ${category}`,
+      () => `Rename ${name} to ${renamed}`,
+      () => `Give ${name} the ${tag} tag`,
+      () => `Remove the ${tag} tag from ${name}`,
+      () => `Put ${name} under ${category}`,
+      () => `${name} should be named ${renamed}`,
+    ], deriveSeed(seed, "wording")),
     setup: [],
     steps: [],
   };

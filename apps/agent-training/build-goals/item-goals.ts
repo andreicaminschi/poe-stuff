@@ -10,7 +10,16 @@ const buildTagItemsGoal: GoalBuilder = (state, seed) => {
   const listed = formatList(items);
 
   return {
-    request: pickWording([() => `Tag ${listed} as ${tag}`, () => `Mark ${listed} as ${tag}`, () => `Give ${listed} the ${tag} tag`], deriveSeed(seed, "wording")),
+    request: pickWording([
+      () => `Tag ${listed} as ${tag}`,
+      () => `Mark ${listed} as ${tag}`,
+      () => `Give ${listed} the ${tag} tag`,
+      () => `${listed} should be tagged ${tag}`,
+      () => `Add the tag ${tag} to the items ${listed}`,
+      () => `Can you tag ${listed} as ${tag}?`,
+      () => `Items ${listed}: tag ${tag}`,
+      () => `Put the ${tag} tag on ${listed}`,
+    ], deriveSeed(seed, "wording")),
     setup: [],
     steps: [{ type: "updateItems", items, add: { tags: [tag] } }],
   };
@@ -23,7 +32,16 @@ const buildUntagItemsGoal: GoalBuilder = (state, seed) => {
   const listed = formatList(items);
 
   return {
-    request: pickWording([() => `Remove the ${tag} tag from ${listed}`, () => `Untag ${listed}, they're not ${tag}`, () => `${listed} shouldn't be ${tag} anymore`], deriveSeed(seed, "wording")),
+    request: pickWording([
+      () => `Remove the ${tag} tag from ${listed}`,
+      () => `Untag ${listed}, they're not ${tag}`,
+      () => `${listed} shouldn't be ${tag} anymore`,
+      () => `Drop the ${tag} tag from ${listed}`,
+      () => `Take ${tag} off ${listed}`,
+      () => `Can you untag ${tag} from ${listed}?`,
+      () => `Items ${listed}: remove tag ${tag}`,
+      () => `Clear ${tag} on ${listed}`,
+    ], deriveSeed(seed, "wording")),
     setup: [{ type: "updateItems", items, add: { tags: [tag] } }],
     steps: [{ type: "updateItems", items, remove: { tags: [tag] } }],
   };

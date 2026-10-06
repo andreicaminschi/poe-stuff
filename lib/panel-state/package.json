@@ -8,6 +8,7 @@
     "./types": "./types.ts",
     "./load-state": "./load-state.ts",
     "./check-state": "./check-state.ts",
+    "./resolve-name": "./resolve-name.ts",
     "./execute-command": "./execute-command.ts",
     "./value-sets": "./value-sets.ts",
     "./summary-config": "./summary-config.ts"

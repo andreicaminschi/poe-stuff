@@ -11,7 +11,8 @@ import { MULTI_STEP_GOALS } from "./build-goals/multi-step-goals.ts";
 import { REPHRASE_GOALS } from "./build-goals/rephrase-goals.ts";
 import { STRUCTURE_GOALS } from "./build-goals/structure-goals.ts";
 import { TAG_GOALS } from "./build-goals/tag-goals.ts";
-import type { Goal, GoalBuilder } from "./types.ts";
+import { garbleRequest, listMentionedNames, listProtectedStrings } from "./build-goals/garble-request.ts";
+import type { Goal, GoalBuilder, GoalDraft } from "./types.ts";
 
 /** Every goal kind, by name. */
 export const GOAL_BUILDERS: Readonly<Record<string, GoalBuilder>> = {
@@ -56,13 +57,31 @@ function playGoal(state: PanelState, goal: Goal, seed: number): PlayedGoal | und
 }
 
 /** Capitalizes a request's first letter. */
-const capitalizeRequest = (goal: Goal): Goal => ({ ...goal, request: `${goal.request.charAt(0).toUpperCase()}${goal.request.slice(1)}` });
+const capitalize = (request: string): string => `${request.charAt(0).toUpperCase()}${request.slice(1)}`;
+
+/** Lists every name the state holds: categories, seeders and items. */
+const listStoredNames = (state: PanelState): readonly string[] => [
+  ...Object.keys(state.categories),
+  ...Object.values(state.categories).flatMap((category) => Object.keys(category.seeders ?? {})),
+  ...Object.keys(state.items),
+];
+
+/** Files a builder's draft under its kind, and puts typos in one request in four. A goal with no commands keeps its request clean. */
+function fileGoal(state: PanelState, kind: string, draft: GoalDraft, seed: number): Goal {
+  const clean = capitalize(draft.request);
+  const commands = [...draft.setup, ...draft.steps];
+  const request = commands.length === 0
+    ? clean
+    : garbleRequest(clean, [...listProtectedStrings(commands), ...listMentionedNames(clean, listStoredNames(state))], deriveSeed(seed, "typos"));
+
+  return { ...draft, kind, request, clean };
+}
 
 /** Builds one goal of one kind from its own seed, retrying with the next seed until it plays. Throws when no attempt does. */
 function buildOneGoal(state: PanelState, kind: string, builder: GoalBuilder, seed: number): PlayedGoal {
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt += 1) {
     const attemptSeed = deriveSeed(seed, `attempt-${attempt}`);
-    const played = playGoal(state, capitalizeRequest({ ...builder(state, attemptSeed), kind }), attemptSeed);
+    const played = playGoal(state, fileGoal(state, kind, builder(state, attemptSeed), attemptSeed), attemptSeed);
     if (played !== undefined) return played;
   }
   throw new Error(`No playable ${kind} goal after ${MAX_ATTEMPTS} attempts from seed ${seed}.`);

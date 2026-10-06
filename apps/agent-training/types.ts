@@ -1,16 +1,21 @@
 import type { Command } from "@poe/panel-state/execute-command";
 import type { PanelState } from "@poe/panel-state/types";
 
-/** One thing a user might want: the request, the state they had, and the commands that fulfil it. */
-export type Goal = {
-  readonly kind: string;
+/** A goal as a builder writes it: the request, the state the user had, and the commands that fulfil it. */
+export type GoalDraft = {
   readonly request: string;
   readonly setup: readonly Command[];
   readonly steps: readonly Command[];
 };
 
-/** A goal before it is filed under a kind. The kind is the builder's key in the registry, and nowhere else. */
-export type GoalDraft = Omit<Goal, "kind">;
+/**
+ * One thing a user might want, filed under its kind. The kind is the builder's key in the
+ * registry, and nowhere else. `request` may carry typos; `clean` is the same request without them.
+ */
+export type Goal = GoalDraft & {
+  readonly kind: string;
+  readonly clean: string;
+};
 
 /** Builds one goal of one kind from the real state. The seed fixes every random choice. */
 export type GoalBuilder = (state: PanelState, seed: number) => GoalDraft;

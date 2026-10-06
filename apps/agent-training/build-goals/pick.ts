@@ -1,3 +1,4 @@
+import { resolveName } from "@poe/panel-state/resolve-name";
 import type { PanelState, Seeder } from "@poe/panel-state/types";
 import { createFaker, deriveSeed } from "./derive-seed.ts";
 
@@ -50,17 +51,21 @@ export function drawTag(seed: number): string {
 /** Capitalizes the first letter. */
 const capitalize = (text: string): string => `${text.charAt(0).toUpperCase()}${text.slice(1)}`;
 
-/** Draws a name no category and no seeder holds yet. */
+/**
+ * Draws a name that is not, and does not look like, any category, seeder or item the state holds:
+ * one the name matcher would resolve to an existing name is redrawn, so a new name never gets a
+ * context line of its own.
+ */
 export function drawNewName(state: PanelState, seed: number): string {
   const faker = createFaker(seed);
-  const taken = new Set([...Object.keys(state.categories), ...listSeeders(state).map((placed) => placed.seeder)]);
+  const known = [...Object.keys(state.categories), ...listSeeders(state).map((placed) => placed.seeder), ...Object.keys(state.items)];
   const name = faker.helpers.arrayElement([
     () => `${capitalize(faker.word.adjective())} ${capitalize(faker.word.noun())}`,
     () => capitalize(faker.word.noun()),
-    () => `${capitalize(faker.word.noun())} ${faker.helpers.arrayElement(["Bases", "Drops", "Items", "Loot", "Stuff"])}`,
+    () => `${capitalize(faker.word.noun())} ${faker.helpers.arrayElement(["Picks", "Drops", "Finds", "Loot", "Stuff"])}`,
   ])();
 
-  return taken.has(name)
-    ? drawNewName(state, deriveSeed(seed, "taken"))
-    : name;
+  return resolveName(name, known) === undefined
+    ? name
+    : drawNewName(state, deriveSeed(seed, "taken"));
 }
