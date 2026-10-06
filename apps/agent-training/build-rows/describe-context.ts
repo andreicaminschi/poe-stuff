@@ -2,8 +2,8 @@ import type { PanelState } from "@poe/panel-state/types";
 import { findFuzzyNames, type Span } from "./find-fuzzy-names.ts";
 import { listNamedEntries } from "./list-named-entries.ts";
 
-/** Tells whether a character is part of a word, so a name only matches whole. */
-const isWordCharacter = (character: string | undefined): boolean => character !== undefined && /[\p{L}\p{N}]/u.test(character);
+/** Tells whether a character is part of a word, so a name only matches whole. A hyphen joins a word, so "red-maps" never contains "Maps". */
+const isWordCharacter = (character: string | undefined): boolean => character !== undefined && /[\p{L}\p{N}-]/u.test(character);
 
 /** Finds where a name stands as a whole phrase in the text, skipping spans a longer name already took. */
 function findFreeMatch(text: string, name: string, taken: readonly Span[]): Span | undefined {

@@ -21,7 +21,7 @@ podman volume exists hf-cache || podman volume create hf-cache >/dev/null
 step() {
   podman run --rm --device nvidia.com/gpu=all --shm-size=2g \
     -e ENCODER_BASE -e LR -e EPOCHS -e BATCH -e MAX_LEN -e PATIENCE \
-    -e FILLER_BASE -e FILLER_EPOCHS -e FILLER_LR -e FILLER_RANK -e FILLER_BATCH \
+    -e FILLER_BASE -e FILLER_EPOCHS -e FILLER_LR -e FILLER_RANK -e FILLER_BATCH -e FILLER_SAMPLES -e PREDICT_ONLY \
     -e PYTHONPATH=/scripts -e PYTHONUNBUFFERED=1 \
     -v "$ROOT/.s3/agent-training:/data" -v "$ROOT/apps/agent-training/train:/scripts" -v hf-cache:/cache \
     "$IMAGE" python "/scripts/$1" "${@:2}" 2> >(grep -v -E "Warning|warn\(|FutureWarning|^\s*$" >&2)
