@@ -1,0 +1,14 @@
+{
+  "name": "@util/diff-summary",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./summarize-diff": "./summarize-diff.ts",
+    "./types": "./types.ts"
+  },
+  "dependencies": {
+    "microdiff": "^1.6.0"
+  }
+}

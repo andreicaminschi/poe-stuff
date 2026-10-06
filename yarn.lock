@@ -1775,6 +1775,18 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@poe/agent-training@workspace:apps/agent-training":
+  version: 0.0.0-use.local
+  resolution: "@poe/agent-training@workspace:apps/agent-training"
+  dependencies:
+    "@faker-js/faker": "npm:^10.6.0"
+    "@poe/filter-eval": "workspace:^"
+    "@poe/lake": "workspace:^"
+    "@poe/panel-state": "workspace:^"
+    "@util/diff-summary": "workspace:^"
+  languageName: unknown
+  linkType: soft
+
 "@poe/catalog@workspace:apps/catalog":
   version: 0.0.0-use.local
   resolution: "@poe/catalog@workspace:apps/catalog"
@@ -1833,6 +1845,14 @@ __metadata:
 "@poe/lake@workspace:^, @poe/lake@workspace:services/lake":
   version: 0.0.0-use.local
   resolution: "@poe/lake@workspace:services/lake"
+  languageName: unknown
+  linkType: soft
+
+"@poe/panel-state@workspace:^, @poe/panel-state@workspace:lib/panel-state":
+  version: 0.0.0-use.local
+  resolution: "@poe/panel-state@workspace:lib/panel-state"
+  dependencies:
+    "@util/diff-summary": "workspace:^"
   languageName: unknown
   linkType: soft
 
@@ -2919,6 +2939,14 @@ __metadata:
 "@util/cache@workspace:^, @util/cache@workspace:lib/cache":
   version: 0.0.0-use.local
   resolution: "@util/cache@workspace:lib/cache"
+  languageName: unknown
+  linkType: soft
+
+"@util/diff-summary@workspace:^, @util/diff-summary@workspace:lib/diff-summary":
+  version: 0.0.0-use.local
+  resolution: "@util/diff-summary@workspace:lib/diff-summary"
+  dependencies:
+    microdiff: "npm:^1.6.0"
   languageName: unknown
   linkType: soft
 
@@ -5280,6 +5308,13 @@ __metadata:
   version: 2.0.0
   resolution: "merge-stream@npm:2.0.0"
   checksum: 10c0/867fdbb30a6d58b011449b8885601ec1690c3e41c759ecd5a9d609094f7aed0096c37823ff4a7190ef0b8f22cc86beb7049196ff68c016e3b3c671d0dac91ce5
+  languageName: node
+  linkType: hard
+
+"microdiff@npm:^1.6.0":
+  version: 1.6.0
+  resolution: "microdiff@npm:1.6.0"
+  checksum: 10c0/352831a804fc9d1ea07a0137beda9c030882937860253833e3d79166c3e6833a13decb0ae4be055e2948ee8e54c44098f6fc70a7eacfc2d68daabbc6cdf0855a
   languageName: node
   linkType: hard
 

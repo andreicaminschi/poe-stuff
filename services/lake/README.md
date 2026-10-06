@@ -16,7 +16,8 @@ key layout, because that layout is the app's contract with its readers.
 | `@poe/lake/service` | `createLakeService`          | Takes an optional `root` (default `.s3`). Returns a `Lake`. |
 | `@poe/lake/types`   | `Lake`, `LakeServiceOptions` | Types only.                                                 |
 
-`Lake` has `readJson`, `writeJson`, `writeJsonAtomic`, `exists`, `list` and `clear`.
+`Lake` has `readJson`, `writeJson`, `writeJsonAtomic`, `writeJsonLines`, `exists`, `list` and `clear`.
+`writeJsonLines` writes one compact JSON value per line (JSONL), the format training data is read in.
 
 ## Gotchas
 

@@ -1,0 +1,18 @@
+{
+  "name": "@poe/panel-state",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./types": "./types.ts",
+    "./load-state": "./load-state.ts",
+    "./check-state": "./check-state.ts",
+    "./execute-command": "./execute-command.ts",
+    "./value-sets": "./value-sets.ts",
+    "./summary-config": "./summary-config.ts"
+  },
+  "dependencies": {
+    "@util/diff-summary": "workspace:^"
+  }
+}

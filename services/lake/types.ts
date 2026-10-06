@@ -2,6 +2,7 @@ export type Lake = {
   readJson<T>(key: string): Promise<T>;
   writeJson(key: string, value: unknown): Promise<void>;
   writeJsonAtomic(key: string, value: unknown): Promise<void>;
+  writeJsonLines(key: string, rows: readonly unknown[]): Promise<void>;
   exists(key: string): Promise<boolean>;
   list(prefix: string): Promise<readonly string[]>;
   clear(prefix: string): Promise<void>;

@@ -1,0 +1,14 @@
+{
+  "name": "@poe/agent-training",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@faker-js/faker": "^10.6.0",
+    "@poe/filter-eval": "workspace:^",
+    "@poe/lake": "workspace:^",
+    "@poe/panel-state": "workspace:^",
+    "@util/diff-summary": "workspace:^"
+  }
+}

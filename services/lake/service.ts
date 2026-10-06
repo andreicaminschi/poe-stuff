@@ -39,6 +39,12 @@ export function createLakeService({ root = ".s3" }: LakeServiceOptions = {}): La
       await renameWithRetry(temp, path);
     },
 
+    async writeJsonLines(key, rows) {
+      const path = pathOf(key);
+      await mkdir(dirname(path), { recursive: true });
+      await writeFile(path, rows.map((row) => `${JSON.stringify(row)}\n`).join(""));
+    },
+
     async exists(key) {
       try {
         await access(pathOf(key), constants.R_OK);
