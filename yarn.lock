@@ -1784,6 +1784,7 @@ __metadata:
     "@poe/lake": "workspace:^"
     "@poe/panel-state": "workspace:^"
     "@util/diff-summary": "workspace:^"
+    microdiff: "npm:^1.6.0"
   languageName: unknown
   linkType: soft
 

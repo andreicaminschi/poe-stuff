@@ -1,7 +1,9 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { createLakeService } from "@poe/lake/service";
+import { CONDITIONS } from "@poe/filter-eval/filter-ast";
 import type { Lake } from "@poe/lake/types";
+import { VALUE_SETS } from "@poe/panel-state/value-sets";
 import { checkState } from "@poe/panel-state/check-state";
 import { loadState, type CategoriesFile } from "@poe/panel-state/load-state";
 import { buildGoals, type PlayedGoal } from "./build-goals.ts";
@@ -10,6 +12,14 @@ import { splitGoal } from "./split-goals.ts";
 import type { Rows } from "./types.ts";
 
 const STATE_KEY = "admin-panel/versions/latest/categories.json";
+
+type RegisteredCondition = { readonly games: readonly string[] };
+
+/** The words a Filler answer may use as keys and set names: every PoE1 filter condition, and the named value sets. */
+const VOCABULARY = {
+  conditions: Object.entries(CONDITIONS as unknown as Readonly<Record<string, RegisteredCondition>>).filter(([, condition]) => condition.games.includes("poe1")).map(([name]) => name),
+  valueSets: Object.fromEntries(Object.entries(VALUE_SETS).map(([condition, sets]) => [condition, Object.keys(sets)])),
+};
 
 /** Writes one goal's rows as a review block: the request, then every row cut from it. */
 function renderGoalRows(rows: Rows, goal: number): string {
@@ -32,9 +42,14 @@ function renderReview(rows: Rows, kinds: readonly { readonly kind: string; reado
 const countLabels = (labels: readonly string[]): string =>
   Object.entries(Object.groupBy(labels, (label) => label)).map(([label, all]) => `${label} ${all?.length ?? 0}`).join(", ");
 
-/** Cuts one set of goals into rows and writes the three JSONL files plus a review file into one folder. */
-async function writeRowSet(lake: Lake, folder: string, goals: readonly PlayedGoal[]): Promise<void> {
+/** How a row set was generated, so a scorer can rebuild the same goals and their states. */
+export type RowSetManifest = { readonly seed: number; readonly perKind: number; readonly part: "all" | "seen" | "held-out" };
+
+/** Cuts one set of goals into rows and writes the three JSONL files, a review file and its manifest into one folder. */
+async function writeRowSet(lake: Lake, folder: string, goals: readonly PlayedGoal[], manifest: RowSetManifest): Promise<void> {
   const rows = buildRows(goals);
+  await lake.writeJson(`${folder}/manifest.json`, manifest);
+  await lake.writeJson(`${folder}/vocabulary.json`, VOCABULARY);
   const firstOfKind = goals.flatMap((goal, index) => (goals.findIndex((other) => other.kind === goal.kind) === index
     ? [{ kind: goal.kind, goal: index }]
     : []));
@@ -78,10 +93,12 @@ async function main(): Promise<void> {
   const heldOut = goals.filter((goal) => splitGoal(goal, storedNames, seederNames) === "held-out");
   const folder = `agent-training/${values.name}`;
 
-  if (values.split === "all") return writeRowSet(lake, folder, goals);
-  if (values.split === "train") return writeRowSet(lake, folder, seen);
-  await writeRowSet(lake, `${folder}/seen`, seen);
-  await writeRowSet(lake, `${folder}/held-out`, heldOut);
+  const seed = Number(values.seed);
+  const perKind = Number(values["per-kind"]);
+  if (values.split === "all") return writeRowSet(lake, folder, goals, { seed, perKind, part: "all" });
+  if (values.split === "train") return writeRowSet(lake, folder, seen, { seed, perKind, part: "seen" });
+  await writeRowSet(lake, `${folder}/seen`, seen, { seed, perKind, part: "seen" });
+  await writeRowSet(lake, `${folder}/held-out`, heldOut, { seed, perKind, part: "held-out" });
 }
 
 await main();

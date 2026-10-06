@@ -9,6 +9,7 @@
     "@poe/filter-eval": "workspace:^",
     "@poe/lake": "workspace:^",
     "@poe/panel-state": "workspace:^",
-    "@util/diff-summary": "workspace:^"
+    "@util/diff-summary": "workspace:^",
+    "microdiff": "^1.6.0"
   }
 }

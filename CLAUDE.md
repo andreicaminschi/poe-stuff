@@ -57,7 +57,7 @@ lib/cache/             # @util/cache — build-cache-key, create-file-cache, sle
 lib/env/               # @util/env — requireEnv / optionalEnv. The only reader of process.env
 apps/catalog/          # the bronze/silver/gold pipeline. Replaces the deleted @poe/filterv2. Has a README.md
 apps/taxonomy/         # the hand-maintained classification table and the filter conditions. Has a README.md
-apps/agent-training/   # goals (request + correct commands) built off the promoted panel state, cut into Router, Filler and Judge training rows
+apps/agent-training/   # goals built off the promoted panel state, cut into Router/Filler/Judge rows; trainers (train/, Python in Podman) and the scorer
 .s3/                   # local stand-in for object storage. Gitignored. Holds the only copy of the taxonomy
 data/sample-items/     # copied item text, the parser's fixtures. Two suites read this folder
 data/                  # everything else here is scratch and gitignored
@@ -372,6 +372,24 @@ yarn agent:rows --name=train-1 --split=train --seed=1
 
 ```bash
 yarn agent:rows --name=eval-1 --split=eval --seed=2
+```
+
+Train the Router and Judge (ettin-encoder-150m, full fine-tune, class-weighted, early stopping on
+validation macro-F1) and the Filler (Qwen3-0.6B, Unsloth LoRA, loss on the answer only) in the
+`localhost/poe-training` Podman image, then predict every set given. The Filler decodes with beam
+search and keeps the first candidate whose condition names and value sets exist and whose names,
+tags and values appear in its input (generate-and-verify). `ONLY=router|judge|filler` trains one:
+
+```bash
+bash apps/agent-training/train.sh run-1 train-1 val-1/seen eval-1/seen eval-1/held-out
+```
+
+Score a run: accuracy, macro-F1 and per-label recall for the Router and Judge, caught rejects per
+mutation kind, and execution match for the Filler, which runs each predicted command through the real
+executor on its step's state. Writes `.s3/agent-training/runs/<run>/report.md`:
+
+```bash
+yarn agent:score --run=run-1
 ```
 
 Make one run the league's published catalog:
