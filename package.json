@@ -17,6 +17,7 @@
     "admin-panel:benchmark-agent": "node apps/admin-panel/benchmark-agent-cli.ts",
     "admin-panel:eval-adapters": "node apps/admin-panel/eval-adapters-cli.ts",
     "admin-panel:feedback-to-rows": "node apps/admin-panel/feedback-to-rows-cli.ts",
+    "admin-panel:predict-models": "yarn workspace @poe/admin-panel predict-models",
     "agent:generate-training-data": "bash -c 'node apps/admin-panel/generate-training-cli.ts --version=data-check --count=100 \"$@\" && node apps/admin-panel/generate-training-cli.ts --version=data-check --count=100 \"$@\" --unseen-only' --",
     "agent:goals": "node apps/agent-training/build-goals-cli.ts",
     "agent:rows": "node apps/agent-training/build-rows-cli.ts",

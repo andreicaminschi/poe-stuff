@@ -1,7 +1,8 @@
 """Filler: Qwen3-0.6B with a LoRA through Unsloth, writing one command's params as JSON.
 
 Usage: python train_filler.py <run> <train set> <val set> [<eval set> ...]
-The loss covers the JSON answer only. After training, every set is decoded greedily into
+The loss covers the JSON answer only. Training stops at the first epoch whose val loss does not
+improve, and the best epoch is kept. After training, every set is decoded greedily into
 /data/runs/<run>/filler/predictions/<set>.jsonl; scoring runs the predictions through the real
 executor in Node.
 """
@@ -16,13 +17,14 @@ import sys
 import time
 
 import torch
-from transformers import Trainer, TrainingArguments
+from transformers import EarlyStoppingCallback, Trainer, TrainingArguments
 
 from rows import data_path, read_rows, write_json, write_rows
 
 BASE = os.environ.get("FILLER_BASE", "unsloth/Qwen3-0.6B")
 MAX_SEQ = 512
-EPOCHS = float(os.environ.get("FILLER_EPOCHS", "3"))
+EPOCHS = float(os.environ.get("FILLER_EPOCHS", "10"))
+PATIENCE = 1
 LR = float(os.environ.get("FILLER_LR", "2e-4"))
 RANK = int(os.environ.get("FILLER_RANK", "16"))
 BATCH = int(os.environ.get("FILLER_BATCH", "16"))
@@ -147,8 +149,8 @@ def load_trained(out, train_set):
     return model, tokenizer, len(read_rows(train_set, "filler"))
 
 
-def train_model(out, train_set):
-    """Fine-tunes the LoRA on the train set and saves it."""
+def train_model(out, train_set, val_set):
+    """Fine-tunes the LoRA on the train set, stopping once val loss stops improving, and saves the best epoch."""
     model, tokenizer = FastLanguageModel.from_pretrained(BASE, max_seq_length=MAX_SEQ, dtype=torch.bfloat16, load_in_4bit=False)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
@@ -156,19 +158,28 @@ def train_model(out, train_set):
 
     train_rows = read_rows(train_set, "filler")
     train = [encode(tokenizer, row) for row in train_rows]
+    val = [encode(tokenizer, row) for row in read_rows(val_set, "filler")]
     print(f"filler: {len(train)} train rows, longest {max(len(item['input_ids']) for item in train)} tokens", flush=True)
 
     trainer = Trainer(
         model=model,
         args=TrainingArguments(
             output_dir=os.path.join(out, "checkpoints"), num_train_epochs=EPOCHS, per_device_train_batch_size=BATCH,
-            learning_rate=LR, warmup_ratio=0.05, lr_scheduler_type="linear", bf16=True, logging_steps=20,
-            save_strategy="no", report_to=[], seed=SEED, remove_unused_columns=False, dataloader_num_workers=0,
+            per_device_eval_batch_size=BATCH, learning_rate=LR, warmup_ratio=0.05, lr_scheduler_type="linear", bf16=True,
+            logging_steps=20, eval_strategy="epoch", save_strategy="epoch", save_total_limit=1, load_best_model_at_end=True,
+            metric_for_best_model="eval_loss", greater_is_better=False, prediction_loss_only=True,
+            report_to=[], seed=SEED, remove_unused_columns=False, dataloader_num_workers=0,
         ),
         train_dataset=train,
+        eval_dataset=val,
         data_collator=collate(tokenizer.pad_token_id),
+        callbacks=[EarlyStoppingCallback(early_stopping_patience=PATIENCE)],
     )
     trainer.train()
+    losses = [(entry["epoch"], entry["eval_loss"]) for entry in trainer.state.log_history if "eval_loss" in entry]
+    best_epoch, best_loss = min(losses, key=lambda entry: entry[1])
+    print(f"filler: val loss by epoch {', '.join(f'{epoch:.0f}: {loss:.5f}' for epoch, loss in losses)}", flush=True)
+    print(f"filler: best epoch {best_epoch:.0f}, val loss {best_loss:.5f}", flush=True)
     model.save_pretrained(os.path.join(out, "lora"))
     tokenizer.save_pretrained(os.path.join(out, "lora"))
     return model, tokenizer, len(train)
@@ -180,7 +191,7 @@ def main(run, train_set, val_set, *eval_sets):
     started = time.time()
     out = data_path("runs", run, "filler")
 
-    model, tokenizer, train_count = load_trained(out, train_set) if PREDICT_ONLY else train_model(out, train_set)
+    model, tokenizer, train_count = load_trained(out, train_set) if PREDICT_ONLY else train_model(out, train_set, val_set)
     FastLanguageModel.for_inference(model)
     summary = {}
     for eval_set in (val_set, *eval_sets):

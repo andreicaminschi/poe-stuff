@@ -8,13 +8,15 @@
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",
-    "typecheck": "tsc -p tsconfig.json"
+    "typecheck": "tsc -p tsconfig.json",
+    "predict-models": "ELECTRON_RUN_AS_NODE=1 electron predict-models-cli.ts"
   },
   "dependencies": {
     "@faker-js/faker": "^10.6.0",
     "@huggingface/transformers": "^4.3.0",
     "@poe/filter-eval": "workspace:^",
     "@poe/lake": "workspace:^",
+    "@poe/panel-state": "workspace:^",
     "node-llama-cpp": "^3.22.1",
     "onnxruntime-node": "^1.30.0",
     "react": "19.3.0",

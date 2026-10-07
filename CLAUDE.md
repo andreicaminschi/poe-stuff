@@ -375,13 +375,37 @@ yarn agent:rows --name=eval-1 --split=eval --seed=2
 ```
 
 Train the Router and Judge (ettin-encoder-150m, full fine-tune, class-weighted, early stopping on
-validation macro-F1) and the Filler (Qwen3-0.6B, Unsloth LoRA, loss on the answer only) in the
+validation macro-F1) and the Filler (Qwen3-0.6B, Unsloth LoRA, loss on the answer only, stops at
+the first epoch whose validation loss does not improve, capped at 10) in the
 `localhost/poe-training` Podman image, then predict every set given. The Filler decodes with beam
 search and keeps the first candidate whose condition names and value sets exist and whose names,
-tags and values appear in its input (generate-and-verify). `ONLY=router|judge|filler` trains one:
+tags and values appear in its input (generate-and-verify). `ONLY=router|judge|filler` trains one.
+`CONFIG=baseline` fills every setting you did not type from `apps/agent-training/train/baseline.env`,
+the settings of the run new runs are compared against:
 
 ```bash
-bash apps/agent-training/train.sh run-1 train-1 val-1/seen eval-1/seen eval-1/held-out
+CONFIG=baseline bash apps/agent-training/train.sh run-7 train-5 val-5/seen eval-5/seen eval-5/held-out
+```
+
+Export a run for Node, in the same image: the Router and Judge as ONNX (fp32 and fp16, logits out),
+the Filler's LoRA merged into its base as GGUF (f16 and q8_0), the encoder tokenizer and
+`export.json`, into `.s3/agent-training/runs/<run>/export/`. Each ONNX file then labels the val set
+on the CPU and prints how often it agrees with Podman's predictions:
+
+```bash
+bash apps/agent-training/export.sh run-5 val-5/seen
+```
+
+Predict a run's eval sets with its exported models in Electron's own Node (`ELECTRON_RUN_AS_NODE=1`),
+as the app will run them. The Router and Judge run as ONNX on `onnxruntime-node`, always on the
+CPU: one row at a time it is about 3× faster than DirectML. They run at fp32 and fp16. The Filler
+runs as GGUF on `node-llama-cpp`, at f16 and q8_0, decoding greedily inside a JSON grammar of its
+command's params. `--device` is `gpu-vulkan`, `gpu-cuda` or `cpu`, and names the Filler's backend. CUDA needs the CUDA Toolkit installed, which an app user
+won't have. Every row runs alone and is timed. The CPU covers 200 rows per set, spread evenly.
+Writes `runs/<run>/node/<device>/<model>-<precision>/predictions/<set>.jsonl` and `load.json`:
+
+```bash
+yarn admin-panel:predict-models --run=run-5 --device=gpu-vulkan
 ```
 
 Score a run: accuracy, macro-F1 and per-label recall for the Router and Judge, caught rejects per
