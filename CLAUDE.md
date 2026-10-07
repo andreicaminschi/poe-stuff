@@ -246,7 +246,7 @@ keep `.ts`.
 
 ## Conventions
 
-- **No comments.** Only a real gotcha gets one, and it stays under five words.
+- **No comments.** Only a real gotcha gets one, and it stays under five words. A dense function may carry an `@example`.
 - **An endpoint's `.types.ts` is its contract**: the shape it answers with, and nothing else.
   Every building block that shape is made of goes in the service's `types.ts`.
 - **A service does its own reading.** No injected store or adapter interface when there is
