@@ -168,7 +168,7 @@ person does. `apps/catalog` and `apps/taxonomy` predate it and are exempt.
 The admin panel is the reference implementation. Each command is two files in `commands/`:
 
 - `<name>.ts` holds the command's type and its `execute`.
-- `<name>.renderer.tsx` holds the React view the approval modal shows.
+- `<name>.renderer.tsx` holds the React view the approval modal shows. **On hold for now.**
 
 `commands.ts` holds the union and the executor map. `renderer/command-views.ts` holds the view
 map. Both maps are typed over every command type, so a command missing either half fails
