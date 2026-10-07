@@ -27,6 +27,7 @@ export function signTemplate(goal: Goal, storedNames: readonly string[]): string
   const masked = values.reduce((text, value) => text.replace(new RegExp(escapePattern(value), "gi"), "§"), goal.clean);
 
   return masked
+    .replace(/\d+/g, "§")
     .replace(/§(?:, §)*(?: and §)?/g, "X")
     .toLowerCase();
 }

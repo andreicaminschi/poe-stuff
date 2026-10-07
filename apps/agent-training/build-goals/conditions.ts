@@ -1,7 +1,7 @@
 import type { ConditionValues } from "@poe/panel-state/types";
 import { VALUE_SETS } from "@poe/panel-state/value-sets";
 import { createFaker, deriveSeed } from "./derive-seed.ts";
-import { formatList } from "./word.ts";
+import { formatList, pickWording } from "./word.ts";
 
 /** A condition edit, and how a person says it. */
 export type ConditionChange = {
@@ -86,7 +86,14 @@ function drawRange(seed: number): ConditionChange {
   const to = faker.number.int({ min: from, max: high });
   const shown = from === to
     ? String(from)
-    : `${from}-${to}`;
+    : pickWording([
+      () => `${from}-${to}`,
+      () => `${from}/${to}`,
+      () => `${from} ${to}`,
+      () => `${from} to ${to}`,
+      () => `between ${from} and ${to}`,
+      () => `from ${from} to ${to}`,
+    ], deriveSeed(seed, "form"));
 
   return { condition, value: [`${from}-${to}`], phrase: `${CONDITION_WORDS[condition] ?? condition} ${shown}` };
 }
