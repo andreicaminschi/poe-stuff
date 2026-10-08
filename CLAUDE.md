@@ -459,6 +459,16 @@ that is committed — a link into `docs/plans/` is a broken link for everybody e
 `research/` holds design notes written before the code — treat them as history, not as a
 description of what exists.
 
+## Project rules
+
+- Admin-panel talk means the taxonomy's own data, never RePoE, catalog or GGG fields.
+- Apply a taxonomy condition at the level I name. Never hoist it to a category.
+- When a validator sample has no taxonomy rule for its state, say that first.
+- Keep the price source in a field, never in a type or function name.
+- `.s3/admin-panel/versions/3.29.5/categories.json` is the baseline state. Every seeder name in it is unique.
+- The old agent generator is reference only. Never build on its design.
+- Data comes from the services, never from static JSON files in the tree.
+
 ## Working rules
 
 ### Scope
@@ -480,7 +490,7 @@ the plan is fine; edits are not.
 - Group the plan by need. Each group opens with one bold line: what is needed, why, and what
   is missing now. Then one bullet per change, naming the file it touches.
 - Cap it at 7 steps. Longer means split into stages and plan stage one only.
-- Over 7 steps, over 5 files, or any schema/migration/delete: write `docs/plans/<feature>.md`.
+- Every plan goes through plan mode's approval view, never a file. Over 7 steps, over 5 files, or any schema/migration/delete: the plan adds stages, files touched and how to verify.
 - Every assumption becomes a question before acting.
 
 Small and obvious — one file, one function, a typo, a named rename — skip the plan.
