@@ -484,16 +484,7 @@ Do exactly what was asked. Nothing more.
 
 ### Plan first
 
-Outline every feature before writing it, and wait for a yes. Reading and searching to build
-the plan is fine; edits are not.
-
-- Group the plan by need. Each group opens with one bold line: what is needed, why, and what
-  is missing now. Then one bullet per change, naming the file it touches.
-- Cap it at 7 steps. Longer means split into stages and plan stage one only.
-- Every plan goes through plan mode's approval view, never a file. Over 7 steps, over 5 files, or any schema/migration/delete: the plan adds stages, files touched and how to verify.
-- Every assumption becomes a question before acting.
-
-Small and obvious — one file, one function, a typo, a named rename — skip the plan.
+Follow the `plan` skill before writing or changing any code.
 
 ### After a feature
 
