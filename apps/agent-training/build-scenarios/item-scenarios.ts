@@ -1,10 +1,10 @@
-import type { GoalBuilder } from "../types.ts";
+import type { ScenarioBuilder } from "../types.ts";
 import { deriveSeed } from "./derive-seed.ts";
 import { drawTag, pickSome } from "./pick.ts";
 import { formatList, pickWording } from "./word.ts";
 
-/** Builds a goal that tags one to three items. */
-const buildTagItemsGoal: GoalBuilder = (state, seed) => {
+/** Builds a scenario that tags one to three items. */
+const buildTagItemsScenario: ScenarioBuilder = (state, seed) => {
   const items = pickSome(Object.keys(state.items), 1, 3, deriveSeed(seed, "items"));
   const tag = drawTag(deriveSeed(seed, "tag"));
   const listed = formatList(items);
@@ -47,8 +47,8 @@ const buildTagItemsGoal: GoalBuilder = (state, seed) => {
   };
 };
 
-/** Builds a goal that removes a tag the setup put on one to three items. */
-const buildUntagItemsGoal: GoalBuilder = (state, seed) => {
+/** Builds a scenario that removes a tag the setup put on one to three items. */
+const buildUntagItemsScenario: ScenarioBuilder = (state, seed) => {
   const items = pickSome(Object.keys(state.items), 1, 3, deriveSeed(seed, "items"));
   const tag = drawTag(deriveSeed(seed, "tag"));
   const listed = formatList(items);
@@ -89,8 +89,8 @@ const buildUntagItemsGoal: GoalBuilder = (state, seed) => {
   };
 };
 
-/** Goals that tag or untag items. */
-export const ITEM_GOALS: Readonly<Record<string, GoalBuilder>> = {
-  "tag-items": buildTagItemsGoal,
-  "untag-items": buildUntagItemsGoal,
+/** Scenarios that tag or untag items. */
+export const ITEM_SCENARIOS: Readonly<Record<string, ScenarioBuilder>> = {
+  "tag-items": buildTagItemsScenario,
+  "untag-items": buildUntagItemsScenario,
 };

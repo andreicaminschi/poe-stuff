@@ -89,6 +89,6 @@ export function wrongAttemptRow(faker: Faker, example: Example, start: PanelStat
   return {
     input: { query: example.query, context: formatContext(after, CONDITION_FORMATS, example.query, example.names) },
     output: { reason: "work-needed" },
-    meta: { goal: example.goal, form: "wrong-attempt" },
+    meta: { scenario: example.scenario, form: "wrong-attempt" },
   };
 }

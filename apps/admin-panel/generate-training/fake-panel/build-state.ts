@@ -82,7 +82,7 @@ function buildSeeder(faker: Faker, taken: Set<string>, tagPool: readonly string[
   };
 }
 
-/** Builds one category. Some are empty, so delete goals have targets; some are large. Low, Sonar 1. */
+/** Builds one category. Some are empty, so delete scenarios have targets; some are large. Low, Sonar 1. */
 function buildCategory(faker: Faker, taken: Set<string>, empty: boolean): Category {
   const [name = ""] = drawNames(faker, taken, 1, drawCategoryName);
   const tagPool = [...new Set(Array.from({ length: faker.number.int({ min: 2, max: 6 }) }, () => drawTag(faker)))];

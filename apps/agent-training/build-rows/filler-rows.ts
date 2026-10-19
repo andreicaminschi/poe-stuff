@@ -1,16 +1,16 @@
-import type { PlayedGoal } from "../build-goals.ts";
+import type { PlayedScenario } from "../build-scenarios.ts";
 import type { FillerRow } from "../types.ts";
 import { describeContext } from "./describe-context.ts";
 import { formatInput, listDoneLines } from "./format-input.ts";
 
 /**
- * Cuts a goal into Filler rows: one per step. The input adds the command type the Router chose,
+ * Cuts a scenario into Filler rows: one per step. The input adds the command type the Router chose,
  * and the answer is that command's params as compact JSON, without its `type`.
  */
-export const buildFillerRows = (goal: PlayedGoal, index: number): readonly FillerRow[] =>
-  goal.steps.map((command, at) => ({
-    goal: index,
-    kind: goal.kind,
-    input: `${formatInput(goal.request, describeContext(goal.request, goal.played[at]?.before ?? goal.start), listDoneLines(goal, at))}\ncommand: ${command.type}`,
+export const buildFillerRows = (scenario: PlayedScenario, index: number): readonly FillerRow[] =>
+  scenario.steps.map((command, at) => ({
+    scenario: index,
+    kind: scenario.kind,
+    input: `${formatInput(scenario.request, describeContext(scenario.request, scenario.played[at]?.before ?? scenario.start), listDoneLines(scenario, at))}\ncommand: ${command.type}`,
     output: JSON.stringify(Object.fromEntries(Object.entries(command).filter(([key]) => key !== "type"))),
   }));

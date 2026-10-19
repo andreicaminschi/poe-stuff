@@ -1,6 +1,6 @@
 import { en, Faker } from "@faker-js/faker";
 
-/** Derives the seed of one named draw from its owner's seed, so every draw is fixed by the goal's seed and its own label. */
+/** Derives the seed of one named draw from its owner's seed, so every draw is fixed by the scenario's seed and its own label. */
 export function deriveSeed(seed: number, label: string): number {
   let hash = (2166136261 ^ seed) >>> 0;
 

@@ -18,6 +18,6 @@ export function refuseRow(example: Example, start: PanelState): FillRow | undefi
   return {
     input: { query: example.query, context: formatContextJson(start, CONDITION_FORMATS, example.query, names), command: command.type },
     output: { refuse: "missing-target" },
-    meta: { goal: example.goal, form: "refuse" },
+    meta: { scenario: example.scenario, form: "refuse" },
   };
 }

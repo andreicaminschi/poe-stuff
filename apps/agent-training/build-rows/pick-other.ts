@@ -1,6 +1,6 @@
 import type { PanelState } from "@poe/panel-state/types";
-import { deriveSeed } from "../build-goals/derive-seed.ts";
-import { listSeedersIn, pickOne, pickSeeder, pickSome } from "../build-goals/pick.ts";
+import { deriveSeed } from "../build-scenarios/derive-seed.ts";
+import { listSeedersIn, pickOne, pickSeeder, pickSome } from "../build-scenarios/pick.ts";
 
 /** Picks a category other than the ones named. */
 export const pickOtherCategory = (state: PanelState, named: readonly string[], seed: number): string =>

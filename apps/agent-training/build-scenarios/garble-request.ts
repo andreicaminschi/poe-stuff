@@ -18,7 +18,7 @@ function collectStrings(value: unknown, key: string | undefined): readonly strin
     : []), ...collectStrings(child, name)]);
 }
 
-/** Lists the strings a goal's commands carry, the dynamic values a typo must never touch. */
+/** Lists the strings a scenario's commands carry, the dynamic values a typo must never touch. */
 export const listProtectedStrings = (commands: readonly Command[]): readonly string[] =>
   [...new Set(commands.flatMap((command) => collectStrings(command, undefined)))].filter((text) => text.length > 0);
 

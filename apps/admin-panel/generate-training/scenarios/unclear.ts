@@ -3,7 +3,7 @@ import type { PanelState } from "../../types.ts";
 import { drawSeederName, drawTag, listTakenNames } from "../fake-panel/build-state.ts";
 import { render, type Example, type Form, type PatternSet } from "../example.ts";
 
-const GOAL = "unclear";
+const SCENARIO = "unclear";
 
 const PATTERNS = {
   seen: {
@@ -63,7 +63,7 @@ function buildUnclear(faker: Faker, state: PanelState, form: Form, patterns: rea
     ? [missing, other].filter((name) => query.includes(name)).sort((left, right) => query.indexOf(left) - query.indexOf(right))
     : [category].filter((name) => form === "unnamed" && query.includes(name));
 
-  return { goal: GOAL, form, query, names, commands: [], unclear: true };
+  return { scenario: SCENARIO, form, query, names, commands: [], unclear: true };
 }
 
 export const unclear = (set: PatternSet) => ({

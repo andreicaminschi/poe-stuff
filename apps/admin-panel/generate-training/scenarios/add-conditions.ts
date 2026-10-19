@@ -4,7 +4,7 @@ import type { PanelState } from "../../types.ts";
 import { sampleCondition, type SampledCondition } from "../fake-panel/conditions.ts";
 import { joinNames, listFilledCategories, listSeeders, pickListed, render, type Example, type PatternSet } from "../example.ts";
 
-const GOAL = "addConditions";
+const SCENARIO = "addConditions";
 
 const PATTERNS = {
   seen: {
@@ -42,7 +42,7 @@ function buildSingle(faker: Faker, state: PanelState, patterns: readonly string[
   const { category, seeder } = faker.helpers.arrayElement(listSeeders(state));
 
   return {
-    goal: GOAL,
+    scenario: SCENARIO,
     form: "single",
     query: render(faker.helpers.arrayElement(patterns), { condition: condition.text, seeder }),
     names: [condition.word, seeder],
@@ -56,7 +56,7 @@ function buildBulk(faker: Faker, state: PanelState, patterns: readonly string[])
   const category = faker.helpers.arrayElement(listFilledCategories(state));
 
   return {
-    goal: GOAL,
+    scenario: SCENARIO,
     form: "bulk",
     query: render(faker.helpers.arrayElement(patterns), { condition: condition.text, category }),
     names: [condition.word, category],
@@ -70,7 +70,7 @@ function buildListed(faker: Faker, state: PanelState, patterns: readonly string[
   const seeders = pickListed(faker, listSeeders(state)).map((at) => at.seeder);
 
   return {
-    goal: GOAL,
+    scenario: SCENARIO,
     form: "listed",
     query: render(faker.helpers.arrayElement(patterns), { condition: condition.text, targets: joinNames(seeders) }),
     names: [condition.word, ...seeders],

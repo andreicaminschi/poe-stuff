@@ -2,7 +2,7 @@ import type { Faker } from "@faker-js/faker";
 import type { PanelState } from "../../types.ts";
 import { joinNames, listEmptyCategories, pickListed, render, type Example, type PatternSet } from "../example.ts";
 
-const GOAL = "deleteCategory";
+const SCENARIO = "deleteCategory";
 
 const PATTERNS = {
   seen: {
@@ -25,14 +25,14 @@ const PATTERNS = {
 function buildSingle(faker: Faker, state: PanelState, patterns: readonly string[]): Example {
   const category = faker.helpers.arrayElement(listEmptyCategories(state));
 
-  return { goal: GOAL, form: "single", query: render(faker.helpers.arrayElement(patterns), { category }), names: [category], commands: [{ type: "deleteCategory", names: [category] }] };
+  return { scenario: SCENARIO, form: "single", query: render(faker.helpers.arrayElement(patterns), { category }), names: [category], commands: [{ type: "deleteCategory", names: [category] }] };
 }
 
 /** 2-4 empty categories. Low, Sonar 0. */
 function buildListed(faker: Faker, state: PanelState, patterns: readonly string[]): Example {
   const names = pickListed(faker, listEmptyCategories(state));
 
-  return { goal: GOAL, form: "listed", query: render(faker.helpers.arrayElement(patterns), { targets: joinNames(names) }), names, commands: [{ type: "deleteCategory", names }] };
+  return { scenario: SCENARIO, form: "listed", query: render(faker.helpers.arrayElement(patterns), { targets: joinNames(names) }), names, commands: [{ type: "deleteCategory", names }] };
 }
 
 export const deleteCategory = (set: PatternSet) => ({

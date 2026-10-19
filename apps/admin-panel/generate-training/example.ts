@@ -9,7 +9,7 @@ export type PatternSet = "seen" | "unseen";
 
 /** One generated request: the query, the names its context describes, and the commands that solve it. */
 export type Example = {
-  readonly goal: string;
+  readonly scenario: string;
   readonly form: Form;
   readonly query: string;
   readonly names: readonly string[];

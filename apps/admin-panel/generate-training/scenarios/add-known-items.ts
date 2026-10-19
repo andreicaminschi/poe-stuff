@@ -3,7 +3,7 @@ import type { PanelState } from "../../types.ts";
 import { drawUniqueName, listTakenNames } from "../fake-panel/build-state.ts";
 import { joinNames, listFilledCategories, listItems, listSeeders, render, type Example, type Form, type PatternSet } from "../example.ts";
 
-const GOAL = "addKnownItems";
+const SCENARIO = "addKnownItems";
 
 const PATTERNS = {
   seen: {
@@ -49,11 +49,11 @@ function buildOnTarget(faker: Faker, state: PanelState, form: Form, uniques: rea
 
   if (faker.datatype.boolean()) {
     const { item } = faker.helpers.arrayElement(listItems(state));
-    return { goal: GOAL, form, query: render(pattern, { ...values, target: item }), names: [...uniques, item], commands: [{ type: "updateItems", items: [item], add: { knownItems: uniques } }] };
+    return { scenario: SCENARIO, form, query: render(pattern, { ...values, target: item }), names: [...uniques, item], commands: [{ type: "updateItems", items: [item], add: { knownItems: uniques } }] };
   }
 
   const { category, seeder } = faker.helpers.arrayElement(listSeeders(state));
-  return { goal: GOAL, form, query: render(pattern, { ...values, target: seeder }), names: [...uniques, seeder], commands: [{ type: "updateSeeder", category, seeder, add: { knownItems: uniques } }] };
+  return { scenario: SCENARIO, form, query: render(pattern, { ...values, target: seeder }), names: [...uniques, seeder], commands: [{ type: "updateSeeder", category, seeder, add: { knownItems: uniques } }] };
 }
 
 const buildSingle = (faker: Faker, state: PanelState, patterns: readonly string[]): Example =>
@@ -68,7 +68,7 @@ function buildBulk(faker: Faker, state: PanelState, patterns: readonly string[])
   const category = faker.helpers.arrayElement(listFilledCategories(state));
 
   return {
-    goal: GOAL,
+    scenario: SCENARIO,
     form: "bulk",
     query: render(faker.helpers.arrayElement(patterns), { unique, category }),
     names: [unique, category],

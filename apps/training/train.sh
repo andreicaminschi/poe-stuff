@@ -40,7 +40,7 @@ ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
 
 STARTED=$(date +%s)
-echo "Training $NAME: $COUNT examples per goal and form."
+echo "Training $NAME: $COUNT examples per scenario and form."
 echo
 echo "── generating data ──"
 node apps/admin-panel/generate-training-cli.ts --version="$NAME" --count="$COUNT"

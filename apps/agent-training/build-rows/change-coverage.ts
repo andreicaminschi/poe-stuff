@@ -1,7 +1,7 @@
 import type { Command } from "@poe/panel-state/execute-command";
 import type { PanelState, Targets } from "@poe/panel-state/types";
-import { deriveSeed } from "../build-goals/derive-seed.ts";
-import { listSeedersIn, pickOne } from "../build-goals/pick.ts";
+import { deriveSeed } from "../build-scenarios/derive-seed.ts";
+import { listSeedersIn, pickOne } from "../build-scenarios/pick.ts";
 import { pickOtherItems, pickSiblingSeeder } from "./pick-other.ts";
 
 /**

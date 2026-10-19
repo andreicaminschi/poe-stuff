@@ -24,7 +24,7 @@ function tryBuild(build: BuildExample, faker: Faker, state: PanelState): Example
 
 /** Joins two requests into one query whose commands run in order. Low, Sonar 0. */
 const joinExamples = (faker: Faker, set: PatternSet, first: Example, second: Example): Example => ({
-  goal: "twoStep",
+  scenario: "twoStep",
   form: "single",
   query: render(faker.helpers.arrayElement(JOINERS[set]), { first: first.query, second: second.query }),
   names: [...new Set([...first.names, ...second.names])],
@@ -32,15 +32,15 @@ const joinExamples = (faker: Faker, set: PatternSet, first: Example, second: Exa
 });
 
 /**
- * Two single requests from two different goals in one query, so a command has run and the
+ * Two single requests from two different scenarios in one query, so a command has run and the
  * request is still not done. The second is built on the state the first leaves. Low, Sonar 2.
  */
 export function buildTwoStep(faker: Faker, set: PatternSet, singles: Readonly<Record<string, BuildExample>>, start: PanelState): Example {
   for (let tries = 0; tries < MAX_TRIES; tries += 1) {
-    const [firstGoal = "", secondGoal = ""] = faker.helpers.arrayElements(Object.keys(singles), 2);
-    const first = singles[firstGoal]!(faker, start);
+    const [firstScenario = "", secondScenario = ""] = faker.helpers.arrayElements(Object.keys(singles), 2);
+    const first = singles[firstScenario]!(faker, start);
     const middle = first.commands.reduce((state, command) => executeCommand(state, expandCommand(command), STAMP), start);
-    const second = tryBuild(singles[secondGoal]!, faker, middle);
+    const second = tryBuild(singles[secondScenario]!, faker, middle);
     if (second !== undefined) return joinExamples(faker, set, first, second);
   }
   throw new Error("No two-step request fits this panel.");

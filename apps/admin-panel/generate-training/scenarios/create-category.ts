@@ -3,7 +3,7 @@ import type { PanelState } from "../../types.ts";
 import { drawCategoryName, listTakenNames } from "../fake-panel/build-state.ts";
 import { joinNames, render, type Example, type PatternSet } from "../example.ts";
 
-const GOAL = "createCategory";
+const SCENARIO = "createCategory";
 
 const PATTERNS = {
   seen: {
@@ -38,14 +38,14 @@ function drawNames(faker: Faker, state: PanelState, count: number): readonly str
 /** One named category. Low, Sonar 0. */
 function buildSingle(faker: Faker, state: PanelState, patterns: Patterns): Example {
   const names = drawNames(faker, state, 1);
-  return { goal: GOAL, form: "single", query: render(faker.helpers.arrayElement(patterns.named), { name: names[0] ?? "" }), names, commands: [{ type: "createCategory", names }] };
+  return { scenario: SCENARIO, form: "single", query: render(faker.helpers.arrayElement(patterns.named), { name: names[0] ?? "" }), names, commands: [{ type: "createCategory", names }] };
 }
 
 /** 2-4 named categories. Low, Sonar 0. */
 function buildListed(faker: Faker, state: PanelState, patterns: Patterns): Example {
   const names = drawNames(faker, state, faker.number.int({ min: 2, max: 4 }));
 
-  return { goal: GOAL, form: "listed", query: render(faker.helpers.arrayElement(patterns.listed), { targets: joinNames(names) }), names, commands: [{ type: "createCategory", names }] };
+  return { scenario: SCENARIO, form: "listed", query: render(faker.helpers.arrayElement(patterns.listed), { targets: joinNames(names) }), names, commands: [{ type: "createCategory", names }] };
 }
 
 export const createCategory = (set: PatternSet) => ({

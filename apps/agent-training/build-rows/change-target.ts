@@ -1,6 +1,6 @@
 import type { Command } from "@poe/panel-state/execute-command";
 import type { PanelState, Targets } from "@poe/panel-state/types";
-import { deriveSeed } from "../build-goals/derive-seed.ts";
+import { deriveSeed } from "../build-scenarios/derive-seed.ts";
 import { pickOtherCategories, pickOtherCategory, pickOtherItems, pickOtherSeeders } from "./pick-other.ts";
 
 /** Points bulk targets at other categories or other seeders, dropping exceptions that would no longer fit. */

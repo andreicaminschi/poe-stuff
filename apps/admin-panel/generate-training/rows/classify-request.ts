@@ -24,15 +24,15 @@ const readInput = (example: Example, start: PanelState): RequestInput => ({ quer
 
 /** Labels one request's entry, on the panel it starts from. Low, Sonar 0. */
 export const entryRow = (example: Example, start: PanelState): EntryRow =>
-  ({ input: readInput(example, start), output: { entry: readEntry(example.form) }, meta: { goal: example.goal, form: example.form } });
+  ({ input: readInput(example, start), output: { entry: readEntry(example.form) }, meta: { scenario: example.scenario, form: example.form } });
 
 /** Labels one request's intent, on the panel it starts from. Low, Sonar 0. */
 export const intentRow = (example: Example, start: PanelState): IntentRow => ({
   input: readInput(example, start),
   output: {
-    intent: example.goal === "twoStep"
+    intent: example.scenario === "twoStep"
       ? "multi"
       : "single",
   },
-  meta: { goal: example.goal, form: example.form },
+  meta: { scenario: example.scenario, form: example.form },
 });

@@ -1,11 +1,11 @@
-import type { GoalBuilder } from "../types.ts";
+import type { ScenarioBuilder } from "../types.ts";
 import { deriveSeed } from "./derive-seed.ts";
 import { drawNewName, drawTag, listCategories, listSeedersIn, pickOne, pickSeeder, pickSome } from "./pick.ts";
 import { drawTargets } from "./targets.ts";
 import { formatList, formatNames, pickWording, varyName, withArticle } from "./word.ts";
 
-/** Builds a goal that creates a category and moves two or three seeders into it. */
-const buildCreateAndMoveGoal: GoalBuilder = (state, seed) => {
+/** Builds a scenario that creates a category and moves two or three seeders into it. */
+const buildCreateAndMoveScenario: ScenarioBuilder = (state, seed) => {
   const name = drawNewName(state, deriveSeed(seed, "name"));
   const category = pickOne(listCategories(state, 3), "a category with three seeders", deriveSeed(seed, "from"));
   const seeders = pickSome(listSeedersIn(state, category), 2, 3, deriveSeed(seed, "seeders"));
@@ -41,8 +41,8 @@ const buildCreateAndMoveGoal: GoalBuilder = (state, seed) => {
   };
 };
 
-/** Builds a goal that creates a category with one seeder in it. */
-const buildCreateCategoryAndSeederGoal: GoalBuilder = (state, seed) => {
+/** Builds a scenario that creates a category with one seeder in it. */
+const buildCreateCategoryAndSeederScenario: ScenarioBuilder = (state, seed) => {
   const category = drawNewName(state, deriveSeed(seed, "category"));
   const seeder = drawNewName(state, deriveSeed(seed, "seeder"));
 
@@ -73,8 +73,8 @@ const buildCreateCategoryAndSeederGoal: GoalBuilder = (state, seed) => {
   };
 };
 
-/** Builds a goal that renames a seeder and then tags it. */
-const buildRenameAndTagGoal: GoalBuilder = (state, seed) => {
+/** Builds a scenario that renames a seeder and then tags it. */
+const buildRenameAndTagScenario: ScenarioBuilder = (state, seed) => {
   const { seeder } = pickSeeder(state, deriveSeed(seed, "seeder"));
   const name = drawNewName(state, deriveSeed(seed, "name"));
   const tag = drawTag(deriveSeed(seed, "tag"));
@@ -107,8 +107,8 @@ const buildRenameAndTagGoal: GoalBuilder = (state, seed) => {
   };
 };
 
-/** Builds a goal that puts two different tags on two different targets. */
-const buildTwoTagsGoal: GoalBuilder = (state, seed) => {
+/** Builds a scenario that puts two different tags on two different targets. */
+const buildTwoTagsScenario: ScenarioBuilder = (state, seed) => {
   const first = drawTargets(state, "category", deriveSeed(seed, "first"));
   const second = drawTargets(state, "seeders", deriveSeed(seed, "second"));
   const firstTag = drawTag(deriveSeed(seed, "first-tag"));
@@ -145,8 +145,8 @@ const buildTwoTagsGoal: GoalBuilder = (state, seed) => {
   };
 };
 
-/** Builds a goal that deletes one seeder and moves another. */
-const buildDeleteAndMoveGoal: GoalBuilder = (state, seed) => {
+/** Builds a scenario that deletes one seeder and moves another. */
+const buildDeleteAndMoveScenario: ScenarioBuilder = (state, seed) => {
   const gone = pickSeeder(state, deriveSeed(seed, "gone"));
   const moved = pickSeeder(state, deriveSeed(seed, "moved"), (placed) => placed.seeder !== gone.seeder);
   const to = pickOne(Object.keys(state.categories).filter((name) => name !== moved.category), "another category", deriveSeed(seed, "to"));
@@ -180,8 +180,8 @@ const buildDeleteAndMoveGoal: GoalBuilder = (state, seed) => {
   };
 };
 
-/** Builds a goal that tags a seeder and some items with the same tag. */
-const buildTagSeederAndItemsGoal: GoalBuilder = (state, seed) => {
+/** Builds a scenario that tags a seeder and some items with the same tag. */
+const buildTagSeederAndItemsScenario: ScenarioBuilder = (state, seed) => {
   const { seeder } = pickSeeder(state, deriveSeed(seed, "seeder"));
   const items = pickSome(Object.keys(state.items), 1, 2, deriveSeed(seed, "items"));
   const tag = drawTag(deriveSeed(seed, "tag"));
@@ -212,8 +212,8 @@ const buildTagSeederAndItemsGoal: GoalBuilder = (state, seed) => {
   };
 };
 
-/** Builds a goal that creates a category, moves seeders into it and tags them. */
-const buildCreateMoveTagGoal: GoalBuilder = (state, seed) => {
+/** Builds a scenario that creates a category, moves seeders into it and tags them. */
+const buildCreateMoveTagScenario: ScenarioBuilder = (state, seed) => {
   const name = drawNewName(state, deriveSeed(seed, "name"));
   const category = pickOne(listCategories(state, 3), "a category with three seeders", deriveSeed(seed, "from"));
   const seeders = pickSome(listSeedersIn(state, category), 2, 3, deriveSeed(seed, "seeders"));
@@ -249,13 +249,13 @@ const buildCreateMoveTagGoal: GoalBuilder = (state, seed) => {
   };
 };
 
-/** Goals that need two or three commands. */
-export const MULTI_STEP_GOALS: Readonly<Record<string, GoalBuilder>> = {
-  "create-category-and-move": buildCreateAndMoveGoal,
-  "create-category-and-seeder": buildCreateCategoryAndSeederGoal,
-  "rename-and-tag": buildRenameAndTagGoal,
-  "two-tags": buildTwoTagsGoal,
-  "delete-and-move": buildDeleteAndMoveGoal,
-  "tag-seeder-and-items": buildTagSeederAndItemsGoal,
-  "create-move-tag": buildCreateMoveTagGoal,
+/** Scenarios that need two or three commands. */
+export const MULTI_STEP_SCENARIOS: Readonly<Record<string, ScenarioBuilder>> = {
+  "create-category-and-move": buildCreateAndMoveScenario,
+  "create-category-and-seeder": buildCreateCategoryAndSeederScenario,
+  "rename-and-tag": buildRenameAndTagScenario,
+  "two-tags": buildTwoTagsScenario,
+  "delete-and-move": buildDeleteAndMoveScenario,
+  "tag-seeder-and-items": buildTagSeederAndItemsScenario,
+  "create-move-tag": buildCreateMoveTagScenario,
 };

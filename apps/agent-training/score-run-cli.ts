@@ -3,11 +3,11 @@ import { parseArgs } from "node:util";
 import { createLakeService } from "@poe/lake/service";
 import { loadState, type CategoriesFile } from "@poe/panel-state/load-state";
 import type { PanelState } from "@poe/panel-state/types";
-import { buildGoals, type PlayedGoal } from "./build-goals.ts";
+import { buildScenarios, type PlayedScenario } from "./build-scenarios.ts";
 import type { RowSetManifest } from "./build-rows-cli.ts";
 import { scoreFiller, type FillerPrediction, type FillerReport } from "./score-run/score-filler.ts";
 import { scoreLabels, type LabelReport, type LabelledPrediction } from "./score-run/score-labels.ts";
-import { splitGoal } from "./split-goals.ts";
+import { splitScenario } from "./split-scenarios.ts";
 
 const STATE_KEY = "admin-panel/versions/latest/categories.json";
 const ROOT = ".s3/agent-training";
@@ -24,16 +24,16 @@ function listPredictionSets(run: string, model: string): readonly string[] {
     : [];
 }
 
-/** Rebuilds the goals a row set was cut from, from its manifest, so Filler predictions can run against each step's state. */
-function rebuildGoals(state: PanelState, set: string): readonly PlayedGoal[] {
+/** Rebuilds the scenarios a row set was cut from, from its manifest, so Filler predictions can run against each step's state. */
+function rebuildScenarios(state: PanelState, set: string): readonly PlayedScenario[] {
   const manifest = JSON.parse(readFileSync(`${ROOT}/${set}/manifest.json`, "utf8")) as RowSetManifest;
-  const goals = buildGoals(state, manifest.perKind, manifest.seed);
+  const scenarios = buildScenarios(state, manifest.perKind, manifest.seed);
   const seederNames = Object.values(state.categories).flatMap((category) => Object.keys(category.seeders ?? {}));
   const storedNames = [...Object.keys(state.categories), ...seederNames, ...Object.keys(state.items)];
 
   return manifest.part === "all"
-    ? goals
-    : goals.filter((goal) => splitGoal(goal, storedNames, seederNames) === manifest.part);
+    ? scenarios
+    : scenarios.filter((scenario) => splitScenario(scenario, storedNames, seederNames) === manifest.part);
 }
 
 /** Formats a share as a percentage. */
@@ -53,7 +53,7 @@ function renderLabels(model: string, set: string, report: LabelReport): readonly
       : ["| reject kind | rows | caught |", "|---|---|---|", ...mutations, ""]),
     ...(kinds.length === 0
       ? []
-      : ["Weakest goal kinds:", ...kinds, ""]),
+      : ["Weakest scenario kinds:", ...kinds, ""]),
   ];
 }
 
@@ -89,7 +89,7 @@ async function main(): Promise<void> {
     }
   }
   for (const set of listPredictionSets(values.run, "filler")) {
-    const report = scoreFiller(readJsonLines<FillerPrediction>(`${ROOT}/runs/${values.run}/filler/predictions/${set.replaceAll("/", "__")}.jsonl`), rebuildGoals(state, set));
+    const report = scoreFiller(readJsonLines<FillerPrediction>(`${ROOT}/runs/${values.run}/filler/predictions/${set.replaceAll("/", "__")}.jsonl`), rebuildScenarios(state, set));
     lines.push(...renderFiller(set, report));
     headline.push(`filler ${set.padEnd(18)} execution ${percent(report.executionMatch).padStart(6)}  exact JSON ${percent(report.exactJson).padStart(6)}`);
   }

@@ -2,7 +2,7 @@ import type { Faker } from "@faker-js/faker";
 import type { PanelState } from "../../types.ts";
 import { joinNames, listFilledCategories, listSeeders, pickListed, render, type Example, type PatternSet } from "../example.ts";
 
-const GOAL = "deleteSeeder";
+const SCENARIO = "deleteSeeder";
 
 const PATTERNS = {
   seen: {
@@ -33,21 +33,21 @@ const PATTERNS = {
 function buildSingle(faker: Faker, state: PanelState, patterns: readonly string[]): Example {
   const { category, seeder } = faker.helpers.arrayElement(listSeeders(state));
 
-  return { goal: GOAL, form: "single", query: render(faker.helpers.arrayElement(patterns), { seeder }), names: [seeder], commands: [{ type: "deleteSeeder", category, seeder }] };
+  return { scenario: SCENARIO, form: "single", query: render(faker.helpers.arrayElement(patterns), { seeder }), names: [seeder], commands: [{ type: "deleteSeeder", category, seeder }] };
 }
 
 /** Every seeder in a category. Low, Sonar 0. */
 function buildBulk(faker: Faker, state: PanelState, patterns: readonly string[]): Example {
   const category = faker.helpers.arrayElement(listFilledCategories(state));
 
-  return { goal: GOAL, form: "bulk", query: render(faker.helpers.arrayElement(patterns), { category }), names: [category], commands: [{ type: "deleteSeeders", targets: { category } }] };
+  return { scenario: SCENARIO, form: "bulk", query: render(faker.helpers.arrayElement(patterns), { category }), names: [category], commands: [{ type: "deleteSeeders", targets: { category } }] };
 }
 
 /** 2-4 named seeders. Low, Sonar 0. */
 function buildListed(faker: Faker, state: PanelState, patterns: readonly string[]): Example {
   const seeders = pickListed(faker, listSeeders(state)).map((at) => at.seeder);
 
-  return { goal: GOAL, form: "listed", query: render(faker.helpers.arrayElement(patterns), { targets: joinNames(seeders) }), names: seeders, commands: [{ type: "deleteSeeders", targets: { seeders } }] };
+  return { scenario: SCENARIO, form: "listed", query: render(faker.helpers.arrayElement(patterns), { targets: joinNames(seeders) }), names: seeders, commands: [{ type: "deleteSeeders", targets: { seeders } }] };
 }
 
 export const deleteSeeder = (set: PatternSet) => ({

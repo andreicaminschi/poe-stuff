@@ -1,5 +1,5 @@
 import type { PanelState } from "@poe/panel-state/types";
-import type { GoalBuilder } from "../types.ts";
+import type { ScenarioBuilder } from "../types.ts";
 import { deriveSeed } from "./derive-seed.ts";
 import { drawTag } from "./pick.ts";
 import { drawTargets, type TargetShape } from "./targets.ts";
@@ -92,8 +92,8 @@ const wordUntagRequest = (phrase: string, tag: string, seed: number): string => 
   () => `I'd like the ${tag} tag off ${phrase}`,
 ], seed);
 
-/** Builds a goal that tags seeders in one target shape. */
-const buildTagGoal = (shape: TargetShape): GoalBuilder => (state: PanelState, seed: number) => {
+/** Builds a scenario that tags seeders in one target shape. */
+const buildTagScenario = (shape: TargetShape): ScenarioBuilder => (state: PanelState, seed: number) => {
   const { targets, phrase } = drawTargets(state, shape, deriveSeed(seed, "targets"));
   const tag = drawTag(deriveSeed(seed, "tag"));
 
@@ -104,8 +104,8 @@ const buildTagGoal = (shape: TargetShape): GoalBuilder => (state: PanelState, se
   };
 };
 
-/** Builds a goal that removes a tag the setup put on seeders in one target shape. */
-const buildUntagGoal = (shape: TargetShape): GoalBuilder => (state: PanelState, seed: number) => {
+/** Builds a scenario that removes a tag the setup put on seeders in one target shape. */
+const buildUntagScenario = (shape: TargetShape): ScenarioBuilder => (state: PanelState, seed: number) => {
   const { targets, phrase } = drawTargets(state, shape, deriveSeed(seed, "targets"));
   const tag = drawTag(deriveSeed(seed, "tag"));
 
@@ -116,13 +116,13 @@ const buildUntagGoal = (shape: TargetShape): GoalBuilder => (state: PanelState, 
   };
 };
 
-/** Goals that add or remove a tag on seeders. */
-export const TAG_GOALS: Readonly<Record<string, GoalBuilder>> = {
-  "tag-seeder": buildTagGoal("seeder"),
-  "tag-seeders": buildTagGoal("seeders"),
-  "tag-category": buildTagGoal("category"),
-  "tag-category-except": buildTagGoal("categoryExcept"),
-  "tag-categories": buildTagGoal("categories"),
-  "untag-seeder": buildUntagGoal("seeder"),
-  "untag-category": buildUntagGoal("category"),
+/** Scenarios that add or remove a tag on seeders. */
+export const TAG_SCENARIOS: Readonly<Record<string, ScenarioBuilder>> = {
+  "tag-seeder": buildTagScenario("seeder"),
+  "tag-seeders": buildTagScenario("seeders"),
+  "tag-category": buildTagScenario("category"),
+  "tag-category-except": buildTagScenario("categoryExcept"),
+  "tag-categories": buildTagScenario("categories"),
+  "untag-seeder": buildUntagScenario("seeder"),
+  "untag-category": buildUntagScenario("category"),
 };

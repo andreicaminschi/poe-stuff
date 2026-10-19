@@ -16,7 +16,7 @@ export const listCategories = (state: PanelState, minimum: number): readonly str
 export const listSeedersIn = (state: PanelState, category: string): readonly string[] =>
   Object.keys(state.categories[category]?.seeders ?? {});
 
-/** Picks one entry, or throws when there is none, so a goal never builds on nothing. */
+/** Picks one entry, or throws when there is none, so a scenario never builds on nothing. */
 export function pickOne<T>(values: readonly T[], what: string, seed: number): T {
   if (values.length === 0) throw new Error(`Nothing to pick: ${what}.`);
   return createFaker(seed).helpers.arrayElement(values as T[]);

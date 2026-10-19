@@ -1,8 +1,8 @@
 import type { Command } from "@poe/panel-state/execute-command";
 import type { PanelState } from "@poe/panel-state/types";
 
-/** A goal as a builder writes it: the request, the state the user had, and the commands that fulfil it. */
-export type GoalDraft = {
+/** A scenario as a builder writes it: the request, the state the user had, and the commands that fulfil it. */
+export type ScenarioDraft = {
   readonly request: string;
   readonly setup: readonly Command[];
   readonly steps: readonly Command[];
@@ -12,16 +12,16 @@ export type GoalDraft = {
  * One thing a user might want, filed under its kind. The kind is the builder's key in the
  * registry, and nowhere else. `request` may carry typos; `clean` is the same request without them.
  */
-export type Goal = GoalDraft & {
+export type Scenario = ScenarioDraft & {
   readonly kind: string;
   readonly clean: string;
 };
 
-/** Builds one goal of one kind from the real state. The seed fixes every random choice. */
-export type GoalBuilder = (state: PanelState, seed: number) => GoalDraft;
+/** Builds one scenario of one kind from the real state. The seed fixes every random choice. */
+export type ScenarioBuilder = (state: PanelState, seed: number) => ScenarioDraft;
 
-/** Which goal a row came from, so a later split keeps one goal's rows together. */
-type RowSource = { readonly goal: number; readonly kind: string };
+/** Which scenario a row came from, so a later split keeps one scenario's rows together. */
+type RowSource = { readonly scenario: number; readonly kind: string };
 
 /** One Router example: the input text and the label it must pick. */
 export type RouterRow = RowSource & { readonly input: string; readonly label: string };

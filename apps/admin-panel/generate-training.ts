@@ -1,27 +1,27 @@
 import { en, Faker } from "@faker-js/faker";
 import { REPHRASE, type DecisionOption } from "./decision-options.ts";
-import { addConditions } from "./generate-training/goals/add-conditions.ts";
-import { addKnownItems } from "./generate-training/goals/add-known-items.ts";
-import { addTags } from "./generate-training/goals/add-tags.ts";
+import { addConditions } from "./generate-training/scenarios/add-conditions.ts";
+import { addKnownItems } from "./generate-training/scenarios/add-known-items.ts";
+import { addTags } from "./generate-training/scenarios/add-tags.ts";
 import { buildState } from "./generate-training/fake-panel/build-state.ts";
-import { buildTwoStep } from "./generate-training/goals/build-two-step.ts";
-import { createCategory } from "./generate-training/goals/create-category.ts";
-import { createSeeder } from "./generate-training/goals/create-seeder.ts";
-import { deleteCategory } from "./generate-training/goals/delete-category.ts";
-import { deleteSeeder } from "./generate-training/goals/delete-seeder.ts";
+import { buildTwoStep } from "./generate-training/scenarios/build-two-step.ts";
+import { createCategory } from "./generate-training/scenarios/create-category.ts";
+import { createSeeder } from "./generate-training/scenarios/create-seeder.ts";
+import { deleteCategory } from "./generate-training/scenarios/delete-category.ts";
+import { deleteSeeder } from "./generate-training/scenarios/delete-seeder.ts";
 import { entryRow, intentRow, type EntryRow, type IntentRow } from "./generate-training/rows/classify-request.ts";
 import { refuseRow } from "./generate-training/rows/refuse-row.ts";
 import { wrongAttemptRow } from "./generate-training/rows/wrong-attempt.ts";
 import type { BuildExample, Example, PatternSet } from "./generate-training/example.ts";
-import { moveSeeder } from "./generate-training/goals/move-seeder.ts";
+import { moveSeeder } from "./generate-training/scenarios/move-seeder.ts";
 import { playExample, playNoOp, type ExampleRows } from "./generate-training/rows/play-example.ts";
-import { unclear } from "./generate-training/goals/unclear.ts";
+import { unclear } from "./generate-training/scenarios/unclear.ts";
 import type { PanelState } from "./types.ts";
 
 export type TrainingRows = ExampleRows & { readonly entry: readonly EntryRow[]; readonly intent: readonly IntentRow[] };
 
-/** Every goal's builders, worded from one pattern set. Low, Sonar 0. */
-const buildGoals = (set: PatternSet): Readonly<Record<string, Readonly<Record<string, BuildExample>>>> => ({
+/** Every scenario's builders, worded from one pattern set. Low, Sonar 0. */
+const buildScenarios = (set: PatternSet): Readonly<Record<string, Readonly<Record<string, BuildExample>>>> => ({
   addTags: addTags(set),
   addKnownItems: addKnownItems(set),
   addConditions: addConditions(set),
@@ -33,17 +33,17 @@ const buildGoals = (set: PatternSet): Readonly<Record<string, Readonly<Record<st
   unclear: unclear(set),
 });
 
-const NO_OP_GOALS = new Set(["addTags", "addKnownItems", "addConditions"]);
+const NO_OP_SCENARIOS = new Set(["addTags", "addKnownItems", "addConditions"]);
 const NO_OP_SHARE = 0.3;
 const TWO_STEP_PER_COUNT = 4;
 const REFUSE_SHARE = 0.15;
 const WRONG_ATTEMPT_SHARE = 0.5;
 
-/** Every goal's single-target builder, the pieces two-step requests are joined from. Low, Sonar 0. */
-const listSingles = (goals: ReturnType<typeof buildGoals>): Readonly<Record<string, BuildExample>> =>
-  Object.fromEntries(Object.entries(goals).flatMap(([goal, forms]) => (forms["single"] === undefined
+/** Every scenario's single-target builder, the pieces two-step requests are joined from. Low, Sonar 0. */
+const listSingles = (scenarios: ReturnType<typeof buildScenarios>): Readonly<Record<string, BuildExample>> =>
+  Object.fromEntries(Object.entries(scenarios).flatMap(([scenario, forms]) => (forms["single"] === undefined
     ? []
-    : [[goal, forms["single"]]])));
+    : [[scenario, forms["single"]]])));
 
 /** Everything a choose row can name, in a fixed order: every command, then the way out. */
 export const TRAINED_COMMANDS: readonly DecisionOption[] = [
@@ -62,18 +62,18 @@ export const TRAINED_COMMANDS: readonly DecisionOption[] = [
 ];
 
 /**
- * Generates `count` examples per goal and form from one seed, each on a fresh random panel,
+ * Generates `count` examples per scenario and form from one seed, each on a fresh random panel,
  * and returns their rows. The same seed returns the same rows. Low, Sonar 1.
  */
 export function generateTraining(seed: number, count: number, set: PatternSet = "seen"): TrainingRows {
   const faker = new Faker({ locale: [en], seed });
-  const goals = buildGoals(set);
-  const single = Object.entries(goals).flatMap(([goal, forms]) => Object.values(forms).flatMap((build) => Array.from({ length: count }, () => {
+  const scenarios = buildScenarios(set);
+  const single = Object.entries(scenarios).flatMap(([scenario, forms]) => Object.values(forms).flatMap((build) => Array.from({ length: count }, () => {
     const start = buildState(faker);
     const example = build(faker, start);
     if (example.form === "listed") return classifyOnly(example, start);
     if (example.unclear === true) return { ...playExample(example, start), entry: [], intent: [] };
-    const noOp = NO_OP_GOALS.has(goal) && faker.datatype.boolean(NO_OP_SHARE);
+    const noOp = NO_OP_SCENARIOS.has(scenario) && faker.datatype.boolean(NO_OP_SHARE);
     const played = noOp
       ? playNoOp(example, start)
       : playExample(example, start);
@@ -88,7 +88,7 @@ export function generateTraining(seed: number, count: number, set: PatternSet = 
   })));
   const twoStep = Array.from({ length: count * TWO_STEP_PER_COUNT }, () => {
     const start = buildState(faker);
-    return classifyOnly(buildTwoStep(faker, set, listSingles(goals), start), start);
+    return classifyOnly(buildTwoStep(faker, set, listSingles(scenarios), start), start);
   });
   const played = [...single, ...twoStep];
 

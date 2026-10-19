@@ -1,4 +1,4 @@
-import type { PlayedGoal } from "../build-goals.ts";
+import type { PlayedScenario } from "../build-scenarios.ts";
 
 /** Writes one block of an input: its label, then its lines, or `none`. */
 const formatBlock = (label: string, lines: readonly string[]): string =>
@@ -6,9 +6,9 @@ const formatBlock = (label: string, lines: readonly string[]): string =>
     ? "none"
     : lines.join("\n")}`;
 
-/** Lists the summary lines of the steps a goal already took before step `at`. */
-export const listDoneLines = (goal: PlayedGoal, at: number): readonly string[] =>
-  goal.played.slice(0, at).flatMap((step) => step.lines);
+/** Lists the summary lines of the steps a scenario already took before step `at`. */
+export const listDoneLines = (scenario: PlayedScenario, at: number): readonly string[] =>
+  scenario.played.slice(0, at).flatMap((step) => step.lines);
 
 /**
  * Writes the text the Router and Filler read: the request, what the state holds for the names

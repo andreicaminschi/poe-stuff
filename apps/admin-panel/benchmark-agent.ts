@@ -8,7 +8,7 @@ import { runAgent, type AgentModels, type AgentRun } from "./run-agent.ts";
 
 const STAMP = { id: "benchmark", at: "1970-01-01T00:00:00.000Z", actor: "benchmark" };
 
-export type RequestResult = { readonly goal: string; readonly form: string; readonly query: string; readonly pass: boolean; readonly verdict: string; readonly run: AgentRun; readonly ms: number };
+export type RequestResult = { readonly scenario: string; readonly form: string; readonly query: string; readonly pass: boolean; readonly verdict: string; readonly run: AgentRun; readonly ms: number };
 
 /** Names why a request passed or failed. Low, Sonar 4. */
 function judge(request: RequestRow, run: AgentRun, same: boolean): string {
@@ -32,7 +32,7 @@ export async function benchmarkRequest(models: AgentModels, request: RequestRow)
   const same = run.outcome === "done" && isSamePanel(run.state, request.expected);
   const verdict = judge(request, run, same);
 
-  return { goal: request.goal, form: request.form, query: request.query, pass: verdict === "pass", verdict, run, ms };
+  return { scenario: request.scenario, form: request.form, query: request.query, pass: verdict === "pass", verdict, run, ms };
 }
 
 /** Picks `limit` requests spread evenly over the list. Low, Sonar 1. */
@@ -54,12 +54,12 @@ function countBy(results: readonly RequestResult[], key: (result: RequestResult)
   return Object.fromEntries([...new Set(results.map(key))].sort().map((value) => [value, results.filter((result) => key(result) === value).length]));
 }
 
-/** Pass rate per goal and form. Low, Sonar 0. */
-function passByGoal(results: readonly RequestResult[]): Readonly<Record<string, number>> {
-  const keys = [...new Set(results.map((result) => `${result.goal}/${result.form}`))].sort();
+/** Pass rate per scenario and form. Low, Sonar 0. */
+function passByScenario(results: readonly RequestResult[]): Readonly<Record<string, number>> {
+  const keys = [...new Set(results.map((result) => `${result.scenario}/${result.form}`))].sort();
 
   return Object.fromEntries(keys.map((key) => {
-    const group = results.filter((result) => `${result.goal}/${result.form}` === key);
+    const group = results.filter((result) => `${result.scenario}/${result.form}` === key);
     return [key, Number((group.filter((result) => result.pass).length / group.length).toFixed(4))];
   }));
 }
@@ -79,7 +79,7 @@ export const summarize = (results: readonly RequestResult[]) => ({
   requests: results.length,
   passRate: Number((results.filter((result) => result.pass).length / Math.max(results.length, 1)).toFixed(4)),
   verdicts: countBy(results, (result) => result.verdict),
-  passByGoal: passByGoal(results),
+  passByScenario: passByScenario(results),
   attemptsPerRequest: percentiles(results.map((result) => result.run.turns.length)),
   passedOnRetry: results.filter((result) => result.pass && result.run.turns.length > 1).length,
   latencyMs: {

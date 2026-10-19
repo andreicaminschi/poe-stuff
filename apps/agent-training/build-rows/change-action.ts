@@ -1,7 +1,7 @@
 import type { Command } from "@poe/panel-state/execute-command";
 import type { PanelState, SeederPatch, SeederRemoval } from "@poe/panel-state/types";
-import { deriveSeed } from "../build-goals/derive-seed.ts";
-import { pickOne } from "../build-goals/pick.ts";
+import { deriveSeed } from "../build-scenarios/derive-seed.ts";
+import { pickOne } from "../build-scenarios/pick.ts";
 import { pickOtherCategory } from "./pick-other.ts";
 
 /** Turns a removal into the same values added, or undefined when it drops whole conditions, which have no values to add. */

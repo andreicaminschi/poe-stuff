@@ -2,9 +2,9 @@ import { executeCommand, type Command } from "@poe/panel-state/execute-command";
 import { SUMMARY_CONFIG } from "@poe/panel-state/summary-config";
 import type { PanelState } from "@poe/panel-state/types";
 import { summarizeDiff } from "@util/diff-summary/summarize-diff";
-import type { PlayedGoal } from "../build-goals.ts";
-import { deriveSeed } from "../build-goals/derive-seed.ts";
-import { pickOne } from "../build-goals/pick.ts";
+import type { PlayedScenario } from "../build-scenarios.ts";
+import { deriveSeed } from "../build-scenarios/derive-seed.ts";
+import { pickOne } from "../build-scenarios/pick.ts";
 import type { JudgeRow } from "../types.ts";
 import { changeAction } from "./change-action.ts";
 import { changeCoverage } from "./change-coverage.ts";
@@ -19,17 +19,17 @@ const MAX_REJECT_ATTEMPTS = 10;
 
 type RejectKind = (typeof REJECT_KINDS)[number];
 
-/** Picks the first step of another goal, for a reject that is plainly unrelated to the request. */
-function pickUnrelatedStep(goals: readonly PlayedGoal[], index: number, seed: number): Command | undefined {
-  const others = goals.filter((goal, at) => at !== index && goal.steps.length > 0);
+/** Picks the first step of another scenario, for a reject that is plainly unrelated to the request. */
+function pickUnrelatedStep(scenarios: readonly PlayedScenario[], index: number, seed: number): Command | undefined {
+  const others = scenarios.filter((scenario, at) => at !== index && scenario.steps.length > 0);
   return others.length === 0
     ? undefined
-    : pickOne(others, "another goal", seed).steps[0];
+    : pickOne(others, "another scenario", seed).steps[0];
 }
 
 /** Builds the wrong command of one reject kind. Throws when a pick finds nothing to pick from. */
-function buildWrongCommand(kind: RejectKind, command: Command, before: PanelState, goals: readonly PlayedGoal[], index: number, seed: number): Command | undefined {
-  if (kind === "unrelated") return pickUnrelatedStep(goals, index, seed);
+function buildWrongCommand(kind: RejectKind, command: Command, before: PanelState, scenarios: readonly PlayedScenario[], index: number, seed: number): Command | undefined {
+  if (kind === "unrelated") return pickUnrelatedStep(scenarios, index, seed);
   if (kind === "wrong-target") return changeTarget(command, before, seed);
   if (kind === "wrong-value") return changeValue(command, before, seed);
   if (kind === "wrong-coverage") return changeCoverage(command, before, seed);
@@ -37,18 +37,18 @@ function buildWrongCommand(kind: RejectKind, command: Command, before: PanelStat
 }
 
 /** Builds the wrong command, or undefined when the kind does not fit the step or has nothing to pick from. */
-function tryWrongCommand(kind: RejectKind, command: Command, before: PanelState, goals: readonly PlayedGoal[], index: number, seed: number): Command | undefined {
+function tryWrongCommand(kind: RejectKind, command: Command, before: PanelState, scenarios: readonly PlayedScenario[], index: number, seed: number): Command | undefined {
   try {
-    return buildWrongCommand(kind, command, before, goals, index, seed);
+    return buildWrongCommand(kind, command, before, scenarios, index, seed);
   } catch {
     return undefined;
   }
 }
 
 /** Runs a command and summarizes it, or undefined when the executor refuses it. */
-function summarizeCommand(goal: PlayedGoal, before: PanelState, command: Command): readonly string[] | undefined {
+function summarizeCommand(scenario: PlayedScenario, before: PanelState, command: Command): readonly string[] | undefined {
   try {
-    return summarizeDiff({ start: goal.start, before, after: executeCommand(before, command) }, SUMMARY_CONFIG);
+    return summarizeDiff({ start: scenario.start, before, after: executeCommand(before, command) }, SUMMARY_CONFIG);
   } catch {
     return undefined;
   }
@@ -59,50 +59,50 @@ function summarizeCommand(goal: PlayedGoal, before: PanelState, command: Command
  * not fit, a command the executor refuses, or one that reads the same as the correct step is
  * redrawn. Undefined when no attempt gives a reject.
  */
-function drawReject(goal: PlayedGoal, index: number, at: number, goals: readonly PlayedGoal[]): JudgeRow | undefined {
-  const command = goal.steps[at];
-  const step = goal.played[at];
+function drawReject(scenario: PlayedScenario, index: number, at: number, scenarios: readonly PlayedScenario[]): JudgeRow | undefined {
+  const command = scenario.steps[at];
+  const step = scenario.played[at];
   if (command === undefined || step === undefined) return undefined;
 
   for (let attempt = 0; attempt < MAX_REJECT_ATTEMPTS; attempt += 1) {
-    const seed = deriveSeed(goal.seed, `reject-${at}-${attempt}`);
+    const seed = deriveSeed(scenario.seed, `reject-${at}-${attempt}`);
     const kind = pickOne(REJECT_KINDS, "a reject kind", deriveSeed(seed, "kind"));
-    const wrong = tryWrongCommand(kind, command, step.before, goals, index, seed);
+    const wrong = tryWrongCommand(kind, command, step.before, scenarios, index, seed);
     const lines = wrong === undefined
       ? undefined
-      : summarizeCommand(goal, step.before, wrong);
+      : summarizeCommand(scenario, step.before, wrong);
     if (lines !== undefined && JSON.stringify(lines) !== JSON.stringify(step.lines)) {
-      return { goal: index, kind: goal.kind, input: formatJudgeInput(goal.request, listDoneLines(goal, at), lines), label: "reject", mutation: kind };
+      return { scenario: index, kind: scenario.kind, input: formatJudgeInput(scenario.request, listDoneLines(scenario, at), lines), label: "reject", mutation: kind };
     }
   }
   return undefined;
 }
 
-/** Builds the reject for an already-done goal: its step run anyway, which changes nothing. */
-function buildNoOpRow(goal: PlayedGoal, index: number): readonly JudgeRow[] {
-  const done = goal.setup.at(-1);
+/** Builds the reject for an already-done scenario: its step run anyway, which changes nothing. */
+function buildNoOpRow(scenario: PlayedScenario, index: number): readonly JudgeRow[] {
+  const done = scenario.setup.at(-1);
   const lines = done === undefined
     ? undefined
-    : summarizeCommand(goal, goal.start, done);
+    : summarizeCommand(scenario, scenario.start, done);
 
   return lines === undefined
     ? []
-    : [{ goal: index, kind: goal.kind, input: formatJudgeInput(goal.request, [], lines), label: "reject", mutation: "no-op" }];
+    : [{ scenario: index, kind: scenario.kind, input: formatJudgeInput(scenario.request, [], lines), label: "reject", mutation: "no-op" }];
 }
 
 /**
- * Cuts a goal into Judge rows. Each correct step reads `accept`, or `complete` when it is the
+ * Cuts a scenario into Judge rows. Each correct step reads `accept`, or `complete` when it is the
  * last, and gets one reject drawn from five kinds: an unrelated step, or the wrong target, value,
- * coverage or action. An already-done goal gives one reject for its step run anyway.
+ * coverage or action. An already-done scenario gives one reject for its step run anyway.
  */
-export function buildJudgeRows(goal: PlayedGoal, index: number, goals: readonly PlayedGoal[]): readonly JudgeRow[] {
-  if (goal.kind === "already-done") return buildNoOpRow(goal, index);
+export function buildJudgeRows(scenario: PlayedScenario, index: number, scenarios: readonly PlayedScenario[]): readonly JudgeRow[] {
+  if (scenario.kind === "already-done") return buildNoOpRow(scenario, index);
 
-  return goal.played.flatMap((step, at) => {
-    const correct: JudgeRow = { goal: index, kind: goal.kind, input: formatJudgeInput(goal.request, listDoneLines(goal, at), step.lines), label: at === goal.played.length - 1
+  return scenario.played.flatMap((step, at) => {
+    const correct: JudgeRow = { scenario: index, kind: scenario.kind, input: formatJudgeInput(scenario.request, listDoneLines(scenario, at), step.lines), label: at === scenario.played.length - 1
       ? "complete"
       : "accept" };
-    const reject = drawReject(goal, index, at, goals);
+    const reject = drawReject(scenario, index, at, scenarios);
     return reject === undefined
       ? [correct]
       : [correct, reject];

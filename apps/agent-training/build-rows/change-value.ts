@@ -1,8 +1,8 @@
 import type { Command } from "@poe/panel-state/execute-command";
 import type { PanelState, SeederPatch } from "@poe/panel-state/types";
-import { drawConditionChange } from "../build-goals/conditions.ts";
-import { deriveSeed } from "../build-goals/derive-seed.ts";
-import { drawNewName, drawTag } from "../build-goals/pick.ts";
+import { drawConditionChange } from "../build-scenarios/conditions.ts";
+import { deriveSeed } from "../build-scenarios/derive-seed.ts";
+import { drawNewName, drawTag } from "../build-scenarios/pick.ts";
 import { pickOtherItems } from "./pick-other.ts";
 
 /** Swaps what a patch writes for a different value of the same field: another tag, another item, another condition. */

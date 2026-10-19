@@ -10,7 +10,7 @@ import type { Example } from "../example.ts";
 const STAMP = { id: "generated", at: "1970-01-01T00:00:00.000Z", actor: "generator" };
 
 /** Which generator template made a row. Never model input. */
-export type RowMeta = { readonly goal: string; readonly form: string };
+export type RowMeta = { readonly scenario: string; readonly form: string };
 
 /** What every model reads: the request and the context lines for its names. */
 export type RequestInput = { readonly query: string; readonly context: string };
@@ -29,7 +29,7 @@ export type FillRow = Row<RequestInput & { readonly command: StateCommand["type"
 
 /** One whole request, for scoring the loop end to end: where it starts and where it must end. */
 export type RequestRow = {
-  readonly goal: string;
+  readonly scenario: string;
   readonly form: string;
   readonly query: string;
   readonly names: readonly string[];
@@ -63,7 +63,7 @@ function splitCommand(command: StateCommand): { readonly type: StateCommand["typ
 export function playExample(example: Example, start: PanelState): ExampleRows {
   if (example.unclear === true) return playUnclear(example, start);
   const states = example.commands.reduce<readonly PanelState[]>((visited, command) => [...visited, executeCommand(visited.at(-1) ?? start, expandCommand(command), STAMP)], [start]);
-  const meta = { goal: example.goal, form: example.form };
+  const meta = { scenario: example.scenario, form: example.form };
   const inputs = states.map((state) => ({ query: example.query, context: formatContext(state, CONDITION_FORMATS, example.query, example.names) }));
   const fillContexts = states.map((state) => formatContextJson(state, CONDITION_FORMATS, example.query, example.names));
   const turns = example.commands.map((command, at) => ({ ...splitCommand(command), input: inputs[at] ?? inputs[0]!, fillContext: fillContexts[at] ?? "[]" }));
@@ -77,7 +77,7 @@ export function playExample(example: Example, start: PanelState): ExampleRows {
     choose: turns.map(({ input, type }) => ({ input, output: COMMAND_PARTS[type as ToolType], meta: { ...meta, command: type } })),
     fill: turns.map(({ input, fillContext, type, args }) => ({ input: { query: input.query, context: fillContext, command: type }, output: toToolArgs(TOOL_PARAMS[type as ToolType], args), meta })),
     request: [{
-      goal: example.goal,
+      scenario: example.scenario,
       form: example.form,
       query: example.query,
       names: example.names,
@@ -90,17 +90,17 @@ export function playExample(example: Example, start: PanelState): ExampleRows {
 
 /** Plays a request with no right command: not done, and the next step is to ask the user to rephrase. Low, Sonar 0. */
 function playUnclear(example: Example, start: PanelState): ExampleRows {
-  const meta = { goal: example.goal, form: example.form };
+  const meta = { scenario: example.scenario, form: example.form };
   const input = { query: example.query, context: formatContext(start, CONDITION_FORMATS, example.query, example.names) };
 
   return {
     stop: [{ input, output: { reason: "work-needed" }, meta }],
     choose: [{ input, output: { action: "rephrase" }, meta: { ...meta, command: REPHRASE } }],
     fill: [],
-    request: [{ goal: example.goal, form: example.form, query: example.query, names: example.names, turns: 0, unclear: true, start: keepPanel(start), expected: keepPanel(start) }],
+    request: [{ scenario: example.scenario, form: example.form, query: example.query, names: example.names, turns: 0, unclear: true, start: keepPanel(start), expected: keepPanel(start) }],
   };
 }
 
-/** Plays an example whose goal is already met: its commands run first, so the loop stops on turn 0. Low, Sonar 0. */
+/** Plays an example whose scenario is already met: its commands run first, so the loop stops on turn 0. Low, Sonar 0. */
 export const playNoOp = (example: Example, start: PanelState): ExampleRows =>
   playExample({ ...example, form: "already-applied", commands: [] }, example.commands.reduce((state, command) => executeCommand(state, expandCommand(command), STAMP), start));

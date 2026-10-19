@@ -1,24 +1,24 @@
-import type { GoalBuilder } from "../types.ts";
+import type { ScenarioBuilder } from "../types.ts";
 import { createFaker, deriveSeed } from "./derive-seed.ts";
 import { drawNewName, drawTag, pickOne, pickSeeder } from "./pick.ts";
-import { STRUCTURE_GOALS } from "./structure-goals.ts";
-import { TAG_GOALS } from "./tag-goals.ts";
+import { STRUCTURE_SCENARIOS } from "./structure-scenarios.ts";
+import { TAG_SCENARIOS } from "./tag-scenarios.ts";
 import { lowerFirst, pickWording, varyName } from "./word.ts";
 
 /** More commands than this in one request make it too big: the Router answers `rephrase`. */
 export const MAX_STEPS = 3;
 
-/** Single-step goals whose wording is reused to build requests that ask for too much. */
-const PARTS: readonly GoalBuilder[] = [
-  TAG_GOALS["tag-seeder"],
-  STRUCTURE_GOALS["delete-seeder"],
-  STRUCTURE_GOALS["rename-seeder"],
-  STRUCTURE_GOALS["create-category"],
-  STRUCTURE_GOALS["move-seeder"],
-].filter((builder): builder is GoalBuilder => builder !== undefined);
+/** Single-step scenarios whose wording is reused to build requests that ask for too much. */
+const PARTS: readonly ScenarioBuilder[] = [
+  TAG_SCENARIOS["tag-seeder"],
+  STRUCTURE_SCENARIOS["delete-seeder"],
+  STRUCTURE_SCENARIOS["rename-seeder"],
+  STRUCTURE_SCENARIOS["create-category"],
+  STRUCTURE_SCENARIOS["move-seeder"],
+].filter((builder): builder is ScenarioBuilder => builder !== undefined);
 
 /** Builds a request that asks for more separate actions than one plan may hold. */
-const buildTooManyGoal: GoalBuilder = (state, seed) => {
+const buildTooManyScenario: ScenarioBuilder = (state, seed) => {
   const count = createFaker(deriveSeed(seed, "count")).number.int({ min: MAX_STEPS + 1, max: MAX_STEPS + 2 });
   const requests = Array.from({ length: count }, (_, index) => pickOne(PARTS, "a part", deriveSeed(seed, `part-${index}`))(state, deriveSeed(seed, `request-${index}`)).request);
   const joiner = pickOne([", ", ", then ", ", and ", "; also "], "a joiner", deriveSeed(seed, "joiner"));
@@ -29,7 +29,7 @@ const buildTooManyGoal: GoalBuilder = (state, seed) => {
 };
 
 /** Builds a request that names a seeder the state does not hold. */
-const buildUnknownNameGoal: GoalBuilder = (state, seed) => {
+const buildUnknownNameScenario: ScenarioBuilder = (state, seed) => {
   const name = drawNewName(state, deriveSeed(seed, "name"));
   const tag = drawTag(deriveSeed(seed, "tag"));
   const category = pickOne(Object.keys(state.categories), "a category", deriveSeed(seed, "category"));
@@ -63,7 +63,7 @@ const buildUnknownNameGoal: GoalBuilder = (state, seed) => {
 };
 
 /** Builds a request no command can answer: a question, a UI action, or something too vague. */
-const buildOffTopicGoal: GoalBuilder = (state, seed) => {
+const buildOffTopicScenario: ScenarioBuilder = (state, seed) => {
   const { seeder, category } = pickSeeder(state, deriveSeed(seed, "seeder"));
   const item = pickOne(Object.keys(state.items), "an item", deriveSeed(seed, "item"));
   const seederShown = varyName(seeder, deriveSeed(seed, "seeder-shown"));
@@ -109,8 +109,8 @@ const buildOffTopicGoal: GoalBuilder = (state, seed) => {
 };
 
 /** Requests the Router must refuse with `rephrase`. They carry no steps. */
-export const REPHRASE_GOALS: Readonly<Record<string, GoalBuilder>> = {
-  "too-many": buildTooManyGoal,
-  "unknown-name": buildUnknownNameGoal,
-  "off-topic": buildOffTopicGoal,
+export const REPHRASE_SCENARIOS: Readonly<Record<string, ScenarioBuilder>> = {
+  "too-many": buildTooManyScenario,
+  "unknown-name": buildUnknownNameScenario,
+  "off-topic": buildOffTopicScenario,
 };

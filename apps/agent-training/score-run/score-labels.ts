@@ -29,7 +29,7 @@ function scoreLabel(rows: readonly LabelledPrediction[], label: string): LabelSc
 /**
  * Scores a classifier's predictions: accuracy, macro-F1 (F1 averaged over labels, so rare labels
  * count as much as common ones), recall and precision per label, how many rejects each mutation
- * kind got caught, and the goal kinds it gets wrong most.
+ * kind got caught, and the scenario kinds it gets wrong most.
  */
 export function scoreLabels(rows: readonly LabelledPrediction[]): LabelReport {
   const labels = [...new Set(rows.map((row) => row.label))].sort();

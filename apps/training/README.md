@@ -5,7 +5,7 @@ panel runs them. Python runs in a Podman container on the GPU. The benchmark run
 the host, with the same libraries Electron loads.
 
 Generate a named version's data, then train and export both models from scratch. `--count` is
-examples per goal and form (default 50). `--name` is the folder under `.s3/training/`, so one
+examples per scenario and form (default 50). `--name` is the folder under `.s3/training/`, so one
 methodology can be trained at several sample sizes side by side:
 
 ```bash
@@ -95,7 +95,7 @@ splits only.
 
 | Test | Checks | Size | Runs |
 |---|---|---|---|
-| Quick eval | each model against its own labels: "done?", the next command, the args | 3 rows per goal and form (`--per-pair`) | `yarn agent:eval` |
+| Quick eval | each model against its own labels: "done?", the next command, the args | 3 rows per scenario and form (`--per-pair`) | `yarn agent:eval` |
 | End-to-end benchmark | the whole loop, request by request | every request | `yarn agent:eval --name <name> --e2e` |
 
 The quick eval feeds every row the right context, so a miss belongs to one model.

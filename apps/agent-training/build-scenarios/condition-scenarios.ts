@@ -1,6 +1,6 @@
 import type { PanelState } from "@poe/panel-state/types";
 import { VALUE_SETS } from "@poe/panel-state/value-sets";
-import type { GoalBuilder } from "../types.ts";
+import type { ScenarioBuilder } from "../types.ts";
 import { describeCondition, drawConditionChange } from "./conditions.ts";
 import { deriveSeed } from "./derive-seed.ts";
 import { pickOne, pickSeeder } from "./pick.ts";
@@ -9,8 +9,8 @@ import { pickWording, varyName } from "./word.ts";
 
 const RARITIES = ["Normal", "Magic", "Rare", "Unique"];
 
-/** Builds a goal that sets one condition on seeders in one target shape. */
-const buildConditionGoal = (shape: TargetShape): GoalBuilder => (state: PanelState, seed: number) => {
+/** Builds a scenario that sets one condition on seeders in one target shape. */
+const buildConditionScenario = (shape: TargetShape): ScenarioBuilder => (state: PanelState, seed: number) => {
   const { targets, phrase } = drawTargets(state, shape, deriveSeed(seed, "targets"));
   const change = drawConditionChange(deriveSeed(seed, "change"));
 
@@ -57,8 +57,8 @@ const buildConditionGoal = (shape: TargetShape): GoalBuilder => (state: PanelSta
   };
 };
 
-/** Builds a goal that adds one rarity to a seeder that already filters on rarity. */
-const buildAddRarityGoal: GoalBuilder = (state, seed) => {
+/** Builds a scenario that adds one rarity to a seeder that already filters on rarity. */
+const buildAddRarityScenario: ScenarioBuilder = (state, seed) => {
   const placed = pickSeeder(state, deriveSeed(seed, "seeder"), (seeder) => seeder.value.conditions?.Rarity !== undefined && Object.keys(seeder.value.conditions.Rarity).length < RARITIES.length);
   const missing = RARITIES.filter((rarity) => placed.value.conditions?.Rarity?.[rarity] === undefined);
   const rarity = pickOne(missing, "a missing rarity", deriveSeed(seed, "rarity"));
@@ -96,8 +96,8 @@ const buildAddRarityGoal: GoalBuilder = (state, seed) => {
   };
 };
 
-/** Builds a goal that drops one whole condition, other than the base types, from a seeder. */
-const buildDropConditionGoal: GoalBuilder = (state, seed) => {
+/** Builds a scenario that drops one whole condition, other than the base types, from a seeder. */
+const buildDropConditionScenario: ScenarioBuilder = (state, seed) => {
   const placed = pickSeeder(state, deriveSeed(seed, "seeder"), (seeder) => Object.keys(seeder.value.conditions ?? {}).some((name) => name !== "BaseType"));
   const condition = pickOne(Object.keys(placed.value.conditions ?? {}).filter((name) => name !== "BaseType"), "a condition", deriveSeed(seed, "condition"));
   const shown = varyName(placed.seeder, deriveSeed(seed, "shown"));
@@ -137,8 +137,8 @@ const buildDropConditionGoal: GoalBuilder = (state, seed) => {
   };
 };
 
-/** Builds a goal that replaces a seeder's rarity with a named set. */
-const buildReplaceRarityGoal: GoalBuilder = (state, seed) => {
+/** Builds a scenario that replaces a seeder's rarity with a named set. */
+const buildReplaceRarityScenario: ScenarioBuilder = (state, seed) => {
   const placed = pickSeeder(state, deriveSeed(seed, "seeder"), (seeder) => seeder.value.conditions?.Rarity !== undefined);
   const name = pickOne(Object.keys(VALUE_SETS.Rarity ?? {}), "a rarity set", deriveSeed(seed, "set"));
   const shown = varyName(placed.seeder, deriveSeed(seed, "shown"));
@@ -173,13 +173,13 @@ const buildReplaceRarityGoal: GoalBuilder = (state, seed) => {
   };
 };
 
-/** Goals that add, drop or replace conditions on seeders. */
-export const CONDITION_GOALS: Readonly<Record<string, GoalBuilder>> = {
-  "condition-seeder": buildConditionGoal("seeder"),
-  "condition-seeders": buildConditionGoal("seeders"),
-  "condition-category": buildConditionGoal("category"),
-  "condition-category-except": buildConditionGoal("categoryExcept"),
-  "add-rarity": buildAddRarityGoal,
-  "drop-condition": buildDropConditionGoal,
-  "replace-rarity": buildReplaceRarityGoal,
+/** Scenarios that add, drop or replace conditions on seeders. */
+export const CONDITION_SCENARIOS: Readonly<Record<string, ScenarioBuilder>> = {
+  "condition-seeder": buildConditionScenario("seeder"),
+  "condition-seeders": buildConditionScenario("seeders"),
+  "condition-category": buildConditionScenario("category"),
+  "condition-category-except": buildConditionScenario("categoryExcept"),
+  "add-rarity": buildAddRarityScenario,
+  "drop-condition": buildDropConditionScenario,
+  "replace-rarity": buildReplaceRarityScenario,
 };

@@ -3,7 +3,7 @@ import type { PanelState } from "../../types.ts";
 import { drawCategoryName, listTakenNames } from "../fake-panel/build-state.ts";
 import { joinNames, listFilledCategories, listSeeders, pickListed, render, type Example, type PatternSet } from "../example.ts";
 
-const GOAL = "moveSeeder";
+const SCENARIO = "moveSeeder";
 
 const PATTERNS = {
   seen: {
@@ -57,12 +57,12 @@ function buildSingle(faker: Faker, state: PanelState, patterns: Patterns): Examp
   if (faker.datatype.boolean(0.3)) {
     const category = faker.helpers.arrayElement(listFilledCategories(state));
     const to = pickDestination(faker, state, category);
-    return { goal: GOAL, form: "single", query: render(pattern, { target: category, to }), names: [category, to], commands: [{ type: "mergeCategory", category, into: to }] };
+    return { scenario: SCENARIO, form: "single", query: render(pattern, { target: category, to }), names: [category, to], commands: [{ type: "mergeCategory", category, into: to }] };
   }
 
   const { category, seeder } = faker.helpers.arrayElement(listSeeders(state));
   const to = pickDestination(faker, state, category);
-  return { goal: GOAL, form: "single", query: render(pattern, { target: seeder, to }), names: [seeder, to], commands: [{ type: "moveSeeder", category, seeder, toCategory: to }] };
+  return { scenario: SCENARIO, form: "single", query: render(pattern, { target: seeder, to }), names: [seeder, to], commands: [{ type: "moveSeeder", category, seeder, toCategory: to }] };
 }
 
 /** Every seeder of a category moves; merge also deletes the emptied one. Low, Sonar 1. */
@@ -70,8 +70,8 @@ function buildBulk(faker: Faker, state: PanelState, patterns: Patterns): Example
   const category = faker.helpers.arrayElement(listFilledCategories(state));
   const to = pickDestination(faker, state, category);
 
-  if (faker.datatype.boolean(0.3)) return { goal: GOAL, form: "bulk", query: render(faker.helpers.arrayElement(patterns.bulkMerge), { category, to }), names: [category, to], commands: [{ type: "mergeCategory", category, into: to }] };
-  return { goal: GOAL, form: "bulk", query: render(faker.helpers.arrayElement(patterns.bulkMove), { category, to }), names: [category, to], commands: [{ type: "moveSeeders", targets: { category }, toCategory: to }] };
+  if (faker.datatype.boolean(0.3)) return { scenario: SCENARIO, form: "bulk", query: render(faker.helpers.arrayElement(patterns.bulkMerge), { category, to }), names: [category, to], commands: [{ type: "mergeCategory", category, into: to }] };
+  return { scenario: SCENARIO, form: "bulk", query: render(faker.helpers.arrayElement(patterns.bulkMove), { category, to }), names: [category, to], commands: [{ type: "moveSeeders", targets: { category }, toCategory: to }] };
 }
 
 /** 2-4 named seeders move. Low, Sonar 0. */
@@ -79,7 +79,7 @@ function buildListed(faker: Faker, state: PanelState, patterns: Patterns): Examp
   const seeders = pickListed(faker, listSeeders(state)).map((at) => at.seeder);
   const to = pickDestination(faker, state, "");
 
-  return { goal: GOAL, form: "listed", query: render(faker.helpers.arrayElement(patterns.listed), { targets: joinNames(seeders), to }), names: [...seeders, to], commands: [{ type: "moveSeeders", targets: { seeders }, toCategory: to }] };
+  return { scenario: SCENARIO, form: "listed", query: render(faker.helpers.arrayElement(patterns.listed), { targets: joinNames(seeders), to }), names: [...seeders, to], commands: [{ type: "moveSeeders", targets: { seeders }, toCategory: to }] };
 }
 
 export const moveSeeder = (set: PatternSet) => ({

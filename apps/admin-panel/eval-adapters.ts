@@ -13,14 +13,14 @@ import { describeRequest, writeFillUser } from "./run-agent/prompts.ts";
 
 type Labelled = { readonly input: RequestInput; readonly meta: RowMeta };
 
-type Scored = { readonly goal: string; readonly form: string; readonly label?: string; readonly hit: boolean; readonly ms: number; readonly miss?: { readonly query: string; readonly expected: unknown; readonly actual: unknown } };
+type Scored = { readonly scenario: string; readonly form: string; readonly label?: string; readonly hit: boolean; readonly ms: number; readonly miss?: { readonly query: string; readonly expected: unknown; readonly actual: unknown } };
 
-/** Keeps the first `perPair` rows of each goal and form. Low, Sonar 1. */
+/** Keeps the first `perPair` rows of each scenario and form. Low, Sonar 1. */
 export function samplePerPair<T extends { readonly meta: RowMeta }>(rows: readonly T[], perPair: number): readonly T[] {
   const seen = new Map<string, number>();
 
   return rows.filter((row) => {
-    const key = `${row.meta.goal}/${row.meta.form}`;
+    const key = `${row.meta.scenario}/${row.meta.form}`;
     const count = seen.get(key) ?? 0;
     seen.set(key, count + 1);
     return count < perPair;
@@ -62,17 +62,17 @@ function isSameArgs(answer: string, args: Readonly<Record<string, unknown>>): bo
   }
 }
 
-/** Accuracy overall, per goal and form, and per expected label, latency, and every miss. Low, Sonar 0. */
+/** Accuracy overall, per scenario and form, and per expected label, latency, and every miss. Low, Sonar 0. */
 function report(scored: readonly Scored[]) {
   return {
     rows: scored.length,
     accuracy: Number((scored.filter((at) => at.hit).length / Math.max(scored.length, 1)).toFixed(4)),
-    byGoal: tally(scored, (at) => `${at.goal}/${at.form}`),
+    byScenario: tally(scored, (at) => `${at.scenario}/${at.form}`),
     byLabel: tally(scored, (at) => at.label),
     latencyMs: percentiles(scored.map((at) => at.ms)),
     misses: scored.flatMap((at) => (at.miss === undefined
       ? []
-      : [{ goal: at.goal, form: at.form, ...at.miss }])),
+      : [{ scenario: at.scenario, form: at.form, ...at.miss }])),
   };
 }
 
@@ -123,7 +123,9 @@ export async function evalAdapters(label: string, models: AgentModels, rows: Eva
   const fill = await scoreAll(`${label} fill rows`, rows.fill, async (row) => {
     const type = row.input.command as ToolType;
     const { label: _answer, ...scored } = await score(row, canonicalJson(row.output), async () => models.fillParams(type, writeFillUser(row.input, type, tools[type].fields)), (answer) => isSameArgs(answer, row.output));
-    return { ...scored, label: "refuse" in row.output ? "refuse" : "params" };
+    return { ...scored, label: "refuse" in row.output
+      ? "refuse"
+      : "params" };
   });
 
   type Parts = { readonly action: string; readonly target?: string };

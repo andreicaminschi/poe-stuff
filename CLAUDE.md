@@ -57,7 +57,7 @@ lib/cache/             # @util/cache — build-cache-key, create-file-cache, sle
 lib/env/               # @util/env — requireEnv / optionalEnv. The only reader of process.env
 apps/catalog/          # the bronze/silver/gold pipeline. Replaces the deleted @poe/filterv2. Has a README.md
 apps/taxonomy/         # the hand-maintained classification table and the filter conditions. Has a README.md
-apps/agent-training/   # goals built off the promoted panel state, cut into Router/Filler/Judge rows; trainers (train/, Python in Podman) and the scorer
+apps/agent-training/   # scenarios built off the promoted panel state, cut into Router/Filler/Judge rows; trainers (train/, Python in Podman) and the scorer
 .s3/                   # local stand-in for object storage. Gitignored. Holds the only copy of the taxonomy
 data/sample-items/     # copied item text, the parser's fixtures. Two suites read this folder
 data/                  # everything else here is scratch and gitignored
@@ -231,7 +231,7 @@ apps/catalog/build-catalog/*.ts          what it calls
 
 **Apps may nest deeper.** An app is close to a project root of its own, so a feature folder
 inside an app can hold subfolders when it outgrows one level, as
-`apps/admin-panel/generate-training/` does with `goals/`, `rows/` and `fake-panel/`. Libraries
+`apps/admin-panel/generate-training/` does with `scenarios/`, `rows/` and `fake-panel/`. Libraries
 and services stay at one level.
 
 **One function per file is a rule of thumb, not a law: split when a test against that
@@ -352,18 +352,18 @@ yarn catalog --league=Allflame --hour=1788292800
 yarn catalog --league=Allflame --hour=1788292800 --force=taxonomy
 ```
 
-Build a sample of every agent training goal kind off the promoted panel state, and write it to
-`.s3/agent-training/goals-review.md` for review. Each goal is a request plus the commands that
+Build a sample of every agent training scenario kind off the promoted panel state, and write it to
+`.s3/agent-training/scenarios-review.md` for review. Each scenario is a request plus the commands that
 fulfil it, checked against the real executor. `--per-kind` and `--seed` default to 3 and 1:
 
 ```bash
-yarn agent:goals --per-kind=3
+yarn agent:scenarios --per-kind=3
 ```
 
-Cut the goals into training rows: `router.jsonl`, `filler.jsonl` and `judge.jsonl` under
-`.s3/agent-training/<name>/`, plus `rows-review.md`, which holds the first goal of each kind with
+Cut the scenarios into training rows: `router.jsonl`, `filler.jsonl` and `judge.jsonl` under
+`.s3/agent-training/<name>/`, plus `rows-review.md`, which holds the first scenario of each kind with
 every row cut from it. `--per-kind` defaults to 50. One request in four carries typos, in template
-words only. `--split=train` drops goals whose template (1 in 5) or seeder name (1 in 10) is held
+words only. `--split=train` drops scenarios whose template (1 in 5) or seeder name (1 in 10) is held
 out; `--split=eval` writes `seen/` and `held-out/` sets, meant for a different `--seed`:
 
 ```bash

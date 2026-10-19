@@ -1,12 +1,12 @@
 import type { PanelState } from "@poe/panel-state/types";
-import type { GoalBuilder, GoalDraft } from "../types.ts";
+import type { ScenarioBuilder, ScenarioDraft } from "../types.ts";
 import { drawConditionChange } from "./conditions.ts";
 import { createFaker, deriveSeed } from "./derive-seed.ts";
 import { drawNewName, drawTag, listCategories, listSeedersIn, pickOne, pickSeeder, pickSome } from "./pick.ts";
 import { formatNames, pickWording, varyName, withArticle } from "./word.ts";
 
-/** Builds a goal that creates an empty category. */
-const buildCreateCategoryGoal: GoalBuilder = (state, seed) => {
+/** Builds a scenario that creates an empty category. */
+const buildCreateCategoryScenario: ScenarioBuilder = (state, seed) => {
   const name = drawNewName(state, deriveSeed(seed, "name"));
 
   return {
@@ -41,8 +41,8 @@ const buildCreateCategoryGoal: GoalBuilder = (state, seed) => {
   };
 };
 
-/** Builds a goal that creates an empty seeder in a category. */
-const buildCreateSeederGoal: GoalBuilder = (state, seed) => {
+/** Builds a scenario that creates an empty seeder in a category. */
+const buildCreateSeederScenario: ScenarioBuilder = (state, seed) => {
   const category = pickOne(Object.keys(state.categories), "a category", deriveSeed(seed, "category"));
   const name = drawNewName(state, deriveSeed(seed, "name"));
   const shown = varyName(category, deriveSeed(seed, "shown"));
@@ -79,8 +79,8 @@ const buildCreateSeederGoal: GoalBuilder = (state, seed) => {
   };
 };
 
-/** Builds a create-seeder goal whose new seeder already carries a tag. */
-function buildCreateSeederWithTag(category: string, name: string, shown: string, seed: number): GoalDraft {
+/** Builds a create-seeder scenario whose new seeder already carries a tag. */
+function buildCreateSeederWithTag(category: string, name: string, shown: string, seed: number): ScenarioDraft {
   const tag = drawTag(deriveSeed(seed, "tag"));
 
   return {
@@ -111,8 +111,8 @@ function buildCreateSeederWithTag(category: string, name: string, shown: string,
   };
 }
 
-/** Builds a create-seeder goal whose new seeder already carries a condition. */
-function buildCreateSeederWithCondition(category: string, name: string, shown: string, seed: number): GoalDraft {
+/** Builds a create-seeder scenario whose new seeder already carries a condition. */
+function buildCreateSeederWithCondition(category: string, name: string, shown: string, seed: number): ScenarioDraft {
   const change = drawConditionChange(deriveSeed(seed, "change"));
 
   return {
@@ -143,8 +143,8 @@ function buildCreateSeederWithCondition(category: string, name: string, shown: s
   };
 }
 
-/** Builds a goal that creates a seeder with a tag or a condition already on it. */
-const buildCreateSeederWithGoal: GoalBuilder = (state: PanelState, seed: number) => {
+/** Builds a scenario that creates a seeder with a tag or a condition already on it. */
+const buildCreateSeederWithScenario: ScenarioBuilder = (state: PanelState, seed: number) => {
   const category = pickOne(Object.keys(state.categories), "a category", deriveSeed(seed, "category"));
   const name = drawNewName(state, deriveSeed(seed, "name"));
   const shown = varyName(category, deriveSeed(seed, "shown"));
@@ -154,8 +154,8 @@ const buildCreateSeederWithGoal: GoalBuilder = (state: PanelState, seed: number)
     : buildCreateSeederWithCondition(category, name, shown, seed);
 };
 
-/** Builds a goal that renames one seeder. */
-const buildRenameSeederGoal: GoalBuilder = (state, seed) => {
+/** Builds a scenario that renames one seeder. */
+const buildRenameSeederScenario: ScenarioBuilder = (state, seed) => {
   const { seeder } = pickSeeder(state, deriveSeed(seed, "seeder"));
   const name = drawNewName(state, deriveSeed(seed, "name"));
   const shown = varyName(seeder, deriveSeed(seed, "shown"));
@@ -193,8 +193,8 @@ const buildRenameSeederGoal: GoalBuilder = (state, seed) => {
   };
 };
 
-/** Builds a goal that renames one category. */
-const buildRenameCategoryGoal: GoalBuilder = (state, seed) => {
+/** Builds a scenario that renames one category. */
+const buildRenameCategoryScenario: ScenarioBuilder = (state, seed) => {
   const category = pickOne(Object.keys(state.categories), "a category", deriveSeed(seed, "category"));
   const name = drawNewName(state, deriveSeed(seed, "name"));
   const shown = varyName(category, deriveSeed(seed, "shown"));
@@ -230,8 +230,8 @@ const buildRenameCategoryGoal: GoalBuilder = (state, seed) => {
   };
 };
 
-/** Builds a goal that moves one seeder to another category. */
-const buildMoveSeederGoal: GoalBuilder = (state, seed) => {
+/** Builds a scenario that moves one seeder to another category. */
+const buildMoveSeederScenario: ScenarioBuilder = (state, seed) => {
   const placed = pickSeeder(state, deriveSeed(seed, "seeder"));
   const to = pickOne(Object.keys(state.categories).filter((name) => name !== placed.category), "another category", deriveSeed(seed, "to"));
   const shown = varyName(placed.seeder, deriveSeed(seed, "shown"));
@@ -270,8 +270,8 @@ const buildMoveSeederGoal: GoalBuilder = (state, seed) => {
   };
 };
 
-/** Builds a goal that moves two or three seeders of one category to another. */
-const buildMoveSeedersGoal: GoalBuilder = (state, seed) => {
+/** Builds a scenario that moves two or three seeders of one category to another. */
+const buildMoveSeedersScenario: ScenarioBuilder = (state, seed) => {
   const from = pickOne(listCategories(state, 3), "a category with three seeders", deriveSeed(seed, "from"));
   const seeders = pickSome(listSeedersIn(state, from), 2, 3, deriveSeed(seed, "seeders"));
   const to = pickOne(Object.keys(state.categories).filter((name) => name !== from), "another category", deriveSeed(seed, "to"));
@@ -309,8 +309,8 @@ const buildMoveSeedersGoal: GoalBuilder = (state, seed) => {
   };
 };
 
-/** Builds a goal that merges one category into another. */
-const buildMergeCategoryGoal: GoalBuilder = (state, seed) => {
+/** Builds a scenario that merges one category into another. */
+const buildMergeCategoryScenario: ScenarioBuilder = (state, seed) => {
   const [category = "", into = ""] = pickSome(Object.keys(state.categories), 2, 2, deriveSeed(seed, "pair"));
   const from = varyName(category, deriveSeed(seed, "from"));
   const target = varyName(into, deriveSeed(seed, "into"));
@@ -346,8 +346,8 @@ const buildMergeCategoryGoal: GoalBuilder = (state, seed) => {
   };
 };
 
-/** Builds a goal that deletes a category. */
-const buildDeleteCategoryGoal: GoalBuilder = (state, seed) => {
+/** Builds a scenario that deletes a category. */
+const buildDeleteCategoryScenario: ScenarioBuilder = (state, seed) => {
   const category = pickOne(Object.keys(state.categories), "a category", deriveSeed(seed, "category"));
   const shown = varyName(category, deriveSeed(seed, "shown"));
 
@@ -384,8 +384,8 @@ const buildDeleteCategoryGoal: GoalBuilder = (state, seed) => {
   };
 };
 
-/** Builds a goal that deletes one seeder. */
-const buildDeleteSeederGoal: GoalBuilder = (state, seed) => {
+/** Builds a scenario that deletes one seeder. */
+const buildDeleteSeederScenario: ScenarioBuilder = (state, seed) => {
   const { seeder } = pickSeeder(state, deriveSeed(seed, "seeder"));
   const shown = varyName(seeder, deriveSeed(seed, "shown"));
 
@@ -422,8 +422,8 @@ const buildDeleteSeederGoal: GoalBuilder = (state, seed) => {
   };
 };
 
-/** Builds a goal that deletes two or three seeders. */
-const buildDeleteSeedersGoal: GoalBuilder = (state, seed) => {
+/** Builds a scenario that deletes two or three seeders. */
+const buildDeleteSeedersScenario: ScenarioBuilder = (state, seed) => {
   const category = pickOne(listCategories(state, 3), "a category with three seeders", deriveSeed(seed, "category"));
   const seeders = pickSome(listSeedersIn(state, category), 2, 3, deriveSeed(seed, "seeders"));
   const shown = formatNames(seeders, deriveSeed(seed, "shown"));
@@ -458,17 +458,17 @@ const buildDeleteSeedersGoal: GoalBuilder = (state, seed) => {
   };
 };
 
-/** Goals that create, rename, move, merge or delete categories and seeders. */
-export const STRUCTURE_GOALS: Readonly<Record<string, GoalBuilder>> = {
-  "create-category": buildCreateCategoryGoal,
-  "create-seeder": buildCreateSeederGoal,
-  "create-seeder-with": buildCreateSeederWithGoal,
-  "rename-seeder": buildRenameSeederGoal,
-  "rename-category": buildRenameCategoryGoal,
-  "move-seeder": buildMoveSeederGoal,
-  "move-seeders": buildMoveSeedersGoal,
-  "merge-category": buildMergeCategoryGoal,
-  "delete-category": buildDeleteCategoryGoal,
-  "delete-seeder": buildDeleteSeederGoal,
-  "delete-seeders": buildDeleteSeedersGoal,
+/** Scenarios that create, rename, move, merge or delete categories and seeders. */
+export const STRUCTURE_SCENARIOS: Readonly<Record<string, ScenarioBuilder>> = {
+  "create-category": buildCreateCategoryScenario,
+  "create-seeder": buildCreateSeederScenario,
+  "create-seeder-with": buildCreateSeederWithScenario,
+  "rename-seeder": buildRenameSeederScenario,
+  "rename-category": buildRenameCategoryScenario,
+  "move-seeder": buildMoveSeederScenario,
+  "move-seeders": buildMoveSeedersScenario,
+  "merge-category": buildMergeCategoryScenario,
+  "delete-category": buildDeleteCategoryScenario,
+  "delete-seeder": buildDeleteSeederScenario,
+  "delete-seeders": buildDeleteSeedersScenario,
 };

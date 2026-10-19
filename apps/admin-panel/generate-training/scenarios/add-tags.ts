@@ -3,7 +3,7 @@ import type { PanelState } from "../../types.ts";
 import { drawTag } from "../fake-panel/build-state.ts";
 import { joinNames, listFilledCategories, listItems, listSeeders, pickListed, render, type Example, type Form, type PatternSet } from "../example.ts";
 
-const GOAL = "addTags";
+const SCENARIO = "addTags";
 
 const PATTERNS = {
   seen: {
@@ -36,7 +36,7 @@ const PATTERNS = {
 function buildSingle(faker: Faker, state: PanelState, patterns: readonly string[]): Example {
   const tag = drawTag(faker);
   const pattern = faker.helpers.arrayElement(patterns);
-  const base = { goal: GOAL, form: "single" as Form };
+  const base = { scenario: SCENARIO, form: "single" as Form };
 
   if (faker.datatype.boolean()) {
     const { item } = faker.helpers.arrayElement(listItems(state));
@@ -53,7 +53,7 @@ function buildBulk(faker: Faker, state: PanelState, patterns: readonly string[])
   const category = faker.helpers.arrayElement(listFilledCategories(state));
 
   return {
-    goal: GOAL,
+    scenario: SCENARIO,
     form: "bulk",
     query: render(faker.helpers.arrayElement(patterns), { tag, category }),
     names: [category],
@@ -65,7 +65,7 @@ function buildBulk(faker: Faker, state: PanelState, patterns: readonly string[])
 function buildListed(faker: Faker, state: PanelState, patterns: readonly string[]): Example {
   const tag = drawTag(faker);
   const pattern = faker.helpers.arrayElement(patterns);
-  const base = { goal: GOAL, form: "listed" as Form };
+  const base = { scenario: SCENARIO, form: "listed" as Form };
 
   if (faker.datatype.boolean()) {
     const items = pickListed(faker, listItems(state)).map((at) => at.item);
