@@ -86,7 +86,14 @@ export type Outputs = {
   readonly "agent:dismiss": null;
 };
 
-export type Inputs = { readonly [K in Channel]: z.input<(typeof CHANNELS)[K]["input"]> };
+type DeepReadonly<T> = T extends readonly unknown[]
+  ? { readonly [K in keyof T]: DeepReadonly<T[K]> }
+  : T extends object
+    ? { readonly [K in keyof T]: DeepReadonly<T[K]> }
+    : T;
+
+// lets the lib's readonly Command through
+export type Inputs = { readonly [K in Channel]: DeepReadonly<z.input<(typeof CHANNELS)[K]["input"]>> };
 
 /** The bridge `window.panel` exposes: one function per channel, never throwing. */
 export type PanelApi = { readonly [K in Channel]: (...args: Inputs[K]) => Promise<Result<Outputs[K]>> };

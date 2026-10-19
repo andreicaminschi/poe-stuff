@@ -1,0 +1,18 @@
+.row .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row .sub { color: var(--muted); font-size: 12px; }
+.row .row-actions { display: none; gap: 4px; }
+.row:hover .row-actions { display: flex; }
+.search { flex: 1; padding: 4px 8px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--raised); color: var(--text); font: inherit; }
+
+.editor { display: flex; flex-direction: column; gap: 12px; padding: 12px; }
+.editor h3 { margin: 0 0 4px; font-size: 13px; color: var(--muted); }
+.editor .condition { display: flex; flex-direction: column; gap: 4px; }
+.editor .condition-head { display: flex; align-items: center; gap: 8px; }
+
+.chips { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.chip { display: inline-flex; align-items: center; gap: 4px; padding: 1px 4px 1px 8px; border-radius: 999px; background: var(--raised); font-size: 12px; }
+.chip-x { border: 0; background: none; color: var(--muted); cursor: pointer; font: inherit; }
+.chip-x:hover { color: var(--bad); }
+.chip-input, .field { min-width: 120px; padding: 2px 6px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--raised); color: var(--text); font: inherit; }
+
+.modal label { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; color: var(--muted); }
