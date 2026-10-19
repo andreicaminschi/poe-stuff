@@ -10,7 +10,8 @@ import { changeAction } from "./change-action.ts";
 import { changeCoverage } from "./change-coverage.ts";
 import { changeTarget } from "./change-target.ts";
 import { changeValue } from "./change-value.ts";
-import { formatJudgeInput, listDoneLines } from "./format-input.ts";
+import { formatJudgeInput } from "@poe/agent-input/format-input";
+import { listDoneLines } from "./format-input.ts";
 
 const REJECT_KINDS = ["unrelated", "wrong-target", "wrong-value", "wrong-coverage", "wrong-action"] as const;
 

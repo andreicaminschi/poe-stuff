@@ -1,0 +1,16 @@
+{
+  "name": "@poe/agent-input",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./describe-context": "./describe-context.ts",
+    "./format-input": "./format-input.ts",
+    "./vocabulary": "./vocabulary.ts"
+  },
+  "dependencies": {
+    "@poe/filter-eval": "workspace:^",
+    "@poe/panel-state": "workspace:^"
+  }
+}

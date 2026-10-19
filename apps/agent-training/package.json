@@ -6,6 +6,7 @@
   "type": "module",
   "dependencies": {
     "@faker-js/faker": "^10.6.0",
+    "@poe/agent-input": "workspace:^",
     "@poe/filter-eval": "workspace:^",
     "@poe/lake": "workspace:^",
     "@poe/panel-state": "workspace:^",

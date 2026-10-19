@@ -1,7 +1,8 @@
 import type { PlayedScenario } from "../build-scenarios.ts";
 import type { FillerRow } from "../types.ts";
-import { describeContext } from "./describe-context.ts";
-import { formatInput, listDoneLines } from "./format-input.ts";
+import { describeContext } from "@poe/agent-input/describe-context";
+import { formatFillerInput, formatInput } from "@poe/agent-input/format-input";
+import { listDoneLines } from "./format-input.ts";
 
 /**
  * Cuts a scenario into Filler rows: one per step. The input adds the command type the Router chose,
@@ -11,6 +12,6 @@ export const buildFillerRows = (scenario: PlayedScenario, index: number): readon
   scenario.steps.map((command, at) => ({
     scenario: index,
     kind: scenario.kind,
-    input: `${formatInput(scenario.request, describeContext(scenario.request, scenario.played[at]?.before ?? scenario.start), listDoneLines(scenario, at))}\ncommand: ${command.type}`,
+    input: formatFillerInput(formatInput(scenario.request, describeContext(scenario.request, scenario.played[at]?.before ?? scenario.start), listDoneLines(scenario, at)), command.type),
     output: JSON.stringify(Object.fromEntries(Object.entries(command).filter(([key]) => key !== "type"))),
   }));

@@ -1,9 +1,8 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { createLakeService } from "@poe/lake/service";
-import { CONDITIONS } from "@poe/filter-eval/filter-ast";
+import { VOCABULARY } from "@poe/agent-input/vocabulary";
 import type { Lake } from "@poe/lake/types";
-import { VALUE_SETS } from "@poe/panel-state/value-sets";
 import { checkState } from "@poe/panel-state/check-state";
 import { loadState, type CategoriesFile } from "@poe/panel-state/load-state";
 import { buildScenarios, type PlayedScenario } from "./build-scenarios.ts";
@@ -12,14 +11,6 @@ import { splitScenario } from "./split-scenarios.ts";
 import type { Rows } from "./types.ts";
 
 const STATE_KEY = "admin-panel/versions/latest/categories.json";
-
-type RegisteredCondition = { readonly games: readonly string[] };
-
-/** The words a Filler answer may use as keys and set names: every PoE1 filter condition, and the named value sets. */
-const VOCABULARY = {
-  conditions: Object.entries(CONDITIONS as unknown as Readonly<Record<string, RegisteredCondition>>).filter(([, condition]) => condition.games.includes("poe1")).map(([name]) => name),
-  valueSets: Object.fromEntries(Object.entries(VALUE_SETS).map(([condition, sets]) => [condition, Object.keys(sets)])),
-};
 
 /** Writes one scenario's rows as a review block: the request, then every row cut from it. */
 function renderScenarioRows(rows: Rows, scenario: number): string {

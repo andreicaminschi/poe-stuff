@@ -1,7 +1,8 @@
 import type { PlayedScenario } from "../build-scenarios.ts";
 import type { RouterRow } from "../types.ts";
-import { describeContext } from "./describe-context.ts";
-import { formatInput, listDoneLines } from "./format-input.ts";
+import { describeContext } from "@poe/agent-input/describe-context";
+import { formatInput } from "@poe/agent-input/format-input";
+import { listDoneLines } from "./format-input.ts";
 
 /**
  * Cuts a scenario into Router rows: one per step, labelled with that step's command type. A scenario

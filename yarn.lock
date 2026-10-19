@@ -1776,11 +1776,21 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@poe/agent-input@workspace:^, @poe/agent-input@workspace:lib/agent-input":
+  version: 0.0.0-use.local
+  resolution: "@poe/agent-input@workspace:lib/agent-input"
+  dependencies:
+    "@poe/filter-eval": "workspace:^"
+    "@poe/panel-state": "workspace:^"
+  languageName: unknown
+  linkType: soft
+
 "@poe/agent-training@workspace:apps/agent-training":
   version: 0.0.0-use.local
   resolution: "@poe/agent-training@workspace:apps/agent-training"
   dependencies:
     "@faker-js/faker": "npm:^10.6.0"
+    "@poe/agent-input": "workspace:^"
     "@poe/filter-eval": "workspace:^"
     "@poe/lake": "workspace:^"
     "@poe/panel-state": "workspace:^"
