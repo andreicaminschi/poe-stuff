@@ -29,7 +29,8 @@ Three rules decide what goes into the taxonomy, and so what the filter can show:
 | ----------- | ----------------------------------------------------------------------------------------- |
 | Taxonomy    | Built. The maintainer edits the draft files and publishes with the CLI.                   |
 | Catalog     | Built. A person starts each build, for one league and one hour. Nothing schedules it yet. |
-| Admin panel | Not started. The previous one was deleted.                                                |
+| Admin panel | Written, never opened. `apps/panel` edits categories and seeders, by hand or through the agent. |
+| Agent       | Trained. Three small models plan panel edits; a person approves every plan.               |
 | Generator   | Not started. The previous one was deleted.                                                |
 | Collector   | Not started. It needs a job queue and a record of outstanding work first.                 |
 | AWS         | Not started. Everything runs on one local machine.                                        |
@@ -350,6 +351,37 @@ is the full contract.
 [docs/backlog.md](docs/backlog.md) holds generator ideas nobody has started, such as a
 toggle for low-confidence prices and an "always show" switch per category.
 
+## Agent
+
+The admin panel, `apps/panel`, edits the panel state: categories, the seeders inside them, and
+known items. A person edits it by hand or types a request into the omni bar, such as
+`Tag Rings and Belts as chase`. The agent turns the request into a plan of panel commands.
+
+**The agent only proposes.** It plans on a copy of the state. Nothing reaches the real state until
+the person approves the plan, as proposed or edited. Every reviewed plan is kept in
+`.s3/panel/agent-feedback/`.
+
+A plan is built one step at a time, by three small models that run locally:
+
+| Model  | Does                                                                           |
+| ------ | ------------------------------------------------------------------------------ |
+| Router | Picks the next command type, or says the request is done or must be reworded. |
+| Filler | Writes that command's params as JSON.                                          |
+| Judge  | Reads a plain-text diff of the step and accepts it, completes the plan, or rejects it. |
+
+The executor runs each step between the Filler and the Judge. A plan stops when the Judge says
+`complete` or `reject`, when the Router has nothing left to do, or after `MAX_STEPS` steps.
+
+The models never see raw state. `lib/agent-input` writes the text they read: the request, the
+names it mentions, and what earlier steps did. `@util/diff-summary` writes the step's diff.
+Training uses the same code, so a model reads at runtime exactly what it trained on.
+
+[docs/agent-training.md](docs/agent-training.md) describes how the models are trained, scored
+and exported.
+
+Code: `apps/panel` runs the agent. `lib/panel-state` holds the commands and their executor.
+`apps/agent-training` builds the training data and trains the models.
+
 ## Collector and the GGG service
 
 Some prices are not published anywhere. The collector will get them from GGG's trade API,
@@ -405,6 +437,11 @@ never imported. [CLAUDE.md](CLAUDE.md) has the full rule.
 | -------------------- | ----------------------------------------------------------------------------------- |
 | `apps/taxonomy`      | Seeds, validates, publishes and promotes taxonomy versions.                         |
 | `apps/catalog`       | Builds and publishes the catalog. Also `catalog:compile`, the unstyled test filter. |
+| `apps/panel`         | The admin panel, and the agent that plans edits in it.                              |
+| `apps/agent-training`| Builds the agent's training data, trains, scores and exports the models.            |
+| `lib/panel-state`    | The panel state and the commands that edit it.                                      |
+| `lib/agent-input`    | The text the agent's models read, shared by training and the panel.                 |
+| `lib/diff-summary`   | What one agent step changed, as plain lines for the Judge.                          |
 | `lib/filter-compile` | Resolves a row's conditions and writes them as `.filter` lines.                     |
 | `lib/filter-eval`    | Parses a `.filter` and says which block takes an item.                              |
 | `lib/item-parser`    | Reads one item's copied text into the shape `@poe/filter-eval` asks about.          |
@@ -439,6 +476,7 @@ never imported. [CLAUDE.md](CLAUDE.md) has the full rule.
 - [apps/taxonomy/README.md](apps/taxonomy/README.md): the condition language and the version rules.
 - [apps/catalog/README.md](apps/catalog/README.md): the pipeline and its gotchas.
 - [lib/filter-eval/README.md](lib/filter-eval/README.md): what a generated filter must satisfy.
+- [docs/agent-training.md](docs/agent-training.md): how the agent's models are trained.
 - [docs/item-filter-syntax.md](docs/item-filter-syntax.md): the `.filter` grammar.
 - [TODO.md](TODO.md): deferred decisions, including the game decisions for tiering.
 - [techdebt.md](techdebt.md): what the repo knowingly duplicates or does not do yet.

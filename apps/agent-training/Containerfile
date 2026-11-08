@@ -18,8 +18,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends cmake && rm -rf
     && cmake --build /opt/llama.cpp/build --target llama-quantize -j
 
 ENV HF_HOME=/cache/huggingface PYTHONUNBUFFERED=1 TRITON_LIBCUDA_PATH=/opt/libcuda PYTHONPYCACHEPREFIX=/data/.pycache
-WORKDIR /app
-COPY *.py /app/
 COPY entry.sh /app/entry.sh
 RUN chmod +x /app/entry.sh
 ENTRYPOINT ["/app/entry.sh"]
