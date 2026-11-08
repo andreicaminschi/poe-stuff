@@ -22,20 +22,22 @@ export function CategoryList() {
           <div
             key={name}
             className={picked.includes(name)
-              ? "row on"
-              : "row"}
+              ? "row category on"
+              : "row category"}
             onClick={() => toggleCategory(name)}
           >
             <span className="name">{name}</span>
             <span className="row-actions" onClick={(event) => event.stopPropagation()}>
-              <button type="button" className="btn tiny ghost" onClick={() => openDialog({ kind: "rename", target: "category", name })}>Rename</button>
-              <button type="button" className="btn tiny ghost" onClick={() => openDialog({ kind: "merge", category: name })}>Merge</button>
+              <button type="button" className="btn tiny ghost" title="Rename" aria-label="Rename" onClick={() => openDialog({ kind: "rename", target: "category", name })}>✎</button>
+              <button type="button" className="btn tiny ghost" title="Merge" aria-label="Merge" onClick={() => openDialog({ kind: "merge", category: name })}>⇲</button>
               <button
                 type="button"
                 className="btn tiny ghost danger"
+                title="Delete"
+                aria-label="Delete"
                 onClick={() => openDialog({ kind: "confirm", message: `Delete category ${name} and its seeders?`, command: { type: "deleteCategory", category: name } })}
               >
-                Delete
+                ✕
               </button>
             </span>
             <span className="count">{Object.keys(category.seeders ?? {}).length}</span>

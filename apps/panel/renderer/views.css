@@ -2,6 +2,9 @@
 .row .sub { color: var(--muted); font-size: 12px; }
 .row .row-actions { display: none; gap: 4px; }
 .row:hover .row-actions { display: flex; }
+.row.category .name { flex: 1; min-width: 0; }
+.row.category:hover .count { display: none; }
+.row.category .row-actions .btn { width: 22px; padding: 1px 0; text-align: center; }
 .search { flex: 1; padding: 4px 8px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--raised); color: var(--text); font: inherit; }
 
 .editor { display: flex; flex-direction: column; gap: 12px; padding: 12px; }

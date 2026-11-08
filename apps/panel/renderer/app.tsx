@@ -1,14 +1,21 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import type { CSSProperties } from "react";
 import { CategoryList } from "./category-list.tsx";
+import { ColumnHandle } from "./column-handle.tsx";
 import { DialogHost } from "./dialog-host.tsx";
 import { FilterChips } from "./filter-chips.tsx";
 import { ItemEditor } from "./item-editor.tsx";
 import { ItemList } from "./item-list.tsx";
 import { Omnibar } from "./omnibar.tsx";
 import { PlanDialog } from "./plan-dialog.tsx";
+import { readSavedWidth } from "./read-saved-width.ts";
+import type { ColumnSize } from "./read-saved-width.ts";
 import { SeederEditor } from "./seeder-editor.tsx";
 import { SeederList } from "./seeder-list.tsx";
 import { usePanel } from "./store.ts";
+
+const SIDEBAR_SIZE: ColumnSize = { key: "panel.sidebarWidth", fallback: 240, min: 160, max: 480 };
+const EDITOR_SIZE: ColumnSize = { key: "panel.editorWidth", fallback: 420, min: 320, max: 800 };
 
 /** Ctrl+Z undoes, outside text fields. */
 function useUndoKey(): void {
@@ -80,6 +87,12 @@ export function App() {
   const mode = usePanel((state) => state.mode);
   const plan = usePanel((state) => state.plan);
   const setMode = usePanel((state) => state.setMode);
+  const [sidebarWidth, setSidebarWidth] = useState(() => readSavedWidth(SIDEBAR_SIZE));
+  const [editorWidth, setEditorWidth] = useState(() => readSavedWidth(EDITOR_SIZE));
+  const columnWidths = {
+    "--sidebar-width": `${String(sidebarWidth)}px`,
+    "--editor-width": `${String(editorWidth)}px`,
+  } as CSSProperties;
 
   useEffect(() => {
     void usePanel.getState().load();
@@ -115,11 +128,13 @@ export function App() {
       {view === undefined
         ? <p className="empty">Loading…</p>
         : (
-            <main className="cols">
+            <main className="cols" style={columnWidths}>
               <CategoryList />
+              <ColumnHandle side="left" size={SIDEBAR_SIZE} width={sidebarWidth} onResize={setSidebarWidth} />
               {mode === "seeders"
                 ? <SeederList />
                 : <ItemList />}
+              <ColumnHandle side="right" size={EDITOR_SIZE} width={editorWidth} onResize={setEditorWidth} />
               {mode === "seeders"
                 ? <SeederEditor />
                 : <ItemEditor />}
