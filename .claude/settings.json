@@ -1,7 +1,10 @@
 {
   "extraKnownMarketplaces": {
     "ponytail": {
-      "source": { "source": "github", "repo": "DietrichGebert/ponytail" }
+      "source": {
+        "source": "github",
+        "repo": "DietrichGebert/ponytail"
+      }
     }
   },
   "hooks": {
@@ -12,6 +15,40 @@
           {
             "type": "command",
             "command": "jq -r '.tool_response.filePath // .tool_input.file_path // empty' | tr -d '\\r' | { read -r f; case \"$f\" in *.ts|*.tsx) yarn eslint --fix \"$f\";; esac; } >/dev/null 2>&1 || true"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Grep",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "C:/Users/andre/.local/bin/graphify.EXE hook-guard search",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Read|Glob",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "C:/Users/andre/.local/bin/graphify.EXE hook-guard read",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "C:/Users/andre/.local/bin/graphify.EXE hook-guard compact",
+            "timeout": 10
           }
         ]
       }

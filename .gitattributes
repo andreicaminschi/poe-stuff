@@ -22,3 +22,4 @@ data/sample-items/*.txt -text
 *.jpg binary
 *.gz binary
 *.bundle binary
+graphify-out/graph.json merge=graphify
