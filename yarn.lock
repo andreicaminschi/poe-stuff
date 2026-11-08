@@ -1839,6 +1839,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@poe/panel-state@workspace:lib/panel-state"
   dependencies:
+    "@poe/filter-eval": "workspace:^"
     "@util/diff-summary": "workspace:^"
   languageName: unknown
   linkType: soft

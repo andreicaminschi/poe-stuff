@@ -27,14 +27,6 @@ export function resolveSeeder(state: PanelState, name: string): { readonly categ
   return found;
 }
 
-/** Finds the stored item name a typed one means, or throws. */
-export function resolveItem(state: PanelState, name: string): string {
-  const item = resolveName(name, Object.keys(state.items));
-
-  if (item === undefined) throw new Error(`No item "${name}".`);
-  return item;
-}
-
 /** Throws when a new name is blank. */
 export function requireName(name: string, what: string): void {
   if (name.trim() === "") throw new Error(`A ${what} needs a name.`);

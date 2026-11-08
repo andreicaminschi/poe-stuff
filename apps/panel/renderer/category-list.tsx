@@ -4,7 +4,7 @@ import "./views.css";
 export function CategoryList() {
   const categories = usePanel((state) => state.view?.state.categories);
   const picked = usePanel((state) => state.pickedCategories);
-  const { toggleCategory, openDialog } = usePanel.getState();
+  const { pickCategory, openDialog } = usePanel.getState();
   const entries = Object.entries(categories ?? {}).sort(([left], [right]) => left.localeCompare(right));
 
   return (
@@ -24,12 +24,12 @@ export function CategoryList() {
             className={picked.includes(name)
               ? "row category on"
               : "row category"}
-            onClick={() => toggleCategory(name)}
+            onClick={() => pickCategory(name)}
           >
             <span className="name">{name}</span>
             <span className="row-actions" onClick={(event) => event.stopPropagation()}>
               <button type="button" className="btn tiny ghost" title="Rename" aria-label="Rename" onClick={() => openDialog({ kind: "rename", target: "category", name })}>✎</button>
-              <button type="button" className="btn tiny ghost" title="Merge" aria-label="Merge" onClick={() => openDialog({ kind: "merge", category: name })}>⇲</button>
+              {" "}
               <button
                 type="button"
                 className="btn tiny ghost danger"

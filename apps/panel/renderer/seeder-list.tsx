@@ -1,14 +1,22 @@
+import { useMemo } from "react";
+import { listItemRows } from "./list-item-rows.ts";
 import { listScopedSeeders } from "./list-scoped-seeders.ts";
+import { matchesSearch } from "./matches-search.ts";
 import { usePanel } from "./store.ts";
 
 export function SeederList() {
   const state = usePanel((store) => store.view?.state);
   const pickedCategories = usePanel((store) => store.pickedCategories);
-  const pickedSeeders = usePanel((store) => store.pickedSeeders);
+  const search = usePanel((store) => store.searchQuery);
   const selected = usePanel((store) => store.selectedSeeder);
-  const { selectSeeder, toggleSeeder, openDialog } = usePanel.getState();
+  const { selectSeeder, openDialog } = usePanel.getState();
+  const rows = useMemo(() => (state === undefined
+    ? []
+    : listItemRows(state)), [state]);
   if (state === undefined) return null;
-  const seeders = listScopedSeeders(state, pickedCategories, pickedSeeders);
+  const producing = new Set(rows.filter((row) => matchesSearch(row, search)).flatMap((row) => row.seeders));
+  const seeders = listScopedSeeders(state, pickedCategories, [])
+    .filter(({ name }) => search.trim() === "" || producing.has(name));
   const newCategory = pickedCategories[0] ?? Object.keys(state.categories)[0];
 
   return (
@@ -29,7 +37,7 @@ export function SeederList() {
         {seeders.length === 0
           ? <p className="empty">No seeders.</p>
           : null}
-        {seeders.map(({ category, name, seeder }) => (
+        {seeders.map(({ name }) => (
           <div
             key={name}
             className={name === selected
@@ -38,23 +46,6 @@ export function SeederList() {
             onClick={() => selectSeeder(name)}
           >
             <span className="name">{name}</span>
-            <span className="sub">{category}</span>
-            <span className="count">
-              {`${String(Object.keys(seeder.conditions ?? {}).length)}c · ${String(Object.keys(seeder.tags ?? {}).length)}t · ${String(Object.keys(seeder.knownItems ?? {}).length)}i`}
-            </span>
-            <button
-              type="button"
-              className={pickedSeeders.includes(name)
-                ? "btn tiny primary"
-                : "btn tiny ghost"}
-              title="Filter by this seeder"
-              onClick={(event) => {
-                event.stopPropagation();
-                toggleSeeder(name);
-              }}
-            >
-              Filter
-            </button>
           </div>
         ))}
       </div>

@@ -14,6 +14,23 @@
 
 .chips { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
 .chip { display: inline-flex; align-items: center; gap: 4px; padding: 1px 4px 1px 8px; border-radius: 999px; background: var(--raised); font-size: 12px; }
+.chip.outline { padding: 0 7px; border: 1px solid var(--line); background: transparent; }
+.chip.op { color: var(--muted); }
+.row.item .name { flex: 1; min-width: 0; }
+.item-tags { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; }
+.filters { display: flex; flex-direction: column; gap: 12px; padding: 8px 12px; }
+.filter-section { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.filter-title { display: flex; align-self: stretch; align-items: center; color: var(--muted); }
+.check { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.picker-list { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; max-height: 50vh; margin-top: 8px; overflow: auto; }
+.modal label.check { flex-direction: row; align-items: center; gap: 6px; margin: 0; color: var(--text); }
+.prices, .price-adder { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.field-row { display: grid; grid-template-columns: 80px minmax(0, 1fr); align-items: center; gap: 8px; }
+.condition-grid { display: grid; grid-template-columns: max-content max-content minmax(0, 1fr) max-content; align-items: start; gap: 6px 10px; margin-bottom: 6px; }
+.condition-grid .grid-head { color: var(--muted); font-size: 12px; }
+.condition-actions { display: flex; align-items: center; gap: 6px; }
+.value-adder { display: inline-flex; gap: 4px; }
+.value-adder .field { min-width: 90px; width: 110px; }
 .chip-x { border: 0; background: none; color: var(--muted); cursor: pointer; font: inherit; }
 .chip-x:hover { color: var(--bad); }
 .chip-input, .field { min-width: 120px; padding: 2px 6px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--raised); color: var(--text); font: inherit; }

@@ -10,10 +10,12 @@
     "./check-state": "./check-state.ts",
     "./resolve-name": "./resolve-name.ts",
     "./execute-command": "./execute-command.ts",
+    "./generate-items": "./generate-items.ts",
     "./value-sets": "./value-sets.ts",
     "./summary-config": "./summary-config.ts"
   },
   "dependencies": {
+    "@poe/filter-eval": "workspace:^",
     "@util/diff-summary": "workspace:^"
   }
 }

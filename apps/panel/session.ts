@@ -1,6 +1,7 @@
 import { executeCommand, type Command } from "@poe/panel-state/execute-command";
 import type { PanelState } from "@poe/panel-state/types";
 import { applyPatch, diffState, invertPatch, isEmptyPatch, type Patch } from "./session/patch.ts";
+import SPLIT_DEFAULTS from "./split-defaults.json" with { type: "json" };
 
 export type Actor = "user" | "agent";
 
@@ -30,7 +31,7 @@ export const openSession = (version: string, published: boolean, state: PanelSta
  * so a no-op never fills the log.
  */
 export function runCommand(session: Session, command: Command, stamp: Stamp): Session {
-  const after = executeCommand(session.state, command);
+  const after = executeCommand(session.state, command, SPLIT_DEFAULTS);
   const patch = diffState(session.state, after);
 
   if (isEmptyPatch(patch)) throw new Error(`${command.type} changed nothing.`);

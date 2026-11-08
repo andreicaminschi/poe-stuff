@@ -2,6 +2,7 @@ import { loadState, type CategoriesFile } from "@poe/panel-state/load-state";
 import type { PanelState } from "@poe/panel-state/types";
 import type { Lake } from "@poe/lake/types";
 import { openSession, type Entry, type Session } from "./session.ts";
+import SPLIT_DEFAULTS from "./split-defaults.json" with { type: "json" };
 import { compareVersions } from "./version-store/compare-versions.ts";
 
 type VersionInfo = {
@@ -44,7 +45,7 @@ export function createVersionStore(lake: Lake): VersionStore {
       versions: { [legacy.promoted]: { state: "published", createdAt: new Date().toISOString() } },
     };
 
-    await lake.writeJsonAtomic(stateKey(legacy.promoted), loadState(file));
+    await lake.writeJsonAtomic(stateKey(legacy.promoted), loadState(file, SPLIT_DEFAULTS));
     await lake.writeJsonAtomic(logKey(legacy.promoted), []);
     await lake.writeJsonAtomic(MANIFEST_KEY, manifest);
     return manifest;

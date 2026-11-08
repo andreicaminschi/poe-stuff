@@ -2,14 +2,17 @@ import type { Command } from "@poe/panel-state/execute-command";
 import { create } from "zustand";
 import type { AgentPlan, ModelRun, Notes, PanelView, Result } from "../contract.ts";
 
-export type Mode = "seeders" | "items";
+export type Mode = "items" | "categories";
+
+export type FilterSection = "category" | "seeder" | "tag";
 
 export type Dialog =
   | { readonly kind: "newCategory" }
   | { readonly kind: "newSeeder"; readonly category: string }
   | { readonly kind: "rename"; readonly target: "category" | "seeder"; readonly name: string }
-  | { readonly kind: "merge"; readonly category: string }
-  | { readonly kind: "confirm"; readonly message: string; readonly command: Command };
+  | { readonly kind: "confirm"; readonly message: string; readonly command: Command }
+  | { readonly kind: "picker"; readonly section: FilterSection }
+  | { readonly kind: "item"; readonly key: string };
 
 /** Everything the renderer holds. Only `view` mirrors main; the rest is UI state and never a command. */
 export type Store = {
@@ -23,9 +26,9 @@ export type Store = {
   readonly mode: Mode;
   readonly pickedCategories: readonly string[];
   readonly pickedSeeders: readonly string[];
+  readonly pickedTags: readonly string[];
+  readonly searchQuery: string;
   readonly selectedSeeder: string | undefined;
-  readonly selectedItem: string | undefined;
-  readonly itemQuery: string;
   readonly dialog: Dialog | undefined;
 
   readonly load: () => Promise<void>;
@@ -41,11 +44,14 @@ export type Store = {
   readonly clearError: () => void;
   readonly setMode: (mode: Mode) => void;
   readonly toggleCategory: (name: string) => void;
+  /** Picks only this category, or none when it is already the pick. */
+  readonly pickCategory: (name: string) => void;
   readonly toggleSeeder: (name: string) => void;
+  readonly toggleTag: (name: string) => void;
+  readonly clearSection: (section: FilterSection) => void;
   readonly clearFilters: () => void;
+  readonly setSearchQuery: (query: string) => void;
   readonly selectSeeder: (name: string | undefined) => void;
-  readonly selectItem: (name: string | undefined) => void;
-  readonly setItemQuery: (query: string) => void;
   readonly openDialog: (dialog: Dialog) => void;
   readonly closeDialog: () => void;
 };
@@ -54,6 +60,13 @@ const toggle = (list: readonly string[], name: string): readonly string[] =>
   (list.includes(name)
     ? list.filter((entry) => entry !== name)
     : [...list, name]);
+
+/** The store fields that empty one filter section. */
+function clearedPicks(section: FilterSection): Partial<Store> {
+  if (section === "category") return { pickedCategories: [] };
+  if (section === "seeder") return { pickedSeeders: [] };
+  return { pickedTags: [] };
+}
 
 export const usePanel = create<Store>()((set, get) => {
   /** Runs one IPC call; a failure lands in `error` and returns undefined. */
@@ -85,12 +98,12 @@ export const usePanel = create<Store>()((set, get) => {
     run: "",
     plan: undefined,
     planning: false,
-    mode: "seeders",
+    mode: "items",
     pickedCategories: [],
     pickedSeeders: [],
+    pickedTags: [],
+    searchQuery: "",
     selectedSeeder: undefined,
-    selectedItem: undefined,
-    itemQuery: "",
     dialog: undefined,
 
     load: async () => {
@@ -145,11 +158,18 @@ export const usePanel = create<Store>()((set, get) => {
     clearError: () => set({ error: undefined }),
     setMode: (mode) => set({ mode }),
     toggleCategory: (name) => set({ pickedCategories: toggle(get().pickedCategories, name) }),
+    pickCategory: (name) => {
+      const picked = get().pickedCategories;
+      set({ pickedCategories: picked.length === 1 && picked[0] === name
+        ? []
+        : [name] });
+    },
     toggleSeeder: (name) => set({ pickedSeeders: toggle(get().pickedSeeders, name) }),
-    clearFilters: () => set({ pickedCategories: [], pickedSeeders: [] }),
+    toggleTag: (name) => set({ pickedTags: toggle(get().pickedTags, name) }),
+    clearSection: (section) => set(clearedPicks(section)),
+    clearFilters: () => set({ pickedCategories: [], pickedSeeders: [], pickedTags: [], searchQuery: "" }),
+    setSearchQuery: (searchQuery) => set({ searchQuery, pickedCategories: [] }),
     selectSeeder: (name) => set({ selectedSeeder: name }),
-    selectItem: (name) => set({ selectedItem: name }),
-    setItemQuery: (itemQuery) => set({ itemQuery }),
     openDialog: (dialog) => set({ dialog }),
     closeDialog: () => set({ dialog: undefined }),
   };

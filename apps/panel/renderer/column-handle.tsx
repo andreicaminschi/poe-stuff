@@ -19,7 +19,8 @@ export function ColumnHandle({ side, size, width, onResize }: ColumnHandleProps)
     const moved = side === "left"
       ? event.clientX - start.x
       : start.x - event.clientX;
-    return Math.min(Math.max(start.width + moved, size.min), size.max);
+    const movedPercent = (moved / window.innerWidth) * 100;
+    return Math.min(Math.max(start.width + movedPercent, size.min), size.max);
   };
 
   const onPointerDown = (event: PointerEvent<HTMLDivElement>): void => {

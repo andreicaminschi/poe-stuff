@@ -51,7 +51,9 @@ input:focus, select:focus, textarea:focus { outline: 1px solid var(--accent); }
 .tab { padding: 6px 14px; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--muted); cursor: pointer; font: inherit; }
 .tab.on { color: var(--text); border-bottom-color: var(--accent); }
 
-.cols { flex: 1; display: grid; grid-template-columns: var(--sidebar-width) 4px minmax(0, 1fr) 4px var(--editor-width); min-height: 0; border-top: 1px solid var(--line); }
+.cols { flex: 1; display: grid; min-height: 0; border-top: 1px solid var(--line); }
+.cols.categories { grid-template-columns: var(--categories-width) 4px var(--seeders-width) 4px minmax(0, 1fr); }
+.cols.items { grid-template-columns: var(--items-width) 4px minmax(0, 1fr); }
 .col { display: flex; flex-direction: column; min-height: 0; border-right: 1px solid var(--line); }
 .col:last-child { border-right: 0; }
 .col .head { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-bottom: 1px solid var(--line); color: var(--muted); }

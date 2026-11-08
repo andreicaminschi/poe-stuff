@@ -1,3 +1,4 @@
+/** A resizable column, in percent of the window. */
 export type ColumnSize = {
   key: string;
   fallback: number;
