@@ -2,6 +2,9 @@ import { useMemo } from "react";
 import { filterItemRows } from "./filter-item-rows.ts";
 import { listItemRows } from "./list-item-rows.ts";
 import { usePanel } from "./store.ts";
+import { useVisibleRange } from "./use-visible-range.ts";
+
+const ROW_HEIGHT = 28;
 
 export function ItemList() {
   const state = usePanel((store) => store.view?.state);
@@ -14,6 +17,7 @@ export function ItemList() {
     ? []
     : listItemRows(state)), [state]);
   const shown = filterItemRows(rows, { categories, seeders, tags, search });
+  const { ref, start, end } = useVisibleRange(ROW_HEIGHT, shown.length);
 
   return (
     <section className="col">
@@ -22,23 +26,27 @@ export function ItemList() {
         <span className="sp" />
         <span className="count">{`${String(shown.length)} of ${String(rows.length)}`}</span>
       </div>
-      <div className="body">
+      <div className="body" ref={ref}>
         {shown.length === 0
           ? <p className="empty">No items.</p>
           : null}
-        {shown.map((row) => (
-          <div key={row.key} className="row item" onClick={() => openDialog({ kind: "item", key: row.key })}>
-            <span className="name mono">
-              <b>{row.head}</b>
-              {" "}
-              <span className="sub">{row.rest}</span>
-            </span>
-            <span className="item-tags">
-              {row.seederTags.map((tag) => <span key={`s:${tag}`} className="chip outline">{tag}</span>)}
-              {row.itemTags.map((tag) => <span key={`i:${tag}`} className="chip">{tag}</span>)}
-            </span>
+        <div style={{ position: "relative", height: shown.length * ROW_HEIGHT }}>
+          <div style={{ transform: `translateY(${String(start * ROW_HEIGHT)}px)` }}>
+            {shown.slice(start, end).map((row) => (
+              <div key={row.key} className="row item" style={{ height: ROW_HEIGHT }} onClick={() => openDialog({ kind: "item", key: row.key })}>
+                <span className="name mono">
+                  <b>{row.head}</b>
+                  {" "}
+                  <span className="sub">{row.rest}</span>
+                </span>
+                <span className="item-tags">
+                  {row.seederTags.map((tag) => <span key={`s:${tag}`} className="chip outline">{tag}</span>)}
+                  {row.itemTags.map((tag) => <span key={`i:${tag}`} className="chip">{tag}</span>)}
+                </span>
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
       </div>
     </section>
   );
