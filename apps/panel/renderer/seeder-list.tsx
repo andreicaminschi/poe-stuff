@@ -1,5 +1,3 @@
-import { useMemo } from "react";
-import { listItemRows } from "./list-item-rows.ts";
 import { listScopedSeeders } from "./list-scoped-seeders.ts";
 import { matchesSearch } from "./matches-search.ts";
 import { usePanel } from "./store.ts";
@@ -10,9 +8,7 @@ export function SeederList() {
   const search = usePanel((store) => store.searchQuery);
   const selected = usePanel((store) => store.selectedSeeder);
   const { selectSeeder, openDialog } = usePanel.getState();
-  const rows = useMemo(() => (state === undefined
-    ? []
-    : listItemRows(state)), [state]);
+  const rows = usePanel((store) => store.itemRows);
   if (state === undefined) return null;
   const producing = new Set(rows.filter((row) => matchesSearch(row, search)).flatMap((row) => row.seeders));
   const seeders = listScopedSeeders(state, pickedCategories, [])

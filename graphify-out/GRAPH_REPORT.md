@@ -1,17 +1,17 @@
-# Graph Report - poe-stuff  (2026-11-09)
+# Graph Report - poe-stuff  (2026-11-10)
 
 ## Corpus Check
-- 501 files · ~203,508 words
+- 502 files · ~203,648 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 9 file(s) not represented in the graph (top: (none) 3, .css 3, .graphify-bak 1)
 
 ## Summary
-- 2845 nodes · 7253 edges · 124 communities (115 shown, 9 thin omitted)
-- Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 145 edges (avg confidence: 0.84)
+- 2848 nodes · 7263 edges · 125 communities (116 shown, 9 thin omitted)
+- Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 146 edges (avg confidence: 0.84)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `473388a3`
+- Built from commit: `ac45c4ca`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -27,10 +27,10 @@
 - Fall-Through Validator
 - score-run-cli.ts
 - Panel Dispatcher and Session
-- repoe/call.test.ts
+- pick.ts
 - Filter Parser and AST
 - contract.ts
-- Filter Matcher and Evaluator
+- match-filter.ts
 - poe.watch Service
 - poe.watch Types
 - Taxonomy Eval Cases
@@ -41,7 +41,7 @@
 - Panel Dependencies
 - link-prices.ts
 - Catalog Unique Pricing
-- seeder-editor.tsx
+- PanelState
 - apps/taxonomy/types.ts
 - taxonomy-cli.ts
 - Electron Main and Security
@@ -52,44 +52,44 @@
 - Catalog CLIs
 - conditions.ts
 - Bronze Validation Schemas
-- repoe/types.ts
+- repoe/service.ts
 - taxonomy/service.ts
 - PoeWatch Price Selection
 - Filter Validate Package
 - Root Scripts
-- react
+- load-state.ts
 - Agent Training Dependencies
-- list-item-rows.ts
+- generate-items.ts
 - Panel TS Config
 - Agent Input Context
-- GGG Rate Limiter
+- ggg/types.ts
 - Root TS Config
 - operator-names.ts
 - GGG Call and Headers
 - Item Parser Package
 - RePoE Package
-- seed-taxonomy.ts
+- build-rows-cli.ts
 - GGG Package
 - Unfiltered Reports
 - poe.ninja Package
-- Plan Dialog and Command Edits
-- repoe/service.ts
+- validate-table.ts
+- Item
 - command-schema.ts
 - Taxonomy App Package
 - Filter Compile Package
 - Panel State Package
 - Project Rules (CLAUDE.md)
-- seed-items.ts
+- taxonomy-cli.ts
 - poe.watch Package
 - Agent Input Package
 - endpoints.test-helpers.ts
-- ggg/service.ts
+- search-listings.ts
 - Taxonomy Service Package
 - @jest/globals
 - fetch-listings.ts
-- ggg/call.test.ts
+- execute-command.ts
 - poe-stuff product README
-- Sample Set Values
+- versions.ts
 - judge-rows.ts
 - filler-schema.ts
 - Filter Eval Package
@@ -104,20 +104,21 @@
 - Claude Commands
 - Catalog Medallion Docs
 - Filter Condition Docs
-- omnibar.tsx
+- validate-version.ts
 - Cache Package
 - Filter Eval Docs
 - Root Package
 - Filter Tiering TODOs
 - version-store.ts
 - AWS Multi-IP Polling
-- find-fall-through.test.ts
-- logger.ts
+- parseFilter
+- patch-seeder.ts
 - Currency Exchange Storage
 - Ladder Link Analysis
 - GGG Stats Endpoint
-- repoe/config.ts
+- validate-variants.ts
 - Lake Package
+- createLimiter
 - Item filter syntax
 - AWS Rate-Limit Scheduling
 - @poe/lake
@@ -140,22 +141,22 @@
 ## God Nodes (most connected - your core abstractions)
 1. `@jest/globals` - 109 edges
 2. `deriveSeed()` - 80 edges
-3. `pickWording()` - 46 edges
-4. `PanelState` - 44 edges
-5. `pickOne()` - 42 edges
-6. `createLakeService()` - 42 edges
-7. `usePanel` - 42 edges
+3. `PanelState` - 46 edges
+4. `pickWording()` - 46 edges
+5. `usePanel` - 44 edges
+6. `pickOne()` - 42 edges
+7. `createLakeService()` - 42 edges
 8. `Lake` - 34 edges
 9. `varyName()` - 30 edges
 10. `pickSeeder()` - 26 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `poe-stuff product README` --references--> `How the agent is trained`  [EXTRACTED]
-  README.md → docs/agent-training.md
 - `Export (ONNX classifiers, GGUF Filler)` --shares_data_with--> `agent.ts / agent/run-steps.ts (Router-Filler-executor-diff-Judge loop)`  [INFERRED]
   docs/agent-training.md → apps/panel/REVIEW.md
-- `request()` --calls--> `sleep()`  [EXTRACTED]
-  services/poe-ninja/call.ts → lib/cache/sleep.ts
+- `poe-stuff product README` --references--> `How the agent is trained`  [EXTRACTED]
+  README.md → docs/agent-training.md
+- `ItemDraftEditor()` --calls--> `formatCondition()`  [EXTRACTED]
+  apps/panel/renderer/item-editor.tsx → lib/panel-state/generate-items.ts
 - `fetchJson()` --calls--> `buildCacheKey()`  [EXTRACTED]
   services/poe-ninja/call.ts → lib/cache/build-cache-key.ts
 - `runCommand()` --calls--> `executeCommand()`  [EXTRACTED]
@@ -178,67 +179,67 @@
 - **Exchange price model: band plus VWAP** — research_currency_exchange_stats_vwap_invariant, research_currency_exchange_stats_ratio_direction_trap, research_currency_exchange_stats_spread_liquidity, research_currency_exchange_stats_chaos_normalization [INFERRED 0.85]
 - **Hour-keyed response cache shared across services** — services_ggg_readme_hour_keyed_cache, services_poe_watch_readme_createpoewatchservice, services_repoe_readme_createrepoeservice, services_poe_ninja_readme_createpoeninjaservice, services_ggg_readme_createfilecache [INFERRED 0.95]
 
-## Communities (124 total, 9 thin omitted)
+## Communities (125 total, 9 thin omitted)
 
 ### Community 0 - "poe.ninja Service"
 Cohesion: 0.06
-Nodes (58): fetchJson(), request(), RETRIABLE(), context, DEFAULT_BASE_URL, DEFAULT_USER_AGENT, GAME_PATH, trimUrl() (+50 more)
+Nodes (58): sleep(), fetchJson(), request(), RETRIABLE(), DEFAULT_BASE_URL, DEFAULT_USER_AGENT, GAME_PATH, trimUrl() (+50 more)
 
 ### Community 1 - "Diff Summary Library"
 Cohesion: 0.08
-Nodes (63): COLLATOR, compareText(), buildChildChange(), expandChange(), findLevel(), describeEarlierStep(), flagOverwrites(), formatValue() (+55 more)
+Nodes (64): COLLATOR, compareText(), buildChildChange(), expandChange(), findLevel(), describeEarlierStep(), flagOverwrites(), formatValue() (+56 more)
 
 ### Community 2 - "Item Parser"
 Cohesion: 0.06
 Nodes (58): expand(), IndexedStat, ModMatcher, modMatcher(), resolveMod(), matcher, mod(), stats (+50 more)
 
 ### Community 3 - "validate-conditions.ts"
-Cohesion: 0.08
-Nodes (57): isObject(), isText(), optionalBooleanProblem(), unknownFields(), slug(), VersionFiles, collectAuthoredTable(), FIELDS (+49 more)
+Cohesion: 0.14
+Nodes (20): unknownFields(), CategoryTable, Hint, TieringMethod, categoryProblem(), collectCategoryTable(), CONDITION_FIELDS, conditionProblem() (+12 more)
 
 ### Community 4 - "Python Trainers"
 Cohesion: 0.06
 Nodes (36): check_classifier(), convert(), export_classifier(), export_filler(), Logits, main(), data_path(), read_rows() (+28 more)
 
 ### Community 5 - "Panel State Commands"
-Cohesion: 0.10
-Nodes (48): CreateCategoryCommand, executeCreateCategory(), CreateSeederCommand, executeCreateSeeder(), DeleteCategoryCommand, executeDeleteCategory(), DeleteSeedersCommand, executeDeleteSeeders() (+40 more)
+Cohesion: 0.13
+Nodes (28): CreateCategoryCommand, executeCreateCategory(), CreateSeederCommand, executeCreateSeeder(), DeleteSeedersCommand, executeDeleteSeeders(), findSeederCategory(), listPlacedSeeders() (+20 more)
 
 ### Community 6 - "resolve-row.ts"
 Cohesion: 0.06
-Nodes (56): drawableRows(), Resolution, resolutionProblems(), resolveCategory(), resolveRow(), rowOf(), baseTypeFrom, version (+48 more)
+Nodes (56): fromTaxonomy(), rowOf(), main(), main(), progress(), STEPS, Composed, composeLayers() (+48 more)
 
 ### Community 7 - "usePanel"
-Cohesion: 0.17
-Nodes (24): ConfirmDialog(), ConfirmDialogProps, DialogFrame(), DialogFrameProps, DialogHost(), FilterChips(), FILTER_TITLES, FilterPane() (+16 more)
+Cohesion: 0.06
+Nodes (66): PlanOutcome, PlanStep, App(), ErrorBanner(), TopBar(), useUndoKey(), CATEGORIES_SIZE, CategoriesTab() (+58 more)
 
 ### Community 8 - "Fall-Through Validator"
-Cohesion: 0.11
-Nodes (40): Owner, readOwnerNote(), FilterBlock, formatPath(), checkFilter(), FilterCheck, skipPathRepeats(), unsampledOf() (+32 more)
+Cohesion: 0.14
+Nodes (32): Owner, readOwnerNote(), FilterBlock, formatPath(), checkFilter(), FilterCheck, skipPathRepeats(), unsampledOf() (+24 more)
 
 ### Community 9 - "score-run-cli.ts"
-Cohesion: 0.06
-Nodes (57): countLabels(), main(), renderReview(), renderScenarioRows(), RowSetManifest, writeRowSet(), buildScenarios(), main() (+49 more)
+Cohesion: 0.12
+Nodes (28): listPredictionSets(), main(), percent(), readJsonLines(), rebuildScenarios(), renderFiller(), renderLabels(), canonical() (+20 more)
 
 ### Community 10 - "Panel Dispatcher and Session"
-Cohesion: 0.08
-Nodes (32): Agent, StepTrace, createDispatcher(), Dispatcher, FeedbackRecord, FeedbackVerdict, KeptPlan, stampOf() (+24 more)
+Cohesion: 0.09
+Nodes (30): AgentPlan, Notes, createDispatcher(), Dispatcher, FeedbackRecord, FeedbackVerdict, KeptPlan, stampOf() (+22 more)
 
-### Community 11 - "repoe/call.test.ts"
-Cohesion: 0.33
-Nodes (3): RepoeHttpError, RepoeParseError, CachedResponse
+### Community 11 - "pick.ts"
+Cohesion: 0.20
+Nodes (25): buildTagItemsScenario(), buildUntagItemsScenario(), ITEM_SCENARIOS, buildCreateAndMoveScenario(), buildCreateMoveTagScenario(), buildTagSeederAndItemsScenario(), buildTwoTagsScenario(), capitalize() (+17 more)
 
 ### Community 12 - "Filter Parser and AST"
-Cohesion: 0.09
-Nodes (41): ACTIONS, APPLY_KEYS, ApplyKey, CONDITIONS_BY_LOWER, EQUALITY_OPERATORS, FilterCondition, Game, GAMES (+33 more)
+Cohesion: 0.07
+Nodes (54): asList(), compare(), evaluateFilter(), lettersOf(), matchBoolean(), matchCondition(), matchCounted(), matchEnums() (+46 more)
 
 ### Community 13 - "contract.ts"
-Cohesion: 0.14
-Nodes (14): AgentPlan, CHANNEL_NAMES, ChannelName, DeepReadonly, Inputs, Notes, NOTES_SCHEMA, Outputs (+6 more)
+Cohesion: 0.15
+Nodes (13): Channel, CHANNEL_NAMES, ChannelName, DeepReadonly, Inputs, NOTES_SCHEMA, Outputs, PanelApi (+5 more)
 
-### Community 14 - "Filter Matcher and Evaluator"
-Cohesion: 0.11
-Nodes (38): asList(), compare(), evaluateFilter(), lettersOf(), matchBoolean(), matchCondition(), matchCounted(), matchEnums() (+30 more)
+### Community 14 - "match-filter.ts"
+Cohesion: 0.19
+Nodes (19): negated(), baseTypeKeys(), booleanTest(), buildEveryMatchMatcher(), comparer(), Compiled, compileWalk(), enumsTest() (+11 more)
 
 ### Community 15 - "poe.watch Service"
 Cohesion: 0.10
@@ -253,20 +254,20 @@ Cohesion: 0.11
 Nodes (25): buildEvalCases(), EvalCase, EvalCases, EvalOverlap, EvalRow, findBlockEntries(), rare, ring (+17 more)
 
 ### Community 18 - "Scenario Wording Helpers"
-Cohesion: 0.14
-Nodes (64): buildAddRarityScenario(), buildConditionScenario(), buildDropConditionScenario(), buildReplaceRarityScenario(), RARITIES, describeCondition(), deriveSeed(), buildTagItemsScenario() (+56 more)
+Cohesion: 0.20
+Nodes (36): buildAddRarityScenario(), buildConditionScenario(), buildDropConditionScenario(), buildReplaceRarityScenario(), RARITIES, describeCondition(), deriveSeed(), buildAlreadyDoneScenario() (+28 more)
 
 ### Community 19 - "Catalog Pipeline"
-Cohesion: 0.10
-Nodes (41): buildSilver, UNPRICED, extractGGGItems, extractPoeWatchCompact, extractPoeWatchCorruptions, extractPoeWatchRatios, extractTaxonomy, BRONZE_FILES (+33 more)
+Cohesion: 0.11
+Nodes (38): buildSilver, UNPRICED, extractGGGItems, extractPoeWatchCompact, extractPoeWatchCorruptions, extractPoeWatchRatios, extractTaxonomy, BRONZE_FILES (+30 more)
 
 ### Community 20 - "Training Row Builders"
-Cohesion: 0.11
-Nodes (36): buildRows(), buildFillerRows(), listDoneLines(), buildJudgeRows(), buildNoOpRow(), buildWrongCommand(), drawReject(), pickUnrelatedStep() (+28 more)
+Cohesion: 0.19
+Nodes (21): buildRows(), buildFillerRows(), listDoneLines(), buildJudgeRows(), buildNoOpRow(), drawReject(), summarizeCommand(), buildRouterRows() (+13 more)
 
 ### Community 21 - "Panel Agent Runtime"
 Cohesion: 0.10
-Nodes (26): createAgent(), use(), listRuns(), ClassifierExport, ClassifierName, ClassifierPrecision, loadClassifier(), LoadedClassifier (+18 more)
+Nodes (26): Agent, createAgent(), use(), listRuns(), ClassifierExport, ClassifierName, ClassifierPrecision, loadClassifier() (+18 more)
 
 ### Community 22 - "Panel Dependencies"
 Cohesion: 0.05
@@ -277,64 +278,64 @@ Cohesion: 0.09
 Nodes (40): Bag, buildEnchants(), buildFoulborn(), buildUniquesByBase(), closestNames(), compareVersions(), Conditions, ConditionValue (+32 more)
 
 ### Community 24 - "Catalog Unique Pricing"
-Cohesion: 0.15
-Nodes (9): basesByUnique(), FiledListing, groupListings(), listedUniques(), uniqueOf(), withUniques(), ItemData, ItemCorruptions (+1 more)
+Cohesion: 0.14
+Nodes (10): mostListed(), basesByUnique(), FiledListing, groupListings(), listedUniques(), uniqueOf(), withUniques(), ItemData (+2 more)
 
-### Community 25 - "seeder-editor.tsx"
-Cohesion: 0.20
-Nodes (16): buildSeederUpdate(), diffConditions(), diffSplit(), SeederDraft, SeederUpdate, splitsByDefault(), toSeederDraft(), findSeeder() (+8 more)
+### Community 25 - "PanelState"
+Cohesion: 0.54
+Nodes (5): findSeeder(), listScopedSeeders(), listSeeders(), PlacedSeeder, PanelState
 
 ### Community 26 - "apps/taxonomy/types.ts"
-Cohesion: 0.10
-Nodes (22): clusterJewelVariants(), ITEM_LEVELS, PASSIVES, passivesConditions(), AuthoredCategory, AuthoredRow, AuthoredTable, AuthoredVariant (+14 more)
+Cohesion: 0.07
+Nodes (37): clusterJewelVariants(), ITEM_LEVELS, PASSIVES, passivesConditions(), form(), gemForms(), gemVariants(), gemRow (+29 more)
 
 ### Community 27 - "taxonomy-cli.ts"
-Cohesion: 0.11
-Nodes (48): main(), flag(), createTaxonomy(), initTaxonomy(), items, categoriesKey(), latestCategoriesKey(), latestKey() (+40 more)
+Cohesion: 0.13
+Nodes (40): createTaxonomy(), initTaxonomy(), items, categoriesKey(), latestCategoriesKey(), latestKey(), registryKey(), SOURCE_FILES (+32 more)
 
 ### Community 28 - "Electron Main and Security"
-Cohesion: 0.11
-Nodes (21): Channel, agent, dispatcher, Handlers, HANDLERS, lake, logger, readMessage() (+13 more)
+Cohesion: 0.10
+Nodes (24): createLogger(), describeError(), Logger, LogLevel, agent, dispatcher, Handlers, HANDLERS (+16 more)
 
 ### Community 29 - "build-scenarios.ts"
 Cohesion: 0.09
-Nodes (34): buildOneScenario(), capitalize(), CONDITION_SCENARIOS, buildAlreadyDoneScenario(), buildPartlyDoneScenario(), DONE_SCENARIOS, VISIBLE_FIRST_STEP, VISIBLE_SINGLE_STEP (+26 more)
+Nodes (31): buildOneScenario(), buildScenarios(), capitalize(), CONDITION_SCENARIOS, DONE_SCENARIOS, VISIBLE_FIRST_STEP, VISIBLE_SINGLE_STEP, fileScenario() (+23 more)
 
 ### Community 30 - "Catalog Dependencies"
 Cohesion: 0.11
 Nodes (24): dependencies, @poe/filter-compile@workspace:^, @poe/filter-eval@workspace:^, @poe/filter-validate@workspace:^, @poe/ggg@workspace:^, @poe/lake@workspace:^, @poe/poe-watch@workspace:^, @poe/taxonomy@workspace:^ (+16 more)
 
 ### Community 31 - "item-editor.tsx"
-Cohesion: 0.15
-Nodes (16): buildItemUpdate(), ItemDraft, ItemUpdate, priceKey(), toItemDraft(), BagDiff, diffBag(), DraftProps (+8 more)
+Cohesion: 0.18
+Nodes (17): buildItemUpdate(), ItemDraft, ItemUpdate, priceKey(), toItemDraft(), BagDiff, diffBag(), DraftProps (+9 more)
 
 ### Community 32 - "build-samples.ts"
-Cohesion: 0.16
-Nodes (15): buildPathSamples(), buildRejects(), buildRowSamples(), buildSamples(), conditionValues(), categories, itemsOfSet(), Lookup (+7 more)
+Cohesion: 0.09
+Nodes (29): ConditionName, buildPathSamples(), buildRejects(), buildRowSamples(), buildSamples(), conditionValues(), categories, itemsOfSet() (+21 more)
 
 ### Community 33 - "Catalog CLIs"
-Cohesion: 0.13
-Nodes (28): groupByCategory(), chooseForce(), main(), parseSources(), report(), chooseHour(), flag(), main() (+20 more)
+Cohesion: 0.26
+Nodes (18): chooseForce(), main(), parseSources(), report(), chooseHour(), flag(), main(), manifestKey() (+10 more)
 
 ### Community 34 - "conditions.ts"
-Cohesion: 0.25
-Nodes (13): BOOLEAN_WORDS, CONDITION_WORDS, ConditionChange, describeValueSet(), drawBoolean(), drawConditionChange(), drawListed(), drawRange() (+5 more)
+Cohesion: 0.19
+Nodes (15): BOOLEAN_WORDS, CONDITION_WORDS, ConditionChange, describeValueSet(), drawBoolean(), drawConditionChange(), drawListed(), drawRange() (+7 more)
 
 ### Community 35 - "Bronze Validation Schemas"
 Cohesion: 0.10
 Nodes (18): BRONZE_SCHEMAS, condition, gggItem, gggItems, poeWatchCompact, poeWatchCorruptions, poeWatchRatios, renamed (+10 more)
 
-### Community 36 - "repoe/types.ts"
-Cohesion: 0.09
-Nodes (20): Essences, Mods, Spectres, BaseItemBuff, BaseItemProperties, BaseItemRequirements, BaseItemVisualIdentity, ClusterJewelPassive (+12 more)
+### Community 36 - "repoe/service.ts"
+Cohesion: 0.08
+Nodes (42): buildCacheKey(), call(), currentHour(), DEFAULT_BASE_URL, DEFAULT_USER_AGENT, trimUrl(), RepoeHttpError, RepoeParseError (+34 more)
 
 ### Community 37 - "taxonomy/service.ts"
-Cohesion: 0.12
-Nodes (25): fromTaxonomy(), rowOf(), main(), main(), progress(), STEPS, writeUnstyledFilter(), categoriesKey() (+17 more)
+Cohesion: 0.17
+Nodes (16): categoriesKey(), DEFAULT_PREFIX, LATEST_CATEGORIES_FILE, LATEST_FILE, latestCategoriesKey(), latestKey(), versionKey(), NOT_FOUND (+8 more)
 
 ### Community 38 - "PoeWatch Price Selection"
-Cohesion: 0.17
-Nodes (19): bestPrice(), dearest(), Exchange, exchangeSale(), field(), fromPoeWatch(), listingKey(), Lookup (+11 more)
+Cohesion: 0.18
+Nodes (18): bestPrice(), dearest(), Exchange, exchangeSale(), field(), fromPoeWatch(), listingKey(), Lookup (+10 more)
 
 ### Community 39 - "Filter Validate Package"
 Cohesion: 0.10
@@ -344,17 +345,17 @@ Nodes (21): dependencies, @poe/filter-compile@workspace:^, @poe/filter-eval@work
 Cohesion: 0.09
 Nodes (22): scripts, agent:rows, agent:scenarios, agent:score, catalog, catalog:compile, catalog:publish, catalog:validate (+14 more)
 
-### Community 41 - "react"
-Cohesion: 0.17
-Nodes (16): App(), ErrorBanner(), TopBar(), useUndoKey(), CATEGORIES_SIZE, CategoriesTab(), SEEDERS_SIZE, CategoryList() (+8 more)
+### Community 41 - "load-state.ts"
+Cohesion: 0.15
+Nodes (20): main(), renderScenario(), allowsEmpty(), checkState(), fitsLeaf(), isPrice(), listItemProblems(), listRepeatedSeeders() (+12 more)
 
 ### Community 42 - "Agent Training Dependencies"
 Cohesion: 0.13
 Nodes (20): dependencies, @faker-js/faker@^10.6.0, microdiff@^1.6.0, @poe/agent-input@workspace:^, @poe/filter-eval@workspace:^, @poe/lake@workspace:^, @poe/panel-state@workspace:^, @util/diff-summary@workspace:^ (+12 more)
 
-### Community 43 - "list-item-rows.ts"
-Cohesion: 0.19
-Nodes (17): filterItemRows(), ItemFilters, ItemList(), ItemRow, listItemRows(), nameItem(), listScopedSeeders(), matchesSearch() (+9 more)
+### Community 43 - "generate-items.ts"
+Cohesion: 0.31
+Nodes (10): listItemRows(), nameItem(), listUpdatedItems(), nextItemRows(), formatCondition(), generateItems(), ItemCondition, listGroups() (+2 more)
 
 ### Community 44 - "Panel TS Config"
 Cohesion: 0.09
@@ -364,21 +365,21 @@ Nodes (21): compilerOptions, allowImportingTsExtensions, erasableSyntaxOnly, for
 Cohesion: 0.19
 Nodes (17): buildContext(), contexts, findFreeMatch(), isWordCharacter(), findFuzzyNames(), FuzzyMatch, overlaps(), Span (+9 more)
 
-### Community 46 - "GGG Rate Limiter"
-Cohesion: 0.23
-Nodes (10): assertRules(), createLimiter(), nap(), spacingFor(), take(), waitFor(), LimiterOptions, RateLimiter (+2 more)
+### Community 46 - "ggg/types.ts"
+Cohesion: 0.14
+Nodes (14): Reply, assertRules(), LimiterOptions, BaseGGGItem, CachedResponse, CallEvent, CurrencySide, GGGListingsResponseData (+6 more)
 
 ### Community 47 - "Root TS Config"
 Cohesion: 0.10
 Nodes (20): compilerOptions, allowImportingTsExtensions, erasableSyntaxOnly, forceConsistentCasingInFileNames, isolatedModules, lib, module, moduleResolution (+12 more)
 
 ### Community 48 - "operator-names.ts"
-Cohesion: 0.19
-Nodes (16): ChipList(), ChipListProps, ConditionRow(), ConditionRowProps, EQUALITY, EVERY, isText(), kindOf() (+8 more)
+Cohesion: 0.14
+Nodes (25): buildSeederUpdate(), diffConditions(), diffSplit(), SeederDraft, SeederUpdate, splitsByDefault(), toSeederDraft(), ChipList() (+17 more)
 
 ### Community 49 - "GGG Call and Headers"
 Cohesion: 0.19
-Nodes (13): RFC-7231, buildCacheKey(), sleep(), applyRateLimits(), backoffMs(), call(), CallOptions, requestKey() (+5 more)
+Nodes (13): RFC-7231, applyRateLimits(), backoffMs(), call(), CallOptions, requestKey(), RETRYABLE, GggHttpError (+5 more)
 
 ### Community 50 - "Item Parser Package"
 Cohesion: 0.11
@@ -388,9 +389,9 @@ Nodes (19): dependencies, @poe/filter-eval@workspace:^, exports, ./match-mods, .
 Cohesion: 0.11
 Nodes (19): dependencies, @util/cache@workspace:^, exports, ./errors, ./get-base-items.types, ./get-cluster-jewels.types, ./get-essences.types, ./get-foulborn-map.types (+11 more)
 
-### Community 52 - "seed-taxonomy.ts"
-Cohesion: 0.14
-Nodes (17): form(), gemForms(), gemVariants(), gemRow, namesOf(), Seed, SeedCount, Seeded (+9 more)
+### Community 52 - "build-rows-cli.ts"
+Cohesion: 0.16
+Nodes (20): countLabels(), main(), renderReview(), renderScenarioRows(), RowSetManifest, writeRowSet(), collectStrings(), findProtectedSpans() (+12 more)
 
 ### Community 53 - "GGG Package"
 Cohesion: 0.11
@@ -404,13 +405,13 @@ Nodes (10): describeSample(), describeValue(), groupUnfiltered(), UnfilteredGrou
 Cohesion: 0.12
 Nodes (17): dependencies, @util/cache@workspace:^, exports, ./errors, ./get-exchange-overview.types, ./get-exchange-ratios.types, ./get-item-overview.types, ./get-league-items.types (+9 more)
 
-### Community 56 - "Plan Dialog and Command Edits"
-Cohesion: 0.24
-Nodes (10): PlanOutcome, PlanStep, parseCommandText(), ParsedCommand, draftStep(), MESSAGE_OUTCOMES, OUTCOME_MESSAGES, PlanDialog() (+2 more)
+### Community 56 - "validate-table.ts"
+Cohesion: 0.22
+Nodes (14): isText(), optionalBooleanProblem(), FIELDS, isAuthoredKey(), rowProblem(), collectTaxonomyTable(), entryProblem(), FIELDS (+6 more)
 
-### Community 57 - "repoe/service.ts"
-Cohesion: 0.32
-Nodes (13): call(), currentHour(), getBaseItems(), getClusterJewels(), getEssences(), getFoulbornMap(), FoulbornMap, getGems() (+5 more)
+### Community 57 - "Item"
+Cohesion: 0.17
+Nodes (11): groupByCategory(), DuplicateName, DuplicateReport, findDuplicates(), KnownDuplicate, knownDuplicates(), SettledDuplicate, unique() (+3 more)
 
 ### Community 58 - "command-schema.ts"
 Cohesion: 0.12
@@ -432,9 +433,9 @@ Nodes (19): dependencies, @poe/filter-eval@workspace:^, @util/diff-summary@works
 Cohesion: 0.10
 Nodes (15): Feature analysis lenses, Feature analysis output template (meeting notes), feature-analysis skill, Agent training pipeline (scenarios, rows, train, export, predict, score), Filler beam search generate-and-verify, POE_USER_AGENT env var, poe-stuff CLAUDE.md, Agent: Router, Filler, Judge (+7 more)
 
-### Community 63 - "seed-items.ts"
-Cohesion: 0.29
-Nodes (6): isSeeded(), rowOf(), seedItems(), AuthoredEntry, BaseItems, BaseItem
+### Community 63 - "taxonomy-cli.ts"
+Cohesion: 0.11
+Nodes (24): main(), flag(), PREFIX, FILE, readRejectedBaseTypes(), drawableRows(), Resolution, resolutionProblems() (+16 more)
 
 ### Community 64 - "poe.watch Package"
 Cohesion: 0.13
@@ -445,40 +446,40 @@ Cohesion: 0.15
 Nodes (14): dependencies, @poe/filter-eval@workspace:^, @poe/panel-state@workspace:^, exports, ./describe-context, ./format-input, ./vocabulary, @poe/filter-eval (+6 more)
 
 ### Community 66 - "endpoints.test-helpers.ts"
-Cohesion: 0.38
-Nodes (5): context, freeLimiter, stubFetch(), UA, digest
+Cohesion: 0.20
+Nodes (10): context, freeLimiter, stubFetch(), UA, fetchCurrencyHour(), FetchCurrencyHourOptions, digest, CurrencyExchange (+2 more)
 
-### Community 67 - "ggg/service.ts"
-Cohesion: 0.21
-Nodes (12): fetchCurrencyHour(), FetchCurrencyHourOptions, CurrencyExchange, createTradeSearchRequest(), mapGGGSearchResponseDataToGGGListingSearch(), searchListings(), GGGListingSearch, GGGService (+4 more)
+### Community 67 - "search-listings.ts"
+Cohesion: 0.39
+Nodes (5): createTradeSearchRequest(), mapGGGSearchResponseDataToGGGListingSearch(), searchListings(), GGGListingSearch, GGGSearchResponseData
 
 ### Community 68 - "Taxonomy Service Package"
 Cohesion: 0.14
 Nodes (14): dependencies, @poe/lake@workspace:^, exports, ./errors, ./get-categories.types, ./get-taxonomy.types, ./service, ./types (+6 more)
 
 ### Community 69 - "@jest/globals"
-Cohesion: 0.09
-Nodes (20): buildGold, row(), withSilver(), withThreeSilverFiles(), BRONZE, writeManifest(), BRONZE_STEPS, goldRun() (+12 more)
+Cohesion: 0.08
+Nodes (22): buildGold, row(), withSilver(), withThreeSilverFiles(), BRONZE, writeBronze(), writeManifest(), SOURCES (+14 more)
 
 ### Community 70 - "fetch-listings.ts"
-Cohesion: 0.36
-Nodes (7): createFetchPageRequest(), fetchAllListings(), fetchListings(), HASHES_PER_PAGE, pageHashes(), GGGListingPage, createGGGService()
+Cohesion: 0.29
+Nodes (10): createFetchPageRequest(), fetchAllListings(), fetchListings(), HASHES_PER_PAGE, pageHashes(), GGGListingPage, createGGGService(), GGGService (+2 more)
 
-### Community 71 - "ggg/call.test.ts"
-Cohesion: 0.24
-Nodes (4): Reply, GggHttpError, CachedResponse, CallEvent
+### Community 71 - "execute-command.ts"
+Cohesion: 0.20
+Nodes (13): DeleteCategoryCommand, executeDeleteCategory(), executeCommand(), Executors, EXECUTORS, patchBag(), SeederCommand, settleItems() (+5 more)
 
 ### Community 72 - "poe-stuff product README"
 Cohesion: 0.09
 Nodes (27): S3 is the local disk at ./.s3, AWS move: three blockers, Catalog (bronze/silver/gold), catalog.json row contract (Item), Collector (planned) and the GGG rate limiter, Structured conditions, four levels (category, subcategory, item, variant), Taxonomy listing match picks the PoeWatch price, Pipeline: RePoE/PoeWatch/GGG -> taxonomy -> catalog -> generator -> .filter (+19 more)
 
-### Community 73 - "Sample Set Values"
-Cohesion: 0.24
-Nodes (9): ConditionName, CONDITIONS, itemValues(), literalValue(), rawValues(), row, countedValue(), toItemValue() (+1 more)
+### Community 73 - "versions.ts"
+Cohesion: 0.27
+Nodes (10): collectAuthoredTable(), problemOf(), validateAuthoredTable(), collect(), validateCategoryTable(), validateTaxonomyTable(), TableShapeError, throwFirst() (+2 more)
 
 ### Community 74 - "judge-rows.ts"
-Cohesion: 0.24
-Nodes (15): changeAction(), invertRemoval(), invertUpdate(), changeCoverage(), recover(), changeTarget(), retarget(), changeValue() (+7 more)
+Cohesion: 0.20
+Nodes (20): changeAction(), invertRemoval(), invertUpdate(), changeCoverage(), recover(), changeTarget(), retarget(), changeValue() (+12 more)
 
 ### Community 75 - "filler-schema.ts"
 Cohesion: 0.27
@@ -497,8 +498,8 @@ Cohesion: 0.17
 Nodes (12): devDependencies, jest@^30.4.2, @jest/globals@^30.4.1, jiti@^2.7.0, @swc/core@^1.16.0, @swc/jest@^0.2.39, @types/node@^26.2.0, @types/node (+4 more)
 
 ### Community 79 - "item.ts"
-Cohesion: 0.14
-Nodes (15): PoeWatchLink, PricedVariant, UniqueGroup, UniqueListing, Condition, Hint, Listing, ListingMatch (+7 more)
+Cohesion: 0.13
+Nodes (16): PoeWatchLink, PricedVariant, UniqueGroup, UniqueListing, Taxonomy, Condition, Hint, Listing (+8 more)
 
 ### Community 80 - "ESLint Config"
 Cohesion: 0.18
@@ -509,8 +510,8 @@ Cohesion: 0.27
 Nodes (6): DEFAULT_CURRENCY_API_URL, DEFAULT_TRADE_API_URL, DEFAULT_TRADE_SITE_URL, trimUrl(), TradeSearch, tradeSearchUrl()
 
 ### Community 82 - "GGG Item Data"
-Cohesion: 0.16
-Nodes (16): getItemData(), mapGGGItemDataToGGGItem(), mapGGGItemGroupDataToGGGItemGroup(), GGGItemGroup, BaseGGGItem, CurrencySide, GGGItem, GGGItemData (+8 more)
+Cohesion: 0.29
+Nodes (8): getItemData(), mapGGGItemDataToGGGItem(), mapGGGItemGroupDataToGGGItemGroup(), GGGItemGroup, GGGItem, GGGItemData, GGGItemDataResponse, GGGItemGroupData
 
 ### Community 83 - "GGG Service Docs"
 Cohesion: 0.22
@@ -532,9 +533,9 @@ Nodes (6): apps/catalog README, Bronze Stage, --force refetch flag, Gold Stage (
 Cohesion: 0.14
 Nodes (12): Authored Rows (authored/<slug>, replaces, reason), Cluster jewels seed, Gem variants seed, rejected-base-types.json, Seeded and Manual Files, Six Version Files Published as Two, Taxonomy Validator Refusals, BaseType condition (+4 more)
 
-### Community 88 - "omnibar.tsx"
+### Community 88 - "validate-version.ts"
 Cohesion: 0.39
-Nodes (6): listKnownNames(), completeWith(), ModelPicker(), Omnibar(), NameSuggestion, suggestNames()
+Nodes (8): isObject(), collectBaseTypes(), seedNames(), RowProblem, collectVersion(), inFile(), keysOf(), VersionProblem
 
 ### Community 89 - "Cache Package"
 Cohesion: 0.20
@@ -553,20 +554,20 @@ Cohesion: 0.17
 Nodes (11): Deleted packages (@poe/workers, @poe/filterv2, generator, filter-style), Generator (not built): buckets, visual identity, Tiering: chaos or stack-size, Exceptional gems fall outside the gem grid, Filter: game decisions for tiering, Gem buckets dominate the block count, Whether a gem is worth a block at its drop state, HasExplicitMod counts names in filter-eval, game counts modifiers (+3 more)
 
 ### Community 93 - "version-store.ts"
-Cohesion: 0.19
-Nodes (15): Session, compareVersions(), createVersionStore(), importBaseline(), readLog(), readManifest(), writeVersion(), LegacyManifest (+7 more)
+Cohesion: 0.16
+Nodes (18): .s3/panel/ storage (state.json, agent-feedback), Entry, openSession(), compareVersions(), createVersionStore(), importBaseline(), readLog(), readManifest() (+10 more)
 
 ### Community 94 - "AWS Multi-IP Polling"
 Cohesion: 0.20
 Nodes (6): Leaving AWS: Hetzner floating IPs, Public IPv4 charge dominates cost, One EC2 instance, many Elastic IPs, Open question: per-IP vs per-account limits, Open question: prefix or ASN bucketing, Source-IP socket binding via secondary private IPs
 
-### Community 95 - "find-fall-through.test.ts"
-Cohesion: 0.29
-Nodes (4): filter(), qualitySamples, rejecting, skillAndSupport
+### Community 95 - "parseFilter"
+Cohesion: 0.13
+Nodes (12): filterOf(), parseFilter(), splitComment(), block(), condition(), only(), filter(), qualitySamples (+4 more)
 
-### Community 96 - "logger.ts"
-Cohesion: 0.33
-Nodes (5): createLogger(), Logger, LogLevel, .s3/panel/ storage (state.json, agent-feedback), Not built: feedback into training, Node eval prediction
+### Community 96 - "patch-seeder.ts"
+Cohesion: 0.27
+Nodes (10): patchConditions(), patchSeeder(), patchSplit(), patchValues(), executeUpdateSeeders(), UpdateSeedersCommand, ConditionValues, SeederPatch (+2 more)
 
 ### Community 97 - "Currency Exchange Storage"
 Cohesion: 0.22
@@ -580,13 +581,17 @@ Nodes (9): Trap: copied builds swamp results, Finding links in ladder data - met
 Cohesion: 0.33
 Nodes (6): getStats(), mapGGGStatDataToGGGStat(), GGGStat, GGGStatData, GGGStatDataResponse, GGGStatOption
 
-### Community 100 - "repoe/config.ts"
-Cohesion: 0.50
-Nodes (3): DEFAULT_BASE_URL, DEFAULT_USER_AGENT, trimUrl()
+### Community 100 - "validate-variants.ts"
+Cohesion: 0.33
+Nodes (6): conditionsProblem(), collectVariantTable(), FIELDS, known, problemOf(), variantsProblem()
 
 ### Community 101 - "Lake Package"
 Cohesion: 0.22
 Nodes (8): exports, ./service, ./types, license, name, private, type, version
+
+### Community 102 - "createLimiter"
+Cohesion: 0.70
+Nodes (5): createLimiter(), nap(), spacingFor(), take(), waitFor()
 
 ### Community 103 - "Item filter syntax"
 Cohesion: 0.16
@@ -648,17 +653,17 @@ Nodes (3): Rate-limit header reconciliation, @poe/ggg/parse-rate-limit-headers, 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `@jest/globals` connect `@jest/globals` to `poe.ninja Service`, `Item Parser`, `validate-conditions.ts`, `resolve-row.ts`, `Fall-Through Validator`, `repoe/call.test.ts`, `Filter Parser and AST`, `Filter Matcher and Evaluator`, `poe.watch Service`, `Taxonomy Eval Cases`, `Catalog Pipeline`, `Catalog Unique Pricing`, `apps/taxonomy/types.ts`, `taxonomy-cli.ts`, `build-samples.ts`, `Catalog CLIs`, `taxonomy/service.ts`, `PoeWatch Price Selection`, `GGG Rate Limiter`, `GGG Call and Headers`, `seed-taxonomy.ts`, `Unfiltered Reports`, `seed-items.ts`, `endpoints.test-helpers.ts`, `fetch-listings.ts`, `ggg/call.test.ts`, `Sample Set Values`, `Jest Toolchain`, `GGG Config and Trade URL`, `Root Package`, `find-fall-through.test.ts`, `GGG Stats Endpoint`, `repoe/config.ts`, `Sample Query`?**
-  _High betweenness centrality (0.219) - this node is a cross-community bridge._
+- **Why does `@jest/globals` connect `@jest/globals` to `poe.ninja Service`, `Item Parser`, `validate-conditions.ts`, `resolve-row.ts`, `Fall-Through Validator`, `Filter Parser and AST`, `poe.watch Service`, `Taxonomy Eval Cases`, `Catalog Pipeline`, `Catalog Unique Pricing`, `apps/taxonomy/types.ts`, `taxonomy-cli.ts`, `build-samples.ts`, `Catalog CLIs`, `repoe/service.ts`, `PoeWatch Price Selection`, `ggg/types.ts`, `GGG Call and Headers`, `Unfiltered Reports`, `validate-table.ts`, `Item`, `taxonomy-cli.ts`, `endpoints.test-helpers.ts`, `search-listings.ts`, `fetch-listings.ts`, `versions.ts`, `Jest Toolchain`, `item.ts`, `GGG Config and Trade URL`, `GGG Item Data`, `validate-version.ts`, `Root Package`, `parseFilter`, `GGG Stats Endpoint`, `validate-variants.ts`, `Sample Query`?**
+  _High betweenness centrality (0.210) - this node is a cross-community bridge._
 - **What connects `MSYS_NO_PATHCONV`, `MSYS_NO_PATHCONV`, `RFC-7231` to the rest of the system?**
   _71 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `poe.ninja Service` be split into smaller, more focused modules?**
-  _Cohesion score 0.05586722767648434 - nodes in this community are weakly interconnected._
-- **Why does `agent.ts / agent/run-steps.ts (Router-Filler-executor-diff-Judge loop)` connect `Python Trainers` to `score-run-cli.ts`, `Panel Dispatcher and Session`?**
-  _High betweenness centrality (0.071) - this node is a cross-community bridge._
-- **Should `Diff Summary Library` be split into smaller, more focused modules?**
-  _Cohesion score 0.07522774022920953 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.05516596540439458 - nodes in this community are weakly interconnected._
 - **Why does `Bronze/Silver/Gold Pipeline` connect `Catalog Medallion Docs` to `Catalog Pipeline`?**
-  _High betweenness centrality (0.057) - this node is a cross-community bridge._
+  _High betweenness centrality (0.058) - this node is a cross-community bridge._
+- **Should `Diff Summary Library` be split into smaller, more focused modules?**
+  _Cohesion score 0.07601835915088927 - nodes in this community are weakly interconnected._
+- **Why does `agent.ts / agent/run-steps.ts (Router-Filler-executor-diff-Judge loop)` connect `Python Trainers` to `score-run-cli.ts`, `Panel Dispatcher and Session`?**
+  _High betweenness centrality (0.056) - this node is a cross-community bridge._
 - **Should `Item Parser` be split into smaller, more focused modules?**
-  _Cohesion score 0.05962059620596206 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.06139240506329114 - nodes in this community are weakly interconnected._

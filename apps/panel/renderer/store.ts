@@ -1,6 +1,9 @@
 import type { Command } from "@poe/panel-state/execute-command";
+import type { PanelState } from "@poe/panel-state/types";
 import { create } from "zustand";
 import type { AgentPlan, ModelRun, Notes, PanelView, Result } from "../contract.ts";
+import { listItemRows, type ItemRow } from "./list-item-rows.ts";
+import { nextItemRows } from "./next-item-rows.ts";
 
 export type Mode = "items" | "categories";
 
@@ -17,6 +20,8 @@ export type Dialog =
 /** Everything the renderer holds. Only `view` mirrors main; the rest is UI state and never a command. */
 export type Store = {
   readonly view: PanelView | undefined;
+  /** Kept across tab switches. */
+  readonly itemRows: readonly ItemRow[];
   readonly error: string | undefined;
   readonly busy: boolean;
   readonly models: readonly ModelRun[];
@@ -82,16 +87,21 @@ export const usePanel = create<Store>()((set, get) => {
     return result.value;
   }
 
-  /** Takes a new view from main. */
-  async function apply(request: () => Promise<Result<PanelView>>): Promise<boolean> {
+  /** Takes a new view and its rows. */
+  async function apply(request: () => Promise<Result<PanelView>>, rowsOf: (state: PanelState) => readonly ItemRow[]): Promise<boolean> {
     const view = await call(request);
     if (view === undefined) return false;
-    set({ view });
+    set({ view, itemRows: rowsOf(view.state) });
     return true;
   }
 
+  const keepRows = (): readonly ItemRow[] => get().itemRows;
+  const rowsAfter = (commands: readonly Command[]) => (state: PanelState): readonly ItemRow[] =>
+    nextItemRows(get().itemRows, state, commands);
+
   return {
     view: undefined,
+    itemRows: [],
     error: undefined,
     busy: false,
     models: [],
@@ -107,14 +117,14 @@ export const usePanel = create<Store>()((set, get) => {
     dialog: undefined,
 
     load: async () => {
-      await apply(() => window.panel["panel:view"]());
+      await apply(() => window.panel["panel:view"](), listItemRows);
     },
-    dispatch: (command) => apply(() => window.panel["panel:dispatch"](command)),
+    dispatch: (command) => apply(() => window.panel["panel:dispatch"](command), rowsAfter([command])),
     undo: async () => {
-      await apply(() => window.panel["panel:undo"]());
+      await apply(() => window.panel["panel:undo"](), listItemRows);
     },
     save: async () => {
-      await apply(() => window.panel["panel:save"]());
+      await apply(() => window.panel["panel:save"](), keepRows);
     },
 
     loadModels: async () => {
@@ -142,7 +152,7 @@ export const usePanel = create<Store>()((set, get) => {
     approve: async (steps, notes) => {
       const { plan } = get();
       if (plan === undefined) return;
-      if (await apply(() => window.panel["agent:approve"](plan.id, [...steps], notes))) set({ plan: undefined });
+      if (await apply(() => window.panel["agent:approve"](plan.id, [...steps], notes), rowsAfter(steps))) set({ plan: undefined });
     },
     reject: async (notes) => {
       const { plan } = get();

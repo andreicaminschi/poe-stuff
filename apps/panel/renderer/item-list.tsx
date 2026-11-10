@@ -1,21 +1,16 @@
-import { useMemo } from "react";
 import { filterItemRows } from "./filter-item-rows.ts";
-import { listItemRows } from "./list-item-rows.ts";
 import { usePanel } from "./store.ts";
 import { useVisibleRange } from "./use-visible-range.ts";
 
 const ROW_HEIGHT = 28;
 
 export function ItemList() {
-  const state = usePanel((store) => store.view?.state);
+  const rows = usePanel((store) => store.itemRows);
   const categories = usePanel((store) => store.pickedCategories);
   const seeders = usePanel((store) => store.pickedSeeders);
   const tags = usePanel((store) => store.pickedTags);
   const search = usePanel((store) => store.searchQuery);
   const openDialog = usePanel((store) => store.openDialog);
-  const rows = useMemo(() => (state === undefined
-    ? []
-    : listItemRows(state)), [state]);
   const shown = filterItemRows(rows, { categories, seeders, tags, search });
   const { ref, start, end } = useVisibleRange(ROW_HEIGHT, shown.length);
 

@@ -1,10 +1,10 @@
 import { formatCondition } from "@poe/panel-state/generate-items";
 import type { Item } from "@poe/panel-state/types";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { buildItemUpdate, toItemDraft } from "./build-item-update.ts";
 import { ChipList } from "./chip-list.tsx";
 import { DialogFrame } from "./dialog-frame.tsx";
-import { listItemRows, type ItemRow } from "./list-item-rows.ts";
+import type { ItemRow } from "./list-item-rows.ts";
 import { PriceList } from "./price-list.tsx";
 import { usePanel } from "./store.ts";
 
@@ -66,9 +66,7 @@ function ItemDraftEditor({ row, item }: DraftProps) {
 
 export function ItemDialog({ itemKey }: { readonly itemKey: string }) {
   const state = usePanel((store) => store.view?.state);
-  const rows = useMemo(() => (state === undefined
-    ? []
-    : listItemRows(state)), [state]);
+  const rows = usePanel((store) => store.itemRows);
   const row = rows.find((entry) => entry.key === itemKey);
   const item = state?.items[itemKey] ?? {};
 
