@@ -32,20 +32,22 @@ function findFreeMatch(text: string, name: string, taken: readonly Span[]): Span
  * // → ["category Bases: 25 seeders", "seeder Amulets: in Bases"]
  */
 export function describeContext(request: string, state: PanelState): readonly string[] {
-  const byItems = contexts.get(state.categories) ?? new WeakMap<PanelState["items"], Map<string, readonly string[]>>();
-  const byRequest = byItems.get(state.items) ?? new Map<string, readonly string[]>();
+  const byItems = contexts.get(state.categories) ?? new WeakMap<PanelState["items"], WeakMap<PanelState["tagSeeders"], Map<string, readonly string[]>>>();
+  const byTagSeeders = byItems.get(state.items) ?? new WeakMap<PanelState["tagSeeders"], Map<string, readonly string[]>>();
+  const byRequest = byTagSeeders.get(state.tagSeeders) ?? new Map<string, readonly string[]>();
   const cached = byRequest.get(request);
   if (cached !== undefined) return cached;
 
   const lines = buildContext(request, state);
   byRequest.set(request, lines);
-  byItems.set(state.items, byRequest);
+  byTagSeeders.set(state.tagSeeders, byRequest);
+  byItems.set(state.items, byTagSeeders);
   contexts.set(state.categories, byItems);
   return lines;
 }
 
 /** Remembers each request's context per state, so the Router and Filler rows of one step share one match. */
-const contexts = new WeakMap<PanelState["categories"], WeakMap<PanelState["items"], Map<string, readonly string[]>>>();
+const contexts = new WeakMap<PanelState["categories"], WeakMap<PanelState["items"], WeakMap<PanelState["tagSeeders"], Map<string, readonly string[]>>>>();
 
 /** Matches the request's names against the state: exact names first, then misspelt ones. */
 function buildContext(request: string, state: PanelState): readonly string[] {

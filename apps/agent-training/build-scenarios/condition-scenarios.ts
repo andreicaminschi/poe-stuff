@@ -92,7 +92,7 @@ const buildAddRarityScenario: ScenarioBuilder = (state, seed) => {
       () => `I'd like ${shown} to allow ${rarity.toLowerCase()} items as well`,
     ], deriveSeed(seed, "wording")),
     setup: [],
-    steps: [{ type: "updateSeeders", targets: { seeders: [placed.seeder] }, add: { conditions: { Rarity: [rarity] } } }],
+    steps: [{ type: "updateSeeders", targets: { seeders: [placed.seeder] }, add: { conditions: { Rarity: { [rarity]: "=" } } } }],
   };
 };
 
@@ -169,7 +169,12 @@ const buildReplaceRarityScenario: ScenarioBuilder = (state, seed) => {
       () => `Can ${shown}'s rarity be ${name} instead?`,
     ], deriveSeed(seed, "wording")),
     setup: [],
-    steps: [{ type: "updateSeeders", targets: { seeders: [placed.seeder] }, remove: { conditions: { Rarity: null } }, add: { conditions: { Rarity: name } } }],
+    steps: [{
+      type: "updateSeeders",
+      targets: { seeders: [placed.seeder] },
+      remove: { conditions: { Rarity: null } },
+      add: { conditions: { Rarity: Object.fromEntries((VALUE_SETS.Rarity?.[name] ?? []).map((value) => [value, "="] as const)) } },
+    }],
   };
 };
 

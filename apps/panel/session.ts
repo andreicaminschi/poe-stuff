@@ -1,7 +1,7 @@
 import { executeCommand, type Command } from "@poe/panel-state/execute-command";
+import { SPLIT_DEFAULTS } from "@poe/panel-state/split-defaults";
 import type { PanelState } from "@poe/panel-state/types";
 import { applyPatch, diffState, invertPatch, isEmptyPatch, type Patch } from "./session/patch.ts";
-import SPLIT_DEFAULTS from "./split-defaults.json" with { type: "json" };
 
 export type Actor = "user" | "agent";
 

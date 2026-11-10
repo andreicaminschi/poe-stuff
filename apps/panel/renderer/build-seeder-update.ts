@@ -1,5 +1,5 @@
-import type { ConditionValues, Seeder, SeederPatch, SeederRemoval, SplitSettings } from "@poe/panel-state/types";
-import SPLIT_DEFAULTS from "../split-defaults.json" with { type: "json" };
+import type { Bag, ConditionValues, Seeder, SeederPatch, SeederRemoval, SplitSettings } from "@poe/panel-state/types";
+import { SPLIT_DEFAULTS } from "@poe/panel-state/split-defaults";
 import { diffBag } from "./diff-bag.ts";
 
 export type SeederDraft = {
@@ -12,17 +12,22 @@ export type SeederDraft = {
   readonly split: SplitSettings;
 };
 
-export type SeederUpdate = { readonly add: SeederPatch; readonly remove: SeederRemoval; readonly changed: boolean };
+export type SeederUpdate = {
+  readonly add: SeederPatch;
+  readonly remove: SeederRemoval;
+  readonly tags: { readonly add: readonly string[]; readonly remove: readonly string[] };
+  readonly changed: boolean;
+};
 
 /** Tells whether a condition splits when the seeder sets nothing. */
 export const splitsByDefault = (condition: string): boolean =>
-  (SPLIT_DEFAULTS as SplitSettings)[condition] ?? true;
+  SPLIT_DEFAULTS[condition] ?? true;
 
-/** The stored seeder as an editable draft. */
-export const toSeederDraft = (name: string, category: string, seeder: Seeder): SeederDraft => ({
+/** The stored seeder and its tags as an editable draft. */
+export const toSeederDraft = (name: string, category: string, seeder: Seeder, tags: Bag | undefined): SeederDraft => ({
   name,
   category,
-  tags: Object.keys(seeder.tags ?? {}),
+  tags: Object.keys(tags ?? {}),
   names: Object.keys(seeder.names ?? {}),
   conditions: seeder.conditions ?? {},
   split: Object.fromEntries(Object.keys(seeder.conditions ?? {}).map((condition) => [condition, seeder.split?.[condition] ?? splitsByDefault(condition)])),
@@ -59,16 +64,13 @@ function diffSplit(stored: SplitSettings = {}, draft: SeederDraft) {
   return { add, remove };
 }
 
-/** Only what changed between the stored seeder and the draft. Name and category are separate commands. */
-export function buildSeederUpdate(stored: Seeder, draft: SeederDraft): SeederUpdate {
-  const tags = diffBag(stored.tags, draft.tags);
+/** Only what changed between the stored seeder, its tags and the draft. Tags, name and category are separate commands. */
+export function buildSeederUpdate(stored: Seeder, storedTags: Bag | undefined, draft: SeederDraft): SeederUpdate {
+  const tags = diffBag(storedTags, draft.tags);
   const names = diffBag(stored.names, draft.names);
   const conditions = diffConditions(stored.conditions ?? {}, draft.conditions);
   const split = diffSplit(stored.split, draft);
   const add: SeederPatch = {
-    ...(tags.add.length > 0
-      ? { tags: tags.add }
-      : {}),
     ...(names.add.length > 0
       ? { names: names.add }
       : {}),
@@ -80,9 +82,6 @@ export function buildSeederUpdate(stored: Seeder, draft: SeederDraft): SeederUpd
       : {}),
   };
   const remove: SeederRemoval = {
-    ...(tags.remove.length > 0
-      ? { tags: tags.remove }
-      : {}),
     ...(names.remove.length > 0
       ? { names: names.remove }
       : {}),
@@ -93,5 +92,5 @@ export function buildSeederUpdate(stored: Seeder, draft: SeederDraft): SeederUpd
       ? { split: split.remove }
       : {}),
   };
-  return { add, remove, changed: Object.keys(add).length + Object.keys(remove).length > 0 };
+  return { add, remove, tags, changed: Object.keys(add).length + Object.keys(remove).length > 0 };
 }

@@ -107,7 +107,7 @@ function buildCreateSeederWithTag(category: string, name: string, shown: string,
       () => `There should be a seeder ${name} in ${shown} tagged ${tag}`,
     ], deriveSeed(seed, "wording")),
     setup: [],
-    steps: [{ type: "createSeeder", category, seeder: name, add: { tags: [tag] } }],
+    steps: [{ type: "createSeeder", category, seeder: name }, { type: "updateSeederTags", targets: { seeders: [name] }, add: [tag] }],
   };
 }
 
@@ -309,43 +309,6 @@ const buildMoveSeedersScenario: ScenarioBuilder = (state, seed) => {
   };
 };
 
-/** Builds a scenario that merges one category into another. */
-const buildMergeCategoryScenario: ScenarioBuilder = (state, seed) => {
-  const [category = "", into = ""] = pickSome(Object.keys(state.categories), 2, 2, deriveSeed(seed, "pair"));
-  const from = varyName(category, deriveSeed(seed, "from"));
-  const target = varyName(into, deriveSeed(seed, "into"));
-
-  return {
-    request: pickWording([
-      () => `Merge ${from} into ${target}`,
-      () => `Merge ${from} with ${target}, keeping ${target}`,
-      () => `Merge the ${from} category into ${target}`,
-      () => `Please merge ${from} into ${target}`,
-      () => `Fold ${from} into ${target}`,
-      () => `Fold the ${from} category into ${target}`,
-      () => `Move everything from ${from} into ${target} and drop ${from}`,
-      () => `Move all of ${from} into ${target} and delete ${from}`,
-      () => `Combine ${from} with ${target}, keeping ${target}`,
-      () => `Combine ${from} into ${target}`,
-      () => `Absorb ${from} into ${target}`,
-      () => `Join ${from} into ${target} and remove ${from}`,
-      () => `Roll ${from} into ${target}`,
-      () => `Fuse ${from} into ${target}`,
-      () => `Collapse ${from} into ${target}`,
-      () => `Put everything in ${from} under ${target} and remove ${from}`,
-      () => `${from} should be part of ${target}`,
-      () => `Can you merge ${from} into ${target}?`,
-      () => `Could you fold ${from} into ${target}?`,
-      () => `I want ${from} merged into ${target}`,
-      () => `I'd like ${from} combined into ${target}`,
-      () => `Can ${from} go into ${target}?`,
-      () => `Let's merge ${from} into ${target}`,
-    ], deriveSeed(seed, "wording")),
-    setup: [],
-    steps: [{ type: "mergeCategory", category, into }],
-  };
-};
-
 /** Builds a scenario that deletes a category. */
 const buildDeleteCategoryScenario: ScenarioBuilder = (state, seed) => {
   const category = pickOne(Object.keys(state.categories), "a category", deriveSeed(seed, "category"));
@@ -458,7 +421,7 @@ const buildDeleteSeedersScenario: ScenarioBuilder = (state, seed) => {
   };
 };
 
-/** Scenarios that create, rename, move, merge or delete categories and seeders. */
+/** Scenarios that create, rename, move or delete categories and seeders. */
 export const STRUCTURE_SCENARIOS: Readonly<Record<string, ScenarioBuilder>> = {
   "create-category": buildCreateCategoryScenario,
   "create-seeder": buildCreateSeederScenario,
@@ -467,7 +430,6 @@ export const STRUCTURE_SCENARIOS: Readonly<Record<string, ScenarioBuilder>> = {
   "rename-category": buildRenameCategoryScenario,
   "move-seeder": buildMoveSeederScenario,
   "move-seeders": buildMoveSeedersScenario,
-  "merge-category": buildMergeCategoryScenario,
   "delete-category": buildDeleteCategoryScenario,
   "delete-seeder": buildDeleteSeederScenario,
   "delete-seeders": buildDeleteSeedersScenario,

@@ -1,5 +1,6 @@
-import { executeCommand } from "@poe/panel-state/execute-command";
-import { SUMMARY_CONFIG } from "@poe/panel-state/summary-config";
+import { executeCommand, type Command } from "@poe/panel-state/execute-command";
+import { SPLIT_DEFAULTS } from "@poe/panel-state/split-defaults";
+import { SUMMARY_CONFIG, toSummaryTree } from "@poe/panel-state/summary-config";
 import type { PanelState } from "@poe/panel-state/types";
 import { summarizeDiff } from "@util/diff-summary/summarize-diff";
 import { CONDITION_SCENARIOS } from "./build-scenarios/condition-scenarios.ts";
@@ -40,12 +41,12 @@ export type PlayedScenario = Scenario & { readonly seed: number; readonly start:
  */
 function playScenario(state: PanelState, scenario: Scenario, seed: number): PlayedScenario | undefined {
   try {
-    const start = scenario.setup.reduce(executeCommand, state);
+    const start = scenario.setup.reduce((current: PanelState, command: Command) => executeCommand(current, command, SPLIT_DEFAULTS), state);
     const played: PlayedStep[] = [];
     let before = start;
     for (const command of scenario.steps) {
-      const after = executeCommand(before, command);
-      const lines = summarizeDiff({ start, before, after }, SUMMARY_CONFIG);
+      const after = executeCommand(before, command, SPLIT_DEFAULTS);
+      const lines = summarizeDiff({ start: toSummaryTree(start), before: toSummaryTree(before), after: toSummaryTree(after) }, SUMMARY_CONFIG);
       if (lines[0] === "no changes") return undefined;
       played.push({ before, after, lines });
       before = after;
@@ -59,11 +60,12 @@ function playScenario(state: PanelState, scenario: Scenario, seed: number): Play
 /** Capitalizes a request's first letter. */
 const capitalize = (request: string): string => `${request.charAt(0).toUpperCase()}${request.slice(1)}`;
 
-/** Lists every name the state holds: categories, seeders and items. */
+/** Lists every name the state holds: categories, seeders, items and tag seeders. */
 const listStoredNames = (state: PanelState): readonly string[] => [
   ...Object.keys(state.categories),
   ...Object.values(state.categories).flatMap((category) => Object.keys(category.seeders ?? {})),
   ...Object.keys(state.items),
+  ...Object.keys(state.tagSeeders),
 ];
 
 /** Files a builder's draft under its kind, and puts typos in one request in four. A scenario with no commands keeps its request clean. */

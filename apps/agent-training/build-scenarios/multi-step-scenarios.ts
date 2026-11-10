@@ -1,6 +1,6 @@
 import type { ScenarioBuilder } from "../types.ts";
 import { deriveSeed } from "./derive-seed.ts";
-import { drawNewName, drawTag, listCategories, listSeedersIn, pickOne, pickSeeder, pickSome } from "./pick.ts";
+import { drawNewName, drawTag, listCategories, listSeeders, listSeedersIn, pickOne, pickSeeder, pickSome } from "./pick.ts";
 import { drawTargets } from "./targets.ts";
 import { formatList, formatNames, pickWording, varyName, withArticle } from "./word.ts";
 
@@ -103,7 +103,7 @@ const buildRenameAndTagScenario: ScenarioBuilder = (state, seed) => {
       () => `I'd like ${shown} called ${name}, with the ${tag} tag`,
     ], deriveSeed(seed, "wording")),
     setup: [],
-    steps: [{ type: "rename", target: "seeder", name: seeder, to: name }, { type: "updateSeeders", targets: { seeders: [name] }, add: { tags: [tag] } }],
+    steps: [{ type: "rename", target: "seeder", name: seeder, to: name }, { type: "updateSeederTags", targets: { seeders: [name] }, add: [tag] }],
   };
 };
 
@@ -139,8 +139,8 @@ const buildTwoTagsScenario: ScenarioBuilder = (state, seed) => {
     ], deriveSeed(seed, "wording")),
     setup: [],
     steps: [
-      { type: "updateSeeders", targets: first.targets, add: { tags: [firstTag] } },
-      { type: "updateSeeders", targets: second.targets, add: { tags: [secondTag] } },
+      { type: "updateSeederTags", targets: first.targets, add: [firstTag] },
+      { type: "updateSeederTags", targets: second.targets, add: [secondTag] },
     ],
   };
 };
@@ -180,35 +180,37 @@ const buildDeleteAndMoveScenario: ScenarioBuilder = (state, seed) => {
   };
 };
 
-/** Builds a scenario that tags a seeder and some items with the same tag. */
+/** Builds a scenario that tags a seeder and some bases with the same tag: the bases become a tag seeder named `<tag>: <bases>`. */
 const buildTagSeederAndItemsScenario: ScenarioBuilder = (state, seed) => {
   const { seeder } = pickSeeder(state, deriveSeed(seed, "seeder"));
-  const items = pickSome(Object.keys(state.items), 1, 2, deriveSeed(seed, "items"));
+  const bases = pickSome([...new Set(listSeeders(state).flatMap((placed) => Object.keys(placed.value.conditions?.BaseType ?? {})))], 1, 2, deriveSeed(seed, "bases"));
   const tag = drawTag(deriveSeed(seed, "tag"));
   const shown = varyName(seeder, deriveSeed(seed, "shown"));
+  const listed = formatList(bases);
 
   return {
     request: pickWording([
-      () => `Tag ${shown} and the items ${formatList(items)} as ${tag}`,
-      () => `Tag the seeder ${shown} as ${tag}, and also the items ${formatList(items)}`,
-      () => `Tag ${shown} as ${tag}, and the items ${formatList(items)} too`,
-      () => `Tag ${shown} plus the items ${formatList(items)} with ${tag}`,
-      () => `Please tag ${shown} and the items ${formatList(items)} as ${tag}`,
-      () => `Mark the seeder ${shown} as ${tag}, and the items ${formatList(items)} too`,
-      () => `Mark ${shown} and the items ${formatList(items)} as ${tag}`,
-      () => `Give ${shown} and the items ${formatList(items)} the ${tag} tag`,
-      () => `Put ${tag} on ${shown} and on the items ${formatList(items)}`,
-      () => `Add ${tag} to ${shown} and to the items ${formatList(items)}`,
-      () => `Add the ${tag} tag to ${shown} and the items ${formatList(items)}`,
-      () => `Label ${shown} and the items ${formatList(items)} as ${tag}`,
-      () => `Can you tag ${shown} and the items ${formatList(items)} as ${tag}?`,
-      () => `${shown} and the items ${formatList(items)} should be tagged ${tag}`,
-      () => `Could you mark ${shown} and the items ${formatList(items)} as ${tag}?`,
-      () => `I want ${shown} and the items ${formatList(items)} tagged ${tag}`,
-      () => `I'd like ${tag} on ${shown} and the items ${formatList(items)}`,
+      () => `Tag ${shown} and the bases ${listed} as ${tag}`,
+      () => `Tag the seeder ${shown} as ${tag}, and also every ${listed}`,
+      () => `Tag ${shown} as ${tag}, and the bases ${listed} too`,
+      () => `Tag ${shown} plus the bases ${listed} with ${tag}`,
+      () => `Please tag ${shown} and the bases ${listed} as ${tag}`,
+      () => `Mark the seeder ${shown} as ${tag}, and every ${listed} too`,
+      () => `Mark ${shown} and the bases ${listed} as ${tag}`,
+      () => `Give ${shown} and the bases ${listed} the ${tag} tag`,
+      () => `Put ${tag} on ${shown} and on every ${listed}`,
+      () => `Add ${tag} to ${shown} and to the bases ${listed}`,
+      () => `Label ${shown} and the bases ${listed} as ${tag}`,
+      () => `Can you tag ${shown} and the bases ${listed} as ${tag}?`,
+      () => `${shown} and the bases ${listed} should be tagged ${tag}`,
+      () => `I want ${shown} and every ${listed} tagged ${tag}`,
+      () => `I'd like ${tag} on ${shown} and the bases ${listed}`,
     ], deriveSeed(seed, "wording")),
     setup: [],
-    steps: [{ type: "updateSeeders", targets: { seeders: [seeder] }, add: { tags: [tag] } }, { type: "updateItems", items, add: { tags: [tag] } }],
+    steps: [
+      { type: "updateSeederTags", targets: { seeders: [seeder] }, add: [tag] },
+      { type: "createTagSeeder", name: `${tag}: ${bases.join(", ")}`, conditions: { BaseType: bases }, tags: [tag] },
+    ],
   };
 };
 
@@ -244,7 +246,7 @@ const buildCreateMoveTagScenario: ScenarioBuilder = (state, seed) => {
     steps: [
       { type: "createCategory", category: name },
       { type: "moveSeeders", targets: { seeders }, toCategory: name },
-      { type: "updateSeeders", targets: { categories: [name] }, add: { tags: [tag] } },
+      { type: "updateSeederTags", targets: { categories: [name] }, add: [tag] },
     ],
   };
 };
@@ -256,6 +258,6 @@ export const MULTI_STEP_SCENARIOS: Readonly<Record<string, ScenarioBuilder>> = {
   "rename-and-tag": buildRenameAndTagScenario,
   "two-tags": buildTwoTagsScenario,
   "delete-and-move": buildDeleteAndMoveScenario,
-  "tag-seeder-and-items": buildTagSeederAndItemsScenario,
+  "tag-seeder-and-bases": buildTagSeederAndItemsScenario,
   "create-move-tag": buildCreateMoveTagScenario,
 };

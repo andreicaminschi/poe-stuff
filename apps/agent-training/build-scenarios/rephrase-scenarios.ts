@@ -1,6 +1,6 @@
 import type { ScenarioBuilder } from "../types.ts";
 import { createFaker, deriveSeed } from "./derive-seed.ts";
-import { drawNewName, drawTag, pickOne, pickSeeder } from "./pick.ts";
+import { drawNewName, drawTag, listSeeders, pickOne, pickSeeder } from "./pick.ts";
 import { STRUCTURE_SCENARIOS } from "./structure-scenarios.ts";
 import { TAG_SCENARIOS } from "./tag-scenarios.ts";
 import { lowerFirst, pickWording, varyName } from "./word.ts";
@@ -65,7 +65,7 @@ const buildUnknownNameScenario: ScenarioBuilder = (state, seed) => {
 /** Builds a request no command can answer: a question, a UI action, or something too vague. */
 const buildOffTopicScenario: ScenarioBuilder = (state, seed) => {
   const { seeder, category } = pickSeeder(state, deriveSeed(seed, "seeder"));
-  const item = pickOne(Object.keys(state.items), "an item", deriveSeed(seed, "item"));
+  const item = pickOne([...new Set(listSeeders(state).flatMap((placed) => Object.keys(placed.value.conditions?.BaseType ?? {})))], "a base type", deriveSeed(seed, "item"));
   const seederShown = varyName(seeder, deriveSeed(seed, "seeder-shown"));
   const categoryShown = varyName(category, deriveSeed(seed, "category-shown"));
   const sentence = createFaker(deriveSeed(seed, "sentence")).lorem.sentence();

@@ -1,5 +1,5 @@
 import { VOCABULARY } from "@poe/agent-input/vocabulary";
-import type { Seeder } from "@poe/panel-state/types";
+import type { Bag, Seeder } from "@poe/panel-state/types";
 import { useState } from "react";
 import { buildSeederUpdate, splitsByDefault, toSeederDraft, type SeederDraft } from "./build-seeder-update.ts";
 import { ChipList } from "./chip-list.tsx";
@@ -7,28 +7,30 @@ import { ConditionRow } from "./condition-row.tsx";
 import { findSeeder } from "./find-seeder.ts";
 import { usePanel } from "./store.ts";
 
-type DraftProps = { readonly category: string; readonly name: string; readonly seeder: Seeder };
+type DraftProps = { readonly category: string; readonly name: string; readonly seeder: Seeder; readonly tags: Bag | undefined };
 
 /** Runs the draft's commands in order, stopping at the first refused one. */
-async function applyDraft(name: string, category: string, seeder: Seeder, draft: SeederDraft): Promise<void> {
+async function applyDraft(name: string, category: string, seeder: Seeder, tags: Bag | undefined, draft: SeederDraft): Promise<void> {
   const { dispatch, selectSeeder } = usePanel.getState();
-  const update = buildSeederUpdate(seeder, draft);
+  const update = buildSeederUpdate(seeder, tags, draft);
+  const tagsChanged = update.tags.add.length + update.tags.remove.length > 0;
   const to = draft.name.trim();
 
   if (update.changed && !await dispatch({ type: "updateSeeders", targets: { seeders: [name] }, add: update.add, remove: update.remove })) return;
+  if (tagsChanged && !await dispatch({ type: "updateSeederTags", targets: { seeders: [name] }, add: update.tags.add, remove: update.tags.remove })) return;
   if (draft.category !== category && !await dispatch({ type: "moveSeeders", targets: { seeders: [name] }, toCategory: draft.category })) return;
   if (to !== name && await dispatch({ type: "rename", target: "seeder", name, to })) selectSeeder(to);
 }
 
-function SeederDraftEditor({ category, name, seeder }: DraftProps) {
+function SeederDraftEditor({ category, name, seeder, tags }: DraftProps) {
   const storedCategories = usePanel((state) => state.view?.state.categories);
   const categories = Object.keys(storedCategories ?? {}).sort();
   const busy = usePanel((state) => state.busy);
-  const [draft, setDraft] = useState(() => toSeederDraft(name, category, seeder));
+  const [draft, setDraft] = useState(() => toSeederDraft(name, category, seeder, tags));
   const [newCondition, setNewCondition] = useState("");
-  const update = buildSeederUpdate(seeder, draft);
+  const update = buildSeederUpdate(seeder, tags, draft);
   const knownCategory = categories.includes(draft.category);
-  const changed = update.changed || draft.category !== category || draft.name.trim() !== name;
+  const changed = update.changed || update.tags.add.length + update.tags.remove.length > 0 || draft.category !== category || draft.name.trim() !== name;
   const unused = [...VOCABULARY.conditions, "UnidentifiedItemTier"].filter((condition) => draft.conditions[condition] === undefined);
 
   const addCondition = (condition: string): void => {
@@ -95,12 +97,12 @@ function SeederDraftEditor({ category, name, seeder }: DraftProps) {
         <datalist id="seeder-conditions">{unused.map((condition) => <option key={condition} value={condition} />)}</datalist>
       </div>
       <div className="actions">
-        <button type="button" className="btn ghost" disabled={!changed} onClick={() => setDraft(toSeederDraft(name, category, seeder))}>Reset</button>
+        <button type="button" className="btn ghost" disabled={!changed} onClick={() => setDraft(toSeederDraft(name, category, seeder, tags))}>Reset</button>
         <button
           type="button"
           className="btn primary"
           disabled={busy || !changed || !knownCategory || draft.name.trim() === ""}
-          onClick={() => void applyDraft(name, category, seeder, draft)}
+          onClick={() => void applyDraft(name, category, seeder, tags, draft)}
         >
           Apply
         </button>
@@ -137,7 +139,15 @@ export function SeederEditor() {
       <div className="body">
         {found === undefined
           ? <p className="empty">Select a seeder.</p>
-          : <SeederDraftEditor key={`${found.name}:${found.category}:${JSON.stringify(found.seeder)}`} category={found.category} name={found.name} seeder={found.seeder} />}
+          : (
+              <SeederDraftEditor
+                key={`${found.name}:${found.category}:${JSON.stringify(found.seeder)}:${JSON.stringify(state?.seederTags[found.name])}`}
+                category={found.category}
+                name={found.name}
+                seeder={found.seeder}
+                tags={state?.seederTags[found.name]?.tags}
+              />
+            )}
       </div>
     </section>
   );

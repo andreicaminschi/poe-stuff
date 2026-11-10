@@ -100,7 +100,7 @@ const buildTagScenario = (shape: TargetShape): ScenarioBuilder => (state: PanelS
   return {
     request: wordTagRequest(phrase, tag, deriveSeed(seed, "wording")),
     setup: [],
-    steps: [{ type: "updateSeeders", targets, add: { tags: [tag] } }],
+    steps: [{ type: "updateSeederTags", targets, add: [tag] }],
   };
 };
 
@@ -111,8 +111,8 @@ const buildUntagScenario = (shape: TargetShape): ScenarioBuilder => (state: Pane
 
   return {
     request: wordUntagRequest(phrase, tag, deriveSeed(seed, "wording")),
-    setup: [{ type: "updateSeeders", targets, add: { tags: [tag] } }],
-    steps: [{ type: "updateSeeders", targets, remove: { tags: [tag] } }],
+    setup: [{ type: "updateSeederTags", targets, add: [tag] }],
+    steps: [{ type: "updateSeederTags", targets, remove: [tag] }],
   };
 };
 

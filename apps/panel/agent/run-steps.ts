@@ -1,18 +1,19 @@
 import { describeContext } from "@poe/agent-input/describe-context";
 import { formatFillerInput, formatInput, formatJudgeInput } from "@poe/agent-input/format-input";
-import { COMMAND_TYPES, executeCommand, type Command } from "@poe/panel-state/execute-command";
-import { SUMMARY_CONFIG } from "@poe/panel-state/summary-config";
+import { AGENT_COMMAND_TYPES, executeCommand, type AgentCommand, type Command } from "@poe/panel-state/execute-command";
+import { SUMMARY_CONFIG, toSummaryTree } from "@poe/panel-state/summary-config";
 import type { PanelState } from "@poe/panel-state/types";
 import { summarizeDiff } from "@util/diff-summary/summarize-diff";
 import type { PlanOutcome, PlanStep } from "../contract.ts";
 import { COMMAND_SCHEMA } from "../contract/command-schema.ts";
+import { SPLIT_DEFAULTS } from "@poe/panel-state/split-defaults";
 
 /** Steps one request may take before the plan stops. */
 export const MAX_STEPS = 8;
 
 export type Models = {
   readonly route: (input: string) => Promise<string>;
-  readonly fill: (input: string, type: Command["type"]) => Promise<string>;
+  readonly fill: (input: string, type: AgentCommand["type"]) => Promise<string>;
   readonly judge: (input: string) => Promise<string>;
 };
 
@@ -25,14 +26,14 @@ export type StepsResult = {
   readonly trace: readonly StepTrace[];
 };
 
-const isCommandType = (label: string): label is Command["type"] => (COMMAND_TYPES as readonly string[]).includes(label);
+const isCommandType = (label: string): label is AgentCommand["type"] => (AGENT_COMMAND_TYPES as readonly string[]).includes(label);
 
 const readMessage = (error: unknown): string => (error instanceof Error
   ? error.message
   : String(error));
 
 /** Parses the Filler's answer into a command, or explains why it is not one. */
-function parseCommand(type: Command["type"], answer: string): { readonly command: Command } | { readonly error: string } {
+function parseCommand(type: AgentCommand["type"], answer: string): { readonly command: Command } | { readonly error: string } {
   let params: unknown;
   try {
     params = JSON.parse(answer);
@@ -80,12 +81,12 @@ export async function runSteps(models: Models, start: PanelState, request: strin
 
     let after: PanelState;
     try {
-      after = executeCommand(current, parsed.command);
+      after = executeCommand(current, parsed.command, SPLIT_DEFAULTS);
     } catch (error) {
       return finish("command-failed", `${label}: ${readMessage(error)}`);
     }
 
-    const summary = summarizeDiff({ start, before: current, after }, SUMMARY_CONFIG);
+    const summary = summarizeDiff({ start: toSummaryTree(start), before: toSummaryTree(current), after: toSummaryTree(after) }, SUMMARY_CONFIG);
     const judgeInput = formatJudgeInput(request, done, summary);
     const verdict = await call("judge", judgeInput, () => models.judge(judgeInput));
     const step = { command: parsed.command, summary, ms: Math.round(performance.now() - started) };

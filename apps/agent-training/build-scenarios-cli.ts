@@ -4,6 +4,7 @@ import { parseArgs } from "node:util";
 import { createLakeService } from "@poe/lake/service";
 import { checkState } from "@poe/panel-state/check-state";
 import { loadState, type CategoriesFile } from "@poe/panel-state/load-state";
+import { SPLIT_DEFAULTS } from "@poe/panel-state/split-defaults";
 import { buildScenarios, type PlayedScenario } from "./build-scenarios.ts";
 
 const STATE_KEY = "admin-panel/versions/latest/categories.json";
@@ -26,8 +27,8 @@ function renderScenario(scenario: PlayedScenario, index: number): string {
 /** Builds a sample of every scenario kind off the promoted state and writes it as a review file. */
 async function main(): Promise<void> {
   const { values } = parseArgs({ options: { "per-kind": { type: "string", default: "3" }, seed: { type: "string", default: "1" } } });
-  const state = loadState(await createLakeService().readJson<CategoriesFile>(STATE_KEY));
-  const problems = checkState(state);
+  const state = loadState(await createLakeService().readJson<CategoriesFile>(STATE_KEY), SPLIT_DEFAULTS);
+  const problems = checkState(state, SPLIT_DEFAULTS);
 
   if (problems.length > 0) throw new Error(`The promoted state breaks the contract:\n${problems.join("\n")}`);
   const scenarios = buildScenarios(state, Number(values["per-kind"]), Number(values.seed));

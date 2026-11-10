@@ -5,7 +5,10 @@ import type { AgentPlan, ModelRun, Notes, PanelView, Result } from "../contract.
 import { listItemRows, type ItemRow } from "./list-item-rows.ts";
 import { nextItemRows } from "./next-item-rows.ts";
 
-export type Mode = "items" | "categories";
+export type Mode = "items" | "categories" | "tagSeeders";
+
+/** Which tag seeder the editor shows: a stored one by name, or a new draft. */
+export type TagSeederPick = { readonly kind: "stored"; readonly name: string } | { readonly kind: "new" };
 
 export type FilterSection = "category" | "seeder" | "tag";
 
@@ -34,6 +37,8 @@ export type Store = {
   readonly pickedTags: readonly string[];
   readonly searchQuery: string;
   readonly selectedSeeder: string | undefined;
+  readonly tagSeederPick: TagSeederPick | undefined;
+  readonly tagSeederSearch: string;
   readonly dialog: Dialog | undefined;
 
   readonly load: () => Promise<void>;
@@ -57,6 +62,8 @@ export type Store = {
   readonly clearFilters: () => void;
   readonly setSearchQuery: (query: string) => void;
   readonly selectSeeder: (name: string | undefined) => void;
+  readonly pickTagSeeder: (pick: TagSeederPick | undefined) => void;
+  readonly setTagSeederSearch: (query: string) => void;
   readonly openDialog: (dialog: Dialog) => void;
   readonly closeDialog: () => void;
 };
@@ -114,6 +121,8 @@ export const usePanel = create<Store>()((set, get) => {
     pickedTags: [],
     searchQuery: "",
     selectedSeeder: undefined,
+    tagSeederPick: undefined,
+    tagSeederSearch: "",
     dialog: undefined,
 
     load: async () => {
@@ -180,6 +189,8 @@ export const usePanel = create<Store>()((set, get) => {
     clearFilters: () => set({ pickedCategories: [], pickedSeeders: [], pickedTags: [], searchQuery: "" }),
     setSearchQuery: (searchQuery) => set({ searchQuery, pickedCategories: [] }),
     selectSeeder: (name) => set({ selectedSeeder: name }),
+    pickTagSeeder: (tagSeederPick) => set({ tagSeederPick }),
+    setTagSeederSearch: (tagSeederSearch) => set({ tagSeederSearch }),
     openDialog: (dialog) => set({ dialog }),
     closeDialog: () => set({ dialog: undefined }),
   };

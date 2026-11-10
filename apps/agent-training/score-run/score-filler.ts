@@ -1,4 +1,5 @@
 import { executeCommand, type Command } from "@poe/panel-state/execute-command";
+import { SPLIT_DEFAULTS } from "@poe/panel-state/split-defaults";
 import diff from "microdiff";
 import type { PlayedScenario } from "../build-scenarios.ts";
 
@@ -39,7 +40,7 @@ function judgePrediction(row: FillerPrediction, step: PlayedScenario["played"][n
   const exact = canonical(parsed) === canonical(JSON.parse(row.output));
   if (step === undefined) return { valid: true, exact, executes: exact, why: "no state to run against" };
   try {
-    const after = executeCommand(step.before, { type: readCommandType(row.input), ...parsed } as Command);
+    const after = executeCommand(step.before, { type: readCommandType(row.input), ...parsed } as Command, SPLIT_DEFAULTS);
     const executes = diff(after, step.after).length === 0;
     return { valid: true, exact, executes, why: executes
       ? ""

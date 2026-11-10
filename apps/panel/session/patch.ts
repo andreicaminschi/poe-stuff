@@ -1,12 +1,14 @@
-import type { Category, Item, PanelState } from "@poe/panel-state/types";
+import type { Category, Item, PanelState, SeederTags, TagSeeder } from "@poe/panel-state/types";
 
 /** One top-level key's value before and after. `null` means absent, so a patch stays JSON. */
 export type Change<T> = { readonly before: T | null; readonly after: T | null };
 
-/** What one command changed, per top-level category and item. Enough to apply or undo it. */
+/** What one command changed, per top-level category, item, seeder's tags and tag seeder. Enough to apply or undo it. */
 export type Patch = {
   readonly categories: Readonly<Record<string, Change<Category>>>;
   readonly items: Readonly<Record<string, Change<Item>>>;
+  readonly seederTags: Readonly<Record<string, Change<SeederTags>>>;
+  readonly tagSeeders: Readonly<Record<string, Change<TagSeeder>>>;
 };
 
 type Changes<T> = Readonly<Record<string, Change<T>>>;
@@ -31,11 +33,13 @@ function diffRecords<T>(before: Readonly<Record<string, T>>, after: Readonly<Rec
 export const diffState = (before: PanelState, after: PanelState): Patch => ({
   categories: diffRecords(before.categories, after.categories),
   items: diffRecords(before.items, after.items),
+  seederTags: diffRecords(before.seederTags, after.seederTags),
+  tagSeeders: diffRecords(before.tagSeeders, after.tagSeeders),
 });
 
 /** Tells whether a patch changes nothing. */
 export const isEmptyPatch = (patch: Patch): boolean =>
-  Object.keys(patch.categories).length === 0 && Object.keys(patch.items).length === 0;
+  Object.values(patch).every((changes) => Object.keys(changes).length === 0);
 
 /** Returns the map with every change's `after` written in, and `null` keys removed. */
 function writeChanges<T>(record: Readonly<Record<string, T>>, changes: Changes<T>): Readonly<Record<string, T>> {
@@ -52,6 +56,8 @@ function writeChanges<T>(record: Readonly<Record<string, T>>, changes: Changes<T
 export const applyPatch = (state: PanelState, patch: Patch): PanelState => ({
   categories: writeChanges(state.categories, patch.categories),
   items: writeChanges(state.items, patch.items),
+  seederTags: writeChanges(state.seederTags, patch.seederTags),
+  tagSeeders: writeChanges(state.tagSeeders, patch.tagSeeders),
 });
 
 /** Swaps each change's sides. */
@@ -62,4 +68,6 @@ const swapChanges = <T>(changes: Changes<T>): Changes<T> =>
 export const invertPatch = (patch: Patch): Patch => ({
   categories: swapChanges(patch.categories),
   items: swapChanges(patch.items),
+  seederTags: swapChanges(patch.seederTags),
+  tagSeeders: swapChanges(patch.tagSeeders),
 });

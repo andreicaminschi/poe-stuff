@@ -38,6 +38,16 @@ function listItemEntries(items: PanelState["items"]): readonly NamedEntry[] {
   return entries;
 }
 
+/** Writes `1 tag` or `2 tags`. */
+const countWord = (count: number, word: string): string => `${String(count)} ${word}${count === 1
+  ? ""
+  : "s"}`;
+
+/** Lists the tag seeders, as `tag seeder Gloves endgame: 1 condition, 1 tag`. */
+const listTagSeederEntries = (tagSeeders: PanelState["tagSeeders"]): readonly NamedEntry[] =>
+  Object.entries(tagSeeders).map(([name, tagSeeder]) => buildEntry(name, `tag seeder ${name}: ${countWord(Object.keys(tagSeeder.conditions).length, "condition")}, ${countWord(Object.keys(tagSeeder.tags).length, "tag")}`));
+
 /** Lists every name the state holds with its existence line, longest name first. */
 export const listNamedEntries = (state: PanelState): readonly NamedEntry[] =>
-  [...listCategoryEntries(state.categories), ...listItemEntries(state.items)].sort((left, right) => right.name.length - left.name.length);
+  [...listCategoryEntries(state.categories), ...listItemEntries(state.items), ...listTagSeederEntries(state.tagSeeders)]
+    .sort((left, right) => right.name.length - left.name.length);

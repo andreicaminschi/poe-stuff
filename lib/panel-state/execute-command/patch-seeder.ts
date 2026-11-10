@@ -44,7 +44,6 @@ function patchSplit(split: SplitSettings | undefined, add: SplitSettings = {}, r
 export function patchSeeder(seeder: Seeder, add: SeederPatch = {}, remove: SeederRemoval = {}): Seeder {
   const conditions = patchConditions(seeder.conditions ?? {}, add.conditions, remove.conditions);
   const split = patchSplit(seeder.split, add.split, remove.split);
-  const tags = patchBag(seeder.tags, add.tags, remove.tags);
   const names = patchBag(seeder.names, add.names, remove.names);
 
   return {
@@ -54,9 +53,6 @@ export function patchSeeder(seeder: Seeder, add: SeederPatch = {}, remove: Seede
     ...(split === undefined
       ? {}
       : { split }),
-    ...(tags === undefined
-      ? {}
-      : { tags }),
     ...(names === undefined
       ? {}
       : { names }),

@@ -49,6 +49,17 @@ const RANGES: Readonly<Record<string, readonly [number, number]>> = {
 const RARITIES = ["Normal", "Magic", "Rare", "Unique"];
 const INFLUENCES = ["Shaper", "Elder", "Crusader", "Hunter", "Redeemer", "Warlord"];
 
+/**
+ * Gives each value its operator as the lib stores it: `range` for `a-b`, `=` otherwise.
+ *
+ * @example
+ * toConditionValues(["68-100", "Normal"]); // → { "68-100": "range", Normal: "=" }
+ */
+const toConditionValues = (values: readonly string[]): ConditionValues =>
+  Object.fromEntries(values.map((value) => [value, /^\d+-\d+$/.test(value)
+    ? "range"
+    : "="] as const));
+
 /** Draws a yes/no condition set to true or false. */
 function drawBoolean(seed: number): ConditionChange {
   const faker = createFaker(seed);
@@ -56,7 +67,9 @@ function drawBoolean(seed: number): ConditionChange {
   const word = BOOLEAN_WORDS[condition] ?? condition;
   const value = faker.datatype.boolean({ probability: 0.75 });
 
-  return { condition, value: [value], phrase: value
+  return { condition, value: toConditionValues([value
+    ? "True"
+    : "False"]), phrase: value
     ? word
     : `not ${word}` };
 }
@@ -74,7 +87,7 @@ function drawValueSet(seed: number): ConditionChange {
   const condition = faker.helpers.arrayElement(Object.keys(VALUE_SETS).filter((name) => CONDITION_WORDS[name] !== undefined));
   const name = faker.helpers.objectKey(VALUE_SETS[condition] ?? {}) as string;
 
-  return { condition, value: name, phrase: describeValueSet(CONDITION_WORDS[condition] ?? condition, name) };
+  return { condition, value: toConditionValues(VALUE_SETS[condition]?.[name] ?? []), phrase: describeValueSet(CONDITION_WORDS[condition] ?? condition, name) };
 }
 
 /** Draws a literal range, such as item level 75-86, or one value when both ends meet. */
@@ -95,7 +108,9 @@ function drawRange(seed: number): ConditionChange {
       () => `from ${from} to ${to}`,
     ], deriveSeed(seed, "form"));
 
-  return { condition, value: [`${from}-${to}`], phrase: `${CONDITION_WORDS[condition] ?? condition} ${shown}` };
+  return { condition, value: toConditionValues([from === to
+    ? String(from)
+    : `${from}-${to}`]), phrase: `${CONDITION_WORDS[condition] ?? condition} ${shown}` };
 }
 
 /** Draws a literal list of rarities or influences. */
@@ -106,7 +121,7 @@ function drawListed(seed: number): ConditionChange {
     ? RARITIES
     : INFLUENCES, { min: 1, max: 3 });
 
-  return { condition, value: values, phrase: `${CONDITION_WORDS[condition] ?? condition} ${formatList(values.map((value) => value.toLowerCase()))}` };
+  return { condition, value: toConditionValues(values), phrase: `${CONDITION_WORDS[condition] ?? condition} ${formatList(values.map((value) => value.toLowerCase()))}` };
 }
 
 /** Draws one condition edit of any shape: yes/no, named set, range or listed values. */

@@ -1,5 +1,6 @@
 import { executeCommand, type Command } from "@poe/panel-state/execute-command";
-import { SUMMARY_CONFIG } from "@poe/panel-state/summary-config";
+import { SPLIT_DEFAULTS } from "@poe/panel-state/split-defaults";
+import { SUMMARY_CONFIG, toSummaryTree } from "@poe/panel-state/summary-config";
 import type { PanelState } from "@poe/panel-state/types";
 import { summarizeDiff } from "@util/diff-summary/summarize-diff";
 import type { PlayedScenario } from "../build-scenarios.ts";
@@ -49,7 +50,8 @@ function tryWrongCommand(kind: RejectKind, command: Command, before: PanelState,
 /** Runs a command and summarizes it, or undefined when the executor refuses it. */
 function summarizeCommand(scenario: PlayedScenario, before: PanelState, command: Command): readonly string[] | undefined {
   try {
-    return summarizeDiff({ start: scenario.start, before, after: executeCommand(before, command) }, SUMMARY_CONFIG);
+    const after = executeCommand(before, command, SPLIT_DEFAULTS);
+    return summarizeDiff({ start: toSummaryTree(scenario.start), before: toSummaryTree(before), after: toSummaryTree(after) }, SUMMARY_CONFIG);
   } catch {
     return undefined;
   }

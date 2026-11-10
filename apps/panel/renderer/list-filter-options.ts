@@ -6,7 +6,7 @@ import type { FilterSection } from "./store.ts";
 export function listFilterOptions(state: PanelState, section: FilterSection): readonly string[] {
   if (section === "category") return Object.keys(state.categories).toSorted();
   if (section === "seeder") return listSeeders(state).map((entry) => entry.name).toSorted();
-  const seederTags = listSeeders(state).flatMap((entry) => Object.keys(entry.seeder.tags ?? {}));
-  const itemTags = Object.values(state.items).flatMap((item) => Object.keys(item.tags ?? {}));
-  return [...new Set([...seederTags, ...itemTags])].toSorted();
+  const seederTags = Object.values(state.seederTags).flatMap((entry) => Object.keys(entry.tags));
+  const tagSeederTags = Object.values(state.tagSeeders).flatMap((entry) => Object.keys(entry.tags));
+  return [...new Set([...seederTags, ...tagSeederTags])].toSorted();
 }

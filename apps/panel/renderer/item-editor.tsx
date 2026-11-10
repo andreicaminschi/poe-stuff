@@ -2,7 +2,6 @@ import { formatCondition } from "@poe/panel-state/generate-items";
 import type { Item } from "@poe/panel-state/types";
 import { useState } from "react";
 import { buildItemUpdate, toItemDraft } from "./build-item-update.ts";
-import { ChipList } from "./chip-list.tsx";
 import { DialogFrame } from "./dialog-frame.tsx";
 import type { ItemRow } from "./list-item-rows.ts";
 import { PriceList } from "./price-list.tsx";
@@ -52,8 +51,17 @@ function ItemDraftEditor({ row, item }: DraftProps) {
           <div className="chips">{row.seederTags.map((tag) => <span key={tag} className="chip outline">{tag}</span>)}</div>
         </div>
         <div>
-          <h3>Tags</h3>
-          <ChipList values={draft.tags} placeholder="Add tag" onChange={(tags) => setDraft({ ...draft, tags })} />
+          <h3>Tag seeders</h3>
+          {row.tagSeeders.length === 0
+            ? <p className="empty">None match.</p>
+            : null}
+          {row.tagSeeders.map((match) => (
+            <div key={match.name} className="condition-head">
+              <span>{match.name}</span>
+              <span className="sp" />
+              <span className="chips">{match.tags.map((tag) => <span key={tag} className="chip">{tag}</span>)}</span>
+            </div>
+          ))}
         </div>
         <div>
           <h3>Prices</h3>

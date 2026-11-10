@@ -3,7 +3,8 @@ import { CategoriesTab } from "./categories-tab.tsx";
 import { DialogHost } from "./dialog-host.tsx";
 import { ItemsTab } from "./items-tab.tsx";
 import { PlanDialog } from "./plan-dialog.tsx";
-import { usePanel } from "./store.ts";
+import { usePanel, type Mode } from "./store.ts";
+import { TagSeedersTab } from "./tag-seeders-tab.tsx";
 
 /** Ctrl+Z undoes, outside text fields. */
 function useUndoKey(): void {
@@ -71,6 +72,12 @@ function ErrorBanner() {
   );
 }
 
+function ModeTab({ mode }: { readonly mode: Mode }) {
+  if (mode === "items") return <ItemsTab />;
+  if (mode === "tagSeeders") return <TagSeedersTab />;
+  return <CategoriesTab />;
+}
+
 export function App() {
   const view = usePanel((state) => state.view);
   const mode = usePanel((state) => state.mode);
@@ -106,12 +113,19 @@ export function App() {
         >
           Categories
         </button>
+        <button
+          type="button"
+          className={mode === "tagSeeders"
+            ? "tab on"
+            : "tab"}
+          onClick={() => setMode("tagSeeders")}
+        >
+          Tag Seeders
+        </button>
       </nav>
       {view === undefined
         ? <p className="empty">Loading…</p>
-        : (mode === "items"
-            ? <ItemsTab />
-            : <CategoriesTab />)}
+        : <ModeTab mode={mode} />}
       <DialogHost />
       {plan === undefined
         ? null

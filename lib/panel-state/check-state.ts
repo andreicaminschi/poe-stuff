@@ -10,11 +10,33 @@ function allowsEmpty(path: readonly string[]): boolean {
   return path.length === 4 && path[0] === "categories" && path[2] === "seeders";
 }
 
-/** Tells whether a leaf fits its place: an operator in a condition, a boolean in a split, `true` anywhere else. */
+/** Tells whether a leaf fits its place: an operator in a seeder condition, a boolean in a split, `true` anywhere else. */
 function fitsLeaf(value: unknown, path: readonly string[]): boolean {
-  if (path[4] === "conditions") return OPERATORS.includes(value);
-  if (path[4] === "split") return typeof value === "boolean";
+  if (path[0] === "categories" && path[4] === "conditions") return OPERATORS.includes(value);
+  if (path[0] === "categories" && path[4] === "split") return typeof value === "boolean";
   return value === true;
+}
+
+/** Lists the parts a tag map must hold: tags on every seeder entry, conditions and tags on every tag seeder. */
+function listMissingParts(state: PanelState): readonly string[] {
+  const seederTags = Object.entries(state.seederTags).flatMap(([seeder, entry]) => (entry.tags === undefined
+    ? [`seederTags.${seeder} has no tags`]
+    : []));
+  const tagSeeders = Object.entries(state.tagSeeders).flatMap(([name, entry]) => [
+    ...(entry.conditions === undefined
+      ? [`tagSeeders.${name} has no conditions`]
+      : []),
+    ...(entry.tags === undefined
+      ? [`tagSeeders.${name} has no tags`]
+      : []),
+  ]);
+  return [...seederTags, ...tagSeeders];
+}
+
+/** Lists the seederTags entries whose seeder no category holds. */
+function listOrphanSeederTags(state: PanelState): readonly string[] {
+  const seeders = new Set(Object.values(state.categories).flatMap((category) => Object.keys(category.seeders ?? {})));
+  return Object.keys(state.seederTags).filter((seeder) => !seeders.has(seeder)).map((seeder) => `seederTags "${seeder}" names no seeder`);
 }
 
 /** Tells whether a value is one price. */
@@ -63,11 +85,13 @@ function listItemProblems(state: PanelState, splitDefaults: SplitSettings): read
 
 /**
  * Lists every way a state breaks its contract: keyed maps only, no stored empty map, one
- * category per seeder name, item data only for generated items, and one category per item.
- * Empty when the state holds.
+ * category per seeder name, item data only for generated items, one category per item, and
+ * seeder tags only for seeders that exist. Empty when the state holds.
  */
 export const checkState = (state: PanelState, splitDefaults: SplitSettings): readonly string[] => [
   ...listRepeatedSeeders(state),
   ...Object.entries(state).flatMap(([key, value]) => listShapeProblems(value, [key])),
+  ...listMissingParts(state),
+  ...listOrphanSeederTags(state),
   ...listItemProblems(state, splitDefaults),
 ];

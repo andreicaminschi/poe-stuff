@@ -1,12 +1,17 @@
+import type { PanelState } from "@poe/panel-state/types";
 import type { ScenarioBuilder } from "../types.ts";
 import { deriveSeed } from "./derive-seed.ts";
-import { pickOne, pickSeeder, pickSome } from "./pick.ts";
+import { listSeeders, pickOne, pickSeeder, pickSome } from "./pick.ts";
 import { formatList, pickWording, varyName } from "./word.ts";
+
+/** Lists every known item name any seeder holds, once each. */
+const listKnownItems = (state: PanelState): readonly string[] =>
+  [...new Set(listSeeders(state).flatMap((placed) => Object.keys(placed.value.names ?? {})))];
 
 /** Builds a scenario that adds a real item name, from anywhere in the data, to any seeder that does not list it yet. */
 const buildAddKnownItemScenario: ScenarioBuilder = (state, seed) => {
   const placed = pickSeeder(state, deriveSeed(seed, "seeder"));
-  const item = pickOne(Object.keys(state.items).filter((name) => placed.value.knownItems?.[name] === undefined), "an item the seeder lacks", deriveSeed(seed, "item"));
+  const item = pickOne(listKnownItems(state).filter((name) => placed.value.names?.[name] === undefined), "an item the seeder lacks", deriveSeed(seed, "item"));
   const shown = varyName(placed.seeder, deriveSeed(seed, "shown"));
 
   return {
@@ -42,14 +47,14 @@ const buildAddKnownItemScenario: ScenarioBuilder = (state, seed) => {
       () => `${item} is part of ${shown}`,
     ], deriveSeed(seed, "wording")),
     setup: [],
-    steps: [{ type: "updateSeeders", targets: { seeders: [placed.seeder] }, add: { knownItems: [item] } }],
+    steps: [{ type: "updateSeeders", targets: { seeders: [placed.seeder] }, add: { names: [item] } }],
   };
 };
 
 /** Builds a scenario that removes one or two known items, which the setup first puts on any seeder. */
 const buildRemoveKnownItemsScenario: ScenarioBuilder = (state, seed) => {
   const placed = pickSeeder(state, deriveSeed(seed, "seeder"));
-  const items = pickSome(Object.keys(state.items).filter((name) => placed.value.knownItems?.[name] === undefined), 1, 2, deriveSeed(seed, "items"));
+  const items = pickSome(listKnownItems(state).filter((name) => placed.value.names?.[name] === undefined), 1, 2, deriveSeed(seed, "items"));
   const shown = varyName(placed.seeder, deriveSeed(seed, "shown"));
   const listed = formatList(items);
 
@@ -84,8 +89,8 @@ const buildRemoveKnownItemsScenario: ScenarioBuilder = (state, seed) => {
       () => `I don't want ${listed} under ${shown}`,
       () => `Can ${listed} come off ${shown}?`,
     ], deriveSeed(seed, "wording")),
-    setup: [{ type: "updateSeeders", targets: { seeders: [placed.seeder] }, add: { knownItems: items } }],
-    steps: [{ type: "updateSeeders", targets: { seeders: [placed.seeder] }, remove: { knownItems: items } }],
+    setup: [{ type: "updateSeeders", targets: { seeders: [placed.seeder] }, add: { names: items } }],
+    steps: [{ type: "updateSeeders", targets: { seeders: [placed.seeder] }, remove: { names: items } }],
   };
 };
 

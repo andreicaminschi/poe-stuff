@@ -36,7 +36,7 @@ export function ItemList() {
                 </span>
                 <span className="item-tags">
                   {row.seederTags.map((tag) => <span key={`s:${tag}`} className="chip outline">{tag}</span>)}
-                  {row.itemTags.map((tag) => <span key={`i:${tag}`} className="chip">{tag}</span>)}
+                  {row.tagSeederTags.map((tag) => <span key={`t:${tag}`} className="chip">{tag}</span>)}
                 </span>
               </div>
             ))}

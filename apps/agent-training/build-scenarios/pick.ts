@@ -58,7 +58,7 @@ const capitalize = (text: string): string => `${text.charAt(0).toUpperCase()}${t
  */
 export function drawNewName(state: PanelState, seed: number): string {
   const faker = createFaker(seed);
-  const known = [...Object.keys(state.categories), ...listSeeders(state).map((placed) => placed.seeder), ...Object.keys(state.items)];
+  const known = [...Object.keys(state.categories), ...listSeeders(state).map((placed) => placed.seeder), ...Object.keys(state.items), ...Object.keys(state.tagSeeders)];
   const name = faker.helpers.arrayElement([
     () => `${capitalize(faker.word.adjective())} ${capitalize(faker.word.noun())}`,
     () => capitalize(faker.word.noun()),

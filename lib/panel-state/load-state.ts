@@ -26,21 +26,17 @@ function buildBag(values: readonly string[]): Bag | undefined {
   return Object.fromEntries(values.map((value) => [value, true] as const));
 }
 
-/** Turns one stored seeder into its keyed form, leaving out every empty part. */
+/** Turns one stored seeder into its keyed form, leaving out every empty part. Its tags go to `seederTags`. */
 function buildSeeder(seeder: FileSeeder): Seeder {
   const conditions = Object.entries(seeder.conditions).flatMap(([name, values]) => (values.length === 0
     ? []
     : [[name, Object.fromEntries(values.map(convertValue))] as const]));
-  const tags = buildBag(seeder.tags ?? []);
   const names = buildBag(seeder.knownItems ?? []);
 
   return {
     ...(conditions.length === 0
       ? {}
       : { conditions: Object.fromEntries(conditions) }),
-    ...(tags === undefined
-      ? {}
-      : { tags }),
     ...(names === undefined
       ? {}
       : { names }),
@@ -92,14 +88,22 @@ function settleClashes(state: PanelState, order: readonly string[], splitDefault
  *
  * @example
  * loadState({ categories: [{ name: "Uniques", seeders: [{ name: "Gold Ring uniques", conditions: { ItemLevel: [[68, 100]] }, knownItems: ["Andvarius"] }] }] }, {});
- * // → { categories: { Uniques: { seeders: { "Gold Ring uniques": { conditions: { ItemLevel: { "68-100": "range" } }, names: { Andvarius: true } } } } }, items: {} }
+ * // → { categories: { Uniques: { seeders: { "Gold Ring uniques": { conditions: { ItemLevel: { "68-100": "range" } }, names: { Andvarius: true } } } } }, items: {}, seederTags: {}, tagSeeders: {} }
  */
 export function loadState(file: CategoriesFile, splitDefaults: SplitSettings): PanelState {
+  const seeders = file.categories.flatMap((category) => category.seeders);
   const state: PanelState = {
     categories: Object.fromEntries(file.categories.map((category) => [category.name, category.seeders.length === 0
       ? {}
       : { seeders: Object.fromEntries(category.seeders.map((seeder) => [seeder.name, buildSeeder(seeder)])) }])),
     items: {},
+    seederTags: Object.fromEntries(seeders.flatMap((seeder) => {
+      const tags = buildBag(seeder.tags ?? []);
+      return tags === undefined
+        ? []
+        : [[seeder.name, { tags }] as const];
+    })),
+    tagSeeders: {},
   };
 
   return settleClashes(state, file.categories.map((category) => category.name), splitDefaults);

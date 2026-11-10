@@ -11,6 +11,8 @@
     "./resolve-name": "./resolve-name.ts",
     "./execute-command": "./execute-command.ts",
     "./generate-items": "./generate-items.ts",
+    "./list-item-tags": "./list-item-tags.ts",
+    "./split-defaults": "./split-defaults.ts",
     "./value-sets": "./value-sets.ts",
     "./summary-config": "./summary-config.ts"
   },

@@ -1,8 +1,8 @@
 import { loadState, type CategoriesFile } from "@poe/panel-state/load-state";
+import { SPLIT_DEFAULTS } from "@poe/panel-state/split-defaults";
 import type { PanelState } from "@poe/panel-state/types";
 import type { Lake } from "@poe/lake/types";
 import { openSession, type Entry, type Session } from "./session.ts";
-import SPLIT_DEFAULTS from "./split-defaults.json" with { type: "json" };
 import { compareVersions } from "./version-store/compare-versions.ts";
 
 type VersionInfo = {

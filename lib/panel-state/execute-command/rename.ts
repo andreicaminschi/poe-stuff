@@ -1,9 +1,10 @@
 import type { PanelState } from "../types.ts";
 import { findSeederCategory, requireName, resolveCategory, resolveSeeder } from "./find-seeder.ts";
+import { resolveTagSeeder } from "./find-tag-seeder.ts";
 
 export type RenameCommand = {
   readonly type: "rename";
-  readonly target: "category" | "seeder";
+  readonly target: "category" | "seeder" | "tagSeeder";
   readonly name: string;
   readonly to: string;
 };
@@ -23,7 +24,7 @@ function renameCategory(state: PanelState, name: string, to: string): PanelState
   return { ...state, categories: renameKey(state.categories, category, to) };
 }
 
-/** Renames a seeder in place, keeping its contents and its category. The current name may be misspelt; the new one is taken as written. */
+/** Renames a seeder in place, keeping its contents, its category and its tags. The current name may be misspelt; the new one is taken as written. */
 function renameSeeder(state: PanelState, name: string, to: string): PanelState {
   const { category, seeder } = resolveSeeder(state, name);
   const holder = findSeederCategory(state, to);
@@ -31,12 +32,26 @@ function renameSeeder(state: PanelState, name: string, to: string): PanelState {
   if (seeder === to) throw new Error(`"${seeder}" already has that name.`);
   if (holder !== undefined) throw new Error(`Seeder "${to}" already exists in ${holder}.`);
   const seeders = state.categories[category]?.seeders ?? {};
-  return { ...state, categories: { ...state.categories, [category]: { seeders: renameKey(seeders, seeder, to) } } };
+  return {
+    ...state,
+    categories: { ...state.categories, [category]: { seeders: renameKey(seeders, seeder, to) } },
+    seederTags: renameKey(state.seederTags, seeder, to),
+  };
 }
 
-/** Gives a category or a seeder a new name. Throws when the name matches nothing, the new one is taken, or nothing changes. */
+/** Renames a tag seeder, keeping its contents. The current name may be misspelt; the new one is taken as written. */
+function renameTagSeeder(state: PanelState, name: string, to: string): PanelState {
+  const tagSeeder = resolveTagSeeder(state, name);
+
+  if (tagSeeder === to) throw new Error(`"${tagSeeder}" already has that name.`);
+  if (state.tagSeeders[to] !== undefined) throw new Error(`Tag seeder "${to}" already exists.`);
+  return { ...state, tagSeeders: renameKey(state.tagSeeders, tagSeeder, to) };
+}
+
+/** Gives a category, a seeder or a tag seeder a new name. Throws when the name matches nothing, the new one is taken, or nothing changes. */
 export function executeRename(state: PanelState, command: RenameCommand): PanelState {
   requireName(command.to, command.target);
   if (command.target === "category") return renameCategory(state, command.name, command.to);
+  if (command.target === "tagSeeder") return renameTagSeeder(state, command.name, command.to);
   return renameSeeder(state, command.name, command.to);
 }

@@ -2,6 +2,7 @@ import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { createLakeService } from "@poe/lake/service";
 import { loadState, type CategoriesFile } from "@poe/panel-state/load-state";
+import { SPLIT_DEFAULTS } from "@poe/panel-state/split-defaults";
 import type { PanelState } from "@poe/panel-state/types";
 import { buildScenarios, type PlayedScenario } from "./build-scenarios.ts";
 import type { RowSetManifest } from "./build-rows-cli.ts";
@@ -77,7 +78,7 @@ async function main(): Promise<void> {
   const { values } = parseArgs({ options: { run: { type: "string" } } });
   if (values.run === undefined) throw new Error("Pass --run=<folder under .s3/agent-training/runs>.");
 
-  const state = loadState(await createLakeService().readJson<CategoriesFile>(STATE_KEY));
+  const state = loadState(await createLakeService().readJson<CategoriesFile>(STATE_KEY), SPLIT_DEFAULTS);
   const lines: string[] = [`# Run ${values.run}`, ""];
   const headline: string[] = [];
 

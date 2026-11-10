@@ -1,26 +1,34 @@
 import { executeCreateCategory, type CreateCategoryCommand } from "./execute-command/create-category.ts";
 import { executeCreateSeeder, type CreateSeederCommand } from "./execute-command/create-seeder.ts";
+import { executeCreateTagSeeder, type CreateTagSeederCommand } from "./execute-command/create-tag-seeder.ts";
 import { executeDeleteCategory, type DeleteCategoryCommand } from "./execute-command/delete-category.ts";
 import { executeDeleteSeeders, type DeleteSeedersCommand } from "./execute-command/delete-seeders.ts";
+import { executeDeleteTagSeeder, type DeleteTagSeederCommand } from "./execute-command/delete-tag-seeder.ts";
 import { executeMoveSeeders, type MoveSeedersCommand } from "./execute-command/move-seeders.ts";
 import { executeRename, type RenameCommand } from "./execute-command/rename.ts";
 import { executeUpdateItem, type UpdateItemCommand } from "./execute-command/update-item.ts";
+import { executeUpdateSeederTags, type UpdateSeederTagsCommand } from "./execute-command/update-seeder-tags.ts";
 import { executeUpdateSeeders, type UpdateSeedersCommand } from "./execute-command/update-seeders.ts";
+import { executeUpdateTagSeeder, type UpdateTagSeederCommand } from "./execute-command/update-tag-seeder.ts";
 import { generateItems, listClashes } from "./generate-items.ts";
 import type { PanelState, SplitSettings } from "./types.ts";
 
 export type {
   CreateCategoryCommand,
   CreateSeederCommand,
+  CreateTagSeederCommand,
   DeleteCategoryCommand,
   DeleteSeedersCommand,
+  DeleteTagSeederCommand,
   MoveSeedersCommand,
   RenameCommand,
   UpdateItemCommand,
+  UpdateSeederTagsCommand,
   UpdateSeedersCommand,
+  UpdateTagSeederCommand,
 };
 
-/** The commands that edit seeders and categories. They never touch item data directly. */
+/** The commands that edit seeders, categories and tags. They never touch item data directly. */
 type SeederCommand =
   | CreateCategoryCommand
   | RenameCommand
@@ -28,7 +36,11 @@ type SeederCommand =
   | CreateSeederCommand
   | UpdateSeedersCommand
   | MoveSeedersCommand
-  | DeleteSeedersCommand;
+  | DeleteSeedersCommand
+  | UpdateSeederTagsCommand
+  | CreateTagSeederCommand
+  | UpdateTagSeederCommand
+  | DeleteTagSeederCommand;
 
 export type Command = SeederCommand | UpdateItemCommand;
 
@@ -43,11 +55,21 @@ const EXECUTORS: Executors = {
   createSeeder: executeCreateSeeder,
   updateSeeders: executeUpdateSeeders,
   moveSeeders: executeMoveSeeders,
+  updateSeederTags: executeUpdateSeederTags,
+  createTagSeeder: executeCreateTagSeeder,
+  updateTagSeeder: executeUpdateTagSeeder,
+  deleteTagSeeder: executeDeleteTagSeeder,
   deleteSeeders: executeDeleteSeeders,
 };
 
 /** Every command type, in a fixed order. */
 export const COMMAND_TYPES = [...Object.keys(EXECUTORS), "updateItem"] as readonly Command["type"][];
+
+/** The commands an agent may propose. Prices stay a panel-only edit. */
+export type AgentCommand = Exclude<Command, UpdateItemCommand>;
+
+/** Every agent command type, in a fixed order: the Router's labels. */
+export const AGENT_COMMAND_TYPES = Object.keys(EXECUTORS) as readonly AgentCommand["type"][];
 
 /** Returns the state with item data kept only for generated items. Throws when two categories output one item. */
 function settleItems(state: PanelState, splitDefaults: SplitSettings): PanelState {

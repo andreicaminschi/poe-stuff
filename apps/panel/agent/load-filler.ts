@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import type { Vocabulary } from "@poe/agent-input/vocabulary";
-import { COMMAND_TYPES, type Command } from "@poe/panel-state/execute-command";
+import { AGENT_COMMAND_TYPES, type AgentCommand } from "@poe/panel-state/execute-command";
 import { getLlama, LlamaCompletion, LlamaText, type GbnfJsonSchema, type Llama, type LlamaGrammar } from "node-llama-cpp";
 import { buildFillerSchemas } from "./filler-schema.ts";
 
@@ -10,7 +10,7 @@ export type FillerPrecision = "f16" | "q8_0";
 export type FillerBackend = "vulkan" | "cuda" | false;
 
 export type LoadedFiller = {
-  readonly fillParams: (input: string, type: Command["type"]) => Promise<string>;
+  readonly fillParams: (input: string, type: AgentCommand["type"]) => Promise<string>;
   readonly release: () => Promise<void>;
 };
 
@@ -33,7 +33,7 @@ export async function loadFiller(exportDir: string, precision: FillerPrecision, 
   const context = await model.createContext({ contextSize: 1024 });
   const completion = new LlamaCompletion({ contextSequence: context.getSequence() });
   const schemas = buildFillerSchemas(vocabulary);
-  const grammars = Object.fromEntries(await Promise.all(COMMAND_TYPES.map(async (type) => [type, await createAnswerGrammar(llama, schemas[type])] as const))) as Readonly<Record<Command["type"], LlamaGrammar>>;
+  const grammars = Object.fromEntries(await Promise.all(AGENT_COMMAND_TYPES.map(async (type) => [type, await createAnswerGrammar(llama, schemas[type])] as const))) as Readonly<Record<AgentCommand["type"], LlamaGrammar>>;
 
   return {
     fillParams: async (input, type) => (await completion.generateCompletion(filler.prompt.replace("{input}", () => input), {

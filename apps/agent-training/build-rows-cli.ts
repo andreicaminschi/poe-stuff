@@ -5,6 +5,7 @@ import { VOCABULARY } from "@poe/agent-input/vocabulary";
 import type { Lake } from "@poe/lake/types";
 import { checkState } from "@poe/panel-state/check-state";
 import { loadState, type CategoriesFile } from "@poe/panel-state/load-state";
+import { SPLIT_DEFAULTS } from "@poe/panel-state/split-defaults";
 import { buildScenarios, type PlayedScenario } from "./build-scenarios.ts";
 import { buildRows } from "./build-rows.ts";
 import { splitScenario } from "./split-scenarios.ts";
@@ -73,8 +74,8 @@ async function main(): Promise<void> {
   if (!["all", "train", "eval"].includes(values.split)) throw new Error("--split must be all, train or eval.");
 
   const lake = createLakeService();
-  const state = loadState(await lake.readJson<CategoriesFile>(STATE_KEY));
-  const problems = checkState(state);
+  const state = loadState(await lake.readJson<CategoriesFile>(STATE_KEY), SPLIT_DEFAULTS);
+  const problems = checkState(state, SPLIT_DEFAULTS);
   if (problems.length > 0) throw new Error(`The promoted state breaks the contract:\n${problems.join("\n")}`);
 
   const scenarios = buildScenarios(state, Number(values["per-kind"]), Number(values.seed));

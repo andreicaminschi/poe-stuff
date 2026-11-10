@@ -1,6 +1,7 @@
 import { formatCondition, generateItems, type ItemCondition } from "@poe/panel-state/generate-items";
+import { listItemTags, type TagSeederMatch } from "@poe/panel-state/list-item-tags";
 import type { PanelState } from "@poe/panel-state/types";
-import SPLIT_DEFAULTS from "../split-defaults.json" with { type: "json" };
+import { SPLIT_DEFAULTS } from "@poe/panel-state/split-defaults";
 
 /** One generated item as the list shows it. Seeders in one category may share an item. */
 export type ItemRow = {
@@ -16,7 +17,10 @@ export type ItemRow = {
   readonly names: readonly string[];
   readonly conditions: readonly ItemCondition[];
   readonly seederTags: readonly string[];
-  readonly itemTags: readonly string[];
+  /** Every tag seeder the item matches, with its tags. */
+  readonly tagSeeders: readonly TagSeederMatch[];
+  /** The tags those tag seeders give, once each. */
+  readonly tagSeederTags: readonly string[];
 };
 
 /** Splits an item into `Category / BaseType` and `[every other condition]`. */
@@ -44,7 +48,9 @@ export function listItemRows(state: PanelState): readonly ItemRow[] {
     const category = first?.category ?? "";
     const seeders = items.map((item) => item.seeder);
     const stored = seeders.map((seeder) => state.categories[category]?.seeders?.[seeder]);
-    const seederTags = new Set(stored.flatMap((seeder) => Object.keys(seeder?.tags ?? {})));
+    const tags = items.map((item) => listItemTags(state, item));
+    const seederTags = new Set(tags.flatMap((entry) => entry.seederTags));
+    const tagSeeders = tags[0]?.tagSeeders ?? [];
     const names = new Set(stored.flatMap((seeder) => Object.keys(seeder?.names ?? {})));
     const { head, rest } = nameItem(category, first?.conditions ?? []);
     return {
@@ -59,7 +65,8 @@ export function listItemRows(state: PanelState): readonly ItemRow[] {
       names: [...names],
       conditions: first?.conditions ?? [],
       seederTags: [...seederTags],
-      itemTags: Object.keys(state.items[key]?.tags ?? {}),
+      tagSeeders,
+      tagSeederTags: [...new Set(tagSeeders.flatMap((match) => match.tags))],
     };
   }).toSorted((left, right) => left.name.localeCompare(right.name));
 }

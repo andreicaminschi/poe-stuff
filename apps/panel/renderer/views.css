@@ -28,6 +28,8 @@
 .field-row { display: grid; grid-template-columns: 80px minmax(0, 1fr); align-items: center; gap: 8px; }
 .condition-grid { display: grid; grid-template-columns: max-content max-content minmax(0, 1fr) max-content; align-items: start; gap: 6px 10px; margin-bottom: 6px; }
 .condition-grid .grid-head { color: var(--muted); font-size: 12px; }
+.tag-condition-grid { display: grid; grid-template-columns: max-content minmax(0, 1fr) max-content; align-items: start; gap: 6px 10px; margin-bottom: 6px; }
+.tag-condition-grid .grid-head { color: var(--muted); font-size: 12px; }
 .condition-actions { display: flex; align-items: center; gap: 6px; }
 .value-adder { display: inline-flex; gap: 4px; }
 .value-adder .field { min-width: 90px; width: 110px; }
