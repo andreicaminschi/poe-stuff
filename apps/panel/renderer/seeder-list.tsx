@@ -10,6 +10,7 @@ export function SeederList() {
   const { selectSeeder, openDialog } = usePanel.getState();
   const rows = usePanel((store) => store.itemRows);
   if (state === undefined) return null;
+  const itemCounts = Map.groupBy(rows.flatMap((row) => row.seeders), (name) => name);
   const producing = new Set(rows.filter((row) => matchesSearch(row, search)).flatMap((row) => row.seeders));
   const seeders = listScopedSeeders(state, pickedCategories, [])
     .filter(({ name }) => search.trim() === "" || producing.has(name));
@@ -42,6 +43,7 @@ export function SeederList() {
             onClick={() => selectSeeder(name)}
           >
             <span className="name">{name}</span>
+            <span className="count">{itemCounts.get(name)?.length ?? 0}</span>
           </div>
         ))}
       </div>
